@@ -4,6 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "electron": "electron electron/main.js", 
+    "start": "concurrently \"npm run dev\" \"npm run electron\"",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
