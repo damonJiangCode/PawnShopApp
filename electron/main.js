@@ -1,17 +1,20 @@
-import { app, BrowserWindow } from 'electron';
-import path from 'path';
+import { app, BrowserWindow, Menu } from 'electron';
+import menu from './views/menu.js'
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1200,
+    height: 800,
     webPreferences: {
-      nodeIntegration: true, // 允许使用 Node.js API
+      nodeIntegration: true,
       contextIsolation: false,
     },
   });
 
-  win.loadURL('http://localhost:5173'); // 载入 Vite 开发服务器
+  win.loadURL('http://localhost:5173');
+
+  Menu.setApplicationMenu(menu);
+
 }
 
 app.whenReady().then(createWindow);
