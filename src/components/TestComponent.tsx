@@ -20,7 +20,7 @@ import PersonIcon from "@mui/icons-material/Person";
 
 const drawerWidth = 300;
 
-const App: React.FC = () => {
+const TestComponent: React.FC = () => {
     const [isLeftPanelOpen, setIsLeftPanelOpen] = useState(true);
     const [searchMode, setSearchMode] = useState<"ticket" | "name">("name");
     const [searchFirstName, setSearchFirstName] = useState("");
@@ -159,6 +159,13 @@ const App: React.FC = () => {
                             <Typography variant="caption" color="text.disabled">
                                 Try adjusting your search criteria
                             </Typography>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                sx={{ mt: 2 }}
+                            >
+                                Add Customer
+                            </Button>
                         </Box>
                     )}
                 </Stack>
@@ -208,4 +215,4 @@ const App: React.FC = () => {
     );
 };
 
-export default App;
+export default TestComponent;
