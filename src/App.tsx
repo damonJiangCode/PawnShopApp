@@ -1,10 +1,10 @@
 import { Container } from "@mui/material";
-import TestComponent from "./components/TestComponent";
+import MainLayout from "./components/MainLayout";
 
 function App() {
   return (
     <Container>
-      <TestComponent />
+      <MainLayout />
     </Container>
   );
 }
