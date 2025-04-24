@@ -21,7 +21,7 @@ function createWindow() {
 
   win.loadURL("http://localhost:5173");
 
-  win.webContents.openDevTools();
+  // win.webContents.openDevTools();
 
   Menu.setApplicationMenu(menu);
 }
