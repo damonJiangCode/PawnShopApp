@@ -172,6 +172,11 @@ const MainLayout: React.FC = () => {
                   <Typography variant="body2" color="text.secondary">
                     No customers found
                   </Typography>
+                </Box>
+              )}
+
+              {searchMode == "name" && (
+                <Box sx={{ textAlign: "center", py: 2 }}>
                   <Button
                     variant="contained"
                     sx={{ mt: 2 }}
