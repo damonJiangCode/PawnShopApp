@@ -18,9 +18,8 @@ import {
   TableBody,
   TableContainer,
   Divider,
+  SelectChangeEvent,
 } from "@mui/material";
-import MinimizeIcon from "@mui/icons-material/Minimize";
-import CloseIcon from "@mui/icons-material/Close";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -125,9 +124,7 @@ const App: React.FC = () => {
   }, [formData.weightLb]);
 
   const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -187,30 +184,28 @@ const App: React.FC = () => {
         }}
       >
         <Box component="form" onSubmit={handleSubmit} sx={{ p: 3 }}>
-          {/* Main Body: Flex layout */}
+          {/* main body */}
           <Box sx={{ display: "flex", gap: 2 }}>
-            {/* Left Panel */}
+            {/* left panel */}
             <Box
               sx={{ flex: 2, display: "flex", flexDirection: "column", gap: 2 }}
             >
-              {/* Name Fields */}
+              {/* name fields */}
               <Box sx={{ display: "flex", gap: 2 }}>
                 <TextField
                   fullWidth
                   name="lastName"
-                  label="Last Name *"
+                  label="Last Name"
                   value={formData.lastName}
                   onChange={handleInputChange}
-                  required
                   size="small"
                 />
                 <TextField
                   fullWidth
                   name="firstName"
-                  label="First Name *"
+                  label="First Name"
                   value={formData.firstName}
                   onChange={handleInputChange}
-                  required
                   size="small"
                 />
                 <TextField
@@ -223,37 +218,44 @@ const App: React.FC = () => {
                 />
               </Box>
 
-              {/* DOB & Gender */}
+              {/* DOB & gender */}
               <Box sx={{ display: "flex", gap: 2 }}>
                 <TextField
                   fullWidth
                   type="date"
                   name="dateOfBirth"
-                  label="Date of Birth *"
+                  label="Date of Birth"
                   value={formData.dateOfBirth}
                   onChange={handleInputChange}
-                  required
                   size="small"
-                  InputLabelProps={{ shrink: true }}
+                  slotProps={{
+                    inputLabel: {
+                      shrink: true,
+                    },
+                  }}
                 />
                 <FormControl fullWidth size="small">
                   <InputLabel>Gender</InputLabel>
                   <Select
                     name="gender"
                     value={formData.gender}
-                    // onChange={handleInputChange}
+                    onChange={(e) => {
+                      const { name, value } = e.target;
+                      handleInputChange({
+                        target: { name, value },
+                      } as React.ChangeEvent<HTMLInputElement>);
+                    }}
                     label="Gender"
                   >
-                    <MenuItem value="">
-                      <em>None</em>
-                    </MenuItem>
+                    <MenuItem value="" />
                     <MenuItem value="male">Male</MenuItem>
                     <MenuItem value="female">Female</MenuItem>
                     <MenuItem value="other">Other</MenuItem>
                   </Select>
                 </FormControl>
               </Box>
-              {/* Address & City */}
+
+              {/* address & city */}
               <Box sx={{ display: "flex", gap: 2 }}>
                 <TextField
                   fullWidth
@@ -272,7 +274,8 @@ const App: React.FC = () => {
                   size="small"
                 />
               </Box>
-              {/* Province, Country, Postal */}
+
+              {/* province, country, postal */}
               <Box sx={{ display: "flex", gap: 2 }}>
                 <TextField
                   fullWidth
@@ -299,6 +302,7 @@ const App: React.FC = () => {
                   size="small"
                 />
               </Box>
+
               {/* Notes */}
               <TextField
                 fullWidth
