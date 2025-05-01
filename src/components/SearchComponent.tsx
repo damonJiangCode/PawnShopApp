@@ -19,18 +19,120 @@ const drawerWidth = 330;
 const collapsedWidth = 0;
 
 type Customer = {
+  clientId: string;
   firstName: string;
   lastName: string;
+  middleName: string;
+  gender: string;
+  dateOfBirth: string;
+  street: string;
+  city: string;
+  province: string;
+  country: string;
+  phoneNumber: string;
+  age: number;
+  hairColor: string;
+  eyeColor: string;
+  heightM: number;
+  heightFt: string;
+  weightKg: number;
+  weightLb: number;
+  lastPhotoUpdate: string;
+  statistics: {
+    redeemed: number;
+    expired: number;
+    stolen: number;
+    overdue: {
+      current: number;
+      total: number;
+    };
+  };
+  identifications: { type: string; number: string }[];
 };
 
 interface SearchComponentProps {
   isDrawerOpen?: boolean;
   onDrawerOpenChange?: (isOpen: boolean) => void;
+  onCustomerSelect?: (customer: Customer) => void;
 }
+
+// mock 数据
+const MOCK_CUSTOMERS: Customer[] = [
+  {
+    clientId: "CL-78945",
+    firstName: "Michael",
+    lastName: "Johnson",
+    middleName: "David",
+    gender: "Male",
+    dateOfBirth: "1985-07-15",
+    street: "123 Maple Avenue",
+    city: "Toronto",
+    province: "Ontario",
+    country: "Canada",
+    phoneNumber: "+1 (416) 555-7890",
+    age: 39,
+    hairColor: "Brown",
+    eyeColor: "Blue",
+    heightM: 1.85,
+    heightFt: "6'1\"",
+    weightKg: 82,
+    weightLb: 180.8,
+    lastPhotoUpdate: "2024-12-10",
+    statistics: {
+      redeemed: 28,
+      expired: 3,
+      stolen: 1,
+      overdue: {
+        current: 5,
+        total: 12,
+      },
+    },
+    identifications: [
+      { type: "Driver's License", number: "DL-98765432" },
+      { type: "Passport", number: "PA-123456789" },
+      { type: "Health Card", number: "HC-456789123" },
+    ],
+  },
+  {
+    clientId: "CL-12345",
+    firstName: "Alice",
+    lastName: "Smith",
+    middleName: "Marie",
+    gender: "Female",
+    dateOfBirth: "1990-03-22",
+    street: "456 Oak Street",
+    city: "Vancouver",
+    province: "British Columbia",
+    country: "Canada",
+    phoneNumber: "+1 (604) 555-1234",
+    age: 34,
+    hairColor: "Black",
+    eyeColor: "Brown",
+    heightM: 1.68,
+    heightFt: "5'6\"",
+    weightKg: 60,
+    weightLb: 132.3,
+    lastPhotoUpdate: "2024-11-01",
+    statistics: {
+      redeemed: 15,
+      expired: 1,
+      stolen: 0,
+      overdue: {
+        current: 2,
+        total: 4,
+      },
+    },
+    identifications: [
+      { type: "Driver's License", number: "DL-12345678" },
+      { type: "Passport", number: "PA-987654321" },
+    ],
+  },
+];
 
 const SearchComponent: React.FC<SearchComponentProps> = ({
   isDrawerOpen = true,
   onDrawerOpenChange,
+  onCustomerSelect,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [firstName, setFirstName] = useState("");
@@ -41,22 +143,25 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
   );
 
   const handleSearch = async () => {
-    try {
-      if (!firstName.trim() && !lastName.trim()) {
-        alert("Please enter at least one name");
-        return;
-      }
-      setIsLoading(true);
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      // TODO: 这里是实际的 API 调用
-      // const results = await searchCustomers({ firstName, lastName });
-      setHasSearched(true);
-      setCustomerResults(null);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoading(false);
+    if (!firstName.trim() && !lastName.trim()) {
+      alert("Please enter at least one name");
+      return;
     }
+    setIsLoading(true);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // TODO: 这里需要调用后端API
+    const results = MOCK_CUSTOMERS.filter(
+      (c) =>
+        (firstName.trim() === "" ||
+          c.firstName
+            .toLowerCase()
+            .startsWith(firstName.trim().toLowerCase())) &&
+        (lastName.trim() === "" ||
+          c.lastName.toLowerCase().startsWith(lastName.trim().toLowerCase()))
+    );
+    setCustomerResults(results.length > 0 ? results : null);
+    setHasSearched(true);
+    setIsLoading(false);
   };
 
   const handleClear = () => {
@@ -140,13 +245,53 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
             </Button>
           </Stack>
 
-          {hasSearched && customerResults === null && (
-            <Box sx={{ textAlign: "center", py: 2 }}>
-              <Typography variant="body2" color="text.secondary">
-                No customer found
-              </Typography>
-            </Box>
-          )}
+          <Box>
+            {hasSearched && customerResults && customerResults.length > 0 && (
+              <Box sx={{ mt: 1 }}>
+                {/* 表头 */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    fontWeight: "bold",
+                    borderBottom: "1px solid #ccc",
+                    pb: 0.5,
+                    mb: 1,
+                  }}
+                >
+                  <Box sx={{ flex: 1 }}>Last Name</Box>
+                  <Box sx={{ flex: 1 }}>First Name</Box>
+                </Box>
+                {/* 数据行 */}
+                <Stack spacing={1}>
+                  {customerResults.map((c, idx) => (
+                    <Box
+                      key={idx}
+                      sx={{
+                        display: "flex",
+                        border: "1px solid #eee",
+                        borderRadius: 1,
+                        p: 1,
+                        bgcolor: "#fafafa",
+                        cursor: "pointer",
+                        "&:hover": { backgroundColor: "#e3f2fd" },
+                      }}
+                      onClick={() => onCustomerSelect?.(c)}
+                    >
+                      <Box sx={{ flex: 1 }}>{c.lastName}</Box>
+                      <Box sx={{ flex: 1 }}>{c.firstName}</Box>
+                    </Box>
+                  ))}
+                </Stack>
+              </Box>
+            )}
+            {hasSearched && customerResults === null && (
+              <Box sx={{ textAlign: "center", py: 2 }}>
+                <Typography variant="body2" color="text.secondary">
+                  No customer found
+                </Typography>
+              </Box>
+            )}
+          </Box>
 
           <Button variant="contained" color="primary" sx={{ mt: 2 }}>
             Add Customer
