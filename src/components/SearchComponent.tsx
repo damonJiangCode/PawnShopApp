@@ -42,15 +42,15 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
 
   const handleSearch = async () => {
     try {
-      setIsLoading(true);
       if (!firstName.trim() && !lastName.trim()) {
         alert("Please enter at least one name");
-        throw new Error("Please enter at least one name");
+        return;
       }
-      setHasSearched(true);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setIsLoading(true);
+      await new Promise((resolve) => setTimeout(resolve, 1500));
       // TODO: 这里是实际的 API 调用
       // const results = await searchCustomers({ firstName, lastName });
+      setHasSearched(true);
       setCustomerResults(null);
     } catch (error) {
       console.error(error);
