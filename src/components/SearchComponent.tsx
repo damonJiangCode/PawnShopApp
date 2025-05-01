@@ -5,49 +5,69 @@ import {
   TextField,
   Typography,
   Drawer,
-  ToggleButton,
-  ToggleButtonGroup,
   CircularProgress,
   Stack,
   IconButton,
 } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import ConfirmationNumberIcon from "@mui/icons-material/ConfirmationNumber";
 import PersonIcon from "@mui/icons-material/Person";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 
-const drawerWidth = 300;
-const collapsedWidth = 60;
+const drawerWidth = 330;
+const collapsedWidth = 0;
 
-const SearchComponent: React.FC = () => {
-  const [isDrawerOpen, setIsDrawerOpen] = useState(true);
-  const [searchMode, setSearchMode] = useState<"ticket" | "name">("name");
-  const [searchFirstName, setSearchFirstName] = useState("");
-  const [searchLastName, setSearchLastName] = useState("");
-  const [searchTicket, setSearchTicket] = useState("");
+type Customer = {
+  firstName: string;
+  lastName: string;
+};
+
+interface SearchComponentProps {
+  isDrawerOpen?: boolean;
+  onDrawerOpenChange?: (isOpen: boolean) => void;
+}
+
+const SearchComponent: React.FC<SearchComponentProps> = ({
+  isDrawerOpen = true,
+  onDrawerOpenChange,
+}) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [showNoCustomerResults, setShowNoCustomerResults] = useState(false);
-  const [searchResults, setSearchResults] = useState<unknown[]>([]);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [hasSearched, setHasSearched] = useState(false);
+  const [customerResults, setCustomerResults] = useState<null | Customer[]>(
+    null
+  );
 
   const handleSearch = async () => {
-    setIsLoading(true);
-    setShowNoCustomerResults(false);
-    // 模拟调用 electronAPI 接口
-    console.log("搜索数据库...");
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    console.log("获取用户信息...");
-    setShowNoCustomerResults(true);
-    setIsLoading(false);
+    try {
+      setIsLoading(true);
+      if (!firstName.trim() && !lastName.trim()) {
+        alert("Please enter at least one name");
+        throw new Error("Please enter at least one name");
+      }
+      setHasSearched(true);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // TODO: 这里是实际的 API 调用
+      // const results = await searchCustomers({ firstName, lastName });
+      setCustomerResults(null);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleClear = () => {
-    setSearchFirstName("");
-    setSearchLastName("");
-    setSearchTicket("");
-    setSearchResults([]);
-    setShowNoCustomerResults(false);
+    setFirstName("");
+    setLastName("");
+    setCustomerResults(null);
+    setHasSearched(false);
+  };
+
+  const handleDrawerToggle = () => {
+    onDrawerOpenChange?.(!isDrawerOpen);
   };
 
   return (
@@ -66,68 +86,35 @@ const SearchComponent: React.FC = () => {
         },
       }}
     >
-      {/* 收缩/展开按钮 */}
       <Box display="flex" justifyContent={isDrawerOpen ? "flex-end" : "center"}>
-        <IconButton onClick={() => setIsDrawerOpen(!isDrawerOpen)}>
+        <IconButton onClick={handleDrawerToggle}>
           {isDrawerOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
         </IconButton>
       </Box>
 
       {isDrawerOpen && (
         <Stack spacing={2}>
-          <Typography variant="h5" fontWeight="bold">
-            Search
-          </Typography>
-          <ToggleButtonGroup
-            color="primary"
-            value={searchMode}
-            exclusive
-            onChange={(_event, newValue) => {
-              if (newValue !== null) {
-                setSearchMode(newValue);
-              }
-            }}
-            fullWidth
-          >
-            <ToggleButton value="name">
-              <PersonIcon sx={{ mr: 1 }} />
-              Name Search
-            </ToggleButton>
-            <ToggleButton value="ticket">
-              <ConfirmationNumberIcon sx={{ mr: 1 }} />
-              Ticket Search
-            </ToggleButton>
-          </ToggleButtonGroup>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <PersonIcon />
+            <Typography>Customer Search</Typography>
+          </Box>
 
-          {searchMode === "name" ? (
-            <>
-              <TextField
-                fullWidth
-                value={searchLastName}
-                onChange={(e) => setSearchLastName(e.target.value)}
-                variant="outlined"
-                label="Last Name"
-                size="small"
-              />
-              <TextField
-                fullWidth
-                value={searchFirstName}
-                onChange={(e) => setSearchFirstName(e.target.value)}
-                variant="outlined"
-                label="First Name"
-                size="small"
-              />
-            </>
-          ) : (
-            <TextField
-              fullWidth
-              value={searchTicket}
-              onChange={(e) => setSearchTicket(e.target.value)}
-              variant="outlined"
-              label="Ticket"
-              size="small"
-            />
-          )}
+          <TextField
+            fullWidth
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            variant="outlined"
+            label="Last Name"
+            size="small"
+          />
+          <TextField
+            fullWidth
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            variant="outlined"
+            label="First Name"
+            size="small"
+          />
 
           <Stack direction="row" spacing={2}>
             <Button
@@ -153,19 +140,17 @@ const SearchComponent: React.FC = () => {
             </Button>
           </Stack>
 
-          {showNoCustomerResults && (
+          {hasSearched && customerResults === null && (
             <Box sx={{ textAlign: "center", py: 2 }}>
               <Typography variant="body2" color="text.secondary">
-                No results found
+                No customer found
               </Typography>
-              <Typography variant="caption" color="text.disabled">
-                Try adjusting your search criteria
-              </Typography>
-              <Button variant="contained" color="primary" sx={{ mt: 2 }}>
-                Add Customer
-              </Button>
             </Box>
           )}
+
+          <Button variant="contained" color="primary" sx={{ mt: 2 }}>
+            Add Customer
+          </Button>
         </Stack>
       )}
     </Drawer>
