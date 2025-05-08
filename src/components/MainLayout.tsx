@@ -7,23 +7,25 @@ import SwapHorizontalCircleIcon from "@mui/icons-material/SwapHorizontalCircle";
 import WorkHistoryIcon from "@mui/icons-material/WorkHistory";
 import WorkHistoryOutlinedIcon from "@mui/icons-material/WorkHistoryOutlined";
 import SearchIcon from "@mui/icons-material/Search";
-import TransactionComponent from "./TransactionComponent";
-import HistoryComponent from "./HistoryComponent";
-import ClientComponent from "./ClientComponent";
-import SearchComponent from "./SearchComponent";
+import SearchDrawer from "./SearchDrawer";
+import ClientPage from "./ClientPage";
+import TransactionComponent from "./TransactionPage";
+import HistoryComponent from "./HistoryPage";
 
-const drawerWidth = 330;
-const collapsedWidth = 0;
+const DRAWERWIDTH = 330;
+const COLLAPSED_WIDTH = 0;
 
 const MainLayout: React.FC = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const [tabIndex, setTabIndex] = useState(0);
+  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
 
   return (
     <Box display="flex">
-      <SearchComponent
+      <SearchDrawer
         isDrawerOpen={isDrawerOpen}
         onDrawerOpenChange={setIsDrawerOpen}
+        onCustomerSelect={setSelectedCustomer}
       />
 
       <Box
@@ -38,7 +40,7 @@ const MainLayout: React.FC = () => {
             position: "fixed",
             top: 0,
             right: 0,
-            left: isDrawerOpen ? drawerWidth : collapsedWidth,
+            left: isDrawerOpen ? DRAWERWIDTH : COLLAPSED_WIDTH,
             transition: "left 0.3s ease-in-out",
             zIndex: 1100,
           }}
@@ -120,7 +122,7 @@ const MainLayout: React.FC = () => {
           }}
         >
           <Box sx={{ p: 2 }}>
-            {tabIndex === 0 && <ClientComponent />}
+            {tabIndex === 0 && <ClientPage customer={selectedCustomer} />}
             {tabIndex === 1 && <TransactionComponent />}
             {tabIndex === 2 && <HistoryComponent />}
           </Box>
