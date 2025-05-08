@@ -4,9 +4,7 @@ export {};
 declare global {
   interface Window {
     electronAPI: {
-      searchName: (name: string) => void;
-      searchDatabase: (name: string) => void;
-      getUserInfo: (userID: number) => void;
+      searchCustomers: (firstName: string, lastName: string) => Promise<any>;
     };
   }
 }
