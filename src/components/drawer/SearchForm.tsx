@@ -2,8 +2,17 @@ import React, { useState } from "react";
 import { TextField, Button, Stack, CircularProgress } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
+import { Customer } from "../../../shared/models/Customer";
 
-const SearchForm: React.FC = () => {
+interface SearchFormProps {
+  onSearchResults: (customers: Customer[]) => void;
+  onHasSearched: (hasSearched: boolean) => void;
+}
+
+const SearchForm: React.FC<SearchFormProps> = ({
+  onSearchResults,
+  onHasSearched,
+}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -14,27 +23,37 @@ const SearchForm: React.FC = () => {
       return;
     }
 
-    setIsLoading(true);
-    // TODO: Implement search functionality
-    // try {
-    //   const results = await window.electronAPI.searchCustomers(
-    //     firstName,
-    //     lastName
-    //   );
-    //   console.log(results);
-    // } catch (error) {
-    //   console.error("Search failed:", error);
-    //   alert("Search failed. Please try again.");
-    // } finally {
-    //   setIsLoading(false);
-    // }
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsLoading(false);
+    try {
+      setIsLoading(true);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      console.log("Searching with: (from SearchForm.tsx)", {
+        firstName,
+        lastName,
+      });
+      const results = await (window as any).electronAPI.searchCustomer(
+        firstName,
+        lastName
+      );
+      console.log("Raw search results: (from SearchForm.tsx) ", results);
+      console.log("Results type: (from SearchForm.tsx)", typeof results);
+      console.log("Is array? (from SearchForm.tsx)", Array.isArray(results));
+      onSearchResults(results);
+      onHasSearched(true);
+    } catch (error) {
+      console.error("Search failed: (from SearchForm.tsx)", error);
+      alert("Search failed. Please try again.");
+      onSearchResults([]); // Clear results on error
+      onHasSearched(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleClear = () => {
     setFirstName("");
     setLastName("");
+    onSearchResults([]);
+    onHasSearched(false);
   };
 
   return (
