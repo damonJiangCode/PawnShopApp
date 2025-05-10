@@ -25,7 +25,6 @@ import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { Customer, Identification } from "../../../shared/models/Customer";
-import { addCustomer } from "../../../backend/database/controllers/customerCRUD";
 
 interface ClientAddFormProps {
   open: boolean;
@@ -173,10 +172,12 @@ const ClientAddForm: React.FC<ClientAddFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const newCustomer = await addCustomer(
+      const newCustomer = (window as any).electronAPI.addCustomer(
         customer,
         customer.identifications || []
       );
+      console.log("customer", customer);
+      console.log("customer.identifications", customer.identifications);
       onSave(newCustomer);
       onClose();
     } catch (error) {

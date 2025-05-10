@@ -22,6 +22,7 @@ interface Customer {
 
 interface IElectronAPI {
   searchCustomer: (firstName: string, lastName: string) => Promise<Customer[]>;
+  addCustomer: (customerData: Omit<Customer, "id">) => Promise<Customer>;
   // add other api
   // addCustomer: (customerData: Omit<Customer, 'id'>) => Promise<Customer>;
   // updateCustomer: (id: number, customerData: Partial<Customer>) => Promise<Customer>;

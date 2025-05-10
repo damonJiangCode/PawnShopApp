@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Box, IconButton, Tabs, Tab, Paper } from "@mui/material";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import DehazeIcon from "@mui/icons-material/Dehaze";
 import PersonIcon from "@mui/icons-material/Person";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import HistoryIcon from "@mui/icons-material/History";
@@ -33,7 +33,7 @@ const App: React.FC = () => {
         onClick={() => setDrawerOpen(true)}
         sx={{ position: "fixed", top: 16, left: 16 }}
       >
-        <ChevronLeftIcon />
+        <DehazeIcon />
       </IconButton>
 
       <SearchDrawer

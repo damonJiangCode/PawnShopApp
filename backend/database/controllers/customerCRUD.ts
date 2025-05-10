@@ -48,8 +48,7 @@ export const searchCustomer = async (firstName: string, lastName: string) => {
 };
 
 // add new customer
-export const addCustomer = async (customerData: any, ids: any[]) => {
-  // start transaction
+export const addCustomer = async (customer: any, ids: any[]) => {
   const client = await connect();
   try {
     await client.query("BEGIN");
@@ -65,28 +64,27 @@ export const addCustomer = async (customerData: any, ids: any[]) => {
     `;
 
     const customerValues = [
-      customerData.firstName,
-      customerData.lastName,
-      customerData.middleName || null,
-      customerData.dateOfBirth || null,
-      customerData.gender || null,
-      customerData.address || null,
-      customerData.city || null,
-      customerData.province || null,
-      customerData.country || null,
-      customerData.postalCode || null,
-      customerData.heightCm ? parseFloat(customerData.heightCm) : null,
-      customerData.heightFt ? parseFloat(customerData.heightFt) : null,
-      customerData.weightKg ? parseFloat(customerData.weightKg) : null,
-      customerData.weightLb ? parseFloat(customerData.weightLb) : null,
-      customerData.notes || null,
-      customerData.pictureUrl || null,
+      customer.first_name,
+      customer.last_name,
+      customer.middle_name || null,
+      customer.date_of_birth || null,
+      customer.gender || null,
+      customer.address || null,
+      customer.city || null,
+      customer.province || null,
+      customer.country || null,
+      customer.postal_code || null,
+      customer.height_cm ? parseFloat(customer.height_cm) : null,
+      customer.height_ft ? parseFloat(customer.height_ft) : null,
+      customer.weight_kg ? parseFloat(customer.weight_kg) : null,
+      customer.weight_lb ? parseFloat(customer.weight_lb) : null,
+      customer.notes || null,
+      customer.picture_url || null,
     ];
 
     const customerResult = await client.query(customerQuery, customerValues);
     const newCustomer = customerResult.rows[0];
 
-    // insert identification information
     if (ids && ids.length > 0) {
       const idQuery = `
         INSERT INTO customer_identification (customer_number, identification_type, identification_number)
@@ -105,7 +103,6 @@ export const addCustomer = async (customerData: any, ids: any[]) => {
       }
     }
 
-    // 查询该客户的所有证件信息
     const customerIdsQuery = `
       SELECT * FROM customer_identification 
       WHERE customer_number = $1
@@ -113,10 +110,12 @@ export const addCustomer = async (customerData: any, ids: any[]) => {
     const customerIdsResult = await client.query(customerIdsQuery, [
       newCustomer.customer_number,
     ]);
-
     await client.query("COMMIT");
-    console.log("New customer added:", newCustomer);
-    console.log("Customer's identifications:", customerIdsResult.rows);
+    console.log("New customer added (from customerCRUD.ts):", newCustomer);
+    console.log(
+      "Customer identification added (from customerCRUD.ts):",
+      customerIdsResult.rows
+    );
     return newCustomer;
   } catch (error) {
     console.log("error", error);

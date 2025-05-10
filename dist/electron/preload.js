@@ -10,14 +10,18 @@ const CHANNELS = {
 };
 // expose to the renderer process
 contextBridge.exposeInMainWorld("electronAPI", {
-    // customer related
     searchCustomer: (firstName, lastName) => {
         // console.log("searchCustomer called with:", firstName, lastName); // Debug log
         return ipcRenderer.invoke(CHANNELS.SEARCH_CUSTOMER, firstName, lastName);
     },
-    // add other api
-    // addCustomer: (customerData) => ipcRenderer.invoke(CHANNELS.ADD_CUSTOMER, customerData),
-    // updateCustomer: (id, customerData) => ipcRenderer.invoke(CHANNELS.UPDATE_CUSTOMER, id, customerData),
-    // deleteCustomer: (id) => ipcRenderer.invoke(CHANNELS.DELETE_CUSTOMER, id),
+    addCustomer: (customer, ids) => {
+        return ipcRenderer.invoke(CHANNELS.ADD_CUSTOMER, customer, ids);
+    },
+    updateCustomer: (id, customerData) => {
+        return ipcRenderer.invoke(CHANNELS.UPDATE_CUSTOMER, id, customerData);
+    },
+    deleteCustomer: (id) => {
+        return ipcRenderer.invoke(CHANNELS.DELETE_CUSTOMER, id);
+    },
 });
 // console.log("Preload script finished"); // Debug log

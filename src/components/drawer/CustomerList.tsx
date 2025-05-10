@@ -36,7 +36,16 @@ const CustomerList: React.FC<CustomerListProps> = ({
 }) => {
   if (hasSearched && customers.length === 0) {
     return (
-      <Paper elevation={2} sx={{ p: 2, textAlign: "center" }}>
+      <Paper
+        elevation={2}
+        sx={{
+          mt: 2,
+          p: 2,
+          textAlign: "center",
+          border: "1px solid",
+          borderColor: "divider",
+        }}
+      >
         <Typography color="text.secondary">
           No matching customers found
         </Typography>
@@ -44,7 +53,17 @@ const CustomerList: React.FC<CustomerListProps> = ({
     );
   } else if (!hasSearched) {
     return (
-      <Paper elevation={2} sx={{ p: 2, textAlign: "center" }}>
+      <Paper
+        elevation={2}
+        sx={{
+          mt: 2,
+          p: 2,
+          borderRadius: 2,
+          textAlign: "center",
+          border: "1px solid",
+          borderColor: "divider",
+        }}
+      >
         <Typography color="text.secondary">
           Search for a customer to get started
         </Typography>
@@ -53,8 +72,8 @@ const CustomerList: React.FC<CustomerListProps> = ({
   }
 
   return (
-    <Paper elevation={2} sx={{ maxHeight: 500, overflowY: "auto", p: 1 }}>
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+    <Paper sx={{ textAlign: "center" }}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1, my: 1 }}>
         {customers.map((customer) => {
           const key = `customer-${customer.customer_number}`;
 

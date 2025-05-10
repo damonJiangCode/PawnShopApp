@@ -26,17 +26,17 @@ const SearchForm: React.FC<SearchFormProps> = ({
     try {
       setIsLoading(true);
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Searching with: (from SearchForm.tsx)", {
-        firstName,
-        lastName,
-      });
+      // console.log("Searching with: (from SearchForm.tsx)", {
+      //   firstName,
+      //   lastName,
+      // });
       const results = await (window as any).electronAPI.searchCustomer(
         firstName,
         lastName
       );
-      console.log("Raw search results: (from SearchForm.tsx) ", results);
-      console.log("Results type: (from SearchForm.tsx)", typeof results);
-      console.log("Is array? (from SearchForm.tsx)", Array.isArray(results));
+      // console.log("Raw search results: (from SearchForm.tsx) ", results);
+      // console.log("Results type: (from SearchForm.tsx)", typeof results);
+      // console.log("Is array? (from SearchForm.tsx)", Array.isArray(results));
       onSearchResults(results);
       onHasSearched(true);
     } catch (error) {
