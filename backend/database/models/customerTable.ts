@@ -12,9 +12,7 @@ export const createCustomerTable = `
     country VARCHAR(100),
     postal_code VARCHAR(20),
     height_cm DECIMAL(5,2),
-    height_ft DECIMAL(5,2),
     weight_kg DECIMAL(5,2),
-    weight_lb DECIMAL(5,2),
     notes TEXT,
     picture_url TEXT,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
