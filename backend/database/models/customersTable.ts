@@ -1,5 +1,5 @@
-export const createCustomerTable = `
-  CREATE TABLE IF NOT EXISTS customer (
+export const createCustomersTable = `
+  CREATE TABLE IF NOT EXISTS customers (
     customer_number SERIAL PRIMARY KEY,
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
