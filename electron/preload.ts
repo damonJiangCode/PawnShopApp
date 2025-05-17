@@ -5,6 +5,7 @@ const CHANNELS = {
   SEARCH_CUSTOMER: "search-customer",
   ADD_CUSTOMER: "add-customer",
   SAVE_CUSTOMER_IMAGE: "save-customer-image",
+  GET_CITIES: "get-cities",
 } as const;
 
 // expose to the renderer process
@@ -21,7 +22,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     return ipcRenderer.invoke(CHANNELS.SAVE_CUSTOMER_IMAGE, fileName, base64);
   },
 
-  getLocations: () => {
-    return ipcRenderer.invoke("get-locations");
+  getCities: () => {
+    return ipcRenderer.invoke(CHANNELS.GET_CITIES);
   },
 });

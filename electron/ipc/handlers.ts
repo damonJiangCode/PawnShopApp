@@ -2,7 +2,7 @@ import { ipcMain } from "electron";
 import {
   searchCustomer,
   addCustomer,
-  getLocations,
+  getCities,
 } from "../../backend/database/controllers/customerCRUD";
 import fs from "fs";
 import path from "path";
@@ -65,17 +65,17 @@ export const registerIpcHandlers = () => {
     }
   );
 
-  // get locations
-  ipcMain.handle("get-locations", async () => {
+  // get cities
+  ipcMain.handle("get-cities", async () => {
     try {
-      const result = await getLocations();
+      const result = await getCities();
       const provinces = result.provinces;
       const citiesByProvince = result.citiesByProvince;
       console.log("provinces:", provinces);
       console.log("citiesByProvince:", citiesByProvince);
       return { provinces, citiesByProvince };
     } catch (error) {
-      console.error("Error getting locations (handler.ts):", error);
+      console.error("Error getting cities (handler.ts):", error);
       throw error;
     }
   });

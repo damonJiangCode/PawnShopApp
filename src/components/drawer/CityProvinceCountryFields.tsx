@@ -5,7 +5,7 @@ interface CityProvinceCountryFieldsProps {
   customer_city: string;
   customer_province: string;
   customer_country: string;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const CityProvinceCountryFields: React.FC<CityProvinceCountryFieldsProps> = ({
@@ -15,6 +15,7 @@ const CityProvinceCountryFields: React.FC<CityProvinceCountryFieldsProps> = ({
   onChange,
 }) => {
   const [loading, setLoading] = useState(true);
+
   const [city, setCity] = useState(customer_city);
   const [province, setProvince] = useState(customer_province);
   const [country, setCountry] = useState(customer_country);
@@ -25,31 +26,30 @@ const CityProvinceCountryFields: React.FC<CityProvinceCountryFieldsProps> = ({
   }>({});
 
   useEffect(() => {
-    const fetchLocations = async () => {
-      const data = await (window as any).electronAPI.getLocations();
+    const fetchCities = async () => {
+      const data = await (window as any).electronAPI.getCities();
       setProvinces(data.provinces);
       setCitiesByProvince(data.citiesByProvince);
       setLoading(false);
     };
-    fetchLocations();
+    fetchCities();
   }, []);
-
-  const handleCountryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCountry(e.target.value);
-    onChange?.(e);
-  };
-
-  const handleProvinceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newProvince = e.target.value;
-    setProvince(newProvince);
-    const cities = citiesByProvince[newProvince] || [];
-    setCity(cities[0] || "");
-    onChange?.(e);
-  };
 
   const handleCityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCity(e.target.value);
-    onChange?.(e);
+    onChange(e);
+  };
+
+  const handleProvinceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setProvince(e.target.value);
+    onChange(e);
+    const cities = citiesByProvince[e.target.value] || [];
+    setCity(cities[0] || "");
+  };
+
+  const handleCountryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCountry(e.target.value);
+    onChange(e);
   };
 
   const availableCities = province ? citiesByProvince[province] || [] : [];

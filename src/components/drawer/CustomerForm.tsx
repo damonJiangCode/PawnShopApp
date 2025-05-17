@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Typography,
@@ -8,7 +8,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Avatar,
   Table,
   TableHead,
   TableRow,
@@ -25,8 +24,10 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { Customer, Identification } from "../../../shared/models/Customer";
 import PhotoCapture from "./PhotoCapture";
 import CityProvinceCountryFields from "./CityProvinceCountryFields";
+import HeightWeightFields from "./HeightWeightFields";
+import NameFields from "./NameFields";
 
-interface ClientAddFormProps {
+interface CustomerFormProps {
   open: boolean;
   onClose: () => void;
   onSave: (customer: Customer) => void;
@@ -41,9 +42,7 @@ const defaultCustomer: Partial<Customer> = {
   hair_color: "",
   eye_color: "",
   height_cm: undefined,
-  height_ft: undefined,
   weight_kg: undefined,
-  weight_lb: undefined,
   email: "",
   phone: "",
   address: "",
@@ -56,70 +55,12 @@ const defaultCustomer: Partial<Customer> = {
   identifications: [{ id_type: "", id_number: "" }],
 };
 
-const ClientAddForm: React.FC<ClientAddFormProps> = ({
+const CustomerForm: React.FC<CustomerFormProps> = ({
   open,
   onClose,
   onSave,
 }) => {
   const [customer, setCustomer] = useState<Partial<Customer>>(defaultCustomer);
-  const [lastChanged, setLastChanged] = useState<
-    "cm" | "ft" | "kg" | "lb" | null
-  >(null);
-
-  useEffect(() => {
-    if (
-      lastChanged === "cm" &&
-      customer.height_cm &&
-      !isNaN(customer.height_cm) &&
-      customer.height_cm > 0
-    ) {
-      const ft = (customer.height_cm / 30.48).toFixed(2);
-      setCustomer((prev) => ({ ...prev, height_ft: parseFloat(ft) }));
-    }
-  }, [customer.height_cm]);
-
-  useEffect(() => {
-    if (
-      lastChanged === "ft" &&
-      customer.height_ft &&
-      !isNaN(customer.height_ft) &&
-      customer.height_ft > 0
-    ) {
-      const cm = (customer.height_ft * 30.48).toFixed(2);
-      setCustomer((prev) => ({ ...prev, height_cm: parseFloat(cm) }));
-    }
-  }, [customer.height_ft]);
-
-  useEffect(() => {
-    if (
-      lastChanged === "kg" &&
-      customer.weight_kg &&
-      !isNaN(customer.weight_kg) &&
-      customer.weight_kg > 0
-    ) {
-      const lb = (customer.weight_kg * 2.20462).toFixed(2);
-      setCustomer((prev) => ({ ...prev, weight_lb: parseFloat(lb) }));
-    }
-  }, [customer.weight_kg]);
-
-  useEffect(() => {
-    if (
-      lastChanged === "lb" &&
-      customer.weight_lb &&
-      !isNaN(customer.weight_lb) &&
-      customer.weight_lb > 0
-    ) {
-      const kg = (customer.weight_lb / 2.20462).toFixed(2);
-      setCustomer((prev) => ({ ...prev, weight_kg: parseFloat(kg) }));
-    }
-  }, [customer.weight_lb]);
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setCustomer((prev) => ({ ...prev, [name]: value }));
-  };
 
   const addNewId = () =>
     setCustomer((prev) => ({
@@ -135,6 +76,13 @@ const ClientAddForm: React.FC<ClientAddFormProps> = ({
       ...prev,
       identifications: prev.identifications?.filter((_, i) => i !== index),
     }));
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setCustomer((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleIdChange = (
     index: number,
@@ -195,34 +143,12 @@ const ClientAddForm: React.FC<ClientAddFormProps> = ({
               sx={{ flex: 3, display: "flex", flexDirection: "column", gap: 2 }}
             >
               {/* Name fields */}
-              <Box sx={{ display: "flex", gap: 2 }}>
-                <TextField
-                  fullWidth
-                  required
-                  name="last_name"
-                  label="Last Name"
-                  value={customer.last_name}
-                  onChange={handleInputChange}
-                  size="small"
-                />
-                <TextField
-                  fullWidth
-                  required
-                  name="first_name"
-                  label="First Name"
-                  value={customer.first_name}
-                  onChange={handleInputChange}
-                  size="small"
-                />
-                <TextField
-                  fullWidth
-                  name="middle_name"
-                  label="Middle Name"
-                  value={customer.middle_name}
-                  onChange={handleInputChange}
-                  size="small"
-                />
-              </Box>
+              <NameFields
+                lastName={customer.last_name}
+                firstName={customer.first_name}
+                middleName={customer.middle_name}
+                onChange={handleInputChange}
+              />
 
               {/* DOB & gender */}
               <Box sx={{ display: "flex", gap: 2 }}>
@@ -301,72 +227,16 @@ const ClientAddForm: React.FC<ClientAddFormProps> = ({
               </Box>
 
               {/* Height & weight */}
-              <Box sx={{ display: "flex", gap: 2 }}>
-                <TextField
-                  required
-                  fullWidth
-                  type="number"
-                  name="height_cm"
-                  label="Height (cm)"
-                  value={customer.height_cm || ""}
-                  onChange={(e) => {
-                    setLastChanged("cm");
-                    setCustomer((prev) => ({
-                      ...prev,
-                      height_cm: parseFloat(e.target.value),
-                    }));
-                  }}
-                  size="small"
-                />
-                <TextField
-                  required
-                  fullWidth
-                  type="number"
-                  name="height_ft"
-                  label="Height (ft)"
-                  value={customer.height_ft || ""}
-                  onChange={(e) => {
-                    setLastChanged("ft");
-                    setCustomer((prev) => ({
-                      ...prev,
-                      height_ft: parseFloat(e.target.value),
-                    }));
-                  }}
-                  size="small"
-                />
-                <TextField
-                  required
-                  fullWidth
-                  type="number"
-                  name="weight_kg"
-                  label="Weight (kg)"
-                  value={customer.weight_kg || ""}
-                  onChange={(e) => {
-                    setLastChanged("kg");
-                    setCustomer((prev) => ({
-                      ...prev,
-                      weight_kg: parseFloat(e.target.value),
-                    }));
-                  }}
-                  size="small"
-                />
-                <TextField
-                  required
-                  fullWidth
-                  type="number"
-                  name="weight_lb"
-                  label="Weight (lb)"
-                  value={customer.weight_lb || ""}
-                  onChange={(e) => {
-                    setLastChanged("lb");
-                    setCustomer((prev) => ({
-                      ...prev,
-                      weight_lb: parseFloat(e.target.value),
-                    }));
-                  }}
-                  size="small"
-                />
-              </Box>
+              <HeightWeightFields
+                height_cm={customer.height_cm}
+                weight_kg={customer.weight_kg}
+                onHeightCmChange={(value) => {
+                  setCustomer((prev) => ({ ...prev, height_cm: value }));
+                }}
+                onWeightKgChange={(value) => {
+                  setCustomer((prev) => ({ ...prev, weight_kg: value }));
+                }}
+              />
 
               {/* Address & postal code */}
               <Box sx={{ display: "flex", gap: 2 }}>
@@ -441,7 +311,11 @@ const ClientAddForm: React.FC<ClientAddFormProps> = ({
                 gap: 1,
               }}
             >
-              <PhotoCapture onCapture={handleCapture} />
+              <PhotoCapture
+                onCapture={handleCapture}
+                id={customer.identifications?.[0]?.id_number || ""}
+                idType={customer.identifications?.[0]?.id_type || ""}
+              />
             </Box>
           </Box>
           {/* Bottom panel */}
@@ -544,4 +418,4 @@ const ClientAddForm: React.FC<ClientAddFormProps> = ({
   );
 };
 
-export default ClientAddForm;
+export default CustomerForm;

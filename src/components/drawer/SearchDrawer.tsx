@@ -4,7 +4,7 @@ import AddIcon from "@mui/icons-material/Add";
 import { Customer } from "../../../shared/models/Customer";
 import SearchForm from "./SearchForm";
 import CustomerList from "./CustomerList";
-import ClientAddForm from "./ClientAddForm";
+import CustomerForm from "./CustomerForm";
 
 interface SearchDrawerProps {
   open: boolean;
@@ -82,7 +82,7 @@ const SearchDrawer: React.FC<SearchDrawerProps> = ({
         />
       </Box>
 
-      <ClientAddForm
+      <CustomerForm
         open={showAddForm}
         onClose={() => setShowAddForm(false)}
         onSave={handleNewCustomer}

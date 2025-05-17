@@ -1,6 +1,6 @@
 import { Customer, Identification } from "../../shared/models/Customer";
 
-export {};
+// export {};
 
 interface ElectronAPI {
   searchCustomer: (firstName: string, lastName: string) => Promise<Customer[]>;
@@ -9,7 +9,7 @@ interface ElectronAPI {
     ids: Identification[]
   ) => Promise<Customer>;
   saveCustomerImage: (fileName: string, base64: string) => Promise<string>;
-  getLocations: () => Promise<{
+  getCities: () => Promise<{
     provinces: string[];
     citiesByProvince: { [key: string]: string[] };
   }>;

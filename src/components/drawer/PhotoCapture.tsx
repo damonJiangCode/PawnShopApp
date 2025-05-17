@@ -5,11 +5,15 @@ import React from "react";
 interface PhotoCaptureProps {
   customerNumber?: string;
   onCapture: (fileName: string, base64: string) => void;
+  id?: string;
+  idType?: string;
 }
 
 const PhotoCapture: React.FC<PhotoCaptureProps> = ({
   customerNumber,
   onCapture,
+  id,
+  idType,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -45,7 +49,7 @@ const PhotoCapture: React.FC<PhotoCaptureProps> = ({
     console.log("imageDataUrl (PhotoCapture.tsx)", imageDataUrl);
 
     const base64 = imageDataUrl.replace(/^data:image\/png;base64,/, "");
-    const fileName = `customer_${customerNumber}.png`;
+    const fileName = `customer_${idType}_${id}_${Date.now()}.png`;
     console.log("fileName (PhotoCapture.tsx)", fileName);
     onCapture(fileName, base64);
   };
