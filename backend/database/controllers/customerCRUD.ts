@@ -129,11 +129,13 @@ export const addCustomer = async (customer: any, ids: any[]) => {
   }
 };
 
-// get locations
-export const getLocations = async () => {
+// get cities
+export const getCities = async () => {
   const client = await connect();
-  const provincesQuery = "SELECT DISTINCT province FROM city";
-  const citiesQuery = "SELECT DISTINCT city, province FROM city";
+  const provincesQuery =
+    "SELECT DISTINCT province FROM city ORDER BY province ASC ";
+  const citiesQuery =
+    "SELECT DISTINCT city, province FROM city ORDER BY province ASC, city ASC";
 
   try {
     await client.query("BEGIN");
@@ -151,13 +153,13 @@ export const getLocations = async () => {
       citiesByProvince[row.province].push(row.city);
     }
     console.log(
-      "getLocations result (customerCRUD.ts):",
+      "getCities result (customerCRUD.ts):",
       provinces,
       citiesByProvince
     );
     return { provinces, citiesByProvince };
   } catch (error) {
-    console.error("Error getting locations:", error);
+    console.error("Error getting cities:", error);
     await client.query("ROLLBACK");
     throw error;
   } finally {
