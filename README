@@ -1,2 +1,2 @@
 // run databse (db.ts)
-npx ts-node -P tsconfig.backend.json backend/database/db.ts
+// npx ts-node -P tsconfig.backend.json backend/database/db.ts
