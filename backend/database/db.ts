@@ -1,10 +1,15 @@
 import pkg from "pg";
 const { Pool } = pkg;
-import { createCustomerTable } from "./models/customerTable";
-import { createCustomerIDTable } from "./models/customerIDTable";
-import { createTicketTable } from "./models/ticketTable";
-import { createItemTable } from "./models/itemTable";
-import { createCityTable } from "./models/cityTable";
+import { createCustomersTable } from "./models/customersTable";
+import { createCustomerIDsTable } from "./models/customerIDsTable";
+import { createTicketsTable } from "./models/ticketsTable";
+import { createItemsTable } from "./models/itemsTable";
+import { createCitiesTable, importCities } from "./models/citiesTable";
+import {
+  createHairColorsTable,
+  insertHairColors,
+} from "./models/hairColorsTable";
+import { createEyeColorsTable, insertEyeColors } from "./models/eyeColorsTable";
 
 // create pool connection
 const pool = new Pool({
@@ -25,25 +30,42 @@ export const connect = async () => {
 export const initializeDatabase = async () => {
   const client = await pool.connect();
   try {
-    // create customer table
-    await client.query(createCustomerTable);
-    console.log("Customer table created successfully");
+    // create customers table
+    await client.query(createCustomersTable);
+    console.log("customers table created successfully");
 
-    // create customer ID table
-    await client.query(createCustomerIDTable);
-    console.log("Customer ID table created successfully");
+    // create customer IDs table
+    await client.query(createCustomerIDsTable);
+    console.log("customer_identifications table created successfully");
 
-    // create ticket table
-    await client.query(createTicketTable);
-    console.log("Ticket table created successfully");
+    // create tickets table
+    await client.query(createTicketsTable);
+    console.log("tickets table created successfully");
 
-    // create item table
-    await client.query(createItemTable);
-    console.log("Item table created successfully");
+    // create items table
+    await client.query(createItemsTable);
+    console.log("items table created successfully");
 
-    // create city table
-    await client.query(createCityTable);
-    console.log("City table created successfully");
+    // create cities table
+    await client.query(createCitiesTable);
+    console.log("cities table created successfully");
+    // import cities
+    await importCities(client);
+    console.log("Cities imported successfully");
+
+    // create hair colors table
+    await client.query(createHairColorsTable);
+    console.log("Hair color table created successfully");
+    // import hair colors
+    await client.query(insertHairColors);
+    console.log("Hair colors inserted successfully");
+
+    // create eye colors table
+    await client.query(createEyeColorsTable);
+    console.log("Eye color table created successfully");
+    // import eye colors
+    await client.query(insertEyeColors);
+    console.log("Eye colors inserted successfully");
 
     console.log("All database tables initialized successfully");
   } catch (error) {
@@ -53,4 +75,4 @@ export const initializeDatabase = async () => {
   }
 };
 
-// initializeDatabase()
+// initializeDatabase();

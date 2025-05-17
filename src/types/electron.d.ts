@@ -13,6 +13,8 @@ interface ElectronAPI {
     provinces: string[];
     citiesByProvince: { [key: string]: string[] };
   }>;
+  getHairColors: () => Promise<string[]>;
+  getEyeColors: () => Promise<string[]>;
 }
 
 declare global {

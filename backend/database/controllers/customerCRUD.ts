@@ -17,12 +17,10 @@ export const searchCustomer = async (firstName: string, lastName: string) => {
       country,
       postal_code,
       height_cm,
-      height_ft,
       weight_kg,
-      weight_lb,
       notes,
       picture_path
-    FROM customer 
+    FROM customers
     WHERE 
       (LOWER(first_name) LIKE LOWER($1) || '%' OR $1 = '') 
       AND 
@@ -38,7 +36,7 @@ export const searchCustomer = async (firstName: string, lastName: string) => {
   try {
     await client.query("BEGIN");
     const result = await client.query(query, values);
-    console.log("search customer result (customerCRUD.ts)", result.rows);
+    // console.log("search customer result (customerCRUD.ts)", result.rows);
     await client.query("COMMIT");
     return result.rows;
   } catch (error) {
@@ -55,11 +53,11 @@ export const addCustomer = async (customer: any, ids: any[]) => {
   const client = await connect();
 
   const customerQuery = `
-  INSERT INTO customer (
+  INSERT INTO customers (
     first_name, last_name, middle_name, date_of_birth, gender,
     address, city, province, country, postal_code,
-    height_cm, height_ft, weight_kg, weight_lb, notes, picture_path
-  ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+    height_cm, weight_kg, notes, picture_path
+  ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
   RETURNING *
 `;
 
@@ -75,9 +73,7 @@ export const addCustomer = async (customer: any, ids: any[]) => {
     customer.country || null,
     customer.postal_code || null,
     customer.height_cm ? parseFloat(customer.height_cm) : null,
-    customer.height_ft ? parseFloat(customer.height_ft) : null,
     customer.weight_kg ? parseFloat(customer.weight_kg) : null,
-    customer.weight_lb ? parseFloat(customer.weight_lb) : null,
     customer.notes || null,
     customer.picture_path || null,
   ];
@@ -90,7 +86,7 @@ export const addCustomer = async (customer: any, ids: any[]) => {
     // add customer identification
     if (ids && ids.length > 0) {
       const idQuery = `
-        INSERT INTO customer_identification (customer_number, identification_type, identification_number)
+        INSERT INTO customer_identifications (customer_number, identification_type, identification_number)
         VALUES ($1, $2, $3)
         RETURNING *
       `;
@@ -108,17 +104,17 @@ export const addCustomer = async (customer: any, ids: any[]) => {
 
     // get customer identification
     const customerIdsQuery = `
-      SELECT * FROM customer_identification 
+      SELECT * FROM customer_identifications 
       WHERE customer_number = $1
     `;
     const customerIdsResult = await client.query(customerIdsQuery, [
       newCustomer.customer_number,
     ]);
     await client.query("COMMIT");
-    console.log(
-      "Customer identification added (customerCRUD.ts):",
-      customerIdsResult.rows
-    );
+    // console.log(
+    //   "Customer identification added (customerCRUD.ts):",
+    //   customerIdsResult.rows
+    // );
     return customerIdsResult.rows;
   } catch (error) {
     console.log("error", error);
@@ -133,9 +129,9 @@ export const addCustomer = async (customer: any, ids: any[]) => {
 export const getCities = async () => {
   const client = await connect();
   const provincesQuery =
-    "SELECT DISTINCT province FROM city ORDER BY province ASC ";
+    "SELECT DISTINCT province FROM cities ORDER BY province ASC ";
   const citiesQuery =
-    "SELECT DISTINCT city, province FROM city ORDER BY province ASC, city ASC";
+    "SELECT DISTINCT city, province FROM cities ORDER BY province ASC, city ASC";
 
   try {
     await client.query("BEGIN");
@@ -152,14 +148,54 @@ export const getCities = async () => {
       }
       citiesByProvince[row.province].push(row.city);
     }
-    console.log(
-      "getCities result (customerCRUD.ts):",
-      provinces,
-      citiesByProvince
-    );
+    // console.log(
+    //   "getCities result (customerCRUD.ts):",
+    //   provinces,
+    //   citiesByProvince
+    // );
     return { provinces, citiesByProvince };
   } catch (error) {
     console.error("Error getting cities:", error);
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
+// get hair colors
+export const getHairColors = async () => {
+  const client = await connect();
+  const query = "SELECT * FROM hair_colors ORDER BY color ASC";
+  try {
+    await client.query("BEGIN");
+    const result = await client.query(query);
+    await client.query("COMMIT");
+    const hairColors = result.rows.map((row) => row.color);
+    // console.log("getHairColors result (customerCRUD.ts):", hairColors);
+    return hairColors;
+  } catch (error) {
+    console.error("Error getting hair colors:", error);
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
+// get eye colors
+export const getEyeColors = async () => {
+  const client = await connect();
+  const query = "SELECT * FROM eye_colors ORDER BY color ASC";
+  try {
+    await client.query("BEGIN");
+    const result = await client.query(query);
+    await client.query("COMMIT");
+    const eyeColors = result.rows.map((row) => row.color);
+    // console.log("getEyeColors result (customerCRUD.ts):", eyeColors);
+    return eyeColors;
+  } catch (error) {
+    console.error("Error getting eye colors:", error);
     await client.query("ROLLBACK");
     throw error;
   } finally {
