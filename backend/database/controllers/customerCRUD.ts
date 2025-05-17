@@ -21,7 +21,7 @@ export const searchCustomer = async (firstName: string, lastName: string) => {
       weight_kg,
       weight_lb,
       notes,
-      picture_url
+      picture_path
     FROM customer 
     WHERE 
       (LOWER(first_name) LIKE LOWER($1) || '%' OR $1 = '') 
@@ -36,11 +36,14 @@ export const searchCustomer = async (firstName: string, lastName: string) => {
   ];
 
   try {
+    await client.query("BEGIN");
     const result = await client.query(query, values);
-    console.log("search customer result (from customerCRUD.ts)", result.rows);
+    console.log("search customer result (customerCRUD.ts)", result.rows);
+    await client.query("COMMIT");
     return result.rows;
   } catch (error) {
-    console.error("Error searching customer: (from customerCRUD.ts)", error);
+    console.error("Error searching customer: (customerCRUD.ts)", error);
+    await client.query("ROLLBACK");
     throw error;
   } finally {
     client.release();
@@ -50,41 +53,41 @@ export const searchCustomer = async (firstName: string, lastName: string) => {
 // add new customer
 export const addCustomer = async (customer: any, ids: any[]) => {
   const client = await connect();
+
+  const customerQuery = `
+  INSERT INTO customer (
+    first_name, last_name, middle_name, date_of_birth, gender,
+    address, city, province, country, postal_code,
+    height_cm, height_ft, weight_kg, weight_lb, notes, picture_path
+  ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+  RETURNING *
+`;
+
+  const customerValues = [
+    customer.first_name,
+    customer.last_name,
+    customer.middle_name || null,
+    customer.date_of_birth || null,
+    customer.gender || null,
+    customer.address || null,
+    customer.city || null,
+    customer.province || null,
+    customer.country || null,
+    customer.postal_code || null,
+    customer.height_cm ? parseFloat(customer.height_cm) : null,
+    customer.height_ft ? parseFloat(customer.height_ft) : null,
+    customer.weight_kg ? parseFloat(customer.weight_kg) : null,
+    customer.weight_lb ? parseFloat(customer.weight_lb) : null,
+    customer.notes || null,
+    customer.picture_path || null,
+  ];
+
   try {
     await client.query("BEGIN");
-
-    // insert customer data
-    const customerQuery = `
-      INSERT INTO customer (
-        first_name, last_name, middle_name, date_of_birth, gender,
-        address, city, province, country, postal_code,
-        height_cm, height_ft, weight_kg, weight_lb, notes, picture_url
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
-      RETURNING *
-    `;
-
-    const customerValues = [
-      customer.first_name,
-      customer.last_name,
-      customer.middle_name || null,
-      customer.date_of_birth || null,
-      customer.gender || null,
-      customer.address || null,
-      customer.city || null,
-      customer.province || null,
-      customer.country || null,
-      customer.postal_code || null,
-      customer.height_cm ? parseFloat(customer.height_cm) : null,
-      customer.height_ft ? parseFloat(customer.height_ft) : null,
-      customer.weight_kg ? parseFloat(customer.weight_kg) : null,
-      customer.weight_lb ? parseFloat(customer.weight_lb) : null,
-      customer.notes || null,
-      customer.picture_url || null,
-    ];
-
     const customerResult = await client.query(customerQuery, customerValues);
     const newCustomer = customerResult.rows[0];
 
+    // add customer identification
     if (ids && ids.length > 0) {
       const idQuery = `
         INSERT INTO customer_identification (customer_number, identification_type, identification_number)
@@ -103,6 +106,7 @@ export const addCustomer = async (customer: any, ids: any[]) => {
       }
     }
 
+    // get customer identification
     const customerIdsQuery = `
       SELECT * FROM customer_identification 
       WHERE customer_number = $1
@@ -111,12 +115,11 @@ export const addCustomer = async (customer: any, ids: any[]) => {
       newCustomer.customer_number,
     ]);
     await client.query("COMMIT");
-    console.log("New customer added (from customerCRUD.ts):", newCustomer);
     console.log(
-      "Customer identification added (from customerCRUD.ts):",
+      "Customer identification added (customerCRUD.ts):",
       customerIdsResult.rows
     );
-    return newCustomer;
+    return customerIdsResult.rows;
   } catch (error) {
     console.log("error", error);
     await client.query("ROLLBACK");
@@ -126,128 +129,38 @@ export const addCustomer = async (customer: any, ids: any[]) => {
   }
 };
 
-// find customer
-export const findCustomer = async (id: number) => {
+// get locations
+export const getLocations = async () => {
   const client = await connect();
-  const query = "SELECT * FROM customer WHERE customer_number = $1";
-  try {
-    const result = await client.query(query, [id]);
-    return result.rows[0];
-  } catch (error) {
-    console.error("Error finding customer:", error);
-    throw error;
-  }
-};
-
-// update customer information
-export const updateCustomer = async (id: number, customerData: any) => {
-  const client = await connect();
-  const {
-    firstName,
-    lastName,
-    middleName,
-    dateOfBirth,
-    gender,
-    address,
-    city,
-    province,
-    country,
-    postalCode,
-    heightCm,
-    heightFt,
-    weightKg,
-    weightLb,
-    notes,
-    pictureUrl,
-  } = customerData;
-
-  const query = `
-    UPDATE customer 
-    SET first_name = $1, last_name = $2, middle_name = $3, date_of_birth = $4, 
-        gender = $5, address = $6, city = $7, province = $8, country = $9, 
-        postal_code = $10, height_cm = $11, height_ft = $12, weight_kg = $13, 
-        weight_lb = $14, notes = $15, picture_url = $16
-    WHERE customer_number = $17
-    RETURNING *
-  `;
-
-  const values = [
-    firstName,
-    lastName,
-    middleName,
-    dateOfBirth,
-    gender,
-    address,
-    city,
-    province,
-    country,
-    postalCode,
-    heightCm,
-    heightFt,
-    weightKg,
-    weightLb,
-    notes,
-    pictureUrl,
-    id,
-  ];
+  const provincesQuery = "SELECT DISTINCT province FROM city";
+  const citiesQuery = "SELECT DISTINCT city, province FROM city";
 
   try {
-    const result = await client.query(query, values);
-    return result.rows[0];
+    await client.query("BEGIN");
+    const provincesResult = await client.query(provincesQuery);
+    const citiesResult = await client.query(citiesQuery);
+    await client.query("COMMIT");
+
+    const provinces = provincesResult.rows.map((row) => row.province);
+    const citiesByProvince: { [key: string]: string[] } = {};
+
+    for (const row of citiesResult.rows) {
+      if (!citiesByProvince[row.province]) {
+        citiesByProvince[row.province] = [];
+      }
+      citiesByProvince[row.province].push(row.city);
+    }
+    console.log(
+      "getLocations result (customerCRUD.ts):",
+      provinces,
+      citiesByProvince
+    );
+    return { provinces, citiesByProvince };
   } catch (error) {
-    console.error("Error updating customer:", error);
+    console.error("Error getting locations:", error);
+    await client.query("ROLLBACK");
     throw error;
+  } finally {
+    client.release();
   }
 };
-
-// delete customer
-export const deleteCustomer = async (id: number) => {
-  const client = await connect();
-  const query = "DELETE FROM customer WHERE customer_number = $1";
-  try {
-    await client.query(query, [id]);
-    return true;
-  } catch (error) {
-    console.error("Error deleting customer:", error);
-    throw error;
-  }
-};
-
-// // 客户基本信息
-// const customerData = {
-//   firstName: "John",
-//   lastName: "Smith",
-//   middleName: "Robert",
-//   dateOfBirth: "1990-05-15",
-//   gender: "male",
-//   address: "123 Main Street",
-//   city: "Toronto",
-//   province: "Ontario",
-//   country: "Canada",
-//   postalCode: "M5V 2H1",
-//   heightCm: "180",
-//   heightFt: "5.91",
-//   weightKg: "75",
-//   weightLb: "165.35",
-//   notes: "Regular customer, prefers morning appointments",
-//   pictureUrl: null,
-// };
-
-// // 证件信息
-// const ids = [
-//   {
-//     idType: "passport",
-//     idNumber: "CA12345678",
-//   },
-//   {
-//     idType: "driverLicense",
-//     idNumber: "DL98765432",
-//   },
-// ];
-
-// 使用示例
-// try {
-//   const newCustomer = await addCustomer(customerData, ids);
-// } catch (error) {
-//   console.error("Error adding customer:", error);
-// }

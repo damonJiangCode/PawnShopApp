@@ -1,19 +1,15 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
-// console.log("Preload script is running"); // Debug log
-
 // define all available ipc channels
 const CHANNELS = {
   SEARCH_CUSTOMER: "search-customer",
   ADD_CUSTOMER: "add-customer",
-  UPDATE_CUSTOMER: "update-customer",
-  DELETE_CUSTOMER: "delete-customer",
+  SAVE_CUSTOMER_IMAGE: "save-customer-image",
 } as const;
 
 // expose to the renderer process
 contextBridge.exposeInMainWorld("electronAPI", {
   searchCustomer: (firstName: string, lastName: string) => {
-    // console.log("searchCustomer called with:", firstName, lastName); // Debug log
     return ipcRenderer.invoke(CHANNELS.SEARCH_CUSTOMER, firstName, lastName);
   },
 
@@ -21,13 +17,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
     return ipcRenderer.invoke(CHANNELS.ADD_CUSTOMER, customer, ids);
   },
 
-  updateCustomer: (id: number, customerData: any) => {
-    return ipcRenderer.invoke(CHANNELS.UPDATE_CUSTOMER, id, customerData);
+  saveCustomerImage: (fileName: string, base64: string) => {
+    return ipcRenderer.invoke(CHANNELS.SAVE_CUSTOMER_IMAGE, fileName, base64);
   },
 
-  deleteCustomer: (id: number) => {
-    return ipcRenderer.invoke(CHANNELS.DELETE_CUSTOMER, id);
+  getLocations: () => {
+    return ipcRenderer.invoke("get-locations");
   },
 });
-
-// console.log("Preload script finished"); // Debug log

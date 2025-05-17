@@ -1,10 +1,11 @@
 import { ipcMain } from "electron";
 import {
-  addCustomer,
   searchCustomer,
-  updateCustomer,
-  deleteCustomer,
+  addCustomer,
+  getLocations,
 } from "../../backend/database/controllers/customerCRUD";
+import fs from "fs";
+import path from "path";
 
 // register all ipc handlers
 export const registerIpcHandlers = () => {
@@ -12,10 +13,10 @@ export const registerIpcHandlers = () => {
   ipcMain.handle("search-customer", async (_event, firstName, lastName) => {
     try {
       const results = await searchCustomer(firstName, lastName);
-      // console.log("search customer results", results);
+      console.log("search-customer results (handler.ts):", results);
       return results;
     } catch (error) {
-      console.error("Error searching customer: (from handlers.ts)", error);
+      console.error("Error searching customer (handler.ts):", error);
       throw error;
     }
   });
@@ -23,41 +24,59 @@ export const registerIpcHandlers = () => {
   // add customer
   ipcMain.handle("add-customer", async (_event, customer, ids) => {
     try {
-      console.log("add customer customer", customer);
-      console.log("add customer ids", ids);
-      const results = await addCustomer(customer, ids);
-      console.log("add customer results", results);
-      return results;
+      const result = await addCustomer(customer, ids);
+      console.log("add-customer results (handler.ts):", result);
+      return result;
     } catch (error) {
-      console.error("Error adding customer:", error);
+      console.error("Error adding customer (handler.ts):", error);
       throw error;
     }
   });
 
-  // update customer
-  ipcMain.handle("update-customer", async (_event, id, customerData) => {
+  // save customer image
+  ipcMain.handle(
+    "save-customer-image",
+    async (_event, fileName: string, base64: string) => {
+      try {
+        const base64Data = base64.replace(/^data:image\/png;base64,/, "");
+
+        const relPath = path.join("customer_images", fileName);
+        const absPath = path.resolve(relPath);
+
+        if (!fs.existsSync(path.dirname(absPath))) {
+          fs.mkdirSync(path.dirname(absPath), { recursive: true });
+        }
+
+        fs.writeFileSync(absPath, base64Data, "base64");
+
+        console.log("save-customer-image results (handler.ts) abs:", absPath);
+        console.log("save-customer-image results (handler.ts) rel:", relPath);
+        console.log(
+          "save-customer-image results (handler.ts) fileName:",
+          fileName
+        );
+        console.log("save-customer-image results (handler.ts) base64:", base64);
+
+        return relPath;
+      } catch (err) {
+        console.error("Error saving customer image (handlers.ts):", err);
+        return null;
+      }
+    }
+  );
+
+  // get locations
+  ipcMain.handle("get-locations", async () => {
     try {
-      const results = await updateCustomer(id, customerData);
-      return results;
+      const result = await getLocations();
+      const provinces = result.provinces;
+      const citiesByProvince = result.citiesByProvince;
+      console.log("provinces:", provinces);
+      console.log("citiesByProvince:", citiesByProvince);
+      return { provinces, citiesByProvince };
     } catch (error) {
-      console.error("Error updating customer:", error);
+      console.error("Error getting locations (handler.ts):", error);
       throw error;
     }
   });
-
-  // delete customer;
-  ipcMain.handle("delete-customer", async (_event, id) => {
-    try {
-      const results = await deleteCustomer(id);
-      return results;
-    } catch (error) {
-      console.error("Error deleting customer:", error);
-      throw error;
-    }
-  });
-
-  // add other ipc handlers here
-  // ipcMain.handle("add-customer", ...)
-  // ipcMain.handle("update-customer", ...)
-  // ipcMain.handle("delete-customer", ...)
 };

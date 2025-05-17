@@ -26,23 +26,21 @@ const SearchForm: React.FC<SearchFormProps> = ({
     try {
       setIsLoading(true);
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      // console.log("Searching with: (from SearchForm.tsx)", {
-      //   firstName,
-      //   lastName,
-      // });
+      console.log("Searching with: (SearchForm.tsx)", {
+        firstName,
+        lastName,
+      });
       const results = await (window as any).electronAPI.searchCustomer(
         firstName,
         lastName
       );
-      // console.log("Raw search results: (from SearchForm.tsx) ", results);
-      // console.log("Results type: (from SearchForm.tsx)", typeof results);
-      // console.log("Is array? (from SearchForm.tsx)", Array.isArray(results));
+      console.log("Searching customer results: (SearchForm.tsx) ", results);
       onSearchResults(results);
       onHasSearched(true);
     } catch (error) {
-      console.error("Search failed: (from SearchForm.tsx)", error);
+      console.error("Search failed: (SearchForm.tsx)", error);
       alert("Search failed. Please try again.");
-      onSearchResults([]); // Clear results on error
+      onSearchResults([]);
       onHasSearched(false);
     } finally {
       setIsLoading(false);

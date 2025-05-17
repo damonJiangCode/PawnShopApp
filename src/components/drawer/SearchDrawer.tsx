@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { Box, Drawer, Button } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import { Customer } from "../../../shared/models/Customer";
 import SearchForm from "./SearchForm";
 import CustomerList from "./CustomerList";
-// import ClientAddForm from "./ClientAddForm";
-import { Customer } from "../../../shared/models/Customer";
 import ClientAddForm from "./ClientAddForm";
 
 interface SearchDrawerProps {
@@ -32,7 +31,7 @@ const SearchDrawer: React.FC<SearchDrawerProps> = ({
 
   const handleCustomerSelect = (customer: Customer) => {
     setSelectedCustomer(customer);
-    // onCustomerSelect(customer);
+    onCustomerSelect(customer);
   };
 
   const handleNewCustomer = (customer: Customer) => {

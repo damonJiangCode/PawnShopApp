@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Paper,
   Card,
@@ -6,6 +6,10 @@ import {
   Typography,
   Box,
   Avatar,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import { Customer } from "../../../shared/models/Customer";
@@ -34,18 +38,13 @@ const CustomerList: React.FC<CustomerListProps> = ({
   onCustomerSelect,
   selectedCustomer,
 }) => {
+  const [customerImages, setCustomerImages] = useState<{
+    [key: number]: string;
+  }>({});
+
   if (hasSearched && customers.length === 0) {
     return (
-      <Paper
-        elevation={2}
-        sx={{
-          mt: 2,
-          p: 2,
-          textAlign: "center",
-          border: "1px solid",
-          borderColor: "divider",
-        }}
-      >
+      <Paper elevation={2} sx={{ p: 2, textAlign: "center" }}>
         <Typography color="text.secondary">
           No matching customers found
         </Typography>
@@ -53,17 +52,7 @@ const CustomerList: React.FC<CustomerListProps> = ({
     );
   } else if (!hasSearched) {
     return (
-      <Paper
-        elevation={2}
-        sx={{
-          mt: 2,
-          p: 2,
-          borderRadius: 2,
-          textAlign: "center",
-          border: "1px solid",
-          borderColor: "divider",
-        }}
-      >
+      <Paper elevation={2} sx={{ p: 2, textAlign: "center" }}>
         <Typography color="text.secondary">
           Search for a customer to get started
         </Typography>
@@ -76,14 +65,13 @@ const CustomerList: React.FC<CustomerListProps> = ({
       <Box sx={{ display: "flex", flexDirection: "column", gap: 1, my: 1 }}>
         {customers.map((customer) => {
           const key = `customer-${customer.customer_number}`;
-
           const displayName =
             [customer.last_name || "", customer.first_name || ""]
               .filter(Boolean)
               .join(", ") || "Unnamed Customer";
-
           const isSelected =
             selectedCustomer?.customer_number === customer.customer_number;
+          const imagePath = customerImages[customer.customer_number];
 
           return (
             <Box key={key}>
@@ -106,6 +94,16 @@ const CustomerList: React.FC<CustomerListProps> = ({
                 <CardContent
                   sx={{ p: 1.5, display: "flex", alignItems: "center", gap: 2 }}
                 >
+                  <Avatar
+                    src={imagePath}
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      bgcolor: isSelected ? "primary.dark" : "grey.200",
+                    }}
+                  >
+                    {!imagePath && <PersonIcon />}
+                  </Avatar>
                   <Box sx={{ flex: 1 }}>
                     <Typography
                       variant="body1"
@@ -117,7 +115,7 @@ const CustomerList: React.FC<CustomerListProps> = ({
                       {displayName}
                     </Typography>
                     <Typography
-                      variant="body1"
+                      variant="body2"
                       color={
                         isSelected ? "primary.contrastText" : "text.secondary"
                       }

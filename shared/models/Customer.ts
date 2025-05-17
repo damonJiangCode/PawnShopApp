@@ -10,17 +10,21 @@ export interface Customer {
   middle_name?: string | undefined;
   date_of_birth?: Date | undefined;
   gender?: string | undefined;
+  hair_color?: string | undefined;
+  eye_color?: string | undefined;
+  height_cm?: number | undefined;
+  height_ft?: number | undefined;
+  weight_kg?: number | undefined;
+  weight_lb?: number | undefined;
+  email?: string | undefined;
+  phone?: string | undefined;
   address?: string | undefined;
   city?: string | undefined;
   province?: string | undefined;
   country?: string | undefined;
   postal_code?: string | undefined;
-  height_cm?: number | undefined;
-  height_ft?: number | undefined;
-  weight_kg?: number | undefined;
-  weight_lb?: number | undefined;
   notes?: string | undefined;
-  picture_url?: string | undefined;
+  picture_path?: string | undefined;
   updated_at?: Date | undefined;
   identifications?: Identification[];
 }
