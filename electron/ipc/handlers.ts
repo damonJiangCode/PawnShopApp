@@ -3,6 +3,8 @@ import {
   searchCustomer,
   addCustomer,
   getCities,
+  getHairColors,
+  getEyeColors,
 } from "../../backend/database/controllers/customerCRUD";
 import fs from "fs";
 import path from "path";
@@ -13,7 +15,7 @@ export const registerIpcHandlers = () => {
   ipcMain.handle("search-customer", async (_event, firstName, lastName) => {
     try {
       const results = await searchCustomer(firstName, lastName);
-      console.log("search-customer results (handler.ts):", results);
+      // console.log("search-customer results (handler.ts):", results);
       return results;
     } catch (error) {
       console.error("Error searching customer (handler.ts):", error);
@@ -25,7 +27,7 @@ export const registerIpcHandlers = () => {
   ipcMain.handle("add-customer", async (_event, customer, ids) => {
     try {
       const result = await addCustomer(customer, ids);
-      console.log("add-customer results (handler.ts):", result);
+      // console.log("add-customer results (handler.ts):", result);
       return result;
     } catch (error) {
       console.error("Error adding customer (handler.ts):", error);
@@ -49,13 +51,13 @@ export const registerIpcHandlers = () => {
 
         fs.writeFileSync(absPath, base64Data, "base64");
 
-        console.log("save-customer-image results (handler.ts) abs:", absPath);
-        console.log("save-customer-image results (handler.ts) rel:", relPath);
-        console.log(
-          "save-customer-image results (handler.ts) fileName:",
-          fileName
-        );
-        console.log("save-customer-image results (handler.ts) base64:", base64);
+        // console.log("save-customer-image results (handler.ts) abs:", absPath);
+        // console.log("save-customer-image results (handler.ts) rel:", relPath);
+        // console.log(
+        //   "save-customer-image results (handler.ts) fileName:",
+        //   fileName
+        // );
+        // console.log("save-customer-image results (handler.ts) base64:", base64);
 
         return relPath;
       } catch (err) {
@@ -71,11 +73,35 @@ export const registerIpcHandlers = () => {
       const result = await getCities();
       const provinces = result.provinces;
       const citiesByProvince = result.citiesByProvince;
-      console.log("provinces:", provinces);
-      console.log("citiesByProvince:", citiesByProvince);
+      // console.log("provinces:", provinces);
+      // console.log("citiesByProvince:", citiesByProvince);
       return { provinces, citiesByProvince };
     } catch (error) {
       console.error("Error getting cities (handler.ts):", error);
+      throw error;
+    }
+  });
+
+  // get hair colors
+  ipcMain.handle("get-hair-colors", async () => {
+    try {
+      const hairColors = await getHairColors();
+      // console.log("get-hair-colors results (handler.ts):", hairColors);
+      return hairColors;
+    } catch (error) {
+      console.error("Error getting hair colors (handler.ts):", error);
+      throw error;
+    }
+  });
+
+  // get eye colors
+  ipcMain.handle("get-eye-colors", async () => {
+    try {
+      const eyeColors = await getEyeColors();
+      // console.log("get-eye-colors results (handler.ts):", eyeColors);
+      return eyeColors;
+    } catch (error) {
+      console.error("Error getting eye colors (handler.ts):", error);
       throw error;
     }
   });
