@@ -26,6 +26,7 @@ import PhotoCapture from "./PhotoCapture";
 import CityProvinceCountryFields from "./CityProvinceCountryFields";
 import HeightWeightFields from "./HeightWeightFields";
 import NameFields from "./NameFields";
+import DobGenderColor from "./DobGenderColor";
 
 interface CustomerFormProps {
   open: boolean;
@@ -82,6 +83,7 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
   ) => {
     const { name, value } = e.target;
     setCustomer((prev) => ({ ...prev, [name]: value }));
+    console.log("customer form change (CustomerForm.tsx):", name, value);
   };
 
   const handleIdChange = (
@@ -150,81 +152,14 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
                 onChange={handleInputChange}
               />
 
-              {/* DOB & gender */}
-              <Box sx={{ display: "flex", gap: 2 }}>
-                <TextField
-                  fullWidth
-                  required
-                  type="date"
-                  name="date_of_birth"
-                  label="Date of Birth"
-                  value={
-                    customer.date_of_birth
-                      ? new Date(customer.date_of_birth)
-                          .toISOString()
-                          .split("T")[0]
-                      : ""
-                  }
-                  onChange={handleInputChange}
-                  size="small"
-                  InputLabelProps={{ shrink: true }}
-                />
-                <FormControl fullWidth size="small">
-                  <InputLabel required>Gender</InputLabel>
-                  <Select
-                    name="gender"
-                    value={customer.gender}
-                    onChange={(e) => {
-                      const { name, value } = e.target;
-                      handleInputChange({
-                        target: { name, value },
-                      } as React.ChangeEvent<HTMLInputElement>);
-                    }}
-                    label="Gender"
-                  >
-                    <MenuItem value="" />
-                    <MenuItem value="male">male</MenuItem>
-                    <MenuItem value="female">female</MenuItem>
-                    <MenuItem value="other">other</MenuItem>
-                  </Select>
-                </FormControl>
-
-                <FormControl fullWidth size="small">
-                  <InputLabel required>Hair Color</InputLabel>
-                  <Select
-                    name="hair_color"
-                    value={customer.hair_color}
-                    onChange={(e) => {
-                      const { name, value } = e.target;
-                      handleInputChange({
-                        target: { name, value },
-                      } as React.ChangeEvent<HTMLInputElement>);
-                    }}
-                    label="Hair Color"
-                  >
-                    <MenuItem value="" />
-                    <MenuItem value="male">male</MenuItem>
-                  </Select>
-                </FormControl>
-
-                <FormControl fullWidth size="small">
-                  <InputLabel required>Eye Color</InputLabel>
-                  <Select
-                    name="eye_color"
-                    value={customer.eye_color}
-                    onChange={(e) => {
-                      const { name, value } = e.target;
-                      handleInputChange({
-                        target: { name, value },
-                      } as React.ChangeEvent<HTMLInputElement>);
-                    }}
-                    label="Eye Color"
-                  >
-                    <MenuItem value="" />
-                    <MenuItem value="male">male</MenuItem>
-                  </Select>
-                </FormControl>
-              </Box>
+              {/* DOB & gender & hair color & eye color */}
+              <DobGenderColor
+                date_of_birth={customer.date_of_birth}
+                gender={customer.gender}
+                hair_color={customer.hair_color}
+                eye_color={customer.eye_color}
+                onChange={handleInputChange}
+              />
 
               {/* Height & weight */}
               <HeightWeightFields
