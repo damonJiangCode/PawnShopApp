@@ -23,10 +23,10 @@ import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Customer, Identification } from "../../../shared/models/Customer";
 import PhotoCapture from "./PhotoCapture";
-import CityProvinceCountryFields from "./CityProvinceCountryFields";
 import HeightWeightFields from "./HeightWeightFields";
 import NameFields from "./NameFields";
 import DobGenderColor from "./DobGenderColor";
+import AddressFields from "./AddressFields";
 
 interface CustomerFormProps {
   open: boolean;
@@ -173,33 +173,13 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
                 }}
               />
 
-              {/* Address & postal code */}
-              <Box sx={{ display: "flex", gap: 2 }}>
-                <TextField
-                  required
-                  fullWidth
-                  name="address"
-                  label="Address"
-                  value={customer.address}
-                  onChange={handleInputChange}
-                  size="small"
-                />
-                <TextField
-                  required
-                  fullWidth
-                  name="postal_code"
-                  label="Postal Code"
-                  value={customer.postal_code}
-                  onChange={handleInputChange}
-                  size="small"
-                />
-              </Box>
-
-              {/* City & rovince & country */}
-              <CityProvinceCountryFields
-                customer_city="Saskatoon"
-                customer_province="Saskatchewan"
-                customer_country="Canada"
+              {/* Address */}
+              <AddressFields
+                customer_address={customer.address}
+                customer_postal_code={customer.postal_code}
+                customer_city={customer.city || "Saskatoon"}
+                customer_province={customer.province || "Saskatchewan"}
+                customer_country={customer.country || "Canada"}
                 onChange={handleInputChange}
               />
 
