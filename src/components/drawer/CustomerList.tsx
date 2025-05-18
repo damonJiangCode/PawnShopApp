@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Paper,
   Card,
@@ -6,10 +6,6 @@ import {
   Typography,
   Box,
   Avatar,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemAvatar,
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import { Customer } from "../../../shared/models/Customer";

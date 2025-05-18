@@ -55,11 +55,11 @@ const PhotoCapture: React.FC<PhotoCaptureProps> = ({
   };
 
   return (
-    <Box>
+    <Box display="flex" flexDirection="column" alignItems="center">
       <Box
         sx={{
-          width: 200,
-          height: 200,
+          width: 180,
+          height: 180,
           border: "1px solid #ccc",
           borderRadius: 2,
           display: "flex",
@@ -81,19 +81,17 @@ const PhotoCapture: React.FC<PhotoCaptureProps> = ({
         />
       </Box>
 
-      <Box mt={2} display="flex" justifyContent="center">
+      <Box mt={1}>
         <Button variant="contained" onClick={handleTakePhoto}>
           Capture
         </Button>
       </Box>
 
-      <Box mt={2}>
-        <Typography variant="subtitle1">Captured Photo:</Typography>
-
+      <Box mt={4}>
         <Box
           sx={{
-            width: 200,
-            height: 200,
+            width: 180,
+            height: 180,
             border: "1px solid #ccc",
             borderRadius: 2,
             display: "flex",

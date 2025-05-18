@@ -3,32 +3,22 @@ import {
   Box,
   Typography,
   Button,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  TableContainer,
   Divider,
   Dialog,
   DialogTitle,
   DialogContent,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { Customer, Identification } from "../../../shared/models/Customer";
+import { Customer, Identification } from "../../../../shared/models/Customer";
 import PhotoCapture from "./PhotoCapture";
 import HeightWeightFields from "./HeightWeightFields";
 import NameFields from "./NameFields";
 import DobGenderColor from "./DobGenderColor";
 import AddressFields from "./AddressFields";
+import ContactNotesFields from "./ContactNotesFields";
+import IdentificationFields from "./IdentificationFields";
 
 interface CustomerFormProps {
+  existed_customer?: Customer;
   open: boolean;
   onClose: () => void;
   onSave: (customer: Customer) => void;
@@ -57,11 +47,14 @@ const defaultCustomer: Partial<Customer> = {
 };
 
 const CustomerForm: React.FC<CustomerFormProps> = ({
+  existed_customer,
   open,
   onClose,
   onSave,
 }) => {
-  const [customer, setCustomer] = useState<Partial<Customer>>(defaultCustomer);
+  const [customer, setCustomer] = useState<Partial<Customer>>(
+    existed_customer || defaultCustomer
+  );
 
   const addNewId = () =>
     setCustomer((prev) => ({
@@ -173,7 +166,7 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
                 }}
               />
 
-              {/* Address */}
+              {/* Address & postal code & city & province & country */}
               <AddressFields
                 customer_address={customer.address}
                 customer_postal_code={customer.postal_code}
@@ -183,36 +176,12 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
                 onChange={handleInputChange}
               />
 
-              {/* Email & phone */}
-              <Box sx={{ display: "flex", gap: 2 }}>
-                <TextField
-                  fullWidth
-                  name="email"
-                  label="Email"
-                  value={customer.email}
-                  onChange={handleInputChange}
-                  size="small"
-                />
-                <TextField
-                  fullWidth
-                  name="phone"
-                  label="Phone"
-                  value={customer.phone}
-                  onChange={handleInputChange}
-                  size="small"
-                />
-              </Box>
-
-              {/* Notes */}
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                name="notes"
-                label="Notes"
-                value={customer.notes}
+              {/* Email & phone & notes */}
+              <ContactNotesFields
+                email={customer.email}
+                phone={customer.phone}
+                notes={customer.notes}
                 onChange={handleInputChange}
-                size="small"
               />
             </Box>
 
@@ -243,72 +212,13 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
               }}
             >
               <Typography variant="subtitle1">ID Information</Typography>
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={<AddIcon />}
-                onClick={addNewId}
-              >
-                Add ID
-              </Button>
             </Box>
-            <TableContainer component="div" sx={{ mt: 1 }}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Type</TableCell>
-                    <TableCell>Number</TableCell>
-                    <TableCell align="center">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {customer.identifications?.map((id, idx) => (
-                    <TableRow key={idx}>
-                      <TableCell>
-                        <FormControl fullWidth size="small">
-                          <InputLabel>ID Type</InputLabel>
-                          <Select
-                            value={id.id_type}
-                            label="ID Type"
-                            onChange={(e) =>
-                              handleIdChange(idx, "id_type", e.target.value)
-                            }
-                          >
-                            <MenuItem value="passport">Passport</MenuItem>
-                            <MenuItem value="idCard">ID Card</MenuItem>
-                            <MenuItem value="driverLicense">
-                              Driver License
-                            </MenuItem>
-                          </Select>
-                        </FormControl>
-                      </TableCell>
-                      <TableCell>
-                        <TextField
-                          fullWidth
-                          size="small"
-                          value={id.id_number}
-                          onChange={(e) =>
-                            handleIdChange(idx, "id_number", e.target.value)
-                          }
-                        />
-                      </TableCell>
-                      <TableCell align="center">
-                        {customer.identifications &&
-                          customer.identifications.length > 1 && (
-                            <Button
-                              size="small"
-                              color="error"
-                              onClick={() => removeId(idx)}
-                            >
-                              <DeleteIcon />
-                            </Button>
-                          )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+            <IdentificationFields
+              identifications={customer.identifications || []}
+              onAdd={addNewId}
+              onRemove={removeId}
+              onChange={handleIdChange}
+            />
           </Box>
 
           <Divider sx={{ my: 3 }} />

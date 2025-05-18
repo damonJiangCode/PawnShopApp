@@ -4,7 +4,7 @@ import AddIcon from "@mui/icons-material/Add";
 import { Customer } from "../../../shared/models/Customer";
 import SearchForm from "./SearchForm";
 import CustomerList from "./CustomerList";
-import CustomerForm from "./CustomerForm";
+import CustomerForm from "../others/customerForm/CustomerForm";
 
 interface SearchDrawerProps {
   open: boolean;

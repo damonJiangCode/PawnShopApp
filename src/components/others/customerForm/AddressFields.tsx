@@ -80,8 +80,7 @@ const CityProvinceCountryFields: React.FC<CityProvinceCountryFieldsProps> = ({
           value={customer_postal_code || ""}
           onChange={onChange}
           size="small"
-          inputProps={{ maxLength: 6 }}
-          InputLabelProps={{ shrink: true }}
+          inputProps={{ maxLength: 7 }}
         />
       </Box>
       <Box sx={{ display: "flex", gap: 2 }}>
