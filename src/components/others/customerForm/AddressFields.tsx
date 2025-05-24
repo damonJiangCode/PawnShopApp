@@ -7,7 +7,9 @@ interface CityProvinceCountryFieldsProps {
   customer_city: string;
   customer_province: string;
   customer_country: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
 }
 
 const CityProvinceCountryFields: React.FC<CityProvinceCountryFieldsProps> = ({

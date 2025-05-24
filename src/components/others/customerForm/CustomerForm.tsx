@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Box,
-  Typography,
   Button,
   Divider,
   Dialog,
@@ -15,7 +14,9 @@ import NameFields from "./NameFields";
 import DobGenderColor from "./DobGenderColor";
 import AddressFields from "./AddressFields";
 import ContactNotesFields from "./ContactNotesFields";
-import IdentificationFields from "./IdentificationFields";
+import IdentificationFields, {
+  IdentificationFieldsRef,
+} from "./IdentificationFields";
 
 interface CustomerFormProps {
   existed_customer?: Customer;
@@ -25,6 +26,7 @@ interface CustomerFormProps {
 }
 
 const defaultCustomer: Partial<Customer> = {
+  customer_number: -1,
   first_name: "",
   last_name: "",
   middle_name: "",
@@ -37,13 +39,16 @@ const defaultCustomer: Partial<Customer> = {
   email: "",
   phone: "",
   address: "",
-  city: "",
-  province: "",
-  country: "",
+  city: "Saskatoon",
+  province: "Saskatchewan",
+  country: "Canada",
   postal_code: "",
   notes: "",
   picture_path: "",
-  identifications: [{ id_type: "", id_number: "" }],
+  identifications: [
+    { id_type: "", id_number: "" },
+    { id_type: "", id_number: "" },
+  ],
 };
 
 const CustomerForm: React.FC<CustomerFormProps> = ({
@@ -56,78 +61,60 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
     existed_customer || defaultCustomer
   );
 
-  const addNewId = () =>
-    setCustomer((prev) => ({
-      ...prev,
-      identifications: [
-        ...(prev.identifications || []),
-        { id_type: "", id_number: "" },
-      ],
-    }));
-
-  const removeId = (index: number) =>
-    setCustomer((prev) => ({
-      ...prev,
-      identifications: prev.identifications?.filter((_, i) => i !== index),
-    }));
+  const idRef = useRef<IdentificationFieldsRef>(null);
+  const [cameraActive, setCameraActive] = useState(true);
+  const [photoCaptured, setPhotoCaptured] = useState(false);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setCustomer((prev) => ({ ...prev, [name]: value }));
     console.log("customer form change (CustomerForm.tsx):", name, value);
+    setCustomer((prev) => ({ ...prev, [name]: value }));
+    // console.log("customer form change (CustomerForm.tsx):", name, value);
   };
 
-  const handleIdChange = (
-    index: number,
-    field: keyof Identification,
-    value: string
-  ) => {
-    setCustomer((prev) => ({
-      ...prev,
-      identifications: prev.identifications?.map((id, i) =>
-        i === index ? { ...id, [field]: value } : id
-      ),
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const newCustomer = await (window as any).electronAPI.addCustomer(
-        customer,
-        customer.identifications || []
-      );
-      onSave(newCustomer);
-      onClose();
-    } catch (error) {
-      console.error("Error adding customer:", error);
+    if (!photoCaptured) {
+      alert("Please capture a photo before saving.");
+      return;
     }
+    const identifications = idRef.current?.getIdentifications() || [];
+    let customerToSave = { ...customer, identifications };
+    if (customerToSave.customer_number === -1) {
+      const { customer_number, ...rest } = customerToSave;
+      customerToSave = rest;
+    }
+    onSave(customerToSave as Customer);
+  };
+
+  const handleClose = (
+    event?: {},
+    reason?: "backdropClick" | "escapeKeyDown"
+  ) => {
+    setCameraActive(false);
+    onClose();
   };
 
   async function handleCapture(
-    // fileName -= undefined or customerNumber
-    // file name += _${customer.idifcation[0]['idtype']}_${customer.idifcation[0]['idnumber']}_${Date.now()}.png
-
     fileName: string,
     base64: string
   ): Promise<void> {
-    console.log(fileName, base64);
     try {
       const relPath = await (window as any).electronAPI.saveCustomerImage(
         fileName,
         base64
       );
-      console.log("relPath (ClientAddForm.tsx)", relPath);
       setCustomer((prev) => ({ ...prev, picture_path: relPath }));
+      setPhotoCaptured(true); // 标记已拍照
     } catch (error) {
-      console.error("Error saving customer image (ClientAddForm.tsx):", error);
+      setPhotoCaptured(false);
     }
   }
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
       <DialogTitle>Add New Customer</DialogTitle>
       <DialogContent>
         <form onSubmit={handleSubmit}>
@@ -170,9 +157,9 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
               <AddressFields
                 customer_address={customer.address}
                 customer_postal_code={customer.postal_code}
-                customer_city={customer.city || "Saskatoon"}
-                customer_province={customer.province || "Saskatchewan"}
-                customer_country={customer.country || "Canada"}
+                customer_city={customer.city || ""}
+                customer_province={customer.province || ""}
+                customer_country={customer.country || ""}
                 onChange={handleInputChange}
               />
 
@@ -196,33 +183,21 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
               }}
             >
               <PhotoCapture
+                customerNumber={customer?.customer_number ?? -1}
                 onCapture={handleCapture}
-                id={customer.identifications?.[0]?.id_number || ""}
-                idType={customer.identifications?.[0]?.id_type || ""}
+                active={cameraActive}
               />
             </Box>
           </Box>
           {/* Bottom panel */}
-          <Box sx={{ mt: 3 }}>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Typography variant="subtitle1">ID Information</Typography>
-            </Box>
+          <Box>
             <IdentificationFields
-              identifications={customer.identifications || []}
-              onAdd={addNewId}
-              onRemove={removeId}
-              onChange={handleIdChange}
+              ref={idRef}
+              initialIdentifications={customer.identifications || []}
             />
           </Box>
 
           <Divider sx={{ my: 3 }} />
-          {/* Footer Actions */}
           <Box
             sx={{
               display: "flex",
@@ -230,7 +205,7 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
               alignItems: "center",
             }}
           >
-            <Button onClick={onClose} sx={{ mr: 1 }}>
+            <Button onClick={handleClose} sx={{ mr: 1 }}>
               Cancel
             </Button>
             <Button type="submit" variant="contained">

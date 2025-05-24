@@ -1,36 +1,66 @@
-import { useEffect, useRef, useState } from "react";
 import { Box, Button, Typography } from "@mui/material";
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 interface PhotoCaptureProps {
-  customerNumber?: string;
+  customerNumber: number;
   onCapture: (fileName: string, base64: string) => void;
-  id?: string;
-  idType?: string;
+  active?: boolean;
 }
 
 const PhotoCapture: React.FC<PhotoCaptureProps> = ({
   customerNumber,
   onCapture,
-  id,
-  idType,
+  active = true,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [photoData, setPhotoData] = useState<string | null>(null);
 
   useEffect(() => {
-    navigator.mediaDevices
-      .getUserMedia({ video: { width: 640, height: 480 } })
-      .then((stream) => {
+    if (active) {
+      navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+        streamRef.current = stream;
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
-      })
-      .catch((err) => {
-        console.error("Camera cannot be opened", err);
       });
-  }, []);
+    } else {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
+    }
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
+    };
+  }, [active]);
+
+  useEffect(() => {
+    if (customerNumber !== -1) {
+      (async () => {
+        try {
+          const base64 = await (window as any).electronAPI.getCustomerImage(
+            customerNumber
+          );
+          if (base64) {
+            setPhotoData(`data:image/png;base64,${base64}`);
+          }
+        } catch (err) {
+          console.error("Failed to load customer image", err);
+        }
+      })();
+    }
+  }, [customerNumber]);
 
   const handleTakePhoto = () => {
     const video = videoRef.current;
@@ -46,11 +76,11 @@ const PhotoCapture: React.FC<PhotoCaptureProps> = ({
 
     const imageDataUrl = canvas.toDataURL("image/png");
     setPhotoData(imageDataUrl);
-    console.log("imageDataUrl (PhotoCapture.tsx)", imageDataUrl);
+    // console.log("imageDataUrl (PhotoCapture.tsx)", imageDataUrl);
 
     const base64 = imageDataUrl.replace(/^data:image\/png;base64,/, "");
-    const fileName = `customer_${idType}_${id}_${Date.now()}.png`;
-    console.log("fileName (PhotoCapture.tsx)", fileName);
+    const fileName = `customer_${customerNumber}_${Date.now()}.png`;
+    // console.log("fileName (PhotoCapture.tsx)", fileName);
     onCapture(fileName, base64);
   };
 

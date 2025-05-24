@@ -22,18 +22,6 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
   const [eyeColors, setEyeColors] = useState<string[]>([]);
   const [maxDate, setMaxDate] = useState("");
 
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-
-    if (value > maxDate) {
-      onChange({
-        target: { name, value: maxDate },
-      } as React.ChangeEvent<HTMLInputElement>);
-    } else {
-      onChange(e);
-    }
-  };
-
   useEffect(() => {
     const fetchColors = async () => {
       const hair = await (window as any).electronAPI.getHairColors();
@@ -45,11 +33,11 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
 
     fetchColors();
 
-    const today = new Date();
+    const todayObj = new Date();
     const maxDateObj = new Date(
-      today.getFullYear() - 18,
-      today.getMonth(),
-      today.getDate()
+      todayObj.getFullYear() - 18,
+      todayObj.getMonth(),
+      todayObj.getDate()
     );
     setMaxDate(maxDateObj.toISOString().split("T")[0]);
   }, []);
@@ -63,7 +51,7 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
         name="date_of_birth"
         label="Date of Birth"
         value={date_of_birth ?? ""}
-        onChange={handleDateChange}
+        onChange={onChange}
         size="small"
         InputLabelProps={{ shrink: true }}
         inputProps={{ max: maxDate }}
@@ -74,7 +62,7 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
         helperText={
           date_of_birth !== undefined &&
           new Date(date_of_birth).toISOString().split("T")[0] > maxDate
-            ? `Date must be before ${maxDate}`
+            ? `Age under 18 is not allowed`
             : ""
         }
       />

@@ -35,6 +35,7 @@ const SearchDrawer: React.FC<SearchDrawerProps> = ({
   };
 
   const handleNewCustomer = (customer: Customer) => {
+    console.log("handle new customer adding: (SearchDrawer.tsx)", customer);
     setSearchResults([customer]);
     setSelectedCustomer(customer);
     onCustomerSelect(customer);
