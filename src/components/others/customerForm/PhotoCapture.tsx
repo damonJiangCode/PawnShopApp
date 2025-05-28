@@ -2,7 +2,7 @@ import { Box, Button, Typography } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
 
 interface PhotoCaptureProps {
-  customerNumber: number;
+  customerNumber?: number;
   onCapture: (fileName: string, base64: string) => void;
   active?: boolean;
 }
@@ -34,6 +34,7 @@ const PhotoCapture: React.FC<PhotoCaptureProps> = ({
         videoRef.current.srcObject = null;
       }
     }
+
     return () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
@@ -46,7 +47,7 @@ const PhotoCapture: React.FC<PhotoCaptureProps> = ({
   }, [active]);
 
   useEffect(() => {
-    if (customerNumber !== -1) {
+    if (customerNumber) {
       (async () => {
         try {
           const base64 = await (window as any).electronAPI.getCustomerImage(
@@ -60,7 +61,7 @@ const PhotoCapture: React.FC<PhotoCaptureProps> = ({
         }
       })();
     }
-  }, [customerNumber]);
+  }, []);
 
   const handleTakePhoto = () => {
     const video = videoRef.current;

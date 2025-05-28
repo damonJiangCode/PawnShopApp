@@ -8,120 +8,126 @@ interface HeightWeightFieldsProps {
   onWeightKgChange: (value: number | undefined) => void;
 }
 
+const cmToFt = (cm: number) => cm / 30.48;
+const ftToCm = (ft: number) => ft * 30.48;
+const kgToLb = (kg: number) => kg * 2.20462;
+const lbToKg = (lb: number) => lb / 2.20462;
+
 const HeightWeightFields: React.FC<HeightWeightFieldsProps> = ({
   height_cm,
   weight_kg,
   onHeightCmChange,
   onWeightKgChange,
 }) => {
-  const [heightFt, setHeightFt] = useState<number | "">("");
-  const [weightLb, setWeightLb] = useState<number | "">("");
-  const [editing, setEditing] = useState<"cm" | "ft" | "kg" | "lb" | null>(
-    null
-  );
+  const [heightCmInput, setHeightCmInput] = useState<string>("");
+  const [heightFtInput, setHeightFtInput] = useState<string>("");
+  const [weightKgInput, setWeightKgInput] = useState<string>("");
+  const [weightLbInput, setWeightLbInput] = useState<string>("");
 
-  // cm → ft
   useEffect(() => {
-    if (editing === "ft") return;
-    if (height_cm !== undefined && !isNaN(height_cm)) {
-      const ft = Number((height_cm / 30.48).toFixed(2));
-      setHeightFt(ft);
-    } else {
-      setHeightFt("");
-    }
-  }, [height_cm, editing]);
+    setHeightCmInput(
+      height_cm !== undefined ? String(Number(height_cm).toFixed(1)) : ""
+    );
+    setHeightFtInput(
+      height_cm !== undefined
+        ? String(Number(cmToFt(height_cm)).toFixed(1))
+        : ""
+    );
+  }, [height_cm]);
 
-  // kg → lb
   useEffect(() => {
-    if (editing === "lb") return;
-    if (weight_kg !== undefined && !isNaN(weight_kg)) {
-      const lb = Number((weight_kg * 2.20462).toFixed(2));
-      setWeightLb(lb);
-    } else {
-      setWeightLb("");
-    }
-  }, [weight_kg, editing]);
-
-  // ft → cm
-  useEffect(() => {
-    if (editing !== "ft") return;
-    if (heightFt === "" || isNaN(Number(heightFt))) {
-      onHeightCmChange(undefined);
-    } else {
-      const cm = Number((Number(heightFt) * 30.48).toFixed(2));
-      onHeightCmChange(cm);
-    }
-  }, [heightFt, editing]);
-
-  // lb → kg
-  useEffect(() => {
-    if (editing !== "lb") return;
-    if (weightLb === "" || isNaN(Number(weightLb))) {
-      onWeightKgChange(undefined);
-    } else {
-      const kg = Number((Number(weightLb) / 2.20462).toFixed(2));
-      onWeightKgChange(kg);
-    }
-  }, [weightLb, editing]);
+    setWeightKgInput(
+      weight_kg !== undefined ? String(Number(weight_kg).toFixed(1)) : ""
+    );
+    setWeightLbInput(
+      weight_kg !== undefined
+        ? String(Number(kgToLb(weight_kg)).toFixed(1))
+        : ""
+    );
+  }, [weight_kg]);
 
   return (
     <Box sx={{ display: "flex", gap: 2 }}>
+      {/* Height (cm) */}
       <TextField
-        required
         fullWidth
         type="number"
         name="height_cm"
         label="Height (cm)"
-        value={height_cm ?? ""}
-        onChange={(e) => {
-          setEditing("cm");
-          const val = parseFloat(e.target.value);
-          onHeightCmChange(isNaN(val) ? undefined : val);
+        value={heightCmInput}
+        onChange={(e) => setHeightCmInput(e.target.value)}
+        onBlur={() => {
+          const num = Number(heightCmInput);
+          if (heightCmInput === "" || isNaN(num)) {
+            onHeightCmChange(undefined);
+            setHeightFtInput("");
+          } else {
+            onHeightCmChange(num);
+            setHeightFtInput(String(Number(cmToFt(num)).toFixed(2)));
+          }
         }}
-        onBlur={() => setEditing(null)}
         size="small"
       />
+      {/* Height (ft) */}
       <TextField
         fullWidth
         type="number"
         name="height_ft"
         label="Height (ft)"
-        value={heightFt}
-        onChange={(e) => {
-          setEditing("ft");
-          const val = parseFloat(e.target.value);
-          setHeightFt(isNaN(val) ? "" : val);
+        value={heightFtInput}
+        onChange={(e) => setHeightFtInput(e.target.value)}
+        onBlur={() => {
+          const num = Number(heightFtInput);
+          if (heightFtInput === "" || isNaN(num)) {
+            onHeightCmChange(undefined);
+            setHeightCmInput("");
+          } else {
+            const cm = Number(ftToCm(num).toFixed(2));
+            onHeightCmChange(cm);
+            setHeightCmInput(String(cm));
+          }
         }}
-        onBlur={() => setEditing(null)}
         size="small"
       />
+      {/* Weight (kg) */}
       <TextField
-        required
         fullWidth
         type="number"
         name="weight_kg"
         label="Weight (kg)"
-        value={weight_kg ?? ""}
-        onChange={(e) => {
-          setEditing("kg");
-          const val = parseFloat(e.target.value);
-          onWeightKgChange(isNaN(val) ? undefined : val);
+        value={weightKgInput}
+        onChange={(e) => setWeightKgInput(e.target.value)}
+        onBlur={() => {
+          const num = Number(weightKgInput);
+          if (weightKgInput === "" || isNaN(num)) {
+            onWeightKgChange(undefined);
+            setWeightLbInput("");
+          } else {
+            onWeightKgChange(num);
+            setWeightLbInput(String(Number(kgToLb(num)).toFixed(2)));
+          }
         }}
-        onBlur={() => setEditing(null)}
         size="small"
       />
+      {/* Weight (lb) */}
       <TextField
         fullWidth
         type="number"
         name="weight_lb"
         label="Weight (lb)"
-        value={weightLb}
-        onChange={(e) => {
-          setEditing("lb");
-          const val = parseFloat(e.target.value);
-          setWeightLb(isNaN(val) ? "" : val);
+        value={weightLbInput}
+        onChange={(e) => setWeightLbInput(e.target.value)}
+        onBlur={() => {
+          const num = Number(weightLbInput);
+          if (weightLbInput === "" || isNaN(num)) {
+            onWeightKgChange(undefined);
+            setWeightKgInput("");
+          } else {
+            const kg = Number(lbToKg(num).toFixed(2));
+            onWeightKgChange(kg);
+            setWeightKgInput(String(kg));
+          }
         }}
-        onBlur={() => setEditing(null)}
         size="small"
       />
     </Box>

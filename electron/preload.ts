@@ -8,6 +8,7 @@ const CHANNELS = {
   GET_CITIES: "get-cities",
   GET_HAIR_COLORS: "get-hair-colors",
   GET_EYE_COLORS: "get-eye-colors",
+  GET_ID_TYPES: "get-id-types",
 } as const;
 
 // expose to the renderer process
@@ -16,8 +17,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     return ipcRenderer.invoke(CHANNELS.SEARCH_CUSTOMER, firstName, lastName);
   },
 
-  addCustomer: (customer: any, ids: any[]) => {
-    return ipcRenderer.invoke(CHANNELS.ADD_CUSTOMER, customer, ids);
+  addCustomer: (payload: { customer: any; ids: any[] }) => {
+    return ipcRenderer.invoke(CHANNELS.ADD_CUSTOMER, payload);
   },
 
   saveCustomerImage: (fileName: string, base64: string) => {
@@ -34,5 +35,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   getEyeColors: () => {
     return ipcRenderer.invoke(CHANNELS.GET_EYE_COLORS);
+  },
+
+  getIdTypes: () => {
+    return ipcRenderer.invoke(CHANNELS.GET_ID_TYPES);
   },
 });

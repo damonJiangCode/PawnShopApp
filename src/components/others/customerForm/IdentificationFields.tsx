@@ -1,4 +1,4 @@
-import React, { useState, useImperativeHandle, forwardRef } from "react";
+import { useState, useImperativeHandle, forwardRef, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -31,6 +31,19 @@ const IdentificationFields = forwardRef<
   const [identifications, setIdentifications] = useState<Identification[]>(
     initialIdentifications
   );
+
+  const [idTypes, setIdTypes] = useState<string[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const types = await (window as any).electronAPI.getIdTypes();
+        setIdTypes(types);
+      } catch (err) {
+        setIdTypes([]);
+      }
+    })();
+  }, []);
 
   useImperativeHandle(ref, () => ({
     getIdentifications: () => identifications,
@@ -98,9 +111,11 @@ const IdentificationFields = forwardRef<
                       handleFieldChange(idx, "id_type", e.target.value)
                     }
                   >
-                    <MenuItem value="passport">Passport</MenuItem>
-                    <MenuItem value="idCard">ID Card</MenuItem>
-                    <MenuItem value="driverLicense">Driver License</MenuItem>
+                    {idTypes.map((type) => (
+                      <MenuItem key={type} value={type}>
+                        {type}
+                      </MenuItem>
+                    ))}
                   </TextField>
                 </TableCell>
                 <TableCell>

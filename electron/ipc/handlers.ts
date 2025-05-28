@@ -5,6 +5,7 @@ import {
   getCities,
   getHairColors,
   getEyeColors,
+  getIdTypes,
 } from "../../backend/database/controllers/customerCRUD";
 import fs from "fs";
 import path from "path";
@@ -24,9 +25,10 @@ export const registerIpcHandlers = () => {
   });
 
   // add customer
-  ipcMain.handle("add-customer", async (_event, customer, ids) => {
+  ipcMain.handle("add-customer", async (_event, payload) => {
     try {
-      const result = await addCustomer(customer, ids);
+      const { customer, identifications } = payload;
+      const result = await addCustomer(customer, identifications);
       // console.log("add-customer results (handler.ts):", result);
       return result;
     } catch (error) {
@@ -102,6 +104,18 @@ export const registerIpcHandlers = () => {
       return eyeColors;
     } catch (error) {
       console.error("Error getting eye colors (handler.ts):", error);
+      throw error;
+    }
+  });
+
+  // get id types
+  ipcMain.handle("get-id-types", async () => {
+    try {
+      const idTypes = await getIdTypes();
+      // console.log("get-id-types results (handler.ts):", idTypes);
+      return idTypes;
+    } catch (error) {
+      console.error("Error getting ID types (handler.ts):", error);
       throw error;
     }
   });

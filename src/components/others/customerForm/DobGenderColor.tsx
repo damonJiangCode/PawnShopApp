@@ -42,6 +42,10 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
     setMaxDate(maxDateObj.toISOString().split("T")[0]);
   }, []);
 
+  const isValidDate = (d: any) => {
+    return d instanceof Date && !isNaN(d.getTime());
+  };
+
   return (
     <Box sx={{ display: "flex", gap: 2 }}>
       <TextField
@@ -50,17 +54,23 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
         type="date"
         name="date_of_birth"
         label="Date of Birth"
-        value={date_of_birth ?? ""}
+        value={
+          date_of_birth && isValidDate(new Date(date_of_birth))
+            ? new Date(date_of_birth).toISOString().split("T")[0]
+            : ""
+        }
         onChange={onChange}
         size="small"
         InputLabelProps={{ shrink: true }}
         inputProps={{ max: maxDate }}
         error={
-          date_of_birth !== undefined &&
+          date_of_birth &&
+          isValidDate(new Date(date_of_birth)) &&
           new Date(date_of_birth).toISOString().split("T")[0] > maxDate
         }
         helperText={
-          date_of_birth !== undefined &&
+          date_of_birth &&
+          isValidDate(new Date(date_of_birth)) &&
           new Date(date_of_birth).toISOString().split("T")[0] > maxDate
             ? `Age under 18 is not allowed`
             : ""
@@ -73,7 +83,7 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
         required
         name="gender"
         label="Gender"
-        value={gender ?? ""}
+        value={gender}
         onChange={onChange}
         size="small"
       >
@@ -88,7 +98,7 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
         required
         name="hair_color"
         label="Hair Color"
-        value={hair_color ?? ""}
+        value={hair_color}
         onChange={onChange}
         size="small"
       >
@@ -104,7 +114,7 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
         required
         name="eye_color"
         label="Eye Color"
-        value={eye_color ?? ""}
+        value={eye_color}
         onChange={onChange}
         size="small"
       >

@@ -10,6 +10,8 @@ import {
   insertHairColors,
 } from "./models/hairColorsTable";
 import { createEyeColorsTable, insertEyeColors } from "./models/eyeColorsTable";
+import { createIdTypesTable, insertIdTypes } from "./models/idTypesTable";
+import { create } from "domain";
 
 // create pool connection
 const pool = new Pool({
@@ -66,6 +68,13 @@ export const initializeDatabase = async () => {
     // import eye colors
     await client.query(insertEyeColors);
     console.log("Eye colors inserted successfully");
+
+    // create id types table
+    await client.query(createIdTypesTable);
+    console.log("ID types table created successfully");
+    // import id types
+    await client.query(insertIdTypes);
+    console.log("ID types inserted successfully");
 
     console.log("All database tables initialized successfully");
   } catch (error) {

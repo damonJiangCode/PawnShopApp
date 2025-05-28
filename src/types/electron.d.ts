@@ -4,10 +4,10 @@ import { Customer, Identification } from "../../shared/models/Customer";
 
 interface ElectronAPI {
   searchCustomer: (firstName: string, lastName: string) => Promise<Customer[]>;
-  addCustomer: (
-    customer: Partial<Customer>,
-    ids: Identification[]
-  ) => Promise<Customer>;
+  addCustomer: (payload: {
+    customer: Customer;
+    ids: Identification[];
+  }) => Promise<Customer>;
   saveCustomerImage: (fileName: string, base64: string) => Promise<string>;
   getCities: () => Promise<{
     provinces: string[];
@@ -15,6 +15,7 @@ interface ElectronAPI {
   }>;
   getHairColors: () => Promise<string[]>;
   getEyeColors: () => Promise<string[]>;
+  getIdTypes: () => Promise<string[]>;
 }
 
 declare global {

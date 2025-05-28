@@ -49,33 +49,39 @@ export const searchCustomer = async (firstName: string, lastName: string) => {
 };
 
 // add new customer
-export const addCustomer = async (customer: any, ids: any[]) => {
+export const addCustomer = async (customer: any, identifications: any[]) => {
   const client = await connect();
 
   const customerQuery = `
-  INSERT INTO customers (
-    first_name, last_name, middle_name, date_of_birth, gender,
-    address, city, province, country, postal_code,
-    height_cm, weight_kg, notes, picture_path
-  ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-  RETURNING *
-`;
+    INSERT INTO customers (
+      first_name, last_name, middle_name, date_of_birth, gender,
+      hair_color, eye_color, address, city, province, country, postal_code,
+      height_cm, weight_kg, notes, picture_path
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+    RETURNING *
+  `;
 
   const customerValues = [
     customer.first_name,
     customer.last_name,
     customer.middle_name || null,
-    customer.date_of_birth || null,
-    customer.gender || null,
-    customer.address || null,
-    customer.city || null,
-    customer.province || null,
-    customer.country || null,
-    customer.postal_code || null,
-    customer.height_cm ? parseFloat(customer.height_cm) : null,
-    customer.weight_kg ? parseFloat(customer.weight_kg) : null,
+    customer.date_of_birth,
+    customer.gender,
+    customer.hair_color,
+    customer.eye_color,
+    customer.address,
+    customer.city,
+    customer.province,
+    customer.country,
+    customer.postal_code,
+    customer.height_cm !== undefined && customer.height_cm !== ""
+      ? parseFloat(customer.height_cm)
+      : null,
+    customer.weight_kg !== undefined && customer.weight_kg !== ""
+      ? parseFloat(customer.weight_kg)
+      : null,
     customer.notes || null,
-    customer.picture_path || null,
+    customer.picture_path,
   ];
 
   try {
@@ -83,42 +89,44 @@ export const addCustomer = async (customer: any, ids: any[]) => {
     const customerResult = await client.query(customerQuery, customerValues);
     const newCustomer = customerResult.rows[0];
 
-    // add customer identification
-    if (ids && ids.length > 0) {
+    // insert identifications if provided
+    if (identifications && identifications.length > 0) {
       const idQuery = `
         INSERT INTO customer_identifications (customer_number, identification_type, identification_number)
         VALUES ($1, $2, $3)
-        RETURNING *
       `;
-
-      for (const id of ids) {
-        if (id.idType && id.idNumber) {
+      for (const id of identifications) {
+        if (id.id_type && id.id_number) {
           await client.query(idQuery, [
             newCustomer.customer_number,
-            id.idType,
-            id.idNumber,
+            id.id_type,
+            id.id_number,
           ]);
         }
       }
     }
 
-    // get customer identification
+    // get the identifications for the new customer
     const customerIdsQuery = `
-      SELECT * FROM customer_identifications 
+      SELECT identification_type, identification_number 
+      FROM customer_identifications 
       WHERE customer_number = $1
     `;
     const customerIdsResult = await client.query(customerIdsQuery, [
       newCustomer.customer_number,
     ]);
+
     await client.query("COMMIT");
-    // console.log(
-    //   "Customer identification added (customerCRUD.ts):",
-    //   customerIdsResult.rows
-    // );
-    return customerIdsResult.rows;
+
+    //get the full customer object with identifications
+    console.log("New customer added (customerCRUD.ts):", newCustomer);
+    return {
+      ...newCustomer,
+      identifications: customerIdsResult.rows,
+    };
   } catch (error) {
-    console.log("error", error);
     await client.query("ROLLBACK");
+    console.error("Error in addCustomer (customerCRUD.ts):", error);
     throw error;
   } finally {
     client.release();
@@ -196,6 +204,26 @@ export const getEyeColors = async () => {
     return eyeColors;
   } catch (error) {
     console.error("Error getting eye colors:", error);
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
+// get ID types
+export const getIdTypes = async () => {
+  const client = await connect();
+  const query = "SELECT * FROM id_types ORDER BY type ASC";
+  try {
+    await client.query("BEGIN");
+    const result = await client.query(query);
+    await client.query("COMMIT");
+    const idTypes = result.rows.map((row) => row.type);
+    // console.log("getIdTypes result (customerCRUD.ts):", idTypes);
+    return idTypes;
+  } catch (error) {
+    console.error("Error getting ID types:", error);
     await client.query("ROLLBACK");
     throw error;
   } finally {

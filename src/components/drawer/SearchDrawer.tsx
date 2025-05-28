@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Box, Drawer, Button } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import { Customer } from "../../../shared/models/Customer";
+import { Customer, Identification } from "../../../shared/models/Customer";
 import SearchForm from "./SearchForm";
 import CustomerList from "./CustomerList";
 import CustomerForm from "../others/customerForm/CustomerForm";
@@ -34,12 +34,29 @@ const SearchDrawer: React.FC<SearchDrawerProps> = ({
     onCustomerSelect(customer);
   };
 
-  const handleNewCustomer = (customer: Customer) => {
-    console.log("handle new customer adding: (SearchDrawer.tsx)", customer);
-    setSearchResults([customer]);
-    setSelectedCustomer(customer);
-    onCustomerSelect(customer);
-    setShowAddForm(false);
+  const handleNewCustomer = async ({
+    updatedCustomer,
+    updatedIdentifications,
+  }: {
+    updatedCustomer: Customer;
+    updatedIdentifications: Identification[];
+  }) => {
+    try {
+      const newCustomer: Customer = await (
+        window as any
+      ).electronAPI.addCustomer({
+        customer: updatedCustomer,
+        identifications: updatedIdentifications,
+      });
+
+      setSearchResults([newCustomer, ...searchResults]);
+      setSelectedCustomer(newCustomer);
+      onCustomerSelect(newCustomer);
+      setShowAddForm(false);
+    } catch (err) {
+      console.error("Failed to add customer or identifications:", err);
+      alert("Failed to add customer. Please try again.");
+    }
   };
 
   return (

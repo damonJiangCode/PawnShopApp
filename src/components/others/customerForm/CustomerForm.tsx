@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Box,
   Button,
@@ -22,15 +22,21 @@ interface CustomerFormProps {
   existed_customer?: Customer;
   open: boolean;
   onClose: () => void;
-  onSave: (customer: Customer) => void;
+  onSave: (args: {
+    updatedCustomer: Customer;
+    updatedIdentifications: Identification[];
+  }) => void;
 }
 
-const defaultCustomer: Partial<Customer> = {
-  customer_number: -1,
+const newCustomer: Customer = {
   first_name: "",
   last_name: "",
   middle_name: "",
-  date_of_birth: undefined,
+  date_of_birth: new Date(
+    new Date().getFullYear() - 18,
+    new Date().getMonth(),
+    new Date().getDate()
+  ),
   gender: "",
   hair_color: "",
   eye_color: "",
@@ -45,11 +51,11 @@ const defaultCustomer: Partial<Customer> = {
   postal_code: "",
   notes: "",
   picture_path: "",
-  identifications: [
-    { id_type: "", id_number: "" },
-    { id_type: "", id_number: "" },
-  ],
 };
+const newIdentifications: Identification[] = [
+  { id_type: "", id_number: "" },
+  { id_type: "", id_number: "" },
+];
 
 const CustomerForm: React.FC<CustomerFormProps> = ({
   existed_customer,
@@ -57,44 +63,51 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
   onClose,
   onSave,
 }) => {
-  const [customer, setCustomer] = useState<Partial<Customer>>(
-    existed_customer || defaultCustomer
+  const [customer, setCustomer] = useState<Customer>(
+    existed_customer || newCustomer
   );
 
   const idRef = useRef<IdentificationFieldsRef>(null);
   const [cameraActive, setCameraActive] = useState(true);
   const [photoCaptured, setPhotoCaptured] = useState(false);
 
+  // 每次打开时重置摄像头
+  useEffect(() => {
+    if (open) {
+      setCameraActive(true);
+    }
+  }, [open]);
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    console.log("customer form change (CustomerForm.tsx):", name, value);
-    setCustomer((prev) => ({ ...prev, [name]: value }));
     // console.log("customer form change (CustomerForm.tsx):", name, value);
+    setCustomer((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!photoCaptured) {
-      alert("Please capture a photo before saving.");
-      return;
+    // new customer
+    if (!("customer_number" in customer)) {
+      if (!photoCaptured) {
+        alert("Please capture a customer photo before saving.");
+        return;
+      }
+      const identifications = idRef.current?.getIdentifications();
+      onSave({
+        updatedCustomer: customer,
+        updatedIdentifications: identifications || [],
+      });
     }
-    const identifications = idRef.current?.getIdentifications() || [];
-    let customerToSave = { ...customer, identifications };
-    if (customerToSave.customer_number === -1) {
-      const { customer_number, ...rest } = customerToSave;
-      customerToSave = rest;
-    }
-    onSave(customerToSave as Customer);
   };
 
-  const handleClose = (
-    event?: {},
-    reason?: "backdropClick" | "escapeKeyDown"
-  ) => {
+  const handleClose = () => {
+    console.log("customer form close (CustomerForm.tsx):");
     setCameraActive(false);
-    onClose();
+    setTimeout(() => {
+      onClose();
+    }, 100); // 100ms 让 PhotoCapture 有时间执行清理
   };
 
   async function handleCapture(
@@ -107,7 +120,7 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
         base64
       );
       setCustomer((prev) => ({ ...prev, picture_path: relPath }));
-      setPhotoCaptured(true); // 标记已拍照
+      setPhotoCaptured(true);
     } catch (error) {
       setPhotoCaptured(false);
     }
@@ -157,9 +170,9 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
               <AddressFields
                 customer_address={customer.address}
                 customer_postal_code={customer.postal_code}
-                customer_city={customer.city || ""}
-                customer_province={customer.province || ""}
-                customer_country={customer.country || ""}
+                customer_city={customer.city}
+                customer_province={customer.province}
+                customer_country={customer.country}
                 onChange={handleInputChange}
               />
 
@@ -183,7 +196,10 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
               }}
             >
               <PhotoCapture
-                customerNumber={customer?.customer_number ?? -1}
+                {...("customer_number" in customer &&
+                typeof customer.customer_number === "number"
+                  ? { customerNumber: customer.customer_number as number }
+                  : {})}
                 onCapture={handleCapture}
                 active={cameraActive}
               />
@@ -193,7 +209,7 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
           <Box>
             <IdentificationFields
               ref={idRef}
-              initialIdentifications={customer.identifications || []}
+              initialIdentifications={newIdentifications}
             />
           </Box>
 

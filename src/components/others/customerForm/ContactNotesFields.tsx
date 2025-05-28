@@ -22,7 +22,7 @@ const ContactNotesFields: React.FC<ContactNotesFieldsProps> = ({
         fullWidth
         name="email"
         label="Email"
-        value={email ?? ""}
+        value={email}
         onChange={onChange}
         size="small"
       />
@@ -30,7 +30,7 @@ const ContactNotesFields: React.FC<ContactNotesFieldsProps> = ({
         fullWidth
         name="phone"
         label="Phone"
-        value={phone ?? ""}
+        value={phone}
         onChange={onChange}
         size="small"
       />
@@ -41,7 +41,7 @@ const ContactNotesFields: React.FC<ContactNotesFieldsProps> = ({
       rows={4}
       name="notes"
       label="Notes"
-      value={notes ?? ""}
+      value={notes}
       onChange={onChange}
       size="small"
     />
