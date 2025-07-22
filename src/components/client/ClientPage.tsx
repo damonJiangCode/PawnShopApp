@@ -1,12 +1,15 @@
-import { Box, Typography } from "@mui/material";
-import React from "react";
+import React, { useState } from "react";
+import CustomerProfile from "./CustomerProfile";
+import { Customer } from "../../../shared/models/Customer";
 
-const ClientPage: React.FC = () => {
-  return (
-    <Box sx={{ p: 2 }}>
-      <Typography variant="h1">Client Page</Typography>
-    </Box>
-  );
-};
+const ClientPage: React.FC<{ customer?: Customer }> = ({ customer }) => (
+  <div>
+    {customer ? (
+      <CustomerProfile customer={customer} />
+    ) : (
+      <div>No available customer</div>
+    )}
+  </div>
+);
 
 export default ClientPage;
