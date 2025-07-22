@@ -5,27 +5,26 @@ export const searchCustomer = async (firstName: string, lastName: string) => {
   const client = await connect();
   const query = `
     SELECT 
-      customer_number,
-      first_name,
-      last_name,
-      middle_name,
-      date_of_birth,
-      gender,
-      address,
-      city,
-      province,
-      country,
-      postal_code,
-      height_cm,
-      weight_kg,
-      notes,
-      picture_path
-    FROM customers
+      c.*,
+      COALESCE(
+        json_agg(
+          jsonb_build_object(
+            'id', ci.id,
+            'identification_type', ci.identification_type,
+            'identification_number', ci.identification_number,
+            'updated_at', ci.updated_at
+          )
+        ) FILTER (WHERE ci.id IS NOT NULL), '[]'
+      ) AS identifications
+    FROM customers c
+    LEFT JOIN customer_identifications ci
+      ON c.customer_number = ci.customer_number
     WHERE 
-      (LOWER(first_name) LIKE LOWER($1) || '%' OR $1 = '') 
+      (LOWER(c.first_name) LIKE LOWER($1) || '%' OR $1 = '') 
       AND 
-      (LOWER(last_name) LIKE LOWER($2) || '%' OR $2 = '')
-    ORDER BY last_name, first_name
+      (LOWER(c.last_name) LIKE LOWER($2) || '%' OR $2 = '')
+    GROUP BY c.customer_number
+    ORDER BY c.last_name, c.first_name
   `;
 
   const values = [
@@ -36,9 +35,14 @@ export const searchCustomer = async (firstName: string, lastName: string) => {
   try {
     await client.query("BEGIN");
     const result = await client.query(query, values);
-    // console.log("search customer result (customerCRUD.ts)", result.rows);
     await client.query("COMMIT");
-    return result.rows;
+    const customers = result.rows.map((row) => ({
+      ...row,
+      identifications: Array.isArray(row.identifications)
+        ? row.identifications
+        : JSON.parse(row.identifications),
+    }));
+    return customers;
   } catch (error) {
     console.error("Error searching customer: (customerCRUD.ts)", error);
     await client.query("ROLLBACK");
