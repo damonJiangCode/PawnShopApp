@@ -12,7 +12,7 @@ import HistoryPage from "./components/history/HistoryPage";
 import TabPanel from "./components/others/TabPanel";
 
 const App: React.FC = () => {
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(true);
   const [selectedCustomer, setSelectedCustomer] = useState<
     Customer | undefined
   >(undefined);
@@ -20,7 +20,6 @@ const App: React.FC = () => {
 
   const handleCustomerSelect = (customer: Customer) => {
     setSelectedCustomer(customer);
-    setDrawerOpen(false);
   };
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
@@ -87,7 +86,7 @@ const App: React.FC = () => {
         </Paper>
 
         <TabPanel value={currentTab} index={0}>
-          <ClientPage />
+          <ClientPage customer={selectedCustomer} />
         </TabPanel>
         <TabPanel value={currentTab} index={1}>
           <TransactionPage />
