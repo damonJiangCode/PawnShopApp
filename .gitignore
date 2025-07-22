@@ -1,3 +1,5 @@
 node_modules
 dist
 customer_images/*
+.DS_Store
+
