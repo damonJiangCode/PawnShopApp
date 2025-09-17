@@ -63,7 +63,7 @@ const HeightWeightFields: React.FC<HeightWeightFieldsProps> = ({
             setHeightFtInput("");
           } else {
             onHeightCmChange(num);
-            setHeightFtInput(String(Number(cmToFt(num)).toFixed(2)));
+            setHeightFtInput(String(Number(cmToFt(num)).toFixed(1)));
           }
         }}
         size="small"
@@ -104,7 +104,7 @@ const HeightWeightFields: React.FC<HeightWeightFieldsProps> = ({
             setWeightLbInput("");
           } else {
             onWeightKgChange(num);
-            setWeightLbInput(String(Number(kgToLb(num)).toFixed(2)));
+            setWeightLbInput(String(Number(kgToLb(num)).toFixed(1)));
           }
         }}
         size="small"

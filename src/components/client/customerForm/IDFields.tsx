@@ -14,24 +14,18 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { Identification } from "../../../../shared/models/Customer";
+import { ID } from "../../../../shared/models/Customer";
 
-export interface IdentificationFieldsRef {
-  getIdentifications: () => Identification[];
+export interface IDFieldsRef {
+  getIDs: () => ID[];
 }
 
-interface IdentificationFieldsProps {
-  initialIdentifications: Identification[];
+interface IDFieldsProps {
+  IDs: ID[];
 }
 
-const IdentificationFields = forwardRef<
-  IdentificationFieldsRef,
-  IdentificationFieldsProps
->(({ initialIdentifications }, ref) => {
-  const [identifications, setIdentifications] = useState<Identification[]>(
-    initialIdentifications
-  );
-
+const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(({ IDs }, ref) => {
+  const [identifications, setIdentifications] = useState<ID[]>(IDs);
   const [idTypes, setIdTypes] = useState<string[]>([]);
 
   useEffect(() => {
@@ -46,7 +40,7 @@ const IdentificationFields = forwardRef<
   }, []);
 
   useImperativeHandle(ref, () => ({
-    getIdentifications: () => identifications,
+    getIDs: () => identifications,
   }));
 
   const handleAdd = () => {
@@ -57,11 +51,7 @@ const IdentificationFields = forwardRef<
     setIdentifications(identifications.filter((_, i) => i !== index));
   };
 
-  const handleFieldChange = (
-    index: number,
-    field: keyof Identification,
-    value: string
-  ) => {
+  const handleFieldChange = (index: number, field: keyof ID, value: string) => {
     setIdentifications((prev) =>
       prev.map((id, i) => (i === index ? { ...id, [field]: value } : id))
     );
@@ -150,4 +140,4 @@ const IdentificationFields = forwardRef<
   );
 });
 
-export default IdentificationFields;
+export default IDFields;

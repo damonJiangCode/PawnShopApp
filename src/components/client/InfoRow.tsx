@@ -25,7 +25,7 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, value }) => {
   return (
     <Box sx={{ display: "flex", mb: 0.5 }}>
       <Typography
-        sx={{ minWidth: 120, color: "text.secondary", fontWeight: 500 }}
+        sx={{ minWidth: 150, color: "text.secondary", fontWeight: 500 }}
       >
         {label}
       </Typography>
