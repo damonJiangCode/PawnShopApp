@@ -1,4 +1,4 @@
-export interface Identification {
+export interface ID {
   customer_number?: number;
   id_type: string;
   id_number: string;
@@ -24,5 +24,5 @@ export interface Customer {
   phone: string;
   notes: string;
   picture_path: string;
-  // updated_at: Date;
+  updated_at: Date;
 }
