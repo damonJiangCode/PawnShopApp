@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Paper,
   Card,
@@ -34,9 +34,9 @@ const CustomerList: React.FC<CustomerListProps> = ({
   onCustomerSelect,
   selectedCustomer,
 }) => {
-  const [customerImages, setCustomerImages] = useState<{
-    [key: number]: string;
-  }>({});
+  // const [customerImages, setCustomerImages] = useState<{
+  //   [key: number]: string;
+  // }>({});
 
   if (hasSearched && customers.length === 0) {
     return (
@@ -62,12 +62,15 @@ const CustomerList: React.FC<CustomerListProps> = ({
         {customers.map((customer) => {
           const key = `customer-${customer.customer_number}`;
           const displayName =
-            [customer.last_name || "", customer.first_name || ""]
+            [customer.last_name.toUpperCase() || "", customer.first_name.toUpperCase() || ""]
               .filter(Boolean)
               .join(", ") || "Unnamed Customer";
           const isSelected =
             selectedCustomer?.customer_number === customer.customer_number;
-          const imagePath = customerImages[customer.customer_number];
+          const imagePath =
+            customer.customer_number !== undefined
+              ? customer.picture_path
+              : undefined;
 
           return (
             <Box key={key}>

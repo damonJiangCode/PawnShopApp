@@ -1,4 +1,4 @@
-import { Box, Typography, Avatar, Paper, Divider, Chip } from "@mui/material";
+import { Box, Typography, Avatar, Divider, Chip } from "@mui/material";
 import InfoRow from "./InfoRow";
 
 const statColors = {
@@ -9,7 +9,7 @@ const statColors = {
 };
 
 const CustomerProfile = ({ customer }: { customer: any }) => (
-  <Paper sx={{ p: 4, maxWidth: 1000, margin: "32px auto", minHeight: 420 }}>
+  <Box>
     {/* Top: Avatar + Basic info + Stats */}
     <Typography variant="h5" gutterBottom>
       ACCOUNT INFO
@@ -52,15 +52,15 @@ const CustomerProfile = ({ customer }: { customer: any }) => (
         </Avatar>
       </Box>
       {/* Basic info */}
-      <Box sx={{ flex: 1 }}>
+      <Box>
         <Box sx={{ display: "flex", gap: 6 }}>
           {/* left column */}
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <InfoRow label="Last Name:" value={customer.last_name || "-"} />
-            <InfoRow label="First Name:" value={customer.first_name || "-"} />
-            <InfoRow label="Middle Name:" value={customer.middle_name || "-"} />
-            <InfoRow label="Hair Color:" value={customer.hair_color || "-"} />
-            <InfoRow label="Eye Color:" value={customer.eye_color || "-"} />
+            <InfoRow label="Last Name:" value={(customer.last_name || "-").toUpperCase()} />
+            <InfoRow label="First Name:" value={(customer.first_name || "-").toUpperCase()} />
+            <InfoRow label="Middle Name:" value={(customer.middle_name || "-").toUpperCase()} />
+            <InfoRow label="Hair Color:" value={(customer.hair_color || "-")} />
+            <InfoRow label="Eye Color:" value={(customer.eye_color || "-")} />
           </Box>
           {/* right column */}
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -75,11 +75,11 @@ const CustomerProfile = ({ customer }: { customer: any }) => (
             />
             <InfoRow
               label="Height:"
-              value={`${customer.height_cm} cm` || "-"}
+              value={`${customer.height_cm}cm` || "-"}
             />
             <InfoRow
               label="Weight:"
-              value={`${customer.weight_kg} kg` || "-"}
+              value={`${customer.weight_kg}kg` || "-"}
             />
           </Box>
         </Box>
@@ -95,60 +95,54 @@ const CustomerProfile = ({ customer }: { customer: any }) => (
           gap: 6,
         }}
       >
-        {/* top stats */}
-        <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
-          <Chip
-            label={`Redeem: ${customer.redeem_count}`}
-            color="success"
-            sx={{
-              fontWeight: 700,
-              fontSize: 16,
-              bgcolor: statColors.redeem,
-              color: "#fff",
-              minWidth: 110,
-              justifyContent: "center",
-            }}
-          />
-          <Chip
-            label={`Expire: ${customer.expire_count}`}
-            color="warning"
-            sx={{
-              fontWeight: 700,
-              fontSize: 16,
-              bgcolor: statColors.expire,
-              color: "#fff",
-              minWidth: 110,
-              justifyContent: "center",
-            }}
-          />
-        </Box>
-        {/* bottom stats */}
-        <Box sx={{ display: "flex", gap: 1 }}>
-          <Chip
-            label={`Overdue: ${customer.overdue_count}`}
-            color="error"
-            sx={{
-              fontWeight: 700,
-              fontSize: 16,
-              bgcolor: statColors.overdue,
-              color: "#fff",
-              minWidth: 110,
-              justifyContent: "center",
-            }}
-          />
-          <Chip
-            label={`Theft: ${customer.theft_count}`}
-            color="secondary"
-            sx={{
-              fontWeight: 700,
-              fontSize: 16,
-              bgcolor: statColors.theft,
-              color: "#fff",
-              minWidth: 110,
-              justifyContent: "center",
-            }}
-          />
-        </Box>
+        <Chip
+          label={`Redeem: ${customer.redeem_count}`}
+          color="success"
+          sx={{
+            fontWeight: 700,
+            fontSize: 16,
+            bgcolor: statColors.redeem,
+            color: "#fff",
+            minWidth: 100,
+            justifyContent: "center",
+          }}
+        />
+        <Chip
+          label={`Expire: ${customer.expire_count}`}
+          color="warning"
+          sx={{
+            fontWeight: 700,
+            fontSize: 16,
+            bgcolor: statColors.expire,
+            color: "#fff",
+            minWidth: 100,
+            justifyContent: "center",
+          }}
+        />
+        <Chip
+          label={`Overdue: ${customer.overdue_count}`}
+          color="error"
+          sx={{
+            fontWeight: 700,
+            fontSize: 16,
+            bgcolor: statColors.overdue,
+            color: "#fff",
+            minWidth: 100,
+            justifyContent: "center",
+          }}
+        />
+        <Chip
+          label={`Theft: ${customer.theft_count}`}
+          color="secondary"
+          sx={{
+            fontWeight: 700,
+            fontSize: 16,
+            bgcolor: statColors.theft,
+            color: "#fff",
+            minWidth: 100,
+            justifyContent: "center",
+          }}
+        />
       </Box>
     </Box>
 
@@ -188,7 +182,7 @@ const CustomerProfile = ({ customer }: { customer: any }) => (
         <InfoRow label="Country:" value={customer.country || "-"} />
       </Box>
     </Box>
-  </Paper>
+  </Box>
 );
 
 export default CustomerProfile;

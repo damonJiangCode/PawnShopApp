@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Box, Drawer, Button } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import { Customer, Identification } from "../../../shared/models/Customer";
+import { Customer, ID } from "../../../shared/models/Customer";
 import SearchForm from "./SearchForm";
 import CustomerList from "./CustomerList";
-import CustomerForm from "../others/customerForm/CustomerForm";
-import { on } from "events";
+import CustomerForm from "../client/customerForm/CustomerForm";
 
 interface SearchDrawerProps {
   open: boolean;
@@ -45,7 +44,7 @@ const SearchDrawer: React.FC<SearchDrawerProps> = ({
     updatedIdentifications,
   }: {
     updatedCustomer: Customer;
-    updatedIdentifications: Identification[];
+    updatedIdentifications: ID[];
   }) => {
     try {
       const newCustomer: Customer = await (
