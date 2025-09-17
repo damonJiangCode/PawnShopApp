@@ -1,4 +1,4 @@
-export const ID_TYPES = [
+const ID_TYPES = [
   "Driver's License",
   "Health Card",
   "Indian Status Card",
@@ -19,3 +19,5 @@ export const ID_TYPES = [
 
   "Other",
 ];
+
+export default ID_TYPES;
