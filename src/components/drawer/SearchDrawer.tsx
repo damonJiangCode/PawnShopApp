@@ -41,17 +41,17 @@ const SearchDrawer: React.FC<SearchDrawerProps> = ({
 
   const handleNewCustomer = async ({
     updatedCustomer,
-    updatedIdentifications,
+    updatedIDs,
   }: {
     updatedCustomer: Customer;
-    updatedIdentifications: ID[];
+    updatedIDs: ID[];
   }) => {
     try {
       const newCustomer: Customer = await (
         window as any
       ).electronAPI.addCustomer({
         customer: updatedCustomer,
-        identifications: updatedIdentifications,
+        identifications: updatedIDs,
       });
 
       setSearchResults([newCustomer, ...searchResults]);
