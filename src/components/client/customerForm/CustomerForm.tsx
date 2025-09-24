@@ -42,11 +42,6 @@ const defaultCustomer: Customer = {
   updated_at: new Date(),
 };
 
-const defaultIDs: ID[] = [
-  { id_type: "", id_number: "" },
-  { id_type: "", id_number: "" },
-];
-
 interface CustomerFormProps {
   existed_customer?: Customer;
   open: boolean;
@@ -84,10 +79,20 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
         return;
       }
       const ids = idRef.current?.getIDs();
+      const isEmpty =
+        !ids ||
+        ids.length === 0 ||
+        ids.every((id) => !id.id_type && !id.id_number);
+
+      if (isEmpty) {
+        alert("Please provide valid ID information.");
+        return;
+      }
       onSave({
         updatedCustomer: customer,
-        updatedIDs: ids || [],
+        updatedIDs: ids,
       });
+      console.log("customer form submit (CustomerForm.tsx):", customer, ids);
     }
   };
 
@@ -197,7 +202,7 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
           </Box>
           {/* Bottom panel */}
           <Box>
-            <IDFields ref={idRef} IDs={defaultIDs} />
+            <IDFields ref={idRef} />
           </Box>
 
           <Divider sx={{ my: 3 }} />

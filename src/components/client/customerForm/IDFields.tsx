@@ -16,27 +16,37 @@ import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { ID } from "../../../../shared/models/Customer";
 
+const defaultIDs: ID[] = [
+  { id_type: "", id_number: "" },
+  { id_type: "", id_number: "" },
+];
+
 export interface IDFieldsRef {
   getIDs: () => ID[];
 }
 
 interface IDFieldsProps {
-  IDs: ID[];
+  ids?: ID[];
 }
 
-const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(({ IDs }, ref) => {
-  const [identifications, setIdentifications] = useState<ID[]>(IDs);
+const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(({ ids }, ref) => {
+  const [identifications, setIdentifications] = useState<ID[]>(
+    ids || defaultIDs
+  );
   const [idTypes, setIdTypes] = useState<string[]>([]);
 
   useEffect(() => {
-    (async () => {
+    const fetchIdTypes = async () => {
       try {
         const types = await (window as any).electronAPI.getIdTypes();
         setIdTypes(types);
+        // console.log("Fetched ID types:", types);
       } catch (err) {
         setIdTypes([]);
+        console.error("Failed to fetch ID types: (IDFields.tsx)", err);
       }
-    })();
+    };
+    fetchIdTypes();
   }, []);
 
   useImperativeHandle(ref, () => ({
@@ -51,7 +61,7 @@ const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(({ IDs }, ref) => {
     setIdentifications(identifications.filter((_, i) => i !== index));
   };
 
-  const handleFieldChange = (index: number, field: keyof ID, value: string) => {
+  const handleUpdate = (index: number, field: keyof ID, value: string) => {
     setIdentifications((prev) =>
       prev.map((id, i) => (i === index ? { ...id, [field]: value } : id))
     );
@@ -98,11 +108,11 @@ const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(({ IDs }, ref) => {
                     label="ID Type"
                     value={id.id_type}
                     onChange={(e) =>
-                      handleFieldChange(idx, "id_type", e.target.value)
+                      handleUpdate(idx, "id_type", e.target.value)
                     }
                   >
-                    {idTypes.map((type) => (
-                      <MenuItem key={type} value={type}>
+                    {idTypes.map((type, i) => (
+                      <MenuItem key={`${idx}-${i}-${type}`} value={type}>
                         {type}
                       </MenuItem>
                     ))}
@@ -116,7 +126,7 @@ const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(({ IDs }, ref) => {
                     label="ID Number"
                     value={id.id_number}
                     onChange={(e) =>
-                      handleFieldChange(idx, "id_number", e.target.value)
+                      handleUpdate(idx, "id_number", e.target.value)
                     }
                   />
                 </TableCell>
