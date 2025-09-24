@@ -218,7 +218,7 @@ export const getEyeColors = async () => {
 // get ID types
 export const getIdTypes = async () => {
   const client = await connect();
-  const query = "SELECT * FROM id_types ORDER BY type ASC";
+  const query = "SELECT * FROM id_types";
   try {
     await client.query("BEGIN");
     const result = await client.query(query);
