@@ -24,11 +24,18 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
 
   useEffect(() => {
     const fetchColors = async () => {
-      const hair = await (window as any).electronAPI.getHairColors();
-      setHairColors(hair);
+      try {
+        const hair = await (window as any).electronAPI.getHairColors();
+        setHairColors(hair);
 
-      const eye = await (window as any).electronAPI.getEyeColors();
-      setEyeColors(eye);
+        const eye = await (window as any).electronAPI.getEyeColors();
+        setEyeColors(eye);
+      } catch (err) {
+        setHairColors([]);
+        console.error("Error fetching hair colors: (DobGenderColor.tsx)", err);
+        setEyeColors([]);
+        console.error("Error fetching eye colors: (DobGenderColor.tsx)", err);
+      }
     };
 
     fetchColors();
@@ -42,9 +49,12 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
     setMaxDate(maxDateObj.toISOString().split("T")[0]);
   }, []);
 
-  const isValidDate = (d: any) => {
-    return d instanceof Date && !isNaN(d.getTime());
-  };
+  const isValidDate = (d: any) => d instanceof Date && !isNaN(d.getTime());
+
+  const isUnder18 =
+    date_of_birth &&
+    isValidDate(new Date(date_of_birth)) &&
+    new Date(date_of_birth).toISOString().split("T")[0] > maxDate;
 
   return (
     <Box sx={{ display: "flex", gap: 2 }}>
@@ -63,18 +73,8 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
         size="small"
         InputLabelProps={{ shrink: true }}
         inputProps={{ max: maxDate }}
-        error={
-          date_of_birth &&
-          isValidDate(new Date(date_of_birth)) &&
-          new Date(date_of_birth).toISOString().split("T")[0] > maxDate
-        }
-        helperText={
-          date_of_birth &&
-          isValidDate(new Date(date_of_birth)) &&
-          new Date(date_of_birth).toISOString().split("T")[0] > maxDate
-            ? `Age under 18 is not allowed`
-            : ""
-        }
+        error={Boolean(isUnder18)}
+        helperText={isUnder18 ? "Age under 18 is not allowed" : ""}
       />
 
       <TextField
@@ -92,6 +92,7 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
         <MenuItem value="female">Female</MenuItem>
         <MenuItem value="other">Other</MenuItem>
       </TextField>
+
       <TextField
         select
         fullWidth
@@ -108,6 +109,7 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
           </MenuItem>
         ))}
       </TextField>
+
       <TextField
         select
         fullWidth

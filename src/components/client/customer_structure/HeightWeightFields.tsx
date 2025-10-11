@@ -51,82 +51,109 @@ const HeightWeightFields: React.FC<HeightWeightFieldsProps> = ({
       {/* Height (cm) */}
       <TextField
         fullWidth
-        type="number"
+        required
+        type="text"
         name="height_cm"
         label="Height (cm)"
         value={heightCmInput}
-        onChange={(e) => setHeightCmInput(e.target.value)}
+        onChange={(e) => {
+          let value = e.target.value;
+          value = value.replace(/[^\d.]/g, "");
+          value = value.replace(/^(\d*\.\d*?)\..*$/, "$1");
+          value = value.replace(/^0+(\d)/, "$1");
+          setHeightCmInput(value);
+        }}
         onBlur={() => {
           const num = Number(heightCmInput);
-          if (heightCmInput === "" || isNaN(num)) {
+          if (heightCmInput === "" || isNaN(num) || num < 0) {
             onHeightCmChange(undefined);
             setHeightFtInput("");
-          } else {
-            onHeightCmChange(num);
-            setHeightFtInput(String(Number(cmToFt(num)).toFixed(1)));
+            return;
           }
+          onHeightCmChange(num);
+          setHeightFtInput(String(Number(cmToFt(num)).toFixed(1)));
         }}
         size="small"
       />
       {/* Height (ft) */}
       <TextField
         fullWidth
-        type="number"
+        required
+        type="text"
         name="height_ft"
         label="Height (ft)"
         value={heightFtInput}
-        onChange={(e) => setHeightFtInput(e.target.value)}
+        onChange={(e) => {
+          let value = e.target.value;
+          value = value.replace(/[^\d.]/g, "");
+          value = value.replace(/^(\d*\.\d*?)\..*$/, "$1");
+          value = value.replace(/^0+(\d)/, "$1");
+          setHeightCmInput(value);
+        }}
         onBlur={() => {
-          const num = Number(heightFtInput);
-          if (heightFtInput === "" || isNaN(num)) {
+          const num = Number(heightCmInput);
+          if (heightCmInput === "" || isNaN(num) || num < 0) {
             onHeightCmChange(undefined);
-            setHeightCmInput("");
-          } else {
-            const cm = Number(ftToCm(num).toFixed(2));
-            onHeightCmChange(cm);
-            setHeightCmInput(String(cm));
+            setHeightFtInput("");
+            return;
           }
+          onHeightCmChange(num);
+          setHeightFtInput(String(Number(cmToFt(num)).toFixed(2)));
         }}
         size="small"
       />
       {/* Weight (kg) */}
       <TextField
         fullWidth
-        type="number"
+        required
+        type="text"
         name="weight_kg"
         label="Weight (kg)"
         value={weightKgInput}
-        onChange={(e) => setWeightKgInput(e.target.value)}
+        onChange={(e) => {
+          let value = e.target.value;
+          value = value.replace(/[^\d.]/g, "");
+          value = value.replace(/^(\d*\.\d*?)\..*$/, "$1");
+          value = value.replace(/^0+(\d)/, "$1");
+          setWeightKgInput(value);
+        }}
         onBlur={() => {
           const num = Number(weightKgInput);
-          if (weightKgInput === "" || isNaN(num)) {
+          if (weightKgInput === "" || isNaN(num) || num < 0) {
             onWeightKgChange(undefined);
             setWeightLbInput("");
-          } else {
-            onWeightKgChange(num);
-            setWeightLbInput(String(Number(kgToLb(num)).toFixed(1)));
+            return;
           }
+          onWeightKgChange(num);
+          setWeightLbInput(String(Number(kgToLb(num)).toFixed(1)));
         }}
         size="small"
       />
       {/* Weight (lb) */}
       <TextField
         fullWidth
-        type="number"
+        required
+        type="text"
         name="weight_lb"
         label="Weight (lb)"
         value={weightLbInput}
-        onChange={(e) => setWeightLbInput(e.target.value)}
+        onChange={(e) => {
+          let value = e.target.value;
+          value = value.replace(/[^\d.]/g, "");
+          value = value.replace(/^(\d*\.\d*?)\..*$/, "$1");
+          value = value.replace(/^0+(\d)/, "$1");
+          setWeightLbInput(value);
+        }}
         onBlur={() => {
           const num = Number(weightLbInput);
-          if (weightLbInput === "" || isNaN(num)) {
+          if (weightLbInput === "" || isNaN(num) || num < 0) {
             onWeightKgChange(undefined);
             setWeightKgInput("");
-          } else {
-            const kg = Number(lbToKg(num).toFixed(2));
-            onWeightKgChange(kg);
-            setWeightKgInput(String(kg));
+            return;
           }
+          const kg = Number(lbToKg(num).toFixed(2));
+          onWeightKgChange(kg);
+          setWeightKgInput(String(kg));
         }}
         size="small"
       />
