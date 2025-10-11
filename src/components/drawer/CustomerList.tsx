@@ -62,7 +62,10 @@ const CustomerList: React.FC<CustomerListProps> = ({
         {customers.map((customer) => {
           const key = `customer-${customer.customer_number}`;
           const displayName =
-            [customer.last_name.toUpperCase() || "", customer.first_name.toUpperCase() || ""]
+            [
+              customer.last_name.toUpperCase() || "",
+              customer.first_name.toUpperCase() || "",
+            ]
               .filter(Boolean)
               .join(", ") || "Unnamed Customer";
           const isSelected =

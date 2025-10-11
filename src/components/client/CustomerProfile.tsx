@@ -2,36 +2,43 @@ import { Box, Typography, Avatar, Divider, Chip, Button } from "@mui/material";
 import InfoRow from "./InfoRow";
 import STAT_COLORS from "../../assets/client/STAT_COLORS";
 import { useState } from "react";
-import CustomerForm from "./customerForm/CustomerForm";
+import CustomerForm from "./customer_structure/CustomerForm";
 import { Customer, ID } from "../../../shared/models/Customer";
 
-const CustomerProfile = ({ customer }: { customer: any }) => {
-  const [showAddForm, setShowAddForm] = useState(false);
-  // TODO: fetch IDs from backend
-  const handleEditCustomer = async ({
-    updatedCustomer,
-    updatedIDs,
-  }: {
-    updatedCustomer: Customer;
-    updatedIDs: ID[];
-  }) => {
-    try {
-      const newCustomer: Customer = await (
-        window as any
-      ).electronAPI.addCustomer({
-        customer: updatedCustomer,
-        identifications: updatedIDs,
-      });
+const CustomerProfile: React.FC<{ customer: Customer }> = ({ customer }) => {
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [ids, setIDs] = useState<ID[]>([]);
 
-      setShowAddForm(false);
+  const fetchIDs = async (customerID: number) => {
+    try {
+      const ids: ID[] = await (window as any).electronAPI.getIDs(customerID);
+      console.log("Fetched IDs (CustomerProfile.tsx):", ids);
+      setIDs(ids);
     } catch (err) {
-      console.error("Failed to add customer or identifications:", err);
-      alert("Failed to add customer. Please try again.");
+      console.error("Failed to fetch IDs:", err);
+      alert("Failed to fetch IDs. Please try again.");
     }
   };
+
+  const handleSaveCustomer = async (customer: Customer) => {
+    // try {
+    //   const newCustomer: Customer = await (
+    //     window as any
+    //   ).electronAPI.addCustomer({
+    //     customer: updatedCustomer,
+    //     identifications: updatedIDs,
+    //   });
+    //   setShowEditForm(false);
+    // } catch (err) {
+    //   console.error("Failed to add customer or identifications:", err);
+    //   alert("Failed to add customer. Please try again.");
+    //   return;
+    // }
+  };
+
   return (
     <Box sx={{ p: 3 }}>
-      {/* Top: Avatar + Basic info + Stats */}
+      {/* Avatar + Basic info + Stats */}
       <Typography variant="h5" gutterBottom>
         ACCOUNT INFO
       </Typography>
@@ -80,16 +87,22 @@ const CustomerProfile = ({ customer }: { customer: any }) => {
               backgroundColor: "#1976d2",
               color: "#fff",
             }}
-            onClick={() => setShowAddForm(true)}
+            onClick={() => {
+              if (typeof customer.customer_number === "number") {
+                fetchIDs(customer.customer_number);
+              }
+              setShowEditForm(true);
+            }}
           >
             EDIT
           </Button>
 
-          {showAddForm && (
+          {showEditForm && (
             <CustomerForm
-              open={showAddForm}
-              onClose={() => setShowAddForm(false)}
-              onSave={handleEditCustomer}
+              customerExisted={customer}
+              open={showEditForm}
+              onClose={() => setShowEditForm(false)}
+              onSave={handleSaveCustomer}
             />
           )}
         </Box>
@@ -196,6 +209,39 @@ const CustomerProfile = ({ customer }: { customer: any }) => {
           />
         </Box>
       </Box>
+
+      <Divider sx={{ my: 2 }} />
+
+      {/* IDs */}
+      <Typography variant="h5" gutterBottom>
+        INDENTIFICATIONS
+      </Typography>
+      {ids.length > 0 ? (
+        ids.map(
+          (element, index) => (
+            console.log("Rendering ID:", element),
+            (
+              <Box
+                key={element.id_number || index}
+                sx={{
+                  border: "1px solid #ccc",
+                  borderRadius: 2,
+                  p: 2,
+                  mb: 2,
+                  boxShadow: 1,
+                }}
+              >
+                <InfoRow
+                  label={element.id_type + ":"}
+                  value={element.id_number || "-"}
+                />
+              </Box>
+            )
+          )
+        )
+      ) : (
+        <Typography>No identifications available.</Typography>
+      )}
 
       <Divider sx={{ my: 2 }} />
 

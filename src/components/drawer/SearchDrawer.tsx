@@ -4,7 +4,7 @@ import AddIcon from "@mui/icons-material/Add";
 import { Customer, ID } from "../../../shared/models/Customer";
 import SearchForm from "./SearchForm";
 import CustomerList from "./CustomerList";
-import CustomerForm from "../client/customerForm/CustomerForm";
+import CustomerForm from "../client/customer_structure/CustomerForm";
 
 interface SearchDrawerProps {
   open: boolean;
@@ -25,6 +25,10 @@ const SearchDrawer: React.FC<SearchDrawerProps> = ({
   const [showAddForm, setShowAddForm] = useState(false);
 
   const handleSearchResults = (customers: Customer[]) => {
+    // console.log(
+    //   "SearchDrawer received customers (SearchDrawer.tsx): ",
+    //   JSON.stringify(customers, null, 2)
+    // );
     setSearchResults(customers);
     if (customers.length > 0) {
       setSelectedCustomer(customers[0]);
@@ -39,24 +43,11 @@ const SearchDrawer: React.FC<SearchDrawerProps> = ({
     onCustomerSelect(customer);
   };
 
-  const handleNewCustomer = async ({
-    updatedCustomer,
-    updatedIDs,
-  }: {
-    updatedCustomer: Customer;
-    updatedIDs: ID[];
-  }) => {
+  const handleCustomerAdded = (customer: Customer) => {
     try {
-      const newCustomer: Customer = await (
-        window as any
-      ).electronAPI.addCustomer({
-        customer: updatedCustomer,
-        identifications: updatedIDs,
-      });
-
-      setSearchResults([newCustomer, ...searchResults]);
-      setSelectedCustomer(newCustomer);
-      onCustomerSelect(newCustomer);
+      setSearchResults([customer]);
+      setSelectedCustomer(customer);
+      onCustomerSelect(customer);
       setShowAddForm(false);
     } catch (err) {
       console.error("Failed to add customer or identifications:", err);
@@ -108,7 +99,7 @@ const SearchDrawer: React.FC<SearchDrawerProps> = ({
       <CustomerForm
         open={showAddForm}
         onClose={() => setShowAddForm(false)}
-        onSave={handleNewCustomer}
+        onSave={handleCustomerAdded}
       />
     </Drawer>
   );

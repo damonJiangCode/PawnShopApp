@@ -26,20 +26,19 @@ const SearchForm: React.FC<SearchFormProps> = ({
     try {
       setIsLoading(true);
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Searching with: (SearchForm.tsx)", {
-        firstName,
-        lastName,
-      });
       const results = await (window as any).electronAPI.searchCustomer(
         firstName,
         lastName
       );
-      console.log("Searching customer results: (SearchForm.tsx) ", results);
+      // console.log(
+      //   "Searching customer results: (SearchForm.tsx) ",
+      //   JSON.stringify(results, null, 2)
+      // );
       onSearchResults(results);
       onHasSearched(true);
     } catch (error) {
       console.error("Search failed: (SearchForm.tsx)", error);
-      alert("Search failed. Please try again.");
+      alert("Search failed (SearchForm.tsx) Please try again.");
       onSearchResults([]);
       onHasSearched(false);
     } finally {
