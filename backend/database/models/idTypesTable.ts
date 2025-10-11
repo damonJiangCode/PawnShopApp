@@ -18,5 +18,4 @@ export const insertIdTypes = `
     ('Permanent Resident Card'),
     ('Military ID'),
     ('Other')
-  ON CONFLICT (name) DO NOTHING;
 `;
