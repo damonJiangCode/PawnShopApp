@@ -8,8 +8,8 @@ export const createCustomersTable = `
     gender VARCHAR(10),
     hair_color VARCHAR(20),
     eye_color VARCHAR(20),
-    height_cm DECIMAL(5,2),
-    weight_kg DECIMAL(5,2),
+    height_cm DECIMAL(5,1),
+    weight_kg DECIMAL(5,1),
     address TEXT,
     postal_code VARCHAR(20),
     city VARCHAR(100),
@@ -19,10 +19,10 @@ export const createCustomersTable = `
     phone VARCHAR(20),
     notes TEXT,
     picture_path TEXT,
-    redeem_count INTEGER DEFAULT 0,      
-    expire_count INTEGER DEFAULT 0,      
-    overdue_count INTEGER DEFAULT 0,    
-    theft_count INTEGER DEFAULT 0,    
+    redeem_count INTEGER,      
+    expire_count INTEGER,      
+    overdue_count INTEGER,    
+    theft_count INTEGER,    
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
 `;

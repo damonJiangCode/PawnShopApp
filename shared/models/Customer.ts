@@ -1,7 +1,9 @@
 export interface ID {
+  id?: number;
   customer_number?: number;
   id_type: string;
   id_number: string;
+  updated_at?: Date;
 }
 
 export interface Customer {
@@ -25,4 +27,9 @@ export interface Customer {
   notes: string;
   picture_path: string;
   updated_at: Date;
+  redeem_count: number;
+  expire_count: number;
+  overdue_count: number;
+  theft_count: number;
+  identifications?: ID[];
 }

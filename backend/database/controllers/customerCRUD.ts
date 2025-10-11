@@ -1,3 +1,4 @@
+import { Customer, ID } from "../../../shared/models/Customer";
 import { connect } from "../db";
 
 // search customers
@@ -10,14 +11,14 @@ export const searchCustomer = async (firstName: string, lastName: string) => {
         json_agg(
           jsonb_build_object(
             'id', ci.id,
-            'identification_type', ci.identification_type,
-            'identification_number', ci.identification_number,
+            'id_type', ci.id_type,
+            'id_number', ci.id_number,
             'updated_at', ci.updated_at
           )
         ) FILTER (WHERE ci.id IS NOT NULL), '[]'
       ) AS identifications
     FROM customers c
-    LEFT JOIN customer_identifications ci
+    LEFT JOIN customer_ids ci
       ON c.customer_number = ci.customer_number
     WHERE 
       (LOWER(c.first_name) LIKE LOWER($1) || '%' OR $1 = '') 
@@ -38,10 +39,12 @@ export const searchCustomer = async (firstName: string, lastName: string) => {
     await client.query("COMMIT");
     const customers = result.rows.map((row) => ({
       ...row,
-      identifications: Array.isArray(row.identifications)
-        ? row.identifications
-        : JSON.parse(row.identifications),
+      identifications: row.identifications || [],
     }));
+    // console.log(
+    //   "Formatted customers (customerCRUD.ts):",
+    //   JSON.stringify(customers, null, 2)
+    // );
     return customers;
   } catch (error) {
     console.error("Error searching customer: (customerCRUD.ts)", error);
@@ -53,15 +56,21 @@ export const searchCustomer = async (firstName: string, lastName: string) => {
 };
 
 // add new customer
-export const addCustomer = async (customer: any, identifications: any[]) => {
+export const addCustomer = async (
+  customer: Customer,
+  identifications: ID[]
+): Promise<Customer> => {
   const client = await connect();
 
+  // add customer SQL
   const customerQuery = `
     INSERT INTO customers (
       first_name, last_name, middle_name, date_of_birth, gender,
       hair_color, eye_color, address, city, province, country, postal_code,
-      height_cm, weight_kg, notes, picture_path
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+      height_cm, weight_kg, notes, picture_path, email, phone,
+      redeem_count, expire_count, overdue_count, theft_count
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, 0, 0, 0, 0)
     RETURNING *
   `;
 
@@ -78,31 +87,32 @@ export const addCustomer = async (customer: any, identifications: any[]) => {
     customer.province,
     customer.country,
     customer.postal_code,
-    customer.height_cm !== undefined && customer.height_cm !== ""
-      ? parseFloat(customer.height_cm)
-      : null,
-    customer.weight_kg !== undefined && customer.weight_kg !== ""
-      ? parseFloat(customer.weight_kg)
-      : null,
+    customer.height_cm,
+    customer.weight_kg,
     customer.notes || null,
     customer.picture_path,
+    customer.email || null,
+    customer.phone || null,
   ];
 
   try {
     await client.query("BEGIN");
+
+    // insert new customer
     const customerResult = await client.query(customerQuery, customerValues);
     const newCustomer = customerResult.rows[0];
+    const customerNumber = newCustomer.customer_number;
 
-    // insert identifications if provided
+    // insert identifications
     if (identifications && identifications.length > 0) {
       const idQuery = `
-        INSERT INTO customer_identifications (customer_number, identification_type, identification_number)
+        INSERT INTO customer_ids (customer_number, id_type, id_number)
         VALUES ($1, $2, $3)
       `;
       for (const id of identifications) {
         if (id.id_type && id.id_number) {
           await client.query(idQuery, [
-            newCustomer.customer_number,
+            customerNumber,
             id.id_type,
             id.id_number,
           ]);
@@ -110,27 +120,73 @@ export const addCustomer = async (customer: any, identifications: any[]) => {
       }
     }
 
-    // get the identifications for the new customer
+    // check identifications
     const customerIdsQuery = `
-      SELECT identification_type, identification_number 
-      FROM customer_identifications 
+      SELECT id, id_type, id_number, updated_at
+      FROM customer_ids
       WHERE customer_number = $1
     `;
     const customerIdsResult = await client.query(customerIdsQuery, [
-      newCustomer.customer_number,
+      customerNumber,
     ]);
 
     await client.query("COMMIT");
 
-    //get the full customer object with identifications
-    console.log("New customer added (customerCRUD.ts):", newCustomer);
-    return {
+    // return new customer with IDs
+    const result: Customer = {
       ...newCustomer,
       identifications: customerIdsResult.rows,
     };
+
+    console.log(" New customer added (customerCRUD.ts):", result);
+    return result;
   } catch (error) {
     await client.query("ROLLBACK");
-    console.error("Error in addCustomer (customerCRUD.ts):", error);
+    console.error("❌ Error in addCustomer:", error);
+    alert("Failed to add customer (customerCRUD.ts).");
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
+// get customer's IDs
+export const getIds = async (customerID: number) => {
+  const client = await connect();
+  const query = `
+    SELECT id_type, id_number
+    FROM customer_identifications 
+    WHERE customer_number = $1
+  `;
+  try {
+    await client.query("BEGIN");
+    const result = await client.query(query, [customerID]);
+    await client.query("COMMIT");
+    // console.log("getIds result (customerCRUD.ts):", result.rows);
+    return result.rows;
+  } catch (error) {
+    console.error("Error getting customer IDs (customerCRUD.ts):", error);
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
+// get ID types
+export const getIdTypes = async () => {
+  const client = await connect();
+  const query = "SELECT * FROM id_types";
+  try {
+    await client.query("BEGIN");
+    const result = await client.query(query);
+    await client.query("COMMIT");
+    const idTypes = result.rows.map((row) => row.type);
+    // console.log("getIdTypes result (customerCRUD.ts):", idTypes);
+    return idTypes;
+  } catch (error) {
+    console.error("Error getting ID types:", error);
+    await client.query("ROLLBACK");
     throw error;
   } finally {
     client.release();
@@ -208,26 +264,6 @@ export const getEyeColors = async () => {
     return eyeColors;
   } catch (error) {
     console.error("Error getting eye colors:", error);
-    await client.query("ROLLBACK");
-    throw error;
-  } finally {
-    client.release();
-  }
-};
-
-// get ID types
-export const getIdTypes = async () => {
-  const client = await connect();
-  const query = "SELECT * FROM id_types";
-  try {
-    await client.query("BEGIN");
-    const result = await client.query(query);
-    await client.query("COMMIT");
-    const idTypes = result.rows.map((row) => row.type);
-    // console.log("getIdTypes result (customerCRUD.ts):", idTypes);
-    return idTypes;
-  } catch (error) {
-    console.error("Error getting ID types:", error);
     await client.query("ROLLBACK");
     throw error;
   } finally {
