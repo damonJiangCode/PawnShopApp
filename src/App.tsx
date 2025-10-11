@@ -100,3 +100,11 @@ const App: React.FC = () => {
 };
 
 export default App;
+
+// import ComponentPreview from "./components/ComponentPreview";
+
+// function App() {
+//   return <ComponentPreview />;
+// }
+
+// export default App;
