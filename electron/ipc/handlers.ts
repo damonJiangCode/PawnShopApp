@@ -1,6 +1,7 @@
 import { ipcMain } from "electron";
 import {
   searchCustomer,
+  getIds,
   addCustomer,
   getCities,
   getHairColors,
@@ -20,6 +21,18 @@ export const registerIpcHandlers = () => {
       return results;
     } catch (error) {
       console.error("Error searching customer (handler.ts):", error);
+      throw error;
+    }
+  });
+
+  // get customer's IDs
+  ipcMain.handle("get-ids", async (_event, customerID) => {
+    try {
+      const results = await getIds(customerID);
+      // console.log("get-ids results (handler.ts):", results);
+      return results;
+    } catch (error) {
+      console.error("Error getting customer IDs (handler.ts):", error);
       throw error;
     }
   });

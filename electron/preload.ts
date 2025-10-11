@@ -3,6 +3,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 // define all available ipc channels
 const CHANNELS = {
   SEARCH_CUSTOMER: "search-customer",
+  GET_IDS: "get-ids",
   ADD_CUSTOMER: "add-customer",
   SAVE_CUSTOMER_IMAGE: "save-customer-image",
   GET_CITIES: "get-cities",
@@ -15,6 +16,10 @@ const CHANNELS = {
 contextBridge.exposeInMainWorld("electronAPI", {
   searchCustomer: (firstName: string, lastName: string) => {
     return ipcRenderer.invoke(CHANNELS.SEARCH_CUSTOMER, firstName, lastName);
+  },
+
+  getIDs: (customerID: number) => {
+    return ipcRenderer.invoke(CHANNELS.GET_IDS, customerID);
   },
 
   addCustomer: (payload: { customer: any; ids: any[] }) => {

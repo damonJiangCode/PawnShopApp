@@ -4,6 +4,7 @@ import { Customer, ID } from "../../shared/models/Customer";
 
 interface ElectronAPI {
   searchCustomer: (firstName: string, lastName: string) => Promise<Customer[]>;
+  getIDs: (customerID: number) => Promise<ID[]>;
   addCustomer: (payload: {
     customer: Customer;
     ids: ID[];
