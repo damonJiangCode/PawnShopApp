@@ -12,11 +12,8 @@ interface SearchDrawerProps {
   onCustomerSelect: (customer: Customer) => void;
 }
 
-const SearchDrawer: React.FC<SearchDrawerProps> = ({
-  open,
-  onClose,
-  onCustomerSelect,
-}) => {
+const SearchDrawer: React.FC<SearchDrawerProps> = (props) => {
+  const { open, onClose, onCustomerSelect } = props;
   const [searchResults, setSearchResults] = useState<Customer[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<
     Customer | undefined
@@ -26,7 +23,7 @@ const SearchDrawer: React.FC<SearchDrawerProps> = ({
 
   const handleSearchResults = (customers: Customer[]) => {
     // console.log(
-    //   "SearchDrawer received customers (SearchDrawer.tsx): ",
+    //   "handleSearchResults (SearchDrawer.tsx): ",
     //   JSON.stringify(customers, null, 2)
     // );
     setSearchResults(customers);
@@ -45,13 +42,16 @@ const SearchDrawer: React.FC<SearchDrawerProps> = ({
 
   const handleCustomerAdded = (customer: Customer) => {
     try {
-      setSearchResults([customer]);
-      setSelectedCustomer(customer);
-      onCustomerSelect(customer);
+      console.log(
+        "handleCustomerAdded (SearchDrawer.tsx):",
+        JSON.stringify(customer, null, 2)
+      );
+      handleSearchResults([customer]);
       setShowAddForm(false);
     } catch (err) {
       console.error("Failed to add customer or identifications:", err);
       alert("Failed to add customer. Please try again.");
+      throw err;
     }
   };
 
