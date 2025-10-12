@@ -4,7 +4,7 @@ import { Customer } from "../../../shared/models/Customer";
 import { Paper } from "@mui/material";
 
 const ClientPage: React.FC<{ customer?: Customer }> = ({ customer }) => (
-  <Paper elevation={10} sx={{ p: 5, m: 2, maxWidth: 1000, minHeight: 750 }}>
+  <Paper elevation={0} sx={{ m: 2, maxWidth: 1200, minHeight: 750 }}>
     {customer ? (
       <CustomerProfile customer={customer} />
     ) : (

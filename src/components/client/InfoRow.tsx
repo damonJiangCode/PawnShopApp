@@ -1,4 +1,4 @@
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Divider } from "@mui/material";
 
 interface InfoRowProps {
   label: string;
@@ -7,6 +7,7 @@ interface InfoRowProps {
 
 const InfoRow: React.FC<InfoRowProps> = ({ label, value }) => {
   let displayValue = value;
+
   if (value instanceof Date) {
     displayValue = value.toLocaleDateString("en-US", {
       year: "numeric",
@@ -23,21 +24,38 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, value }) => {
   }
 
   return (
-    <Box sx={{ display: "flex", mb: 0.5 }}>
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        py: 0.8,
+        borderBottom: "1px solid",
+        borderColor: "divider",
+      }}
+    >
       <Typography
-        sx={{ minWidth: 150, color: "text.secondary", fontWeight: 500 }}
+        sx={{
+          flex: 2,
+          color: "text.secondary",
+          fontWeight: 500,
+          fontSize: "0.9rem",
+          textAlign: "right",
+          pr: 2,
+        }}
       >
         {label}
       </Typography>
       <Typography
         sx={{
-          ml: 1,
-          fontSize: "1.1rem",
+          flex: 3,
           color: "text.primary",
           fontWeight: 600,
+          fontSize: "1rem",
+          textAlign: "right",
         }}
       >
-        {displayValue ?? ""}
+        {displayValue ?? "-"}
       </Typography>
     </Box>
   );
