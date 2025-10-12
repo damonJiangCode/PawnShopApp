@@ -18,14 +18,6 @@ const App: React.FC = () => {
   >(undefined);
   const [currentTab, setCurrentTab] = useState(0);
 
-  const handleCustomerSelect = (customer: Customer) => {
-    setSelectedCustomer(customer);
-  };
-
-  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
-    setCurrentTab(newValue);
-  };
-
   return (
     <Box sx={{ p: 2 }}>
       <IconButton
@@ -38,14 +30,18 @@ const App: React.FC = () => {
       <SearchDrawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        onCustomerSelect={handleCustomerSelect}
+        onCustomerSelect={(customer: Customer) => {
+          setSelectedCustomer(customer);
+        }}
       />
 
       <Box sx={{ mt: 2, p: 2 }}>
         <Paper elevation={3}>
           <Tabs
             value={currentTab}
-            onChange={handleTabChange}
+            onChange={(_event: React.SyntheticEvent, newValue: number) => {
+              setCurrentTab(newValue);
+            }}
             variant="fullWidth"
             sx={{
               "& .MuiTab-root": {
