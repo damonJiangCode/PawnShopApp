@@ -23,17 +23,13 @@ const formatDate = (date: Date | string | null | undefined): string => {
   const d = new Date(date);
   return d.toLocaleDateString("en-US", {
     year: "numeric",
-    month: "long",
+    month: "short",
     day: "numeric",
   });
 };
 
-const CustomerList: React.FC<CustomerListProps> = ({
-  hasSearched,
-  customers,
-  onCustomerSelect,
-  selectedCustomer,
-}) => {
+const CustomerList: React.FC<CustomerListProps> = (props) => {
+  const { hasSearched, customers, onCustomerSelect, selectedCustomer } = props;
   // const [customerImages, setCustomerImages] = useState<{
   //   [key: number]: string;
   // }>({});
