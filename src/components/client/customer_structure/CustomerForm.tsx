@@ -90,7 +90,6 @@ const CustomerForm: React.FC<CustomerFormProps> = (props) => {
         return;
       }
       const customerUpdated = { ...customer, identifications: ids } as Customer;
-      onSave(customerUpdated);
       try {
         const newCustomer: Customer = await (
           window as any
@@ -99,19 +98,15 @@ const CustomerForm: React.FC<CustomerFormProps> = (props) => {
           identifications: ids,
         });
         console.log(
-          "New customer added (CustomerForm.tsx):",
+          "New customer returned from CustomerCRUD.tsx (CustomerForm.tsx):",
           JSON.stringify(newCustomer, null, 2)
         );
+        onSave(newCustomer);
       } catch (err) {
         console.error("Failed to add customer:", err);
         alert("Failed to add customer. Please try again.");
         throw err;
       }
-
-      // console.log(
-      //   "Customer form is submitted (CustomerForm.tsx):",
-      //   JSON.stringify(customerUpdated, null, 2)
-      // );
     }
     // TODO handle existing customer update
   };
