@@ -58,7 +58,7 @@ const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(({ ids }, ref) => {
   };
 
   const handleUpdate = (index: number, field: keyof ID, value: string) => {
-    console.log("Updating ID field:", { index, field, value });
+    // console.log("Updating ID field:", { index, field, value });
     setIdentifications((prev) =>
       prev.map((element, i) =>
         i === index ? { ...element, [field]: value } : element
