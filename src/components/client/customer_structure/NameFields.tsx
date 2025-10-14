@@ -2,20 +2,16 @@ import React from "react";
 import { Box, TextField } from "@mui/material";
 
 interface NameFieldsProps {
-  lastName?: string;
-  firstName?: string;
-  middleName?: string;
+  lastName: string;
+  firstName: string;
+  middleName: string;
   onChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
 }
 
-const NameFields: React.FC<NameFieldsProps> = ({
-  lastName,
-  firstName,
-  middleName,
-  onChange,
-}) => {
+const NameFields: React.FC<NameFieldsProps> = (props) => {
+  const { lastName, firstName, middleName, onChange } = props;
   return (
     <Box sx={{ display: "flex", gap: 2 }}>
       <TextField
@@ -24,7 +20,7 @@ const NameFields: React.FC<NameFieldsProps> = ({
         name="last_name"
         label="Last Name"
         value={lastName || ""}
-        onChange={(e) => onChange(e)}
+        onChange={onChange}
         size="small"
       />
       <TextField
@@ -32,16 +28,16 @@ const NameFields: React.FC<NameFieldsProps> = ({
         required
         name="first_name"
         label="First Name"
-        value={firstName}
-        onChange={(e) => onChange(e)}
+        value={firstName || ""}
+        onChange={onChange}
         size="small"
       />
       <TextField
         fullWidth
         name="middle_name"
         label="Middle Name"
-        value={middleName}
-        onChange={(e) => onChange(e)}
+        value={middleName || ""}
+        onChange={onChange}
         size="small"
       />
     </Box>

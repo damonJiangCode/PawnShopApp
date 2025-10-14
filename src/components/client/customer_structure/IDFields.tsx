@@ -90,56 +90,62 @@ const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(({ ids }, ref) => {
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Type</TableCell>
-              <TableCell>Number</TableCell>
+              <TableCell align="left">Type</TableCell>
+              <TableCell align="left">Number</TableCell>
               <TableCell align="center">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {identifications.map((element, i) => (
-              <TableRow key={i}>
-                <TableCell>
-                  <TextField
-                    select
-                    fullWidth
-                    size="small"
-                    name="id_type"
-                    label="ID Type"
-                    value={element.id_type}
-                    onChange={(e) => handleUpdate(i, "id_type", e.target.value)}
-                  >
-                    {idTypes.map((type, type_idx) => (
-                      <MenuItem key={type_idx} value={type}>
-                        {type}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </TableCell>
-                <TableCell>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    name="id_number"
-                    label="ID Number"
-                    value={element.id_number}
-                    onChange={(e) =>
-                      handleUpdate(i, "id_number", e.target.value)
-                    }
-                  />
-                </TableCell>
-                <TableCell align="center">
-                  {identifications.length > 2 && (
-                    <Button
+            {identifications.length > 0 &&
+              identifications.map((element, i) => (
+                <TableRow key={i}>
+                  <TableCell>
+                    <TextField
+                      select
+                      fullWidth
                       size="small"
-                      color="error"
-                      onClick={() => handleRemove(i)}
+                      name="id_type"
+                      label="ID Type"
+                      value={
+                        idTypes.includes(element.id_type) ? element.id_type : ""
+                      }
+                      onChange={(e) =>
+                        handleUpdate(i, "id_type", e.target.value)
+                      }
                     >
-                      <DeleteIcon />
-                    </Button>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
+                      <MenuItem value="">Select an ID Type</MenuItem>
+                      {idTypes.map((type, type_idx) => (
+                        <MenuItem key={type_idx} value={type}>
+                          {type}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </TableCell>
+                  <TableCell>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      name="id_number"
+                      label="ID Number"
+                      value={element.id_number || ""}
+                      onChange={(e) =>
+                        handleUpdate(i, "id_number", e.target.value)
+                      }
+                    />
+                  </TableCell>
+                  <TableCell align="center">
+                    {identifications.length > 2 && (
+                      <Button
+                        size="small"
+                        color="error"
+                        onClick={() => handleRemove(i)}
+                      >
+                        <DeleteIcon />
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
       </TableContainer>

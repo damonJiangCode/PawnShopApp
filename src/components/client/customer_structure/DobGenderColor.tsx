@@ -99,7 +99,14 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
         required
         name="hair_color"
         label="Hair Color"
-        value={hair_color}
+        value={
+          hairColors.some(
+            (c) =>
+              c.trim().toLowerCase() === (hair_color || "").trim().toLowerCase()
+          )
+            ? hair_color
+            : ""
+        }
         onChange={onChange}
         size="small"
       >
@@ -116,7 +123,14 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
         required
         name="eye_color"
         label="Eye Color"
-        value={eye_color}
+        value={
+          eyeColors.some(
+            (c) =>
+              c.trim().toLowerCase() === (eye_color || "").trim().toLowerCase()
+          )
+            ? eye_color
+            : ""
+        }
         onChange={onChange}
         size="small"
       >
