@@ -82,6 +82,29 @@ export const registerIpcHandlers = () => {
     }
   );
 
+  // get customer image
+  ipcMain.handle("get-customer-image", async (_event, images_path: string) => {
+    try {
+      if (!images_path) {
+        console.warn("get-customer-image: no images_path provided");
+        return null;
+      }
+
+      const absPath = path.resolve(images_path);
+
+      if (!fs.existsSync(absPath)) {
+        console.warn("get-customer-image: file not found:", absPath);
+        return null;
+      }
+
+      const base64 = fs.readFileSync(absPath, { encoding: "base64" });
+      return base64;
+    } catch (err) {
+      console.error("Error getting customer image (handlers.ts):", err);
+      return null;
+    }
+  });
+
   // get cities
   ipcMain.handle("get-cities", async () => {
     try {

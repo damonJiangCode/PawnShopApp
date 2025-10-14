@@ -25,7 +25,7 @@ export interface Customer {
   email: string;
   phone: string;
   notes: string;
-  picture_path: string;
+  image_path: string;
   updated_at: Date;
   redeem_count: number;
   expire_count: number;

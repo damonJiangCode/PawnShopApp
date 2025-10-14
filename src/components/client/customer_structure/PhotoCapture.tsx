@@ -47,18 +47,20 @@ const PhotoCapture: React.FC<PhotoCaptureProps> = (props) => {
 
   // Load existing photo if customerNumber is provided
   useEffect(() => {
-    if (customer.customer_number) {
+    if (customer.customer_number && customer.image_path) {
       (async () => {
         try {
           const base64 = await (window as any).electronAPI.getCustomerImage(
-            customer.customer_number
+            customer.image_path
           );
+          // console.log("Loaded customer image", base64);
           if (base64) {
             setPhotoData(`data:image/png;base64,${base64}`);
           }
         } catch (err) {
           console.error("Failed to load customer image", err);
           alert("Failed to load customer image (PhotoCapture.tsx).");
+          throw err;
         }
       })();
     }

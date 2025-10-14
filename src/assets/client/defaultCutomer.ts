@@ -22,7 +22,7 @@ const defaultCustomer: Customer = {
   country: "Canada",
   postal_code: "",
   notes: "",
-  picture_path: "",
+  image_path: "",
   updated_at: new Date(),
   identifications: [
     { id_type: "", id_number: "" },

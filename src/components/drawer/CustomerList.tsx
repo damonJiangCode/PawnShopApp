@@ -68,7 +68,7 @@ const CustomerList: React.FC<CustomerListProps> = (props) => {
             selectedCustomer?.customer_number === customer.customer_number;
           const imagePath =
             customer.customer_number !== undefined
-              ? customer.picture_path
+              ? customer.image_path
               : undefined;
 
           return (

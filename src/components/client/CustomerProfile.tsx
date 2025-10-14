@@ -145,7 +145,7 @@ const CustomerProfile: React.FC<{ customer: Customer }> = ({ customer }) => {
         >
           <Avatar
             variant="square"
-            src={customer.picture_path}
+            src={customer.image_path}
             alt="Customer Photo"
             sx={{
               mb: 1,
@@ -155,7 +155,7 @@ const CustomerProfile: React.FC<{ customer: Customer }> = ({ customer }) => {
               boxShadow: 8,
             }}
           >
-            {!customer.picture_path && customer.first_name
+            {!customer.image_path && customer.first_name
               ? customer.first_name[0]
               : ""}
           </Avatar>

@@ -18,7 +18,7 @@ export const createCustomersTable = `
     email VARCHAR(100),
     phone VARCHAR(20),
     notes TEXT,
-    picture_path TEXT,
+    image_path TEXT,
     redeem_count INTEGER,      
     expire_count INTEGER,      
     overdue_count INTEGER,    

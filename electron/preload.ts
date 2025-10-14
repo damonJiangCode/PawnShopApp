@@ -1,3 +1,5 @@
+import { Customer, ID } from "../shared/models/Customer";
+
 const { contextBridge, ipcRenderer } = require("electron");
 
 // define all available ipc channels
@@ -6,6 +8,7 @@ const CHANNELS = {
   GET_IDS: "get-ids",
   ADD_CUSTOMER: "add-customer",
   SAVE_CUSTOMER_IMAGE: "save-customer-image",
+  GET_CUSTOMER_IMAGE: "get-customer-image",
   GET_CITIES: "get-cities",
   GET_HAIR_COLORS: "get-hair-colors",
   GET_EYE_COLORS: "get-eye-colors",
@@ -22,12 +25,16 @@ contextBridge.exposeInMainWorld("electronAPI", {
     return ipcRenderer.invoke(CHANNELS.GET_IDS, customerID);
   },
 
-  addCustomer: (payload: { customer: any; ids: any[] }) => {
+  addCustomer: (payload: { customer: Customer; ids: ID[] }) => {
     return ipcRenderer.invoke(CHANNELS.ADD_CUSTOMER, payload);
   },
 
   saveCustomerImage: (fileName: string, base64: string) => {
     return ipcRenderer.invoke(CHANNELS.SAVE_CUSTOMER_IMAGE, fileName, base64);
+  },
+
+  getCustomerImage: (customerNumber: number) => {
+    return ipcRenderer.invoke(CHANNELS.GET_CUSTOMER_IMAGE, customerNumber);
   },
 
   getCities: () => {

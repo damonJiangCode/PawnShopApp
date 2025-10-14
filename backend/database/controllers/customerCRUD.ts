@@ -67,7 +67,7 @@ export const addCustomer = async (
     INSERT INTO customers (
       first_name, last_name, middle_name, date_of_birth, gender,
       hair_color, eye_color, address, city, province, country, postal_code,
-      height_cm, weight_kg, notes, picture_path, email, phone,
+      height_cm, weight_kg, notes, image_path, email, phone,
       redeem_count, expire_count, overdue_count, theft_count
     )
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, 0, 0, 0, 0)
@@ -90,7 +90,7 @@ export const addCustomer = async (
     customer.height_cm,
     customer.weight_kg,
     customer.notes || null,
-    customer.picture_path,
+    customer.image_path,
     customer.email || null,
     customer.phone || null,
   ];
@@ -138,7 +138,7 @@ export const addCustomer = async (
       identifications: customerIdsResult.rows,
     };
 
-    console.log(" New customer added (customerCRUD.ts):", result);
+    // console.log(" New customer added (customerCRUD.ts):", result);
     return result;
   } catch (error) {
     await client.query("ROLLBACK");

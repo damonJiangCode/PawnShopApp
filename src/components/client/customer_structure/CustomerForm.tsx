@@ -61,7 +61,7 @@ const CustomerForm: React.FC<CustomerFormProps> = (props) => {
         fileName,
         base64
       );
-      setCustomer((prev) => ({ ...prev, picture_path: relPath }));
+      setCustomer((prev) => ({ ...prev, image_path: relPath }));
       setPhotoCaptured(true);
     } catch (error) {
       setPhotoCaptured(false);

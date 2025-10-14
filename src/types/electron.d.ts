@@ -10,6 +10,7 @@ interface ElectronAPI {
     ids: ID[];
   }) => Promise<Customer>;
   saveCustomerImage: (fileName: string, base64: string) => Promise<string>;
+  getCustomerImage: (customerNumber: number) => Promise<string>;
   getCities: () => Promise<{
     provinces: string[];
     citiesByProvince: { [key: string]: string[] };
