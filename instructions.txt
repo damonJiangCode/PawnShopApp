@@ -1,0 +1,23 @@
+// download postgresql 16
+password: 0236
+Database: PawnShop DB
+owner == user
+host = "localhost"
+
+// enable npm running
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force
+
+// install all the node modules
+npm install
+
+// run databse (db.ts) (in the root folder)
+npx ts-node -P tsconfig.backend.json backend/database/db.ts
+
+// run dev
+npm run dev-and-start
+
+API loop
+electron/main.ts -> electron/ipc/handler.ts -> electron/preload.ts -> src/types/electron.d.ts ->customerCRUD.ts
+
+React app
+src/index.tsx -> App.tsx -> pages/* -> components/*
