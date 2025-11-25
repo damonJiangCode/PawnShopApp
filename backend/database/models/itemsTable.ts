@@ -3,7 +3,7 @@ export const createItemsTable = `
     item_number SERIAL PRIMARY KEY,
     quantity INTEGER NOT NULL,
     description TEXT,
-    brand VARCHAR(100),
+    brand_name VARCHAR(100),
     model_number VARCHAR(100),
     serial_number VARCHAR(100),
     pawn_price INTEGER,
