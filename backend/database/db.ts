@@ -14,7 +14,7 @@ import { createIdTypesTable, insertIdTypes } from "./models/idTypesTable";
 
 // create pool connection
 const pool = new Pool({
-  user: "damon",
+  user: "postgres",
   host: "localhost",
   database: "PawnShop DB",
   password: "0236",
