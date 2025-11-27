@@ -1,441 +1,252 @@
-import React from "react";
+// import React from "react";
+// import { Ticket } from "../../../shared/models/Ticket";
+// import {
+//   TableContainer,
+//   Table,
+//   TableHead,
+//   TableRow,
+//   TableCell,
+//   TableBody,
+//   Typography,
+//   Paper,
+// } from "@mui/material";
+
+// export interface TicketTableProps {
+//   tickets: Ticket[];
+//   selectedTicketId?: number | null;
+//   onSelect: (id: number | string) => void;
+// }
+
+// const TicketTable: React.FC<TicketTableProps> = (props) => {
+//   const { tickets, selectedTicketId, onSelect } = props;
+//   const format = (date?: Date) =>
+//     date ? date.toISOString().split("T")[0] : "-";
+
+//   return (
+//     <TableContainer
+//       component={Paper}
+//       sx={{
+//         maxHeight: 400, // 固定高度（可改）
+//         maxWidth: "100%",
+//         overflow: "auto", // 横向 + 纵向滚动
+//         border: "1px solid #ddd",
+//       }}
+//     >
+//       <Table stickyHeader size="small">
+//         <TableHead>
+//           <TableRow>
+//             <TableCell>Ticket #</TableCell>
+//             <TableCell>Pawn Date</TableCell>
+//             <TableCell>Due Date</TableCell>
+//             <TableCell>Pickup Date</TableCell>
+//             <TableCell>Location</TableCell>
+//             <TableCell>Description</TableCell>
+//             <TableCell>Pawn $</TableCell>
+//             <TableCell>Interest</TableCell>
+//             <TableCell>Pickup $</TableCell>
+//             <TableCell>Status</TableCell>
+//             <TableCell>Employee</TableCell>
+//             <TableCell>Customer #</TableCell>
+//             <TableCell>Last Payment</TableCell>
+//           </TableRow>
+//         </TableHead>
+
+//         <TableBody>
+//           {tickets.map((t) => {
+//             const isSelected =
+//               String(t.ticket_number) === String(selectedTicketId);
+
+//             return (
+//               <TableRow
+//                 hover
+//                 key={t.ticket_number}
+//                 selected={isSelected}
+//                 onClick={() => onSelect(t.ticket_number)}
+//                 sx={{
+//                   cursor: "pointer",
+//                   "&.Mui-selected": {
+//                     backgroundColor: (theme) => theme.palette.action.selected,
+//                   },
+//                 }}
+//               >
+//                 <TableCell>{t.ticket_number}</TableCell>
+//                 <TableCell>{format(t.pawn_datetime)}</TableCell>
+//                 <TableCell>{format(t.due_date)}</TableCell>
+//                 <TableCell>{format(t.pickup_datetime)}</TableCell>
+//                 <TableCell>{t.location}</TableCell>
+
+//                 {/* Description 限制长度 + 提示框 */}
+//                 <TableCell
+//                   sx={{
+//                     maxWidth: 200,
+//                     whiteSpace: "nowrap",
+//                     overflow: "hidden",
+//                     textOverflow: "ellipsis",
+//                   }}
+//                   title={t.description}
+//                 >
+//                   {t.description}
+//                 </TableCell>
+
+//                 <TableCell>{t.pawn_price}</TableCell>
+//                 <TableCell>{t.interest}</TableCell>
+//                 <TableCell>{t.pickup_price}</TableCell>
+//                 <TableCell>{t.status}</TableCell>
+//                 <TableCell>{t.employee_id ?? "-"}</TableCell>
+//                 <TableCell>{t.customer_number ?? "-"}</TableCell>
+//                 <TableCell>{format(t.last_payment_date)}</TableCell>
+//               </TableRow>
+//             );
+//           })}
+//         </TableBody>
+//       </Table>
+//     </TableContainer>
+//   );
+// };
+
+// export default TicketTable;
+
+import React, { useState } from "react";
+import { Resizable } from "react-resizable";
 import {
-    Table,
-    TableHead,
-    TableRow,
-    TableCell,
-    TableBody,
-    TableContainer,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Typography,
 } from "@mui/material";
 import { Ticket } from "../../../shared/models/Ticket";
+import "react-resizable/css/styles.css";
 
-const headers = [
-    { id: "ticket_number", label: "Ticket #" },
-    { id: "pawn_datetime", label: "Date" },
-    { id: "location", label: "Location" },
-    { id: "description", label: "Item" },
-    { id: "due_date", label: "Due Date" },
-    { id: "pawn_price", label: "Pawn $" },
-    { id: "interest", label: "Interest $" },
-    { id: "pickup_price", label: "Pickup $" },
-    { id: "employee_id", label: "Employee" },
-    { id: "last_payment_date", label: "Payment Date" },
-    // 你可以在这里继续添加更多列
-];
+export interface TicketTableProps {
+  tickets: Ticket[];
+  selectedTicketId?: number | string | null;
+  onSelect: (id: number | string) => void;
+}
 
-const rows: Ticket[] = [
-    {
-        ticket_number: 1,
-        pawn_datetime: new Date("2025-09-01"),
-        due_date: new Date("2025-10-01"),
-        pickup_datetime: undefined,
-        location: "RR T",
-        description: "Gold Ring",
-        pawn_price: 501,
-        interest: 50,
-        pickup_price: 551,
-        status: "pawned",
-        employee_id: 101,
-        customer_number: 1001,
-    },
-    {
-        ticket_number: 2,
-        pawn_datetime: new Date("2025-09-02"),
-        due_date: new Date("2025-10-02"),
-        pickup_datetime: new Date("2025-09-12"),
-        location: "AB12",
-        description: "Silver Necklace",
-        pawn_price: 301,
-        interest: 30,
-        pickup_price: 331,
-        status: "picked_up",
-        employee_id: 102,
-        customer_number: 1002,
-    },
-    {
-        ticket_number: 3,
-        pawn_datetime: new Date("2025-08-02"),
-        due_date: new Date("2025-10-02"),
-        pickup_datetime: new Date("2025-09-12"),
-        location: "AC12",
-        description: "Nailer",
-        pawn_price: 31,
-        interest: 3,
-        pickup_price: 34,
-        status: "pawned",
-        employee_id: 102,
-        customer_number: 1003,
-    },
-    {
-        ticket_number: 5,
-        pawn_datetime: new Date("2025-08-22"),
-        due_date: new Date("2025-10-02"),
-        pickup_datetime: new Date("2025-09-12"),
-        location: "AA12",
-        description: "speaker",
-        pawn_price: 21,
-        interest: 5,
-        pickup_price: 26,
-        status: "pawned",
-        employee_id: 102,
-        customer_number: 1010,
-    },
-    {
-        ticket_number: 5,
-        pawn_datetime: new Date("2025-08-22"),
-        due_date: new Date("2025-10-02"),
-        pickup_datetime: new Date("2025-09-12"),
-        location: "AA12",
-        description: "speaker",
-        pawn_price: 21,
-        interest: 5,
-        pickup_price: 26,
-        status: "pawned",
-        employee_id: 102,
-        customer_number: 1010,
-    },
-    {
-        ticket_number: 5,
-        pawn_datetime: new Date("2025-08-22"),
-        due_date: new Date("2025-10-02"),
-        pickup_datetime: new Date("2025-09-12"),
-        location: "AA12",
-        description: "speaker",
-        pawn_price: 21,
-        interest: 5,
-        pickup_price: 26,
-        status: "pawned",
-        employee_id: 102,
-        customer_number: 1010,
-    },
-    {
-        ticket_number: 5,
-        pawn_datetime: new Date("2025-08-22"),
-        due_date: new Date("2025-10-02"),
-        pickup_datetime: new Date("2025-09-12"),
-        location: "AA12",
-        description: "speaker",
-        pawn_price: 21,
-        interest: 5,
-        pickup_price: 26,
-        status: "pawned",
-        employee_id: 102,
-        customer_number: 1010,
-    },
-    {
-        ticket_number: 5,
-        pawn_datetime: new Date("2025-08-22"),
-        due_date: new Date("2025-10-02"),
-        pickup_datetime: new Date("2025-09-12"),
-        location: "AA12",
-        description: "speaker",
-        pawn_price: 21,
-        interest: 5,
-        pickup_price: 26,
-        status: "pawned",
-        employee_id: 102,
-        customer_number: 1010,
-    },
-    {
-        ticket_number: 5,
-        pawn_datetime: new Date("2025-08-22"),
-        due_date: new Date("2025-10-02"),
-        pickup_datetime: new Date("2025-09-12"),
-        location: "AA12",
-        description: "speaker",
-        pawn_price: 21,
-        interest: 5,
-        pickup_price: 26,
-        status: "pawned",
-        employee_id: 102,
-        customer_number: 1010,
-    },
-    {
-        ticket_number: 5,
-        pawn_datetime: new Date("2025-08-22"),
-        due_date: new Date("2025-10-02"),
-        pickup_datetime: new Date("2025-09-12"),
-        location: "AA12",
-        description: "speaker",
-        pawn_price: 21,
-        interest: 5,
-        pickup_price: 26,
-        status: "pawned",
-        employee_id: 102,
-        customer_number: 1010,
-    },
-    {
-        ticket_number: 5,
-        pawn_datetime: new Date("2025-08-22"),
-        due_date: new Date("2025-10-02"),
-        pickup_datetime: new Date("2025-09-12"),
-        location: "AA12",
-        description: "speaker",
-        pawn_price: 21,
-        interest: 5,
-        pickup_price: 26,
-        status: "pawned",
-        employee_id: 102,
-        customer_number: 1010,
-    },
-    {
-        ticket_number: 5,
-        pawn_datetime: new Date("2025-08-22"),
-        due_date: new Date("2025-10-02"),
-        pickup_datetime: new Date("2025-09-12"),
-        location: "AA12",
-        description: "speaker",
-        pawn_price: 21,
-        interest: 5,
-        pickup_price: 26,
-        status: "pawned",
-        employee_id: 102,
-        customer_number: 1010,
-    },
-    {
-        ticket_number: 5,
-        pawn_datetime: new Date("2025-08-22"),
-        due_date: new Date("2025-10-02"),
-        pickup_datetime: new Date("2025-09-12"),
-        location: "AA12",
-        description: "speaker",
-        pawn_price: 21,
-        interest: 5,
-        pickup_price: 26,
-        status: "pawned",
-        employee_id: 102,
-        customer_number: 1010,
-    },
-    {
-        ticket_number: 5,
-        pawn_datetime: new Date("2025-08-22"),
-        due_date: new Date("2025-10-02"),
-        pickup_datetime: new Date("2025-09-12"),
-        location: "AA12",
-        description: "speaker",
-        pawn_price: 21,
-        interest: 5,
-        pickup_price: 26,
-        status: "pawned",
-        employee_id: 102,
-        customer_number: 1010,
-    },
-    {
-        ticket_number: 5,
-        pawn_datetime: new Date("2025-08-22"),
-        due_date: new Date("2025-10-02"),
-        pickup_datetime: new Date("2025-09-12"),
-        location: "AA12",
-        description: "speaker",
-        pawn_price: 21,
-        interest: 5,
-        pickup_price: 26,
-        status: "pawned",
-        employee_id: 102,
-        customer_number: 1010,
-    },
-    {
-        ticket_number: 5,
-        pawn_datetime: new Date("2025-08-22"),
-        due_date: new Date("2025-10-02"),
-        pickup_datetime: new Date("2025-09-12"),
-        location: "AA12",
-        description: "speaker",
-        pawn_price: 21,
-        interest: 5,
-        pickup_price: 26,
-        status: "pawned",
-        employee_id: 102,
-        customer_number: 1010,
-    },
-    {
-        ticket_number: 5,
-        pawn_datetime: new Date("2025-08-22"),
-        due_date: new Date("2025-10-02"),
-        pickup_datetime: new Date("2025-09-12"),
-        location: "AA12",
-        description: "speaker",
-        pawn_price: 21,
-        interest: 5,
-        pickup_price: 26,
-        status: "pawned",
-        employee_id: 102,
-        customer_number: 1010,
-    },
-    {
-        ticket_number: 5,
-        pawn_datetime: new Date("2025-08-22"),
-        due_date: new Date("2025-10-02"),
-        pickup_datetime: new Date("2025-09-12"),
-        location: "AA12",
-        description: "speaker",
-        pawn_price: 21,
-        interest: 5,
-        pickup_price: 26,
-        status: "pawned",
-        employee_id: 102,
-        customer_number: 1010,
-    },
-    {
-        ticket_number: 5,
-        pawn_datetime: new Date("2025-08-22"),
-        due_date: new Date("2025-10-02"),
-        pickup_datetime: new Date("2025-09-12"),
-        location: "AA12",
-        description: "speaker",
-        pawn_price: 21,
-        interest: 5,
-        pickup_price: 26,
-        status: "pawned",
-        employee_id: 102,
-        customer_number: 1010,
-    },
-    {
-        ticket_number: 5,
-        pawn_datetime: new Date("2025-08-22"),
-        due_date: new Date("2025-10-02"),
-        pickup_datetime: new Date("2025-09-12"),
-        location: "AA12",
-        description: "speaker",
-        pawn_price: 21,
-        interest: 5,
-        pickup_price: 26,
-        status: "pawned",
-        employee_id: 102,
-        customer_number: 1010,
-    },
-    {
-        ticket_number: 5,
-        pawn_datetime: new Date("2025-08-22"),
-        due_date: new Date("2025-10-02"),
-        pickup_datetime: new Date("2025-09-12"),
-        location: "AA12",
-        description: "speaker",
-        pawn_price: 21,
-        interest: 5,
-        pickup_price: 26,
-        status: "pawned",
-        employee_id: 102,
-        customer_number: 1010,
-    },
-    {
-        ticket_number: 5,
-        pawn_datetime: new Date("2025-08-22"),
-        due_date: new Date("2025-10-02"),
-        pickup_datetime: new Date("2025-09-12"),
-        location: "AA12",
-        description: "speaker",
-        pawn_price: 21,
-        interest: 5,
-        pickup_price: 26,
-        status: "pawned",
-        employee_id: 102,
-        customer_number: 1010,
-    },
-    {
-        ticket_number: 5,
-        pawn_datetime: new Date("2025-08-22"),
-        due_date: new Date("2025-10-02"),
-        pickup_datetime: new Date("2025-09-12"),
-        location: "AA12",
-        description: "speaker",
-        pawn_price: 21,
-        interest: 5,
-        pickup_price: 26,
-        status: "pawned",
-        employee_id: 102,
-        customer_number: 1010,
-    },
-    {
-        ticket_number: 5,
-        pawn_datetime: new Date("2025-08-22"),
-        due_date: new Date("2025-10-02"),
-        pickup_datetime: new Date("2025-09-12"),
-        location: "AA12",
-        description: "speaker",
-        pawn_price: 21,
-        interest: 5,
-        pickup_price: 26,
-        status: "pawned",
-        employee_id: 102,
-        customer_number: 1010,
-    },
+// ---- Resizable Header Cell ----
+const ResizableTableCell = (props: any) => {
+  const { width, onResize, ...rest } = props;
 
-    // 可以添加更多数据
-];
+  if (!width) return <TableCell {...rest} />;
 
-const formatDate = (date?: Date) =>
-    date ? date.toISOString().split("T")[0] : "";
+  return (
+    <Resizable
+      height={0}
+      width={width}
+      onResize={onResize}
+      handle={
+        <span
+          style={{
+            position: "absolute",
+            right: -5,
+            top: 0,
+            bottom: 0,
+            width: 10,
+            cursor: "col-resize",
+            zIndex: 1,
+          }}
+        />
+      }
+    >
+      <TableCell {...rest} style={{ width, position: "relative" }} />
+    </Resizable>
+  );
+};
 
-const TicketTable: React.FC = () => {
-    return (
-        <TableContainer
-            sx={{
-                height: 300,
-                width: "100%",
-                overflowY: "scroll",
-                overflowX: "scroll",
-                border: "2px solid #ccc",
-                borderRadius: "8px",
-            }}
-        >
-            <Table stickyHeader>
-                <TableHead>
-                    <TableRow>
-                        {headers.map((col) => (
-                            <TableCell
-                                key={col.id}
-                                sx={{
-                                    whiteSpace: "nowrap",
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    minWidth: 80,
-                                    maxWidth: 120,
-                                    padding: "6px 8px",
-                                    fontWeight: 600,
-                                    borderRight: "1px solid #eee",
-                                    backgroundColor: "#e0e7ef",
-                                    borderBottom: "2px solid #b0b8c1",
+const TicketTable: React.FC<TicketTableProps> = ({
+  tickets,
+  selectedTicketId,
+  onSelect,
+}) => {
+  const format = (date?: Date) =>
+    date ? new Date(date).toISOString().split("T")[0] : "";
 
-                                }}
-                            >
-                                {col.label}
-                            </TableCell>
-                        ))}
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {rows.map((row, idx) => (
-                        <TableRow key={idx}>
-                            {headers.map((col) => (
-                                <TableCell
-                                    key={col.id}
-                                    sx={{
-                                        whiteSpace: "nowrap",
-                                        overflow: "hidden",
-                                        textOverflow: "ellipsis",
-                                        minWidth: 80,
-                                        maxWidth: 120,
-                                        padding: "6px 8px",
-                                        borderRight: "1px solid #eee",
-                                    }}
-                                    title={
-                                        typeof row[col.id as keyof Ticket] === "string"
-                                            ? (row[col.id as keyof Ticket] as string)
-                                            : undefined
-                                    }
-                                >
-                                    {col.id.includes("date")
-                                        ? formatDate(row[col.id as keyof Ticket] as Date | undefined)
-                                        : row[col.id as keyof Ticket]?.toString()}
-                                </TableCell>
-                            ))}
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </TableContainer>
-    );
+  // ---- Column Width State ----
+  const [colWidths, setColWidths] = useState({
+    ticket_number: 120,
+    pawn_datetime: 140,
+    location: 120,
+    description: 250,
+    due_date: 140,
+    pawn_price: 120,
+    status: 120,
+  });
+
+  const onResize =
+    (col: string) =>
+    (e: any, { size }: any) => {
+      setColWidths((prev) => ({ ...prev, [col]: size.width }));
+    };
+
+  return (
+    <TableContainer sx={{ maxHeight: 350, maxWidth: "100%", overflow: "auto" }}>
+      <Table stickyHeader size="small">
+        <TableHead>
+          <TableRow>
+            {[
+              { key: "ticket_number", label: "Ticket #" },
+              { key: "pawn_datetime", label: "Pawn Date" },
+              { key: "location", label: "Location" },
+              { key: "description", label: "Item" },
+              { key: "due_date", label: "Due Date" },
+              { key: "pawn_price", label: "Pawn $" },
+              { key: "status", label: "Status" },
+            ].map((col) => (
+              <ResizableTableCell
+                key={col.key}
+                width={colWidths[col.key]}
+                onResize={onResize(col.key)}
+              >
+                <Typography fontWeight="bold">{col.label}</Typography>
+              </ResizableTableCell>
+            ))}
+          </TableRow>
+        </TableHead>
+
+        <TableBody>
+          {tickets.map((t) => {
+            const isSelected =
+              String(t.ticket_number) === String(selectedTicketId);
+            return (
+              <TableRow
+                key={t.ticket_number}
+                hover
+                selected={isSelected}
+                onClick={() => onSelect(t.ticket_number)}
+                sx={{ cursor: "pointer" }}
+              >
+                <TableCell width={colWidths.ticket_number}>
+                  {t.ticket_number}
+                </TableCell>
+                <TableCell width={colWidths.pawn_datetime}>
+                  {format(t.pawn_datetime)}
+                </TableCell>
+                <TableCell width={colWidths.location}>{t.location}</TableCell>
+                <TableCell
+                  width={colWidths.description}
+                  sx={{ whiteSpace: "normal", wordBreak: "break-word" }}
+                >
+                  {t.description}
+                </TableCell>
+                <TableCell width={colWidths.due_date}>
+                  {format(t.due_date)}
+                </TableCell>
+                <TableCell width={colWidths.pawn_price}>
+                  {t.pawn_price}
+                </TableCell>
+                <TableCell width={colWidths.status}>
+                  <Typography>{t.status}</Typography>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
 };
 
 export default TicketTable;
