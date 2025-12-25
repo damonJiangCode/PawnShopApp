@@ -7,6 +7,8 @@ import {
   getHairColors,
   getEyeColors,
   getIdTypes,
+  getTickets,
+  getItems,
 } from "../../backend/database/controllers/customerCRUD";
 import fs from "fs";
 import path from "path";
@@ -17,10 +19,10 @@ export const registerIpcHandlers = () => {
   ipcMain.handle("search-customer", async (_event, firstName, lastName) => {
     try {
       const results = await searchCustomer(firstName, lastName);
-      // console.log("search-customer results (handler.ts):", results);
+      // console.log("[handlers.ts] LOG, ", results);
       return results;
     } catch (error) {
-      console.error("Error searching customer (handler.ts):", error);
+      console.error("[handlers.ts] ERROR searching customer, ", error);
       throw error;
     }
   });
@@ -29,10 +31,10 @@ export const registerIpcHandlers = () => {
   ipcMain.handle("get-ids", async (_event, customerID) => {
     try {
       const results = await getIds(customerID);
-      // console.log("get-ids results (handler.ts):", results);
+      // console.log("[handlers.ts] LOG, ", results);
       return results;
     } catch (error) {
-      console.error("Error getting customer IDs (handler.ts):", error);
+      console.error("[handlers.ts] ERROR getting customer IDs, ", error);
       throw error;
     }
   });
@@ -42,10 +44,10 @@ export const registerIpcHandlers = () => {
     try {
       const { customer, identifications } = payload;
       const result = await addCustomer(customer, identifications);
-      // console.log("add-customer results (handler.ts):", result);
+      // console.log("[handlers.ts] LOG, ", result);
       return result;
     } catch (error) {
-      console.error("Error adding customer (handler.ts):", error);
+      console.error("[handlers.ts] ERROR adding customer, ", error);
       throw error;
     }
   });
@@ -76,7 +78,7 @@ export const registerIpcHandlers = () => {
 
         return relPath;
       } catch (err) {
-        console.error("Error saving customer image (handlers.ts):", err);
+        console.error("[handlers.ts] ERROR saving customer image, ", err);
         return null;
       }
     }
@@ -89,18 +91,15 @@ export const registerIpcHandlers = () => {
         console.warn("get-customer-image: no images_path provided");
         return null;
       }
-
       const absPath = path.resolve(images_path);
-
       if (!fs.existsSync(absPath)) {
         console.warn("get-customer-image: file not found:", absPath);
         return null;
       }
-
       const base64 = fs.readFileSync(absPath, { encoding: "base64" });
       return base64;
     } catch (err) {
-      console.error("Error getting customer image (handlers.ts):", err);
+      console.error("[handlers.ts] ERROR getting customer image, ", err);
       return null;
     }
   });
@@ -111,11 +110,11 @@ export const registerIpcHandlers = () => {
       const result = await getCities();
       const provinces = result.provinces;
       const citiesByProvince = result.citiesByProvince;
-      // console.log("provinces:", provinces);
-      // console.log("citiesByProvince:", citiesByProvince);
+      // console.log("[handlers.ts] LOG provinces, ", provinces);
+      // console.log("[handlers.ts] LOG citiesByProvince, ", citiesByProvince);
       return { provinces, citiesByProvince };
     } catch (error) {
-      console.error("Error getting cities (handler.ts):", error);
+      console.error("[handlers.ts] ERROR getting cities, ", error);
       throw error;
     }
   });
@@ -124,10 +123,10 @@ export const registerIpcHandlers = () => {
   ipcMain.handle("get-hair-colors", async () => {
     try {
       const hairColors = await getHairColors();
-      // console.log("get-hair-colors results (handler.ts):", hairColors);
+      // console.log("[handlers.ts] LOG, ", hairColors);
       return hairColors;
     } catch (error) {
-      console.error("Error getting hair colors (handler.ts):", error);
+      console.error("[handlers.ts] ERROR getting hair colors, ", error);
       throw error;
     }
   });
@@ -136,10 +135,10 @@ export const registerIpcHandlers = () => {
   ipcMain.handle("get-eye-colors", async () => {
     try {
       const eyeColors = await getEyeColors();
-      // console.log("get-eye-colors results (handler.ts):", eyeColors);
+      // console.log("[handlers.ts] LOG, ", eyeColors);
       return eyeColors;
     } catch (error) {
-      console.error("Error getting eye colors (handler.ts):", error);
+      console.error("[handlers.ts] ERROR getting eye colors, ", error);
       throw error;
     }
   });
@@ -148,10 +147,34 @@ export const registerIpcHandlers = () => {
   ipcMain.handle("get-id-types", async () => {
     try {
       const idTypes = await getIdTypes();
-      // console.log("get-id-types results (handler.ts):", idTypes);
+      // console.log("[handlers.ts] LOG, ", idTypes);
       return idTypes;
     } catch (error) {
-      console.error("Error getting ID types (handler.ts):", error);
+      console.error("[handlers.ts] ERROR getting ID types, ", error);
+      throw error;
+    }
+  });
+
+  // get tickets
+  ipcMain.handle("get-tickets", async (_event, customerNumber: number) => {
+    try {
+      const tickets = await getTickets(customerNumber);
+      // console.log("[handlers.ts] LOG, ", tickets);
+      return tickets;
+    } catch (error) {
+      console.error("[handlers.ts] ERROR getting tickets, ", error);
+      throw error;
+    }
+  });
+
+  // get items
+  ipcMain.handle("get-items", async (_event, ticketID: number) => {
+    try {
+      const items = await getItems(ticketID);
+      console.log("[handlers.ts] LOG: ", items);
+      return items;
+    } catch (error) {
+      console.error("[handlers.ts] ERROR getting items, ", error);
       throw error;
     }
   });

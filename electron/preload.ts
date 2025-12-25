@@ -13,6 +13,8 @@ const CHANNELS = {
   GET_HAIR_COLORS: "get-hair-colors",
   GET_EYE_COLORS: "get-eye-colors",
   GET_ID_TYPES: "get-id-types",
+  GET_TICKETS: "get-tickets",
+  GET_ITEMS: "get-items",
 } as const;
 
 // expose to the renderer process
@@ -51,5 +53,13 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   getIdTypes: () => {
     return ipcRenderer.invoke(CHANNELS.GET_ID_TYPES);
+  },
+
+  getTickets: (customerNumber: number) => {
+    return ipcRenderer.invoke(CHANNELS.GET_TICKETS, customerNumber);
+  },
+
+  getItems: (ticketNumber: number) => {
+    return ipcRenderer.invoke(CHANNELS.GET_ITEMS, ticketNumber);
   },
 });
