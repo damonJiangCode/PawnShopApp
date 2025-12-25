@@ -1,16 +1,17 @@
 export const createTicketsTable = `
   CREATE TABLE IF NOT EXISTS tickets (
     ticket_number SERIAL PRIMARY KEY,
-    pawn_datetime TIMESTAMP NOT NULL,
-    due_date DATE NOT NULL,
-    pickup_datetime TIMESTAMP,
-    location VARCHAR(100),
+    transaction_datetime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    location TEXT,
     description TEXT,
-    pawn_price INTEGER,
-    interest INTEGER,
-    pickup_price INTEGER,
-    status VARCHAR(20) NOT NULL CHECK (status IN ('pawned', 'picked_up', 'expired')),
-    employee_id INTEGER,
+    due_date DATE NOT NULL,
+    amount NUMERIC(10, 1),
+    interest NUMERIC(5, 1),
+    pickup_amount NUMERIC(10, 1),
+    interested_datetime TIMESTAMP DEFAULT NULL,
+    employee_name TEXT,
+    pickup_datetime TIMESTAMP,
+    status TEXT NOT NULL CHECK (status IN ('pawned', 'picked_up', 'expired')),
     customer_number INTEGER REFERENCES customers(customer_number) ON DELETE SET NULL
   );
 `;
