@@ -2,7 +2,7 @@ export interface ID {
   id?: number;
   customer_number?: number;
   id_type: string;
-  id_number: string;
+  id_value: string;
   updated_at?: Date;
 }
 

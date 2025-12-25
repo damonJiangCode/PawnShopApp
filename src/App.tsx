@@ -85,7 +85,7 @@ const App: React.FC = () => {
           <ClientPage customer={selectedCustomer} />
         </TabPanel>
         <TabPanel value={currentTab} index={1}>
-          <TransactionPage />
+          <TransactionPage customer={selectedCustomer} />
         </TabPanel>
         <TabPanel value={currentTab} index={2}>
           <HistoryPage />

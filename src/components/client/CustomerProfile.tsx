@@ -260,7 +260,7 @@ const CustomerProfile: React.FC<{ customer: Customer }> = ({ customer }) => {
               <Box key={index}>
                 <InfoRow
                   label={element.id_type + ":"}
-                  value={element.id_number || "-"}
+                  value={element.id_value || "-"}
                 />
               </Box>
             ))

@@ -83,7 +83,7 @@ const CustomerForm: React.FC<CustomerFormProps> = (props) => {
       const isEmpty =
         !ids ||
         ids.length === 0 ||
-        ids.every((id) => !id.id_type || !id.id_number);
+        ids.every((id) => !id.id_type || !id.id_value);
 
       if (isEmpty) {
         alert("Please provide valid ID information.");

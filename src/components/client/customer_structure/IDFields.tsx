@@ -50,7 +50,7 @@ const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(({ ids }, ref) => {
   }, []);
 
   const handleAdd = () => {
-    setIdentifications([...identifications, { id_type: "", id_number: "" }]);
+    setIdentifications([...identifications, { id_type: "", id_value: "" }]);
   };
 
   const handleRemove = (index: number) => {
@@ -125,11 +125,11 @@ const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(({ ids }, ref) => {
                     <TextField
                       fullWidth
                       size="small"
-                      name="id_number"
+                      name="id_value"
                       label="ID Number"
-                      value={element.id_number || ""}
+                      value={element.id_value || ""}
                       onChange={(e) =>
-                        handleUpdate(i, "id_number", e.target.value)
+                        handleUpdate(i, "id_value", e.target.value)
                       }
                     />
                   </TableCell>

@@ -1,7 +1,5 @@
 import { Customer, ID } from "../../shared/models/Customer";
 
-// export {};
-
 interface ElectronAPI {
   searchCustomer: (firstName: string, lastName: string) => Promise<Customer[]>;
   getIDs: (customerID: number) => Promise<ID[]>;
@@ -18,6 +16,8 @@ interface ElectronAPI {
   getHairColors: () => Promise<string[]>;
   getEyeColors: () => Promise<string[]>;
   getIdTypes: () => Promise<string[]>;
+  getTickets: (customerNumber: number) => Promise<any[]>;
+  getItems: (ticketNumber: number) => Promise<any[]>;
 }
 
 declare global {

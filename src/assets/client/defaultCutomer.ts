@@ -25,8 +25,8 @@ const defaultCustomer: Customer = {
   image_path: "",
   updated_at: new Date(),
   identifications: [
-    { id_type: "", id_number: "" },
-    { id_type: "", id_number: "" },
+    { id_type: "", id_value: "" },
+    { id_type: "", id_value: "" },
   ],
   redeem_count: 0,
   expire_count: 0,

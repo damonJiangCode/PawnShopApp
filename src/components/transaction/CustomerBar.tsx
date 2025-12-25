@@ -11,8 +11,10 @@ const CustomerBar: React.FC<CustomerBarProps> = (props) => {
   return (
     <Box>
       {customer && (
-        <Typography variant="subtitle2" color="text.secondary">
-          {customer.last_name}, {customer.first_name}
+        <Typography
+          sx={{ variant: "subtitle2", color: "text.secondary", fontSize: 25 }}
+        >
+          {customer.last_name.toUpperCase() ?? ""}, {customer.first_name ?? ""}
         </Typography>
       )}
     </Box>

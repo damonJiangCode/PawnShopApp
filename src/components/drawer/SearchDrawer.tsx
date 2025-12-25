@@ -42,10 +42,10 @@ const SearchDrawer: React.FC<SearchDrawerProps> = (props) => {
 
   const handleCustomerAdded = (customer: Customer) => {
     try {
-      console.log(
-        "handleCustomerAdded (SearchDrawer.tsx):",
-        JSON.stringify(customer, null, 2)
-      );
+      // console.log(
+      //   "handleCustomerAdded (SearchDrawer.tsx):",
+      //   JSON.stringify(customer, null, 2)
+      // );
       handleSearchResults([customer]);
       setShowAddForm(false);
     } catch (err) {

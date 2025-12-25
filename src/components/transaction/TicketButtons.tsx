@@ -4,28 +4,43 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import PrintIcon from "@mui/icons-material/Print";
 import DeleteIcon from "@mui/icons-material/Delete";
+import ChangeCircleIcon from "@mui/icons-material/ChangeCircle";
 import { Ticket } from "../../../shared/models/Ticket";
 
 interface TicketButtonsrProps {
-  selectedTicket?: Ticket | null;
+  selectedTicket?: Ticket;
   onAdd: () => void;
   onEdit: (t: Ticket) => void;
   onPrint: (t: Ticket) => void;
-  onTransfer: (t: Ticket) => void;
+  onChange: (t: Ticket) => void;
   onExpire: (t: Ticket) => void;
 }
 
 const TicketButtons: React.FC<TicketButtonsrProps> = (props) => {
-  const { selectedTicket, onAdd, onEdit, onPrint, onTransfer, onExpire } =
-    props;
+  const { selectedTicket, onAdd, onEdit, onPrint, onChange, onExpire } = props;
   const disabled = !selectedTicket;
   return (
-    <Box display="flex" flexDirection="column" gap={1}>
-      <Button variant="outlined" startIcon={<AddIcon />} onClick={onAdd}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        gap: 3,
+        width: 200,
+      }}
+    >
+      <Button
+        variant="outlined"
+        fullWidth
+        startIcon={<AddIcon />}
+        onClick={() => onAdd()}
+      >
         Add
       </Button>
       <Button
         variant="outlined"
+        fullWidth
         startIcon={<EditIcon />}
         onClick={() => selectedTicket && onEdit(selectedTicket)}
         disabled={disabled}
@@ -34,6 +49,7 @@ const TicketButtons: React.FC<TicketButtonsrProps> = (props) => {
       </Button>
       <Button
         variant="outlined"
+        fullWidth
         startIcon={<PrintIcon />}
         onClick={() => selectedTicket && onPrint(selectedTicket)}
         disabled={disabled}
@@ -42,13 +58,16 @@ const TicketButtons: React.FC<TicketButtonsrProps> = (props) => {
       </Button>
       <Button
         variant="outlined"
-        onClick={() => selectedTicket && onTransfer(selectedTicket)}
+        fullWidth
+        startIcon={<ChangeCircleIcon />}
+        onClick={() => selectedTicket && onChange(selectedTicket)}
         disabled={disabled}
       >
-        Transfer
+        Change
       </Button>
       <Button
         variant="outlined"
+        fullWidth
         color="error"
         startIcon={<DeleteIcon />}
         onClick={() => selectedTicket && onExpire(selectedTicket)}
