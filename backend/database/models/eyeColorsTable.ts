@@ -1,6 +1,6 @@
 export const createEyeColorsTable = `CREATE TABLE IF NOT EXISTS eye_colors(
   id SERIAL PRIMARY KEY,
-  color VARCHAR(50) NOT NULL
+  color TEXT NOT NULL
 );`;
 
 export const insertEyeColors = `INSERT INTO eye_colors (color) VALUES

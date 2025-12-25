@@ -3,11 +3,10 @@ export const createItemsTable = `
     item_number SERIAL PRIMARY KEY,
     quantity INTEGER NOT NULL,
     description TEXT,
-    brand_name VARCHAR(100),
-    model_number VARCHAR(100),
-    serial_number VARCHAR(100),
-    pawn_price INTEGER,
-    ticket_number INTEGER REFERENCES tickets(ticket_number),
-    customer_number INTEGER REFERENCES customers(customer_number)
-  );
+    brand_name TEXT,
+    model_number TEXT,
+    serial_number TEXT,
+    amount NUMERIC(10,1),
+    item_ticket_status JSONB
+);
 `;

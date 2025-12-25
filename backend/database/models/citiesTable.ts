@@ -4,9 +4,9 @@ import csv from "csv-parser";
 
 export const createCitiesTable = `CREATE TABLE IF NOT EXISTS cities (
     id SERIAL PRIMARY KEY,
-    city VARCHAR(100),
-    province VARCHAR(100),
-    country VARCHAR(100)
+    city TEXT,
+    province TEXT,
+    country TEXT
 );`;
 
 export async function importCities(client: any) {

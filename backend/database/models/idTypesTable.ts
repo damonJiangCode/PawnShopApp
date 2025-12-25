@@ -1,7 +1,7 @@
 export const createIdTypesTable = `
   CREATE TABLE IF NOT EXISTS id_types (
     id SERIAL PRIMARY KEY,
-    type VARCHAR(50) NOT NULL UNIQUE
+    type TEXT NOT NULL UNIQUE
   );
 `;
 
