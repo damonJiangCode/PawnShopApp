@@ -12,7 +12,7 @@ export const searchCustomer = async (firstName: string, lastName: string) => {
           jsonb_build_object(
             'id', ci.id,
             'id_type', ci.id_type,
-            'id_number', ci.id_number,
+            'id_value', ci.id_value,
             'updated_at', ci.updated_at
           )
         ) FILTER (WHERE ci.id IS NOT NULL), '[]'
@@ -27,7 +27,6 @@ export const searchCustomer = async (firstName: string, lastName: string) => {
     GROUP BY c.customer_number
     ORDER BY c.last_name, c.first_name
   `;
-
   const values = [
     firstName ? firstName.toLowerCase() : "",
     lastName ? lastName.toLowerCase() : "",
@@ -41,13 +40,16 @@ export const searchCustomer = async (firstName: string, lastName: string) => {
       ...row,
       identifications: row.identifications || [],
     }));
-    // console.log(
-    //   "Formatted customers (customerCRUD.ts):",
-    //   JSON.stringify(customers, null, 2)
-    // );
+    if (customers.length === 0) {
+      console.warn(
+        "[customerCRUD.ts] WARNING: No customers found matching the search criteria,",
+        firstName,
+        lastName
+      );
+    }
     return customers;
   } catch (error) {
-    console.error("Error searching customer: (customerCRUD.ts)", error);
+    console.error("[customerCRUD.ts] ERROR: Error searching customer:", error);
     await client.query("ROLLBACK");
     throw error;
   } finally {
@@ -55,14 +57,12 @@ export const searchCustomer = async (firstName: string, lastName: string) => {
   }
 };
 
-// add new customer
 export const addCustomer = async (
   customer: Customer,
   identifications: ID[]
 ): Promise<Customer> => {
   const client = await connect();
 
-  // add customer SQL
   const customerQuery = `
     INSERT INTO customers (
       first_name, last_name, middle_name, date_of_birth, gender,
@@ -98,52 +98,43 @@ export const addCustomer = async (
   try {
     await client.query("BEGIN");
 
-    // insert new customer
     const customerResult = await client.query(customerQuery, customerValues);
     const newCustomer = customerResult.rows[0];
     const customerNumber = newCustomer.customer_number;
 
-    // insert identifications
     if (identifications && identifications.length > 0) {
       const idQuery = `
-        INSERT INTO customer_ids (customer_number, id_type, id_number)
+        INSERT INTO customer_ids (customer_number, id_type, id_value)
         VALUES ($1, $2, $3)
       `;
       for (const id of identifications) {
-        if (id.id_type && id.id_number) {
+        if (id.id_type && id.id_value) {
           await client.query(idQuery, [
             customerNumber,
             id.id_type,
-            id.id_number,
+            id.id_value,
           ]);
         }
       }
     }
 
-    // check identifications
     const customerIdsQuery = `
-      SELECT id, id_type, id_number, updated_at
+      SELECT id, id_type, id_value, updated_at
       FROM customer_ids
       WHERE customer_number = $1
     `;
     const customerIdsResult = await client.query(customerIdsQuery, [
       customerNumber,
     ]);
-
     await client.query("COMMIT");
-
-    // return new customer with IDs
     const result: Customer = {
       ...newCustomer,
       identifications: customerIdsResult.rows,
     };
-
-    // console.log(" New customer added (customerCRUD.ts):", result);
     return result;
   } catch (error) {
+    console.error("[customerCRUD.ts] ERROR: Error adding customer:", error);
     await client.query("ROLLBACK");
-    console.error("❌ Error in addCustomer:", error);
-    alert("Failed to add customer (customerCRUD.ts).");
     throw error;
   } finally {
     client.release();
@@ -151,21 +142,23 @@ export const addCustomer = async (
 };
 
 // get customer's IDs
-export const getIds = async (customerID: number) => {
+export const getIds = async (customerNumber: number) => {
   const client = await connect();
   const query = `
-    SELECT id_type, id_number
+    SELECT id_type, id_value
     FROM customer_identifications 
     WHERE customer_number = $1
   `;
   try {
     await client.query("BEGIN");
-    const result = await client.query(query, [customerID]);
+    const result = await client.query(query, [customerNumber]);
     await client.query("COMMIT");
-    // console.log("getIds result (customerCRUD.ts):", result.rows);
     return result.rows;
   } catch (error) {
-    console.error("Error getting customer IDs (customerCRUD.ts):", error);
+    console.error(
+      "[customerCRUD.ts] ERROR: Error getting customer IDs:",
+      error
+    );
     await client.query("ROLLBACK");
     throw error;
   } finally {
@@ -182,10 +175,9 @@ export const getIdTypes = async () => {
     const result = await client.query(query);
     await client.query("COMMIT");
     const idTypes = result.rows.map((row) => row.type);
-    // console.log("getIdTypes result (customerCRUD.ts):", idTypes);
     return idTypes;
   } catch (error) {
-    console.error("Error getting ID types:", error);
+    console.error("[customerCRUD.ts] ERROR: Error getting ID types, ", error);
     await client.query("ROLLBACK");
     throw error;
   } finally {
@@ -216,14 +208,9 @@ export const getCities = async () => {
       }
       citiesByProvince[row.province].push(row.city);
     }
-    // console.log(
-    //   "getCities result (customerCRUD.ts):",
-    //   provinces,
-    //   citiesByProvince
-    // );
     return { provinces, citiesByProvince };
   } catch (error) {
-    console.error("Error getting cities:", error);
+    console.error("[customerCRUD.ts] ERROR getting cities, ", error);
     await client.query("ROLLBACK");
     throw error;
   } finally {
@@ -240,10 +227,9 @@ export const getHairColors = async () => {
     const result = await client.query(query);
     await client.query("COMMIT");
     const hairColors = result.rows.map((row) => row.color);
-    // console.log("getHairColors result (customerCRUD.ts):", hairColors);
     return hairColors;
   } catch (error) {
-    console.error("Error getting hair colors:", error);
+    console.error("[customerCRUD.ts] ERROR getting hair colors, ", error);
     await client.query("ROLLBACK");
     throw error;
   } finally {
@@ -264,6 +250,100 @@ export const getEyeColors = async () => {
     return eyeColors;
   } catch (error) {
     console.error("Error getting eye colors:", error);
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
+// get tickets
+export const getTickets = async (customerNumber: number) => {
+  const client = await connect();
+  const query = `
+    SELECT 
+      ticket_number,
+      transaction_datetime,
+      location,
+      description,
+      due_date,
+      amount,
+      interest,
+      pickup_amount,
+      interested_datetime,
+      employee_name,
+      pickup_datetime,
+      status,
+      customer_number
+    FROM tickets
+    WHERE customer_number = $1
+  `;
+  try {
+    await client.query("BEGIN");
+    const result = await client.query(query, [customerNumber]);
+    await client.query("COMMIT");
+    if (result.rows.length === 0) {
+      console.warn(
+        "[customerCRUD.ts] WARNING: No tickets found for customer number, ",
+        customerNumber
+      );
+      return [];
+    }
+    return result.rows.map((row) => ({
+      ...row,
+      transaction_datetime: new Date(row.transaction_datetime),
+      due_date: new Date(row.due_date),
+      pickup_datetime: row.pickup_datetime
+        ? new Date(row.pickup_datetime)
+        : undefined,
+      last_payment_date: row.last_payment_date
+        ? new Date(row.last_payment_date)
+        : undefined,
+    }));
+  } catch (error) {
+    console.error("[customerCRUD.ts] ERROR getting tickets, ", error);
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
+// get items
+export const getItems = async (ticketNumber: number) => {
+  const client = await connect();
+  const query = `
+    SELECT 
+      item_number,
+      quantity,
+      description,
+      brand_name,
+      model_number,
+      serial_number,
+      amount,
+      item_ticket_status
+    FROM items
+    WHERE ticket_number = $1
+  `;
+  try {
+    await client.query("BEGIN");
+    const result = await client.query(query, [ticketNumber]);
+    await client.query("COMMIT");
+
+    if (result.rows.length === 0) {
+      console.warn(
+        "[ticketsCRUD.ts] WARNING: No items found for ticket,",
+        ticketNumber
+      );
+      return [];
+    }
+
+    return result.rows;
+  } catch (error) {
+    console.error(
+      "[ticketsCRUD.ts] ERROR: Error getting items for ticket,",
+      error
+    );
     await client.query("ROLLBACK");
     throw error;
   } finally {
