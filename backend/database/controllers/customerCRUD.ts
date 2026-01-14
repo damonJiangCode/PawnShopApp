@@ -321,7 +321,8 @@ export const getItems = async (ticketNumber: number) => {
       model_number,
       serial_number,
       amount,
-      item_ticket_status
+      item_ticket_status,
+      image_path
     FROM items
     WHERE ticket_number = $1
   `;

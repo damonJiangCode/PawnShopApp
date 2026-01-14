@@ -12,4 +12,5 @@ export interface Item {
   serial_number?: string;
   amount: number;
   item_ticket_status: ItemTicketStatus[];
+  image_path?: string;
 }

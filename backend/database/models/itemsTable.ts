@@ -7,6 +7,7 @@ export const createItemsTable = `
     model_number TEXT,
     serial_number TEXT,
     amount NUMERIC(10,1),
-    item_ticket_status JSONB
+    item_ticket_status JSONB,
+    image_path TEXT
 );
 `;
