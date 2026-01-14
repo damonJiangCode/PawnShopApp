@@ -168,9 +168,9 @@ export const registerIpcHandlers = () => {
   });
 
   // get items
-  ipcMain.handle("get-items", async (_event, ticketID: number) => {
+  ipcMain.handle("get-items", async (_event, ticketNumber: number) => {
     try {
-      const items = await getItems(ticketID);
+      const items = await getItems(ticketNumber);
       console.log("[handlers.ts] LOG: ", items);
       return items;
     } catch (error) {
