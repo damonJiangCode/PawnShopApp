@@ -1,3 +1,5 @@
+import { Item } from "./Item";
+
 export interface Ticket {
   ticket_number: number;
   transaction_datetime: Date;
@@ -12,4 +14,5 @@ export interface Ticket {
   pickup_datetime?: Date;
   status: "pawned" | "picked_up" | "expired";
   customer_number: number;
+  items: Item[];
 }
