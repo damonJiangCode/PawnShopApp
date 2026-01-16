@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Box, Button } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
@@ -8,33 +8,34 @@ import ChangeCircleIcon from "@mui/icons-material/ChangeCircle";
 import { Ticket } from "../../../shared/models/Ticket";
 
 interface TicketButtonsrProps {
-  selectedTicket?: Ticket;
+  selectedTicket: Ticket | null;
   onAdd: () => void;
-  onEdit: (t: Ticket) => void;
-  onPrint: (t: Ticket) => void;
-  onChange: (t: Ticket) => void;
-  onExpire: (t: Ticket) => void;
+  onEdit: () => void;
+  onPrint: () => void;
+  onChange: () => void;
+  onExpire: () => void;
 }
 
 const TicketButtons: React.FC<TicketButtonsrProps> = (props) => {
   const { selectedTicket, onAdd, onEdit, onPrint, onChange, onExpire } = props;
-  const disabled = !selectedTicket;
+
   return (
     <Box
       sx={{
         display: "flex",
         flexDirection: "column",
-        justifyContent: "center",
+        justifyContent: "space-evenly",
         alignItems: "center",
         gap: 3,
         width: 200,
+        height: 300,
       }}
     >
       <Button
         variant="outlined"
         fullWidth
         startIcon={<AddIcon />}
-        onClick={() => onAdd()}
+        onClick={onAdd}
       >
         Add
       </Button>
@@ -42,8 +43,7 @@ const TicketButtons: React.FC<TicketButtonsrProps> = (props) => {
         variant="outlined"
         fullWidth
         startIcon={<EditIcon />}
-        onClick={() => selectedTicket && onEdit(selectedTicket)}
-        disabled={disabled}
+        onClick={onEdit}
       >
         Edit
       </Button>
@@ -51,8 +51,7 @@ const TicketButtons: React.FC<TicketButtonsrProps> = (props) => {
         variant="outlined"
         fullWidth
         startIcon={<PrintIcon />}
-        onClick={() => selectedTicket && onPrint(selectedTicket)}
-        disabled={disabled}
+        onClick={onPrint}
       >
         Print
       </Button>
@@ -60,8 +59,7 @@ const TicketButtons: React.FC<TicketButtonsrProps> = (props) => {
         variant="outlined"
         fullWidth
         startIcon={<ChangeCircleIcon />}
-        onClick={() => selectedTicket && onChange(selectedTicket)}
-        disabled={disabled}
+        onClick={onChange}
       >
         Change
       </Button>
@@ -70,8 +68,7 @@ const TicketButtons: React.FC<TicketButtonsrProps> = (props) => {
         fullWidth
         color="error"
         startIcon={<DeleteIcon />}
-        onClick={() => selectedTicket && onExpire(selectedTicket)}
-        disabled={disabled}
+        onClick={onExpire}
       >
         Expire
       </Button>
