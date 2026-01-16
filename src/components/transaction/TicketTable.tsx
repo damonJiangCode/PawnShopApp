@@ -1,33 +1,28 @@
-import React from "react";
+import React, { useState } from "react";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import { Box } from "@mui/material";
 import { Tooltip } from "@mui/material";
 import { Ticket } from "../../../shared/models/Ticket";
 
 interface TicketTableProps {
   tickets: Ticket[];
-  selectedTicket?: Ticket;
-  onTicketSelected: (t: Ticket) => void;
+  selectedTicket?: Ticket | null;
+  onSelectTicket: (t: Ticket | null) => void;
 }
 
 const TicketTable: React.FC<TicketTableProps> = (props) => {
-  const { tickets, selectedTicket, onTicketSelected } = props;
+  const { tickets, selectedTicket, onSelectTicket } = props;
+  const [clickedTicket, setClickedTicket] = useState<Ticket | null>(null);
   const columns: GridColDef[] = [
     { field: "ticket_number", headerName: "TXN#", width: 80 },
-
     {
       field: "transaction_datetime",
-      headerName: "TXN_DATE",
+      headerName: "TXN_DT",
       width: 95,
-      // type: "date",
-      // valueFormatter: (value: Date | null) => {
-      //   if (!value) return "";
-      //   return value.toISOString().slice(0, 10);
-      // },
       renderCell: (params) => {
         if (!params.value) return "";
-        const fullDate = new Date(params.value).toISOString(); // 完整 datetime
-        const dateOnly = fullDate.slice(0, 10); // 只显示 YYYY-MM-DD
-
+        const fullDate = new Date(params.value).toISOString();
+        const dateOnly = fullDate.slice(0, 10);
         return (
           <Tooltip title={fullDate} arrow>
             <span>{dateOnly}</span>
@@ -35,11 +30,11 @@ const TicketTable: React.FC<TicketTableProps> = (props) => {
         );
       },
     },
-    { field: "location", headerName: "LOC", width: 90 },
+    { field: "location", headerName: "LOC", width: 60 },
     { field: "description", headerName: "DESC", width: 160 },
     {
       field: "due_date",
-      headerName: "DUE_DATE",
+      headerName: "DUE_DT",
       width: 95,
       type: "date",
       valueFormatter: (value: Date | null) => {
@@ -49,7 +44,7 @@ const TicketTable: React.FC<TicketTableProps> = (props) => {
     },
     {
       field: "amount",
-      headerName: "PAWN$",
+      headerName: "AMT$",
       width: 70,
       valueFormatter: (value: number | null) => {
         if (!value) return "";
@@ -74,38 +69,50 @@ const TicketTable: React.FC<TicketTableProps> = (props) => {
         return value;
       },
     },
-
-    // {
-    //   field: "employee_id",
-    //   headerName: "Employee ID",
-    //   width: 140,
-    // },
-
-    // {
-    //   field: "customer_number",
-    //   headerName: "Customer #",
-    //   width: 150,
-    // },
-
-    // {
-    //   field: "last_payment_date",
-    //   headerName: "Last Payment",
-    //   width: 150,
-    //   valueFormatter: (params) =>
-    //     params.value ? new Date(params.value).toISOString().split("T")[0] : "",
-    // },
+    {
+      field: "interested_datetime",
+      headerName: "INT_DT",
+      width: 95,
+      renderCell: (params) => {
+        if (!params.value) return "---";
+        const fullDate = new Date(params.value).toISOString();
+        const dateOnly = fullDate.slice(0, 10);
+        return (
+          <Tooltip title={fullDate} arrow>
+            <span>{dateOnly}</span>
+          </Tooltip>
+        );
+      },
+    },
+    {
+      field: "employee_name",
+      headerName: "ENAME",
+      width: 90,
+    },
   ];
 
   return (
-    <div style={{ height: 350, width: "100%" }}>
+    <Box sx={{ height: 300, width: "100%" }}>
       <DataGrid
+        rowHeight={30}
         rows={tickets}
         columns={columns}
         getRowId={(row) => row.ticket_number}
         onRowClick={(params) => {
-          const ticket = tickets.find((t) => t.ticket_number === params.id);
-          if (ticket) onTicketSelected(ticket);
+          const clickedTicket =
+            tickets.find((t) => t.ticket_number === params.id) ?? null;
+          console.log(
+            "[TicketTable.tsx] Clicked ticket number:",
+            clickedTicket?.ticket_number || null
+          );
         }}
+        disableColumnMenu
+        disableColumnFilter
+        disableColumnSelector
+        disableDensitySelector
+        hideFooter
+        hideFooterPagination
+        hideFooterSelectedRowCount
         sx={{
           border: "1px solid #ccc",
 
@@ -126,9 +133,13 @@ const TicketTable: React.FC<TicketTableProps> = (props) => {
           "& .MuiDataGrid-row:hover": {
             backgroundColor: "#f5f5f5",
           },
+
+          "& .MuiDataGrid-row.Mui-selected": {
+            backgroundColor: "#d0d7de",
+          },
         }}
       />
-    </div>
+    </Box>
   );
 };
 

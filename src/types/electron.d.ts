@@ -18,6 +18,8 @@ interface ElectronAPI {
   getIdTypes: () => Promise<string[]>;
   getTickets: (customerNumber: number) => Promise<any[]>;
   getItems: (ticketNumber: number) => Promise<any[]>;
+  addTicket: (payload: any) => Promise<any>;
+  editTicket: (payload: any) => Promise<any>;
 }
 
 declare global {
