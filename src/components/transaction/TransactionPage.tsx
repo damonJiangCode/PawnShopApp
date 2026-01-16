@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Ticket } from "../../../shared/models/Ticket";
 import { Item } from "../../../shared/models/Item";
-import { Customer } from "../../../shared/models/Customer";
 import CustomerBar from "./CustomerBar";
 import { Paper, Box } from "@mui/material";
 import HourglassBottomIcon from "@mui/icons-material/HourglassBottom";
@@ -9,39 +8,45 @@ import TicketTable from "./TicketTable";
 import TicketButtons from "./TicketButtons";
 import ItemTable from "./ItemTable";
 import ItemButtons from "./ItemButtons";
+import AddTicketForm from "./AddTicketForm";
+import EditTicketForm from "./EditTicketForm";
 
 interface TransactionPageProps {
-  customer?: Customer;
+  customerNumber?: number;
+  customerLastName?: string;
+  customerFirstName?: string;
 }
 
 const TransactionPage: React.FC<TransactionPageProps> = (props) => {
-  const { customer } = props;
+  const { customerNumber, customerLastName, customerFirstName } = props;
   const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
-  const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<Item[]>([]);
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [openAddTicketForm, setOpenAddTicketForm] = useState(false);
+  const [openEditTicketForm, setOpenEditTicketForm] = useState(false);
 
   // fetch tickects when customer changes
   useEffect(() => {
     const fetchTickets = async () => {
       try {
         setLoading(true);
-        if (!customer || !customer.customer_number) {
+        if (!customerNumber) {
           setTickets([]);
           console.warn(
-            "[TransactionPage.tsx] WARNING: fetchTickets skipped, missing customer or customer_number, ",
-            customer
+            "[TransactionPage.tsx] WARNING: fetchTickets() skipped, missing customer_number, ",
+            customerNumber
           );
           return;
         }
         const tickets = await (window as any).electronAPI.getTickets(
-          customer.customer_number
+          customerNumber
         );
         setTickets(tickets);
       } catch (err) {
         console.error(
-          "[TransactionPage.tsx] ERROR: fetchTickets skipped, ",
+          "[TransactionPage.tsx] ERROR: fetchTickets() skipped, ",
           err
         );
       } finally {
@@ -49,9 +54,9 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       }
     };
     fetchTickets();
-  }, [customer]);
+  }, [customerNumber]);
 
-  // fetch items when selectedTicket changed
+  // fetch items when ticket changes
   useEffect(() => {
     const fetchItems = async () => {
       try {
@@ -59,17 +64,21 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
         if (!selectedTicket) {
           setItems([]);
           console.warn(
-            "[TransactionPage.tsx] WARNING: fetchItems skipped, missing selectedTicket, ",
+            "[TransactionPage.tsx] WARNING: fetchItems() skipped, missing selected ticket, ",
             selectedTicket
           );
           return;
         }
-        const items = await (window as any).electronAPI.getItems(
-          selectedTicket
-        );
+        // const items = await (window as any).electronAPI.getItems(
+        //   selectedTicket
+        // );
+        const items = selectedTicket?.items || [];
         setItems(items);
       } catch (err) {
-        console.error("[TransactionPage.tsx] ERROR: fetchItems skipped,", err);
+        console.error(
+          "[TransactionPage.tsx] ERROR: fetchItems() skipped,",
+          err
+        );
       } finally {
         setLoading(false);
       }
@@ -77,26 +86,57 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
     fetchItems();
   }, [selectedTicket]);
 
-  // ticket button handlers
-  const handleTicketAdd = () => {
-    // Implement add ticket logic
-    console.log("Add ticket");
+  const handleTicketSelected = (t: Ticket | null) => {
+    setSelectedTicket(t);
   };
-  const handleTicketEdit = (t: Ticket) => {
-    // Implement edit ticket logic
-    console.log("Edit ticket", t);
+
+  const handleAddButtonClick = () => {
+    setOpenAddTicketForm(true);
+    console.log("Ticket add button clicked.");
   };
-  const handleTicketPrint = (t: Ticket) => {
-    // Implement print ticket logic
-    console.log("Print ticket", t);
+  const handleEditButtonClick = () => {
+    setOpenEditTicketForm(true);
+    console.log("Ticket edit button clicked");
   };
-  const handleTicketChange = (t: Ticket) => {
-    // Implement change ticket logic
-    console.log("Change ticket", t);
+  const handleTicketPrint = () => {
+    console.log("Print ticket");
   };
-  const handleTicketExpire = (t: Ticket) => {
-    // Implement expire ticket logic
-    console.log("Expire ticket", t);
+  const handleTicketChange = () => {
+    console.log("Change ticket");
+  };
+  const handleTicketExpire = () => {
+    console.log("Expire ticket");
+  };
+
+  const handleAddTicket = (data: any) => {
+    // console.log("[TransactionPage.tsx] Ticket data from [AddTicketForm.tsx]:", data);
+    const { description, location, amount, oneTimeFee, employeePassword } =
+      data;
+    const transaction_date: Date = new Date();
+    const due_date: Date = new Date(transaction_date);
+    due_date.setDate(due_date.getDate() + 30);
+    // TODO: get employee name from password
+
+    const employeeName = "TODO";
+    const newTicket: Ticket = {
+      transaction_datetime: transaction_date.toISOString() as unknown as Date,
+      location: location,
+      description: description,
+      due_date: due_date.toISOString() as unknown as Date,
+      amount: amount,
+      interest: Number((0.3 * amount).toFixed(1)),
+      pickup_amount: Number((1.3 * amount).toFixed(1)),
+      employee_name: employeeName,
+      status: "pawned",
+      customer_number: customerNumber!,
+    };
+    console.log("[TransactionPage.tsx] New ticket to be added:", newTicket);
+    setOpenAddTicketForm(false);
+  };
+
+  const handleEditTicket = (data: any) => {
+    console.log("Edit ticket data:", data);
+    setOpenEditTicketForm(false);
   };
 
   // item button handlers
@@ -115,11 +155,14 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
 
   return (
     <Paper elevation={0} sx={{ m: 2, maxWidth: 1200, minHeight: 750 }}>
-      {customer ? (
+      {customerNumber ? (
         <>
           <Box>
             {loading && <HourglassBottomIcon />}
-            <CustomerBar customer={customer} />
+            <CustomerBar
+              customer_last_name={customerLastName}
+              customer_first_name={customerFirstName}
+            />
           </Box>
           <Box
             sx={{
@@ -128,34 +171,40 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
               justifyContent: "center",
               alignItems: "flex-start",
               gap: 3.5,
-              m: 4,
             }}
           >
             <TicketTable
               tickets={tickets}
-              onTicketSelected={(ticket) => {
-                setSelectedTicket(ticket);
-              }}
+              onSelectTicket={handleTicketSelected}
             />
             <TicketButtons
-              onAdd={() => {
-                handleTicketAdd();
-              }}
-              onEdit={(t) => {
-                handleTicketEdit(t);
-              }}
-              onPrint={(t) => {
-                handleTicketPrint(t);
-              }}
-              onChange={(t) => {
-                handleTicketChange(t);
-              }}
-              onExpire={(t) => {
-                handleTicketExpire(t);
-              }}
+              selectedTicket={selectedTicket}
+              onAdd={handleAddButtonClick}
+              onEdit={handleEditButtonClick}
+              onPrint={handleTicketPrint}
+              onChange={handleTicketChange}
+              onExpire={handleTicketExpire}
             />
+            {openAddTicketForm && (
+              <AddTicketForm
+                open={openAddTicketForm}
+                customerFirstName={customerFirstName || ""}
+                customerLastName={customerLastName || ""}
+                onClose={() => setOpenAddTicketForm(false)}
+                onSave={handleAddTicket}
+              />
+            )}
+            {openEditTicketForm && (
+              <EditTicketForm
+                open={openEditTicketForm}
+                customerFirstName={customerFirstName || ""}
+                customerLastName={customerLastName || ""}
+                onClose={() => setOpenEditTicketForm(false)}
+                onSave={handleEditTicket}
+              />
+            )}
           </Box>
-          {/* <Box
+          <Box
             sx={{
               height: 50,
               display: "flex",
@@ -183,7 +232,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
                 handleItemDelete(item);
               }}
             />
-          </Box> */}
+          </Box>
         </>
       ) : (
         <div>No available customer</div>
