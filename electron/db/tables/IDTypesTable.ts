@@ -6,16 +6,25 @@ export const createIDTypesTable = `
 `;
 
 export const insertIDTypes = `
-  INSERT INTO id_types (type) VALUES
-    ('Driver''s License'),
-    ('Health Card'),
-    ('Indian Status Card'),
-    ('Birth Certificate'),
-    ('Social Insurance Number Card'),
-    ('Firearms License'),
-    ('Canadian Passport'),
-    ('Citizenship Card'),
-    ('Permanent Resident Card'),
-    ('Military ID'),
-    ('Other')
+  INSERT INTO id_types (type)
+  SELECT v.type
+  FROM (
+    VALUES
+      ('Driver''s License'),
+      ('Health Card'),
+      ('Indian Status Card'),
+      ('Birth Certificate'),
+      ('Social Insurance Number Card'),
+      ('Firearms License'),
+      ('Canadian Passport'),
+      ('Citizenship Card'),
+      ('Permanent Resident Card'),
+      ('Military ID'),
+      ('Other')
+  ) AS v(type)
+  WHERE NOT EXISTS (
+    SELECT 1
+    FROM id_types t
+    WHERE t.type = v.type
+  )
 `;

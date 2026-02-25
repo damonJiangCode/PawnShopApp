@@ -33,7 +33,15 @@ export async function importCities(client: any) {
 
       if (city && province) {
         await client.query(
-          `INSERT INTO cities (city, province, country) VALUES ($1, $2, $3)`,
+          `
+            INSERT INTO cities (city, province, country)
+            SELECT $1, $2, $3
+            WHERE NOT EXISTS (
+              SELECT 1
+              FROM cities
+              WHERE city = $1 AND province = $2 AND country = $3
+            )
+          `,
           [city, province, country]
         );
       }
