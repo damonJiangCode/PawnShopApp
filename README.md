@@ -1,10 +1,11 @@
-# PawnSystem Desktop App
+# PawnShopApp
 
-Electron + React desktop application for pawn shop workflows.  
-The project uses:
-- `Electron` as the desktop shell and secure IPC layer
-- `React + Vite + MUI` for the UI
-- `PostgreSQL` for persistent data
+Electron + React desktop app for pawn shop workflows.
+
+## Stack
+- Electron (desktop shell + IPC)
+- React + Vite + MUI (frontend)
+- PostgreSQL (database)
 - Shared TypeScript models in `shared/`
 
 ## Project Structure
@@ -17,85 +18,63 @@ The project uses:
 │   ├── ipc/
 │   ├── services/
 │   └── db/
+│       ├── initDb.ts
 │       ├── repositories/
 │       ├── tables/
 │       └── seed/
 ├── frontend/
 │   ├── src/
-│   │   ├── api/
-│   │   ├── services/
-│   │   ├── hooks/
-│   │   ├── layouts/
-│   │   ├── pages/
-│   │   ├── components/
-│   │   │   ├── client/
-│   │   │   │   ├── fields/
-│   │   │   │   ├── profile/
-│   │   │   │   └── search/
-│   │   │   ├── transaction/
-│   │   │   └── topbar/
-│   │   ├── assets/
-│   │   └── utils/
-│   └── public/
+│   └── ...
 ├── shared/
 │   └── types/
-├── procedures.txt
-└── test.py
+└── .env.example
 ```
 
-## Folder Descriptions
+## First-Time Setup
 
-- `electron/main.ts`: Creates the desktop window and boots IPC handlers.
-- `electron/preload.cjs`: Exposes a safe `window.electronAPI` bridge to the renderer.
-- `electron/ipc/`: Maps renderer requests to backend services.
-- `electron/services/`: Application-level business logic (clients, lookups, image storage).
-- `electron/db/repositories/`: SQL access layer (queries and data mapping).
-- `electron/db/tables/`: Table definitions and DB initialization logic.
-- `electron/db/seed/`: Seed assets (for example, Canadian cities CSV).
-
-- `frontend/src/main.tsx`, `frontend/src/App.tsx`: React entry point and app root.
-- `frontend/src/layouts/`: High-level layout (tabs, top bar, page container).
-- `frontend/src/pages/`: Main pages (`Client`, `Transaction`, `History`).
-- `frontend/src/components/client/`: Client UI (form, profile, search results, field groups).
-- `frontend/src/components/transaction/`: Ticket/item tables, controls, ticket dialogs.
-- `frontend/src/components/topbar/`: Search and quick action buttons.
-- `frontend/src/api/`: Direct calls to `window.electronAPI`.
-- `frontend/src/services/`: UI-facing service wrappers and guards.
-- `frontend/src/hooks/`: Data-loading hooks (`useClientSearch`, `useTickets`, etc.).
-- `frontend/src/assets/`: Static option lists/constants for UI usage.
-- `frontend/src/utils/`: Small frontend utilities (for example default client object).
-
-- `shared/types/`: Shared TypeScript interfaces (`Client`, `Ticket`, `Item`) used by both frontend and Electron.
-- `procedures.txt`: Quick setup notes captured during development.
-- `test.py`: Small local scratch/test file.
-
-## Data Flow
-
-`frontend -> api -> window.electronAPI (preload) -> ipc handlers -> services -> repositories -> PostgreSQL`
-
-## Run Locally
-
-1. Install dependencies in the root:
+1. Install dependencies:
 ```bash
 npm install
+cd frontend && npm install && cd ..
 ```
 
-2. Install frontend dependencies:
+2. Create local env file:
 ```bash
-cd frontend
-npm install
-cd ..
+cp .env.example .env
 ```
 
-3. Ensure PostgreSQL is running and update DB connection values in:
-`electron/db/tables/createTables.ts`
+3. Update `.env` with your local PostgreSQL values:
+```env
+DB_USER=your_postgres_user
+DB_HOST=localhost
+DB_NAME=your_database_name
+DB_PASSWORD=your_password
+DB_PORT=5432
+```
 
-4. Start development (Vite + Electron together):
+4. Initialize database tables and seed data:
+```bash
+npm run db:init
+```
+
+## Run In Development
+
+Start frontend + Electron together:
 ```bash
 npm run dev
 ```
 
-## Notes
+## Scripts
+- `npm run dev`: run frontend and Electron in parallel
+- `npm run dev:frontend`: run Vite frontend only
+- `npm run dev:electron`: run Electron only (waits for frontend)
+- `npm run db:init`: create/init DB tables and seed lookup data
 
-- The current codebase has complete client search/add and lookup flows wired through IPC.
-- Transaction ticket/item APIs exist in the frontend layer and can be expanded with matching Electron IPC handlers.
+## Data Flow
+
+`frontend -> api -> preload (window.electronAPI) -> ipc handlers -> services -> repositories -> PostgreSQL`
+
+## Notes
+- DB connection values now come from `.env`.
+- `.env` is gitignored; use `.env.example` as template.
+- Client search/add/update and lookup flows are wired through IPC.
