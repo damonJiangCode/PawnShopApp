@@ -1,7 +1,6 @@
 import {
-  Avatar,
   Box,
-  Button,
+  IconButton,
   Paper,
   Table,
   TableBody,
@@ -15,6 +14,7 @@ import { useState } from "react";
 import type { Client } from "../../../../../shared/types/Client";
 import { useClientImage } from "../../../hooks/useClientImage";
 import ClientForm from "../ClientForm";
+import EditIcon from "@mui/icons-material/Edit";
 
 interface ClientSearchResultsProps {
   results: Client[];
@@ -32,17 +32,18 @@ const ClientSearchResults: React.FC<ClientSearchResultsProps> = ({
   const previewClient = selectedClient ?? results[0] ?? null;
 
   return (
-    <Box sx={{ display: "flex", gap: 2 }}>
+    <Box sx={{ display: "flex", gap: 1.5, height: "100%", minHeight: 0, alignItems: "stretch" }}>
       <Paper
         sx={{
           flex: 1,
           border: "1px solid",
           borderColor: "divider",
-          overflow: "visible",
+          overflow: "hidden",
+          minHeight: 0,
         }}
       >
-        <TableContainer>
-          <Table stickyHeader size="small">
+        <TableContainer sx={{ height: "100%" }}>
+          <Table size="small">
             <TableHead>
               <TableRow>
                 <TableCell sx={{ width: 80 }}>#</TableCell>
@@ -108,41 +109,51 @@ const ClientImagePreview: React.FC<{
   return (
     <Paper
       sx={{
-        width: 260,
-        p: 2,
+        width: 210,
         border: "1px solid",
         borderColor: "divider",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 1,
-        justifyContent: "center",
+        position: "relative",
+        minHeight: 0,
+        height: "100%",
+        overflow: "hidden",
       }}
     >
-      <Avatar
-        variant="rounded"
-        src={imageSrc ?? undefined}
-        sx={{ width: 190, height: 235, borderRadius: 2 }}
+      <Box
+        sx={{
+          width: "100%",
+          height: "100%",
+          backgroundColor: "#f3f4f6",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
       >
-        {client?.first_name?.[0] ?? ""}
-      </Avatar>
-      <Typography fontWeight={700} sx={{ textAlign: "center" }}>
-        {client
-          ? `${client.last_name?.toUpperCase()}, ${client.first_name}`
-          : "No Selection"}
-      </Typography>
-      <Typography variant="body2" color="text.secondary">
-        {client?.client_number ? `#${client.client_number}` : ""}
-      </Typography>
-      <Button
-        variant="contained"
+        {imageSrc ? (
+          <Box
+            component="img"
+            src={imageSrc}
+            alt="Client"
+            sx={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        ) : (
+          <Typography color="text.secondary">No Image</Typography>
+        )}
+      </Box>
+      <IconButton
         size="small"
-        sx={{ mt: 1, width: 120 }}
+        color="primary"
+        sx={{
+          position: "absolute",
+          top: 6,
+          right: 6,
+          backgroundColor: "rgba(255,255,255,0.92)",
+          "&:hover": { backgroundColor: "rgba(255,255,255,1)" },
+        }}
         disabled={!client?.client_number}
         onClick={() => setEditOpen(true)}
       >
-        Edit
-      </Button>
+        <EditIcon fontSize="small" />
+      </IconButton>
       {editOpen && client && (
         <ClientForm
           clientExisted={client}

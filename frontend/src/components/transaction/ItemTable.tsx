@@ -11,7 +11,7 @@ interface ItemTableProps {
 }
 
 const ItemTable: React.FC<ItemTableProps> = (props) => {
-  const { items, onItemSelected } = props;
+  const { items, selectedItem, onItemSelected } = props;
 
   const columns: GridColDef[] = [
     { field: "item_number", headerName: "ITM_NO", width: 120 },
@@ -54,15 +54,17 @@ const ItemTable: React.FC<ItemTableProps> = (props) => {
   ];
 
   return (
-    <Box sx={{ height: 150, width: "100%" }}>
+    <Box sx={{ height: "100%", width: "100%" }}>
       <DataGrid
         rows={items}
         columns={columns}
         getRowId={(row) => row.item_number}
+        rowSelectionModel={selectedItem?.item_number ? [selectedItem.item_number] : []}
         onRowClick={(params) => {
           const selectedItem = items.find((item) => item.item_number === params.id);
           if (selectedItem) onItemSelected(selectedItem);
         }}
+        hideFooter
         sx={{
           border: "1px solid #ccc",
           "& .MuiDataGrid-cell": {

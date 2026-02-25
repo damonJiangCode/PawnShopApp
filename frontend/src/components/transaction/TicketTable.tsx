@@ -11,83 +11,78 @@ interface TicketTableProps {
 }
 
 const TicketTable: React.FC<TicketTableProps> = (props) => {
-  const { tickets, onSelectTicket } = props;
+  const { tickets, selectedTicket, onSelectTicket } = props;
+
+  const formatDate = (value?: string | Date | null) => {
+    if (!value) return "";
+    return new Date(value).toISOString().slice(0, 10);
+  };
+
+  const formatDateTime = (value?: string | Date | null) => {
+    if (!value) return "";
+    const date = new Date(value);
+    const datePart = date.toISOString().slice(0, 10);
+    const timePart = date.toTimeString().slice(0, 8);
+    return `${datePart} ${timePart}`;
+  };
+
+  const getDueDate = (ticket: Ticket) => {
+    if (ticket.due_date) return formatDate(ticket.due_date);
+    if (!ticket.transaction_datetime) return "";
+    const due = new Date(ticket.transaction_datetime);
+    due.setDate(due.getDate() + 30);
+    return formatDate(due);
+  };
 
   const columns: GridColDef[] = [
-    { field: "ticket_number", headerName: "TXN#", width: 80 },
+    { field: "ticket_number", headerName: "Transaction #", width: 120 },
     {
       field: "transaction_datetime",
-      headerName: "TXN_DT",
-      width: 95,
+      headerName: "Transaction Time",
+      width: 180,
       renderCell: (params) => {
-        if (!params.value) return "";
-        const fullDate = new Date(params.value).toISOString();
-        const dateOnly = fullDate.slice(0, 10);
         return (
-          <Tooltip title={fullDate} arrow>
-            <span>{dateOnly}</span>
+          <Tooltip title={formatDateTime(params.value)} arrow>
+            <span>{formatDateTime(params.value)}</span>
           </Tooltip>
         );
       },
     },
-    { field: "location", headerName: "LOC", width: 60 },
-    { field: "description", headerName: "DESC", width: 160 },
+    { field: "description", headerName: "Description", width: 240, flex: 1 },
     {
-      field: "due_date",
-      headerName: "DUE_DT",
-      width: 95,
-      valueFormatter: (value: Date | null) => {
-        if (!value) return "";
-        return new Date(value).toISOString().slice(0, 10);
-      },
-    },
-    {
-      field: "amount",
-      headerName: "AMT$",
-      width: 70,
-      valueFormatter: (value: number | null) => (value ? value : ""),
-    },
-    {
-      field: "interest",
-      headerName: "INT$",
-      width: 70,
-      valueFormatter: (value: number | null) => (value ? value : ""),
-    },
-    {
-      field: "pickup_amount",
-      headerName: "PU$",
-      width: 70,
-      valueFormatter: (value: number | null) => (value ? value : ""),
+      field: "due_date_display",
+      headerName: "Due Date",
+      width: 120,
+      valueGetter: (_value, row: Ticket) => getDueDate(row),
     },
     {
       field: "interested_datetime",
-      headerName: "INT_DT",
-      width: 95,
+      headerName: "Interest Time",
+      width: 180,
       renderCell: (params) => {
         if (!params.value) return "---";
-        const fullDate = new Date(params.value).toISOString();
-        const dateOnly = fullDate.slice(0, 10);
         return (
-          <Tooltip title={fullDate} arrow>
-            <span>{dateOnly}</span>
+          <Tooltip title={formatDateTime(params.value)} arrow>
+            <span>{formatDateTime(params.value)}</span>
           </Tooltip>
         );
       },
     },
     {
       field: "employee_name",
-      headerName: "ENAME",
-      width: 90,
+      headerName: "Employee Name",
+      width: 150,
     },
   ];
 
   return (
-    <Box sx={{ height: 300, width: "100%" }}>
+    <Box sx={{ height: "100%", width: "100%" }}>
       <DataGrid
         rowHeight={30}
         rows={tickets}
         columns={columns}
         getRowId={(row) => row.ticket_number}
+        rowSelectionModel={selectedTicket?.ticket_number ? [selectedTicket.ticket_number] : []}
         onRowClick={(params) => {
           const clickedTicket =
             tickets.find((t) => t.ticket_number === params.id) ?? null;
@@ -97,9 +92,9 @@ const TicketTable: React.FC<TicketTableProps> = (props) => {
         disableColumnFilter
         disableColumnSelector
         disableDensitySelector
-        hideFooter
         hideFooterPagination
         hideFooterSelectedRowCount
+        hideFooter
         sx={{
           border: "1px solid #ccc",
           "& .MuiDataGrid-cell": {

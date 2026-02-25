@@ -8,14 +8,19 @@ import type { Client } from "../../../shared/types/Client";
 interface ClientPageProps {
   searchFirstName: string;
   searchLastName: string;
+  onClientSelected?: (client: Client | null) => void;
 }
 const ClientPage: React.FC<ClientPageProps> = ({
   searchFirstName,
   searchLastName,
+  onClientSelected,
 }) => {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
-  const { results, loading } = useClientSearch(searchFirstName, searchLastName);
+  const { results, loading, hasCompletedSearch } = useClientSearch(
+    searchFirstName,
+    searchLastName
+  );
   const [displayResults, setDisplayResults] = useState<Client[]>([]);
   const lastNoResultPromptKeyRef = useRef<string>("");
 
@@ -28,6 +33,11 @@ const ClientPage: React.FC<ClientPageProps> = ({
     setDisplayResults(results);
 
     if (!hasQuery) {
+      setSelectedClient(null);
+      return;
+    }
+
+    if (loading || !hasCompletedSearch) {
       return;
     }
 
@@ -42,7 +52,7 @@ const ClientPage: React.FC<ClientPageProps> = ({
 
     lastNoResultPromptKeyRef.current = "";
     setSelectedClient(results[0]);
-  }, [results, searchFirstName, searchLastName]);
+  }, [results, searchFirstName, searchLastName, loading, hasCompletedSearch]);
 
   const handleClientUpdated = (updatedClient: Client) => {
     setDisplayResults((prev) =>
@@ -55,6 +65,10 @@ const ClientPage: React.FC<ClientPageProps> = ({
     setSelectedClient(updatedClient);
   };
 
+  useEffect(() => {
+    onClientSelected?.(selectedClient);
+  }, [selectedClient, onClientSelected]);
+
   return (
     <Paper
       elevation={0}
@@ -62,21 +76,20 @@ const ClientPage: React.FC<ClientPageProps> = ({
         height: "100%",
         maxWidth: 1600,
         mx: "auto",
-        overflow: "visible",
+        overflow: "hidden",
       }}
     >
       <Box
         sx={{
-          display: "flex",
-          flexDirection: "column",
+          display: "grid",
+          gridTemplateRows: "minmax(0, 1fr) 210px",
           height: "100%",
-          gap: 1.5,
-          p: 1.5,
-          pb: 2,
+          gap: 0.75,
+          p: 1,
           minHeight: 0,
         }}
       >
-        <Box sx={{ flex: 1, minHeight: 0, overflow: "auto", pr: 0.5 }}>
+        <Box sx={{ minHeight: 0, overflow: "auto", pr: 0.25 }}>
           {selectedClient ? (
             <ClientProfile client={selectedClient} showImage={false} />
           ) : (
@@ -90,17 +103,16 @@ const ClientPage: React.FC<ClientPageProps> = ({
 
         <Box
           sx={{
-            flexShrink: 0,
             border: "2px solid",
             borderColor: "primary.main",
             borderRadius: 2,
-            p: 2,
+            p: 1,
             backgroundColor: "background.paper",
             boxShadow:
               "0 0 0 3px rgba(25, 118, 210, 0.14), 0 10px 22px rgba(15, 23, 42, 0.10)",
-            minHeight: 220,
-            overflow: "visible",
-            mb: 0.5,
+            minHeight: 0,
+            overflow: "hidden",
+            mb: 0,
           }}
         >
           {loading && (

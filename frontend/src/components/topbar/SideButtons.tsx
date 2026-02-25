@@ -24,13 +24,14 @@ const SideButtons: React.FC<SideButtonsProps> = ({
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
         gap: 1,
-        minWidth: 260,
+        minWidth: 240,
       }}
     >
       <Button
         variant="contained"
         startIcon={<AddIcon />}
         onClick={onAddClient}
+        size="small"
       >
         Add Client
       </Button>
@@ -40,6 +41,7 @@ const SideButtons: React.FC<SideButtonsProps> = ({
         color="secondary"
         startIcon={<ReceiptIcon />}
         onClick={onAddTransaction}
+        size="small"
       >
         Add Ticket
       </Button>
@@ -48,6 +50,7 @@ const SideButtons: React.FC<SideButtonsProps> = ({
         variant="outlined"
         startIcon={<HistoryIcon />}
         onClick={onViewHistory}
+        size="small"
       >
         History
       </Button>
@@ -56,6 +59,7 @@ const SideButtons: React.FC<SideButtonsProps> = ({
         variant="outlined"
         startIcon={<SettingsIcon />}
         onClick={onSettings}
+        size="small"
       >
         Settings
       </Button>
