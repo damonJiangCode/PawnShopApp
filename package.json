@@ -1,37 +1,31 @@
 {
+  "name": "pawnsystemsub",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "electron/main.ts",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "serve": "vite preview",
-    "compile:electron": "tsc -p tsconfig.electron.json",
-    "compile:react": "tsc -p tsconfig.react.json",
-    "watch:electron": "tsc -p tsconfig.electron.json --watch",
-    "electron": "npm run compile:electron && electron dist/electron/main.js",
-    "dev-and-start": "concurrently \"npm run dev\" \"npm run watch:electron\" \"npm run electron\""
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:electron": "wait-on http://localhost:5173 && electron -r ts-node/register electron/main.ts",
+    "dev": "npm-run-all --parallel dev:frontend dev:electron"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
   "devDependencies": {
-    "@types/node": "^22.15.17",
-    "@types/pg": "^8.15.1",
-    "@types/react": "^18.2.7",
-    "@types/react-dom": "^18.2.4",
-    "@vitejs/plugin-react": "^4.4.1",
-    "@vitejs/plugin-vue": "^5.2.3",
-    "concurrently": "^9.1.2",
-    "electron": "^36.2.0",
+    "@types/node": "^25.0.9",
+    "@types/pg": "^8.16.0",
+    "concurrently": "^9.2.1",
+    "electron": "^40.0.0",
+    "npm-run-all": "^4.1.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.2.2",
-    "vite": "^6.3.5"
+    "typescript": "^5.9.3",
+    "wait-on": "^9.0.3"
   },
   "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.0",
-    "@mui/icons-material": "^5.14.8",
-    "@mui/material": "^5.14.8",
-    "@mui/x-data-grid": "^8.20.0",
     "csv-parser": "^3.2.0",
-    "pg": "^8.10.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-resizable": "^3.0.5"
+    "pg": "^8.17.2"
   }
 }
