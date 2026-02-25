@@ -1,0 +1,17 @@
+// create the pacakge.json
+npm init -y
+
+// use vite to create the frontend (React)
+npm create vite@latest frontend
+cd frontend
+npm install
+npm run dev
+
+// install electron
+mkdir electron
+// install electron in the root dir
+npm install electron -D
+// change main to electron/main.ts in the package.json
+npm install -D ts-node typescript @types/node
+
+// npm in stall concurrently to run frontend and electron together with one command

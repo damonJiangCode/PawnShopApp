@@ -1,0 +1,161 @@
+import {
+  Avatar,
+  Box,
+  Button,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+} from "@mui/material";
+import { useState } from "react";
+import type { Client } from "../../../../../shared/types/Client";
+import { useClientImage } from "../../../hooks/useClientImage";
+import ClientForm from "../ClientForm";
+
+interface ClientSearchResultsProps {
+  results: Client[];
+  selectedClient?: Client | null;
+  onSelect: (client: Client) => void;
+  onClientUpdated?: (client: Client) => void;
+}
+
+const ClientSearchResults: React.FC<ClientSearchResultsProps> = ({
+  results,
+  selectedClient,
+  onSelect,
+  onClientUpdated,
+}) => {
+  const previewClient = selectedClient ?? results[0] ?? null;
+
+  return (
+    <Box sx={{ display: "flex", gap: 2 }}>
+      <Paper
+        sx={{
+          flex: 1,
+          border: "1px solid",
+          borderColor: "divider",
+          overflow: "visible",
+        }}
+      >
+        <TableContainer>
+          <Table stickyHeader size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ width: 80 }}>#</TableCell>
+                <TableCell>Last</TableCell>
+                <TableCell>First</TableCell>
+                <TableCell sx={{ width: 140 }}>Phone</TableCell>
+                <TableCell sx={{ width: 140 }}>City</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {results.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5}>
+                    <Typography color="text.secondary">No results.</Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                results.map((client) => {
+                  const selected =
+                    selectedClient?.client_number === client.client_number;
+                  return (
+                    <TableRow
+                      key={client.client_number}
+                      hover
+                      selected={selected}
+                      onClick={() => onSelect(client)}
+                      sx={{ cursor: "pointer" }}
+                    >
+                      <TableCell>{client.client_number}</TableCell>
+                      <TableCell>{client.last_name?.toUpperCase()}</TableCell>
+                      <TableCell>{client.first_name?.toUpperCase()}</TableCell>
+                      <TableCell>
+                        {client.date_of_birth.toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "2-digit",
+                        })}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+
+      <ClientImagePreview
+        client={previewClient}
+        onClientUpdated={onClientUpdated}
+      />
+    </Box>
+  );
+};
+
+const ClientImagePreview: React.FC<{
+  client: Client | null;
+  onClientUpdated?: (client: Client) => void;
+}> = ({ client, onClientUpdated }) => {
+  const imageSrc = useClientImage(client?.image_path);
+  const [editOpen, setEditOpen] = useState(false);
+
+  return (
+    <Paper
+      sx={{
+        width: 260,
+        p: 2,
+        border: "1px solid",
+        borderColor: "divider",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 1,
+        justifyContent: "center",
+      }}
+    >
+      <Avatar
+        variant="rounded"
+        src={imageSrc ?? undefined}
+        sx={{ width: 190, height: 235, borderRadius: 2 }}
+      >
+        {client?.first_name?.[0] ?? ""}
+      </Avatar>
+      <Typography fontWeight={700} sx={{ textAlign: "center" }}>
+        {client
+          ? `${client.last_name?.toUpperCase()}, ${client.first_name}`
+          : "No Selection"}
+      </Typography>
+      <Typography variant="body2" color="text.secondary">
+        {client?.client_number ? `#${client.client_number}` : ""}
+      </Typography>
+      <Button
+        variant="contained"
+        size="small"
+        sx={{ mt: 1, width: 120 }}
+        disabled={!client?.client_number}
+        onClick={() => setEditOpen(true)}
+      >
+        Edit
+      </Button>
+      {editOpen && client && (
+        <ClientForm
+          clientExisted={client}
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          onSave={(updatedClient) => {
+            onClientUpdated?.(updatedClient);
+            setEditOpen(false);
+          }}
+        />
+      )}
+    </Paper>
+  );
+};
+
+export default ClientSearchResults;

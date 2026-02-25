@@ -1,0 +1,27 @@
+// postgresql@16
+role/user/owner: pawnsystem
+database: pawnsystemdb
+password: 0236
+
+// enable npm running
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force
+
+// install all the node modules
+npm install
+
+// setup tables in databse (root/elctron/db/createTables.ts)
+npx ts-node electron/db/createTabels.ts
+
+// reset database
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
+
+
+// run dev
+npm run dev-and-start
+
+API loop
+frontend api -> src/types/electron.d.ts -> electron/preload.ts -> electron/ipc/handlers.ts -> electron/services/* -> electron/db/repositories/*
+
+React app
+src/index.tsx -> App.tsx -> pages/* -> components/*
