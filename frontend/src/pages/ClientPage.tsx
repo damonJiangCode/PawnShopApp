@@ -91,7 +91,11 @@ const ClientPage: React.FC<ClientPageProps> = ({
       >
         <Box sx={{ minHeight: 0, overflow: "auto", pr: 0.25 }}>
           {selectedClient ? (
-            <ClientProfile client={selectedClient} showImage={false} />
+            <ClientProfile
+              client={selectedClient}
+              showImage={false}
+              onClientUpdated={handleClientUpdated}
+            />
           ) : (
             <Box sx={{ p: 2 }}>
               <Typography color="text.secondary">

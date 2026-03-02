@@ -1,4 +1,15 @@
-import { Box, Typography, Avatar, Chip, Button } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Avatar,
+  Chip,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+} from "@mui/material";
 import { useState } from "react";
 import InfoRow from "../fields/InfoRow";
 import STAT_COLORS from "../../../assets/client/STAT_COLORS";
@@ -9,18 +20,49 @@ import { useClientImage } from "../../../hooks/useClientImage";
 interface ClientProfileProps {
   client: Client;
   showImage?: boolean;
+  onClientUpdated?: (client: Client) => void;
 }
 
 const ClientProfile: React.FC<ClientProfileProps> = ({
   client,
   showImage = true,
+  onClientUpdated,
 }) => {
   const [showEditForm, setShowEditForm] = useState(false);
+  const [showNotesForm, setShowNotesForm] = useState(false);
+  const [notesDraft, setNotesDraft] = useState("");
+  const [savingNotes, setSavingNotes] = useState(false);
   const identifications: ID[] = client.identifications || [];
   const imageSrc = useClientImage(client.image_path);
 
-  const handleSaveClient = async (_client: Client) => {
+  const handleSaveClient = async (updatedClient: Client) => {
+    onClientUpdated?.(updatedClient);
     setShowEditForm(false);
+  };
+
+  const handleOpenNotesForm = () => {
+    setNotesDraft(client.notes || "");
+    setShowNotesForm(true);
+  };
+
+  const handleSaveNotes = async () => {
+    setSavingNotes(true);
+    try {
+      const updatedClient = await (window as any).electronAPI.updateClient({
+        client: {
+          ...client,
+          notes: notesDraft,
+        },
+        identifications,
+      });
+      onClientUpdated?.(updatedClient);
+      setShowNotesForm(false);
+    } catch (error) {
+      console.error("Failed to update client notes:", error);
+      alert("Failed to update notes. Please try again.");
+    } finally {
+      setSavingNotes(false);
+    }
   };
 
   return (
@@ -187,8 +229,66 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
           boxShadow: 2,
         }}
       >
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 2,
+            mb: 1.5,
+          }}
+        >
+          <Typography variant="h6">Notes</Typography>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={handleOpenNotesForm}
+          >
+            Edit Notes
+          </Button>
+        </Box>
         <Typography>{client.notes || "No notes available."}</Typography>
       </Box>
+
+      <Dialog
+        open={showNotesForm}
+        onClose={() => {
+          if (!savingNotes) {
+            setShowNotesForm(false);
+          }
+        }}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Edit Notes</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            fullWidth
+            multiline
+            minRows={6}
+            label="Notes"
+            value={notesDraft}
+            onChange={(event) => setNotesDraft(event.target.value)}
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setShowNotesForm(false)}
+            disabled={savingNotes}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSaveNotes}
+            variant="contained"
+            disabled={savingNotes}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Box
         sx={{
