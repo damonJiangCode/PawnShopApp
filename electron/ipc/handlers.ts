@@ -11,6 +11,7 @@ import {
   fetchIdTypes,
 } from "../services/lookupService.ts";
 import { getClientImage, saveClientImage } from "../services/clientImageService.ts";
+import { verifyEmployeePassword } from "../services/employeeService.ts";
 
 const CHANNELS = {
   SEARCH_CLIENTS: "search-clients",
@@ -22,6 +23,7 @@ const CHANNELS = {
   UPDATE_CLIENT: "update-client",
   SAVE_CLIENT_IMAGE: "save-client-image",
   GET_CLIENT_IMAGE: "get-client-image",
+  VERIFY_EMPLOYEE_PASSWORD: "verify-employee-password",
 } as const;
 
 export const registerIpcHandlers = () => {
@@ -43,6 +45,9 @@ export const registerIpcHandlers = () => {
   ipcMain.handle(CHANNELS.UPDATE_CLIENT, async (_event, payload) => {
     const { client, identifications } = payload ?? {};
     return updateClient(client, identifications ?? []);
+  });
+  ipcMain.handle(CHANNELS.VERIFY_EMPLOYEE_PASSWORD, async (_event, password: string) => {
+    return verifyEmployeePassword(password);
   });
   ipcMain.handle(
     CHANNELS.SAVE_CLIENT_IMAGE,
