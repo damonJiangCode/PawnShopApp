@@ -8,11 +8,13 @@ import type { Client } from "../../../shared/types/Client";
 interface ClientPageProps {
   searchFirstName: string;
   searchLastName: string;
+  forcedClient?: Client | null;
   onClientSelected?: (client: Client | null) => void;
 }
 const ClientPage: React.FC<ClientPageProps> = ({
   searchFirstName,
   searchLastName,
+  forcedClient,
   onClientSelected,
 }) => {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -29,6 +31,19 @@ const ClientPage: React.FC<ClientPageProps> = ({
     const normalizedLast = searchLastName.trim().toLowerCase();
     const queryKey = `${normalizedFirst}|${normalizedLast}`;
     const hasQuery = Boolean(normalizedFirst || normalizedLast);
+    const forcedClientNumber = forcedClient?.client_number;
+
+    if (forcedClientNumber) {
+      const mergedResults = results.some(
+        (client) => client.client_number === forcedClientNumber
+      )
+        ? results
+        : [forcedClient, ...results];
+      setDisplayResults(mergedResults);
+      setSelectedClient(forcedClient);
+      lastNoResultPromptKeyRef.current = "";
+      return;
+    }
 
     setDisplayResults(results);
 
@@ -51,8 +66,20 @@ const ClientPage: React.FC<ClientPageProps> = ({
     }
 
     lastNoResultPromptKeyRef.current = "";
-    setSelectedClient(results[0]);
-  }, [results, searchFirstName, searchLastName, loading, hasCompletedSearch]);
+    const matchedClient = forcedClient?.client_number
+      ? results.find(
+          (client) => client.client_number === forcedClient.client_number
+        ) ?? null
+      : null;
+    setSelectedClient(matchedClient ?? results[0]);
+  }, [
+    results,
+    searchFirstName,
+    searchLastName,
+    loading,
+    hasCompletedSearch,
+    forcedClient,
+  ]);
 
   const handleClientUpdated = (updatedClient: Client) => {
     setDisplayResults((prev) =>

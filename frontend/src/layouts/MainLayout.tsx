@@ -14,9 +14,13 @@ const MainLayout: React.FC = () => {
   const [searchFirstName, setSearchFirstName] = useState("");
   const [searchLastName, setSearchLastName] = useState("");
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [forcedClient, setForcedClient] = useState<Client | null>(null);
 
-  const handleClientSaved = (_client: Client) => {
+  const handleClientSaved = (client: Client) => {
     setAddClientOpen(false);
+    setCurrentTab(0);
+    setForcedClient(client);
+    setSelectedClient(client);
   };
 
   return (
@@ -34,10 +38,12 @@ const MainLayout: React.FC = () => {
       >
         <SearchBar
           onSearch={({ firstName, lastName }) => {
+            setForcedClient(null);
             setSearchFirstName(firstName);
             setSearchLastName(lastName);
           }}
           onClear={() => {
+            setForcedClient(null);
             setSearchFirstName("");
             setSearchLastName("");
             setSelectedClient(null);
@@ -65,6 +71,7 @@ const MainLayout: React.FC = () => {
             <ClientPage
               searchFirstName={searchFirstName}
               searchLastName={searchLastName}
+              forcedClient={forcedClient}
               onClientSelected={setSelectedClient}
             />
           )}
