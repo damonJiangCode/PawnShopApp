@@ -9,15 +9,19 @@ interface ClientPageProps {
   searchFirstName: string;
   searchLastName: string;
   forcedClient?: Client | null;
+  activeClient?: Client | null;
   onClientSelected?: (client: Client | null) => void;
 }
 const ClientPage: React.FC<ClientPageProps> = ({
   searchFirstName,
   searchLastName,
   forcedClient,
+  activeClient,
   onClientSelected,
 }) => {
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(
+    forcedClient ?? activeClient ?? null
+  );
 
   const { results, loading, hasCompletedSearch } = useClientSearch(
     searchFirstName,
@@ -25,6 +29,17 @@ const ClientPage: React.FC<ClientPageProps> = ({
   );
   const [displayResults, setDisplayResults] = useState<Client[]>([]);
   const lastNoResultPromptKeyRef = useRef<string>("");
+
+  useEffect(() => {
+    if (forcedClient) {
+      setSelectedClient(forcedClient);
+      return;
+    }
+
+    if (activeClient) {
+      setSelectedClient((prev) => prev ?? activeClient);
+    }
+  }, [forcedClient, activeClient]);
 
   useEffect(() => {
     const normalizedFirst = searchFirstName.trim().toLowerCase();
@@ -66,9 +81,11 @@ const ClientPage: React.FC<ClientPageProps> = ({
     }
 
     lastNoResultPromptKeyRef.current = "";
-    const matchedClient = forcedClient?.client_number
+    const preferredClientNumber =
+      forcedClient?.client_number ?? activeClient?.client_number;
+    const matchedClient = preferredClientNumber
       ? results.find(
-          (client) => client.client_number === forcedClient.client_number
+          (client) => client.client_number === preferredClientNumber
         ) ?? null
       : null;
     setSelectedClient(matchedClient ?? results[0]);
@@ -79,6 +96,7 @@ const ClientPage: React.FC<ClientPageProps> = ({
     loading,
     hasCompletedSearch,
     forcedClient,
+    activeClient,
   ]);
 
   const handleClientUpdated = (updatedClient: Client) => {
