@@ -10,10 +10,10 @@ import {
   DialogTitle,
   TextField,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import InfoRow from "../fields/InfoRow";
 import STAT_COLORS from "../../../assets/client/STAT_COLORS";
-import ClientForm from "../ClientForm";
+import ClientForm from "./ClientForm";
 import type { Client, ID } from "../../../../../shared/types/Client";
 import { useClientImage } from "../../../hooks/useClientImage";
 
@@ -29,37 +29,93 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
   onClientUpdated,
 }) => {
   const [showEditForm, setShowEditForm] = useState(false);
-  const [showNotesForm, setShowNotesForm] = useState(false);
+  const [showNoteForm, setShowNoteForm] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [notesDraft, setNotesDraft] = useState("");
+  const [employeePassword, setEmployeePassword] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
   const identifications: ID[] = client.identifications || [];
   const imageSrc = useClientImage(client.image_path);
+
+  useEffect(() => {
+    if (!showPasswordForm) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      passwordInputRef.current?.focus();
+      passwordInputRef.current?.select();
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [showPasswordForm]);
 
   const handleSaveClient = async (updatedClient: Client) => {
     onClientUpdated?.(updatedClient);
     setShowEditForm(false);
   };
 
-  const handleOpenNotesForm = () => {
+  const handleOpenNoteForm = () => {
     setNotesDraft(client.notes || "");
-    setShowNotesForm(true);
+    setEmployeePassword("");
+    setShowNoteForm(true);
   };
 
-  const handleSaveNotes = async () => {
+  const handleRequestSaveNote = () => {
+    if (!notesDraft.trim()) {
+      if ((client.notes || "").trim()) {
+        handleSaveNotes(true);
+      } else {
+        alert("Please enter a note first.");
+      }
+      return;
+    }
+    setEmployeePassword("");
+    setShowNoteForm(false);
+    setShowPasswordForm(true);
+  };
+
+  const handleSaveNotes = async (skipPassword = false) => {
+    if (!skipPassword && !employeePassword.trim()) {
+      alert("Please enter the employee password.");
+      return;
+    }
+
     setSavingNotes(true);
     try {
+      let nextNotes = "";
+
+      if (!skipPassword) {
+        const employee = await (window as any).electronAPI.verifyEmployeePassword(
+          employeePassword
+        );
+
+        if (!employee) {
+          alert("No employee found with that password.");
+          return;
+        }
+
+        const formattedDate = new Date().toLocaleDateString("en-CA");
+        nextNotes = `${notesDraft.trim()} (${employee.first_name}, ${formattedDate})`;
+      }
+
       const updatedClient = await (window as any).electronAPI.updateClient({
         client: {
           ...client,
-          notes: notesDraft,
+          notes: nextNotes,
         },
         identifications,
       });
       onClientUpdated?.(updatedClient);
-      setShowNotesForm(false);
+      setShowPasswordForm(false);
+      setShowNoteForm(false);
+      setNotesDraft("");
+      setEmployeePassword("");
     } catch (error) {
+      console.error("Employee password verification or note update failed:", error);
       console.error("Failed to update client notes:", error);
-      alert("Failed to update notes. Please try again.");
+      alert("Failed to verify employee password or update notes. Please try again.");
     } finally {
       setSavingNotes(false);
     }
@@ -232,35 +288,34 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
         <Box
           sx={{
             display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 2,
-            mb: 1.5,
+            justifyContent: "flex-end",
+            mb: 1,
           }}
         >
-          <Typography variant="h6">Notes</Typography>
           <Button
             variant="outlined"
             size="small"
-            onClick={handleOpenNotesForm}
+            onClick={handleOpenNoteForm}
           >
-            Edit Notes
+            Edit Note
           </Button>
         </Box>
-        <Typography>{client.notes || "No notes available."}</Typography>
+        <Typography sx={{ whiteSpace: "pre-line" }}>
+          {client.notes || "No notes available."}
+        </Typography>
       </Box>
 
       <Dialog
-        open={showNotesForm}
+        open={showNoteForm}
         onClose={() => {
           if (!savingNotes) {
-            setShowNotesForm(false);
+            setShowNoteForm(false);
           }
         }}
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>Edit Notes</DialogTitle>
+        <DialogTitle>Edit Note</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
@@ -275,17 +330,62 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
         </DialogContent>
         <DialogActions>
           <Button
-            onClick={() => setShowNotesForm(false)}
+            onClick={() => setShowNoteForm(false)}
             disabled={savingNotes}
           >
             Cancel
           </Button>
           <Button
-            onClick={handleSaveNotes}
+            onClick={handleRequestSaveNote}
             variant="contained"
             disabled={savingNotes}
           >
             Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={showPasswordForm}
+        onClose={() => {
+          if (!savingNotes) {
+            setShowPasswordForm(false);
+            setShowNoteForm(true);
+          }
+        }}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>Employee Password</DialogTitle>
+        <DialogContent>
+          <TextField
+            inputRef={passwordInputRef}
+            fullWidth
+            type="password"
+            label="Password"
+            value={employeePassword}
+            onChange={(event) => setEmployeePassword(event.target.value)}
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setShowPasswordForm(false);
+              setShowNoteForm(true);
+            }}
+            disabled={savingNotes}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              void handleSaveNotes();
+            }}
+            variant="contained"
+            disabled={savingNotes}
+          >
+            Confirm
           </Button>
         </DialogActions>
       </Dialog>

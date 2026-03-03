@@ -5,7 +5,7 @@ import SideButtons from "../components/topbar/SideButtons";
 import ClientPage from "../pages/ClientPage";
 import TransactionPage from "../pages/TransactionPage";
 import HistoryPage from "../pages/HistoryPage";
-import ClientForm from "../components/client/ClientForm";
+import ClientForm from "../components/client/profile/ClientForm";
 import type { Client } from "../../../shared/types/Client";
 
 const MainLayout: React.FC = () => {
@@ -52,7 +52,19 @@ const MainLayout: React.FC = () => {
         <SideButtons onAddClient={() => setAddClientOpen(true)} />
       </Box>
       {/* Tabs */}
-      <Box sx={{ px: 1.5, pt: 1, pb: 1.5, flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+      <Box
+        sx={{
+          px: 1.5,
+          pt: 1,
+          pb: 1.5,
+          flex: 1,
+          minHeight: 0,
+          display: "flex",
+          flexDirection: "column",
+          boxSizing: "border-box",
+          overflow: "hidden",
+        }}
+      >
         <Paper elevation={3}>
           <Tabs
             value={currentTab}
@@ -66,7 +78,15 @@ const MainLayout: React.FC = () => {
           </Tabs>
         </Paper>
 
-        <Box sx={{ mt: 1, flex: 1, minHeight: 0, overflow: "hidden" }}>
+        <Box
+          sx={{
+            mt: 1,
+            flex: 1,
+            minHeight: 0,
+            overflow: "hidden",
+            boxSizing: "border-box",
+          }}
+        >
           {currentTab === 0 && (
             <ClientPage
               searchFirstName={searchFirstName}

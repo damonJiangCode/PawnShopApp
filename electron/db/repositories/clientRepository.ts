@@ -12,7 +12,7 @@ const normalize = (value: unknown) => {
 const insertClientIds = async (
   client: any,
   clientNumber: number,
-  ids: ID[]
+  ids: ID[],
 ): Promise<ID[]> => {
   const insertedIds: ID[] = [];
   for (const id of ids ?? []) {
@@ -25,7 +25,7 @@ const insertClientIds = async (
         VALUES ($1, $2, $3)
         RETURNING id, id_type, id_value, updated_at
       `,
-      [clientNumber, id.id_type, id.id_value]
+      [clientNumber, id.id_type, id.id_value],
     );
     insertedIds.push({
       id: result.rows[0].id,
@@ -35,7 +35,6 @@ const insertClientIds = async (
       updated_at: result.rows[0].updated_at,
     });
   }
-
   return insertedIds;
 };
 
@@ -69,7 +68,7 @@ const mapRowToClient = (row: any): Client => ({
 
 export const searchClientsByName = async (
   firstName: string,
-  lastName: string
+  lastName: string,
 ): Promise<Client[]> => {
   const client = await connect();
   const query = `
@@ -108,7 +107,7 @@ export const searchClientsByName = async (
       console.warn(
         "[clientRepository] WARNING: No clients found matching search criteria,",
         firstName,
-        lastName
+        lastName,
       );
     }
     return clients;
@@ -123,7 +122,7 @@ export const searchClientsByName = async (
 
 export const addClient = async (
   clientData: Client,
-  ids: ID[]
+  ids: ID[],
 ): Promise<Client> => {
   const client = await connect();
   const insertClientQuery = `
@@ -207,7 +206,7 @@ export const addClient = async (
 
 export const updateClient = async (
   clientData: Client,
-  ids: ID[]
+  ids: ID[],
 ): Promise<Client> => {
   const client = await connect();
   const clientNumber = clientData.client_number;
@@ -280,10 +279,9 @@ export const updateClient = async (
       throw new Error(`Client not found: ${clientNumber}`);
     }
 
-    await client.query(
-      `DELETE FROM client_ids WHERE client_number = $1`,
-      [clientNumber]
-    );
+    await client.query(`DELETE FROM client_ids WHERE client_number = $1`, [
+      clientNumber,
+    ]);
     const updatedIds = await insertClientIds(client, clientNumber, ids);
 
     await client.query("COMMIT");

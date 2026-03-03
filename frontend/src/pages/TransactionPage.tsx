@@ -184,21 +184,43 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
 
   if (!clientNumber) {
     return (
-      <Paper elevation={0} sx={{ p: 2, m: 2 }}>
+      <Paper elevation={0} sx={{ p: 2, height: "100%" }}>
         <Typography color="text.secondary">Please search and select a client first.</Typography>
       </Paper>
     );
   }
 
   return (
-    <Paper elevation={0} sx={{ p: 2, m: 2, height: "calc(100vh - 170px)", minHeight: 680 }}>
+    <Paper
+      elevation={0}
+      sx={{
+        p: 2,
+        height: "100%",
+        minHeight: 0,
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+        position: "relative",
+        boxSizing: "border-box",
+      }}
+    >
       <Box sx={{ mb: 1.5 }}>
         <ClientBar client_last_name={clientLastName} client_first_name={clientFirstName} />
       </Box>
 
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, height: "calc(100% - 40px)" }}>
-        <Box sx={{ display: "flex", gap: 2, flex: 7, minHeight: 360 }}>
-          <Box sx={{ flex: 7, minWidth: 0 }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 1.5,
+          flex: 1,
+          minHeight: 0,
+          overflow: "hidden",
+          boxSizing: "border-box",
+        }}
+      >
+        <Box sx={{ display: "flex", gap: 2, flex: 7, minHeight: 0 }}>
+          <Box sx={{ flex: 7, minWidth: 0, minHeight: 0 }}>
             <TicketTable
               tickets={tickets}
               selectedTicket={selectedTicket}
@@ -206,7 +228,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
             />
           </Box>
 
-          <Box sx={{ flex: 3, minWidth: 220 }}>
+          <Box sx={{ flex: 3, minWidth: 220, minHeight: 0 }}>
             <TicketButtons
               selectedTicket={selectedTicket}
               onAdd={handleAddButtonClick}
@@ -225,8 +247,8 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
           </Box>
         </Box>
 
-        <Box sx={{ display: "flex", gap: 2, flex: 3, minHeight: 220 }}>
-          <Box sx={{ flex: 7, minWidth: 0 }}>
+        <Box sx={{ display: "flex", gap: 2, flex: 3, minHeight: 0 }}>
+          <Box sx={{ flex: 7, minWidth: 0, minHeight: 0 }}>
             <ItemTable items={items} selectedItem={selectedItem ?? undefined} onItemSelected={handleItemClick} />
           </Box>
 
@@ -266,7 +288,11 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       </Box>
 
       {loading && (
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ position: "absolute", right: 16, bottom: 10 }}
+        >
           Loading data...
         </Typography>
       )}

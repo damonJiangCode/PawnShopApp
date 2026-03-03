@@ -104,19 +104,23 @@ const ClientPage: React.FC<ClientPageProps> = ({
         maxWidth: 1600,
         mx: "auto",
         overflow: "hidden",
+        boxSizing: "border-box",
       }}
     >
       <Box
         sx={{
-          display: "grid",
-          gridTemplateRows: "minmax(0, 1fr) 210px",
+          display: "flex",
+          flexDirection: "column",
           height: "100%",
           gap: 0.75,
           p: 1,
+          pb: 1.25,
           minHeight: 0,
+          overflow: "hidden",
+          boxSizing: "border-box",
         }}
       >
-        <Box sx={{ minHeight: 0, overflow: "auto", pr: 0.25 }}>
+        <Box sx={{ flex: 1, minHeight: 0, overflow: "auto", pr: 0.25 }}>
           {selectedClient ? (
             <ClientProfile
               client={selectedClient}
@@ -134,6 +138,7 @@ const ClientPage: React.FC<ClientPageProps> = ({
 
         <Box
           sx={{
+            flex: "0 0 216px",
             border: "2px solid",
             borderColor: "primary.main",
             borderRadius: 2,
@@ -143,7 +148,9 @@ const ClientPage: React.FC<ClientPageProps> = ({
               "0 0 0 3px rgba(25, 118, 210, 0.14), 0 10px 22px rgba(15, 23, 42, 0.10)",
             minHeight: 0,
             overflow: "hidden",
-            mb: 0,
+            display: "flex",
+            flexDirection: "column",
+            boxSizing: "border-box",
           }}
         >
           {loading && (
@@ -151,12 +158,14 @@ const ClientPage: React.FC<ClientPageProps> = ({
               Searching...
             </Typography>
           )}
-          <ClientSearchResults
-            results={displayResults}
-            selectedClient={selectedClient}
-            onSelect={setSelectedClient}
-            onClientUpdated={handleClientUpdated}
-          />
+          <Box sx={{ flex: 1, minHeight: 0 }}>
+            <ClientSearchResults
+              results={displayResults}
+              selectedClient={selectedClient}
+              onSelect={setSelectedClient}
+              onClientUpdated={handleClientUpdated}
+            />
+          </Box>
         </Box>
       </Box>
     </Paper>

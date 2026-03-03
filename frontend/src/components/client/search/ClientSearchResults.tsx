@@ -13,7 +13,7 @@ import {
 import { useState } from "react";
 import type { Client } from "../../../../../shared/types/Client";
 import { useClientImage } from "../../../hooks/useClientImage";
-import ClientForm from "../ClientForm";
+import ClientForm from "../profile/ClientForm";
 import EditIcon from "@mui/icons-material/Edit";
 
 interface ClientSearchResultsProps {
@@ -32,7 +32,16 @@ const ClientSearchResults: React.FC<ClientSearchResultsProps> = ({
   const previewClient = selectedClient ?? results[0] ?? null;
 
   return (
-    <Box sx={{ display: "flex", gap: 1.5, height: "100%", minHeight: 0, alignItems: "stretch" }}>
+    <Box
+      sx={{
+        display: "flex",
+        gap: 1.5,
+        height: "100%",
+        minHeight: 0,
+        alignItems: "stretch",
+        overflow: "hidden",
+      }}
+    >
       <Paper
         sx={{
           flex: 1,
@@ -40,17 +49,18 @@ const ClientSearchResults: React.FC<ClientSearchResultsProps> = ({
           borderColor: "divider",
           overflow: "hidden",
           minHeight: 0,
+          height: "100%",
+          boxSizing: "border-box",
         }}
       >
-        <TableContainer sx={{ height: "100%" }}>
-          <Table size="small">
+        <TableContainer sx={{ height: "100%", overflowY: "auto" }}>
+          <Table size="small" stickyHeader>
             <TableHead>
               <TableRow>
                 <TableCell sx={{ width: 80 }}>#</TableCell>
                 <TableCell>Last</TableCell>
                 <TableCell>First</TableCell>
-                <TableCell sx={{ width: 140 }}>Phone</TableCell>
-                <TableCell sx={{ width: 140 }}>City</TableCell>
+                <TableCell sx={{ width: 140 }}>DoB</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -116,6 +126,8 @@ const ClientImagePreview: React.FC<{
         minHeight: 0,
         height: "100%",
         overflow: "hidden",
+        flexShrink: 0,
+        boxSizing: "border-box",
       }}
     >
       <Box
