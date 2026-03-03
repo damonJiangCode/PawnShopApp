@@ -179,6 +179,14 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
       return;
     }
 
+    const notesChanged =
+      (clientExisted?.notes ?? "") !== (nextPendingUpdate.client.notes ?? "");
+
+    if (!notesChanged) {
+      await saveClientRecord(nextPendingUpdate);
+      return;
+    }
+
     setPendingUpdate(nextPendingUpdate);
     setEmployeePassword("");
     setShowPasswordDialog(true);

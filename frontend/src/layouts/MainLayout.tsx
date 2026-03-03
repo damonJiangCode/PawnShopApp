@@ -92,7 +92,6 @@ const MainLayout: React.FC = () => {
               searchFirstName={searchFirstName}
               searchLastName={searchLastName}
               forcedClient={forcedClient}
-              onAddClient={() => setAddClientOpen(true)}
               onClientSelected={setSelectedClient}
             />
           )}

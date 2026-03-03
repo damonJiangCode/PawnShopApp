@@ -8,16 +8,15 @@ import ClientForm from "../profile/ClientForm";
 
 interface ClientSearchImagePreviewProps {
   client: Client | null;
-  onAddClient?: () => void;
   onClientUpdated?: (client: Client) => void;
 }
 
 const ClientSearchImagePreview: React.FC<ClientSearchImagePreviewProps> = ({
   client,
-  onAddClient,
   onClientUpdated,
 }) => {
   const imageSrc = useClientImage(client?.image_path);
+  const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
 
   return (
@@ -68,15 +67,15 @@ const ClientSearchImagePreview: React.FC<ClientSearchImagePreviewProps> = ({
           flexShrink: 0,
           display: "flex",
           flexDirection: "column",
-          gap: 0.75,
-          justifyContent: "flex-start",
+          gap: 2.0,
+          justifyContent: "center",
         }}
       >
         <Button
           size="small"
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={onAddClient}
+          onClick={() => setAddOpen(true)}
           sx={{
             minWidth: 0,
             justifyContent: "flex-start",
@@ -106,6 +105,17 @@ const ClientSearchImagePreview: React.FC<ClientSearchImagePreviewProps> = ({
           Edit
         </Button>
       </Box>
+
+      {addOpen && (
+        <ClientForm
+          open={addOpen}
+          onClose={() => setAddOpen(false)}
+          onSave={(createdClient) => {
+            onClientUpdated?.(createdClient);
+            setAddOpen(false);
+          }}
+        />
+      )}
 
       {editOpen && client && (
         <ClientForm
