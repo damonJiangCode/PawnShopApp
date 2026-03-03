@@ -49,7 +49,7 @@ const MainLayout: React.FC = () => {
             setSelectedClient(null);
           }}
         />
-        <SideButtons onAddClient={() => setAddClientOpen(true)} />
+        <SideButtons />
       </Box>
       {/* Tabs */}
       <Box
@@ -92,6 +92,7 @@ const MainLayout: React.FC = () => {
               searchFirstName={searchFirstName}
               searchLastName={searchLastName}
               forcedClient={forcedClient}
+              onAddClient={() => setAddClientOpen(true)}
               onClientSelected={setSelectedClient}
             />
           )}

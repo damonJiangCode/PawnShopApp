@@ -9,12 +9,14 @@ interface ClientPageProps {
   searchFirstName: string;
   searchLastName: string;
   forcedClient?: Client | null;
+  onAddClient?: () => void;
   onClientSelected?: (client: Client | null) => void;
 }
 const ClientPage: React.FC<ClientPageProps> = ({
   searchFirstName,
   searchLastName,
   forcedClient,
+  onAddClient,
   onClientSelected,
 }) => {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -163,6 +165,7 @@ const ClientPage: React.FC<ClientPageProps> = ({
               results={displayResults}
               selectedClient={selectedClient}
               onSelect={setSelectedClient}
+              onAddClient={onAddClient}
               onClientUpdated={handleClientUpdated}
             />
           </Box>
