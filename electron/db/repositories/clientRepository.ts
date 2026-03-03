@@ -72,27 +72,28 @@ export const searchClientsByName = async (
 ): Promise<Client[]> => {
   const client = await connect();
   const query = `
-    SELECT 
+    SELECT
       c.*,
-      COALESCE(
-        json_agg(
-          jsonb_build_object(
-            'id', ci.id,
-            'id_type', ci.id_type,
-            'id_value', ci.id_value,
-            'updated_at', ci.updated_at
-          )
-        ) FILTER (WHERE ci.id IS NOT NULL), '[]'
-      ) AS identifications
+      COALESCE(ci.identifications, '[]') AS identifications
     FROM clients c
-    LEFT JOIN client_ids ci
-      ON c.client_number = ci.client_number
+    LEFT JOIN LATERAL (
+      SELECT json_agg(
+        jsonb_build_object(
+          'id', client_ids.id,
+          'id_type', client_ids.id_type,
+          'id_value', client_ids.id_value,
+          'updated_at', client_ids.updated_at
+        )
+        ORDER BY client_ids.id
+      ) AS identifications
+      FROM client_ids
+      WHERE client_ids.client_number = c.client_number
+    ) ci ON TRUE
     WHERE 
       (LOWER(c.first_name) LIKE LOWER($1) || '%' OR $1 = '') 
       AND 
       (LOWER(c.last_name) LIKE LOWER($2) || '%' OR $2 = '')
-    GROUP BY c.client_number
-    ORDER BY c.last_name, c.first_name
+    ORDER BY c.last_name, c.first_name, c.client_number
   `;
   const values = [
     firstName ? firstName.toLowerCase() : "",

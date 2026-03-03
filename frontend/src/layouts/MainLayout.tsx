@@ -1,56 +1,42 @@
 import React, { useState } from "react";
 import { Box, Tabs, Tab, Paper } from "@mui/material";
-import SearchBar from "../components/topbar/SearchBar";
-import SideButtons from "../components/topbar/SideButtons";
+import TopBar from "../components/topbar/TopBar";
 import ClientPage from "../pages/ClientPage";
 import TransactionPage from "../pages/TransactionPage";
 import HistoryPage from "../pages/HistoryPage";
-import ClientForm from "../components/client/profile/ClientForm";
 import type { Client } from "../../../shared/types/Client";
 
 const MainLayout: React.FC = () => {
   const [currentTab, setCurrentTab] = useState(0);
-  const [addClientOpen, setAddClientOpen] = useState(false);
   const [searchFirstName, setSearchFirstName] = useState("");
   const [searchLastName, setSearchLastName] = useState("");
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [forcedClient, setForcedClient] = useState<Client | null>(null);
 
-  const handleClientSaved = (client: Client) => {
-    setAddClientOpen(false);
-    setCurrentTab(0);
-    setForcedClient(client);
-    setSelectedClient(client);
+  const handleSearch = ({
+    firstName,
+    lastName,
+  }: {
+    firstName: string;
+    lastName: string;
+  }) => {
+    setForcedClient(null);
+    setSearchFirstName(firstName);
+    setSearchLastName(lastName);
+  };
+
+  const handleClear = () => {
+    setForcedClient(null);
+    setSearchFirstName("");
+    setSearchLastName("");
+    setSelectedClient(null);
   };
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-      {/* TopBar */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          px: 1.5,
-          py: 1,
-          borderBottom: "1px solid #ddd",
-        }}
-      >
-        <SearchBar
-          onSearch={({ firstName, lastName }) => {
-            setForcedClient(null);
-            setSearchFirstName(firstName);
-            setSearchLastName(lastName);
-          }}
-          onClear={() => {
-            setForcedClient(null);
-            setSearchFirstName("");
-            setSearchLastName("");
-            setSelectedClient(null);
-          }}
-        />
-        <SideButtons />
-      </Box>
+      {/* Topbar */}
+      <TopBar onSearch={handleSearch} onClear={handleClear} />
+
       {/* Tabs */}
       <Box
         sx={{
@@ -106,13 +92,6 @@ const MainLayout: React.FC = () => {
           {currentTab === 2 && <HistoryPage />}
         </Box>
       </Box>
-      {addClientOpen && (
-        <ClientForm
-          open={addClientOpen}
-          onClose={() => setAddClientOpen(false)}
-          onSave={handleClientSaved}
-        />
-      )}
     </Box>
   );
 };

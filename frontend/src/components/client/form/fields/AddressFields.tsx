@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Box, TextField, MenuItem } from "@mui/material";
-import { loadCities } from "../../../services/lookupService";
+import { loadCities } from "../../../../services/lookupService";
 
 interface AddressFieldsProps {
   client_address?: string;

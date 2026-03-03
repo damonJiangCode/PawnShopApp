@@ -56,6 +56,8 @@ const ItemTable: React.FC<ItemTableProps> = (props) => {
   return (
     <Box sx={{ height: "100%", width: "100%" }}>
       <DataGrid
+        columnHeaderHeight={34}
+        rowHeight={30}
         rows={items}
         columns={columns}
         getRowId={(row) => row.item_number}
@@ -64,6 +66,11 @@ const ItemTable: React.FC<ItemTableProps> = (props) => {
           const selectedItem = items.find((item) => item.item_number === params.id);
           if (selectedItem) onItemSelected(selectedItem);
         }}
+        disableColumnMenu
+        disableColumnSorting
+        disableColumnFilter
+        disableColumnSelector
+        disableDensitySelector
         hideFooter
         sx={{
           border: "1px solid #ccc",
@@ -77,6 +84,10 @@ const ItemTable: React.FC<ItemTableProps> = (props) => {
           "& .MuiDataGrid-columnHeader": {
             borderRight: "1px solid #ddd",
             backgroundColor: "#fafafa",
+            py: 0,
+          },
+          "& .MuiDataGrid-columnHeaderTitle": {
+            fontWeight: 600,
           },
           "& .MuiDataGrid-row:hover": {
             backgroundColor: "#f5f5f5",

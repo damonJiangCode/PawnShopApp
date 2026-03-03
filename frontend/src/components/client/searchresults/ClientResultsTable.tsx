@@ -201,6 +201,7 @@ const ClientResultsTable: React.FC<ClientResultsTableProps> = ({
                   width: numberWidth,
                   position: "relative",
                   userSelect: "none",
+                  fontWeight: 700,
                 }}
               >
                 <Box sx={{ pr: 1.5 }}>#</Box>
@@ -213,6 +214,7 @@ const ClientResultsTable: React.FC<ClientResultsTableProps> = ({
                 sx={{
                   position: "relative",
                   userSelect: "none",
+                  fontWeight: 700,
                 }}
               >
                 <Box sx={{ pr: 1.5 }}>Last Name</Box>
@@ -225,6 +227,7 @@ const ClientResultsTable: React.FC<ClientResultsTableProps> = ({
                 sx={{
                   position: "relative",
                   userSelect: "none",
+                  fontWeight: 700,
                 }}
               >
                 <Box sx={{ pr: 1.5 }}>First Name</Box>
@@ -233,7 +236,9 @@ const ClientResultsTable: React.FC<ClientResultsTableProps> = ({
                   sx={resizeHandleSx}
                 />
               </TableCell>
-              <TableCell sx={{ width: dobWidth }}>DoB</TableCell>
+              <TableCell sx={{ width: dobWidth, fontWeight: 700 }}>
+                DoB
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

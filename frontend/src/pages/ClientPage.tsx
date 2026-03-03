@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Paper, Typography } from "@mui/material";
 import ClientProfile from "../components/client/profile/ClientProfile";
-import ClientSearchResults from "../components/client/search/ClientSearchResults";
+import ClientSearchResults from "../components/client/searchresults/ClientSearchResults";
 import { useClientSearch } from "../hooks/useClientSearch";
 import type { Client } from "../../../shared/types/Client";
 

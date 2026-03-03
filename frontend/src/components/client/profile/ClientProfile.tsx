@@ -11,9 +11,9 @@ import {
   TextField,
 } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
-import InfoRow from "../fields/InfoRow";
+import InfoRow from "./InfoRow";
 import STAT_COLORS from "../../../assets/client/STAT_COLORS";
-import ClientForm from "./ClientForm";
+import ClientForm from "../form/ClientForm";
 import type { Client, ID } from "../../../../../shared/types/Client";
 import { useClientImage } from "../../../hooks/useClientImage";
 
@@ -122,7 +122,18 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
   };
 
   return (
-    <Box>
+    <Box
+      sx={{
+        border: "2px solid",
+        borderColor: "primary.main",
+        borderRadius: 2,
+        p: 1,
+        backgroundColor: "background.paper",
+        boxShadow:
+          "0 0 0 3px rgba(25, 118, 210, 0.14), 0 10px 22px rgba(15, 23, 42, 0.10)",
+        boxSizing: "border-box",
+      }}
+    >
       <Box
         sx={{
           display: "flex",

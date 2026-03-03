@@ -10,14 +10,14 @@ import {
   TextField,
 } from "@mui/material";
 import type { Client, ID } from "../../../../../shared/types/Client";
-import PhotoCapture from "../fields/PhotoCapture";
-import HeightWeightFields from "../fields/HeightWeightFields";
-import NameFields from "../fields/NameFields";
-import DobGenderColor from "../fields/DobGenderColor";
-import AddressFields from "../fields/AddressFields";
-import ContactNotesFields from "../fields/ContactNotesFields";
-import IDFields from "../fields/IDFields";
-import type { IDFieldsRef } from "../fields/IDFields";
+import PhotoCapture from "./fields/PhotoCapture";
+import HeightWeightFields from "./fields/HeightWeightFields";
+import NameFields from "./fields/NameFields";
+import DobGenderColor from "./fields/DobGenderColor";
+import AddressFields from "./fields/AddressFields";
+import ContactNotesFields from "./fields/ContactNotesFields";
+import IDFields from "./fields/IDFields";
+import type { IDFieldsRef } from "./fields/IDFields";
 import defaultClient from "../../../utils/defaultClient";
 
 interface ClientFormProps {

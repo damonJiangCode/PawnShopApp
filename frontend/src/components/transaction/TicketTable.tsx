@@ -78,6 +78,7 @@ const TicketTable: React.FC<TicketTableProps> = (props) => {
   return (
     <Box sx={{ height: "100%", width: "100%" }}>
       <DataGrid
+        columnHeaderHeight={34}
         rowHeight={30}
         rows={tickets}
         columns={columns}
@@ -89,6 +90,7 @@ const TicketTable: React.FC<TicketTableProps> = (props) => {
           onSelectTicket(clickedTicket);
         }}
         disableColumnMenu
+        disableColumnSorting
         disableColumnFilter
         disableColumnSelector
         disableDensitySelector
@@ -107,6 +109,10 @@ const TicketTable: React.FC<TicketTableProps> = (props) => {
           "& .MuiDataGrid-columnHeader": {
             borderRight: "1px solid #ddd",
             backgroundColor: "#fafafa",
+            py: 0,
+          },
+          "& .MuiDataGrid-columnHeaderTitle": {
+            fontWeight: 600,
           },
           "& .MuiDataGrid-row:hover": {
             backgroundColor: "#f5f5f5",

@@ -25,11 +25,10 @@ const TicketButtons: React.FC<TicketButtonsProps> = (props) => {
       sx={{
         display: "flex",
         flexDirection: "column",
-        justifyContent: "space-evenly",
-        alignItems: "center",
-        gap: 3,
-        width: 200,
-        height: 300,
+        justifyContent: "flex-start",
+        alignItems: "stretch",
+        gap: 1,
+        width: "100%",
       }}
     >
       <Button

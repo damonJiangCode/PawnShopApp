@@ -26,17 +26,17 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onClear }) => {
   };
 
   return (
-    <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+    <Box sx={{ display: "flex", gap: 2 }}>
       <TextField
-        size="small"
         label="Last Name"
         value={lastName}
+        sx={{ width: 240 }}
         onChange={(e) => setLastName(e.target.value)}
       />
       <TextField
-        size="small"
         label="First Name"
         value={firstName}
+        sx={{ width: 240 }}
         onChange={(e) => setFirstName(e.target.value)}
       />
 
@@ -44,7 +44,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onClear }) => {
         variant="contained"
         startIcon={<SearchIcon />}
         onClick={handleSearch}
-        size="small"
+        size="medium"
       >
         Search
       </Button>
@@ -53,7 +53,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onClear }) => {
         variant="outlined"
         startIcon={<ClearIcon />}
         onClick={handleClear}
-        size="small"
+        size="medium"
       >
         Clear
       </Button>

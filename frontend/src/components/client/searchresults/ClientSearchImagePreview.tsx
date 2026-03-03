@@ -4,7 +4,7 @@ import { Box, Button, Paper, Typography } from "@mui/material";
 import { useState } from "react";
 import type { Client } from "../../../../../shared/types/Client";
 import { useClientImage } from "../../../hooks/useClientImage";
-import ClientForm from "../profile/ClientForm";
+import ClientForm from "../form/ClientForm";
 
 interface ClientSearchImagePreviewProps {
   client: Client | null;

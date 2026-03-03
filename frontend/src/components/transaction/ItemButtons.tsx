@@ -22,9 +22,9 @@ const ItemButtons: React.FC<ItemButtonsProps> = (props) => {
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
-        alignItems: "center",
-        gap: 3,
-        width: 200,
+        alignItems: "stretch",
+        gap: 1,
+        width: "100%",
       }}
     >
       <Button
@@ -52,7 +52,7 @@ const ItemButtons: React.FC<ItemButtonsProps> = (props) => {
         onClick={() => selectedItem && onDelete(selectedItem)}
         disabled={disabled}
       >
-        Delete
+        Remove
       </Button>
     </Box>
   );
