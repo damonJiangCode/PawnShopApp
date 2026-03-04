@@ -8,6 +8,9 @@ interface InfoRowProps {
 
 const InfoRow: React.FC<InfoRowProps> = ({ label, value }) => {
   let displayValue = value;
+  const looksLikeDateString =
+    typeof value === "string" &&
+    /^\d{4}-\d{1,2}-\d{1,2}(?:[T\s].*)?$/.test(value.trim());
 
   if (value instanceof Date) {
     displayValue = value.toLocaleDateString("en-US", {
@@ -15,7 +18,7 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, value }) => {
       month: "short",
       day: "2-digit",
     });
-  } else if (typeof value === "string" && !Number.isNaN(Date.parse(value))) {
+  } else if (looksLikeDateString && !Number.isNaN(Date.parse(value))) {
     const date = new Date(value);
     displayValue = date.toLocaleDateString("en-US", {
       year: "numeric",
