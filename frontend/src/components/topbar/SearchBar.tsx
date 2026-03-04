@@ -13,9 +13,17 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onClear }) => {
   const [lastName, setLastName] = useState("");
 
   const handleSearch = () => {
+    const trimmedFirstName = firstName.trim();
+    const trimmedLastName = lastName.trim();
+
+    if (!trimmedFirstName && !trimmedLastName) {
+      alert("Please enter a first name or last name to search.");
+      return;
+    }
+
     onSearch?.({
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
+      firstName: trimmedFirstName,
+      lastName: trimmedLastName,
     });
   };
 
@@ -26,14 +34,23 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onClear }) => {
   };
 
   return (
-    <Box sx={{ display: "flex", gap: 2 }}>
+    <Box
+      sx={{
+        display: "flex",
+        gap: 2,
+        justifyContent: "space-between",
+        alignItems: "center",
+      }}
+    >
       <TextField
+        size="small"
         label="Last Name"
         value={lastName}
         sx={{ width: 240 }}
         onChange={(e) => setLastName(e.target.value)}
       />
       <TextField
+        size="small"
         label="First Name"
         value={firstName}
         sx={{ width: 240 }}
@@ -41,19 +58,19 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onClear }) => {
       />
 
       <Button
+        size="small"
         variant="contained"
         startIcon={<SearchIcon />}
         onClick={handleSearch}
-        size="medium"
       >
         Search
       </Button>
 
       <Button
+        size="small"
         variant="outlined"
         startIcon={<ClearIcon />}
         onClick={handleClear}
-        size="medium"
       >
         Clear
       </Button>

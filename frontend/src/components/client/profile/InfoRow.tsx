@@ -37,7 +37,7 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, value }) => {
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        py: 0.8,
+        py: 0.45,
         borderBottom: "1px solid",
         borderColor: "divider",
       }}
@@ -47,9 +47,9 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, value }) => {
           flex: 2,
           color: "text.secondary",
           fontWeight: 500,
-          fontSize: "0.9rem",
+          fontSize: "0.82rem",
           textAlign: "right",
-          pr: 2,
+          pr: 1.25,
         }}
       >
         {label}
@@ -59,7 +59,7 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, value }) => {
           flex: 3,
           color: "text.primary",
           fontWeight: 600,
-          fontSize: "1rem",
+          fontSize: "0.9rem",
           textAlign: "right",
         }}
       >

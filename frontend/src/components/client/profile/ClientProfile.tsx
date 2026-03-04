@@ -2,7 +2,6 @@ import {
   Box,
   Typography,
   Avatar,
-  Chip,
   Button,
   Dialog,
   DialogActions,
@@ -37,6 +36,18 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
   const passwordInputRef = useRef<HTMLInputElement>(null);
   const identifications: ID[] = client.identifications || [];
   const imageSrc = useClientImage(client.image_path);
+  const panelSx = {
+    minWidth: 0,
+    display: "flex",
+    flexDirection: "column" as const,
+    border: "1px solid rgba(25, 118, 210, 0.14)",
+    borderRadius: 2,
+    p: 1.1,
+    boxShadow: 2,
+    backgroundColor: "rgba(25, 118, 210, 0.03)",
+    minHeight: 0,
+    boxSizing: "border-box" as const,
+  };
 
   useEffect(() => {
     if (!showPasswordForm) {
@@ -136,132 +147,31 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
     >
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: 3,
-          flexWrap: "wrap",
-          border: "1px solid #ddd",
-          borderRadius: 2,
-          p: 2,
-          boxShadow: 2,
+          display: "grid",
+          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+          gap: 1.25,
+          minHeight: 0,
         }}
       >
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "flex-start",
-            gap: 2.5,
-          }}
-        >
-          <Chip
-            label={`Redeem: ${client.redeem_count}`}
-            sx={{
-              fontWeight: 700,
-              fontSize: 16,
-              bgcolor: STAT_COLORS.redeem,
-              color: "#fff",
-              minWidth: 120,
-              justifyContent: "center",
-            }}
-          />
-          <Chip
-            label={`Expire: ${client.expire_count}`}
-            sx={{
-              fontWeight: 700,
-              fontSize: 16,
-              bgcolor: STAT_COLORS.expire,
-              color: "#fff",
-              minWidth: 120,
-              justifyContent: "center",
-            }}
-          />
-          <Chip
-            label={`Overdue: ${client.overdue_count}`}
-            sx={{
-              fontWeight: 700,
-              fontSize: 16,
-              bgcolor: STAT_COLORS.overdue,
-              color: "#fff",
-              minWidth: 120,
-              justifyContent: "center",
-            }}
-          />
-          <Chip
-            label={`Theft: ${client.theft_count}`}
-            sx={{
-              fontWeight: 700,
-              fontSize: 16,
-              bgcolor: STAT_COLORS.theft,
-              color: "#fff",
-              minWidth: 120,
-              justifyContent: "center",
-            }}
-          />
-        </Box>
-
-        <Box sx={{ flex: 1, minWidth: 500 }}>
+        <Box sx={panelSx}>
           <Box
             sx={{
               display: "flex",
-              gap: 2.5,
               justifyContent: "space-between",
+              alignItems: "flex-start",
+              gap: 1,
+              mb: 0.5,
             }}
           >
-            <Box
-              sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 1 }}
-            >
-              <InfoRow label="Last Name:" value={client.last_name?.toUpperCase()} />
-              <InfoRow label="First Name:" value={client.first_name?.toUpperCase()} />
-              <InfoRow label="Mid Name:" value={client.middle_name?.toUpperCase()} />
-              <InfoRow label="Hair Color:" value={client.hair_color} />
-              <InfoRow label="Eye Color:" value={client.eye_color} />
-            </Box>
-
-            <Box
-              sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 1 }}
-            >
-              <InfoRow label="Client #:" value={client.client_number} />
-              <InfoRow label="Gender:" value={client.gender} />
-              <InfoRow label="DoB:" value={client.date_of_birth} />
-              <InfoRow label="Height:" value={`${client.height_cm ?? "-"} cm`} />
-              <InfoRow label="Weight:" value={`${client.weight_kg ?? "-"} kg`} />
-            </Box>
-          </Box>
-        </Box>
-
-        {showImage && (
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "flex-start",
-              alignItems: "center",
-              minWidth: 220,
-            }}
-          >
-            <Avatar
-              variant="square"
-              src={imageSrc ?? undefined}
-              alt="Client Photo"
-              sx={{
-                mb: 1,
-                width: 200,
-                height: 220,
-                borderRadius: 5,
-                boxShadow: 8,
-              }}
-            >
-              {!client.image_path && client.first_name
-                ? client.first_name[0]
-                : ""}
-            </Avatar>
+            <Typography variant="subtitle2" fontWeight={700}>
+              Profile
+            </Typography>
             <Button
               sx={{
-                width: 140,
-                fontSize: 12,
+                minWidth: 0,
+                px: 1,
+                py: 0.35,
+                fontSize: 11,
                 fontWeight: 700,
                 borderRadius: 1,
                 backgroundColor: "#1976d2",
@@ -274,47 +184,204 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
             >
               EDIT
             </Button>
+          </Box>
+          {showImage && (
+            <Box sx={{ display: "flex", justifyContent: "center", mb: 0.45 }}>
+              <Avatar
+                variant="square"
+                src={imageSrc ?? undefined}
+                alt="Client Photo"
+                sx={{
+                  width: 72,
+                  height: 72,
+                  borderRadius: 2,
+                  boxShadow: 2,
+                }}
+              >
+                {!client.image_path && client.first_name
+                  ? client.first_name[0]
+                  : ""}
+              </Avatar>
+            </Box>
+          )}
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 0 }}>
+            <InfoRow label="Client #:" value={client.client_number} />
+            <InfoRow label="Last Name:" value={client.last_name?.toUpperCase()} />
+            <InfoRow label="First Name:" value={client.first_name?.toUpperCase()} />
+            <InfoRow label="Mid Name:" value={client.middle_name?.toUpperCase()} />
+            <InfoRow label="DoB:" value={client.date_of_birth} />
+          </Box>
+        </Box>
 
-            {showEditForm && (
-              <ClientForm
-                clientExisted={client}
-                open={showEditForm}
-                onClose={() => setShowEditForm(false)}
-                onSave={handleSaveClient}
-              />
+        <Box sx={panelSx}>
+          <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 0.5 }}>
+            Physical
+          </Typography>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 0 }}>
+            <InfoRow label="Gender:" value={client.gender} />
+            <InfoRow label="Hair Color:" value={client.hair_color} />
+            <InfoRow label="Eye Color:" value={client.eye_color} />
+            <InfoRow label="Height:" value={`${client.height_cm ?? "-"} cm`} />
+            <InfoRow label="Weight:" value={`${client.weight_kg ?? "-"} kg`} />
+          </Box>
+        </Box>
+
+        <Box sx={panelSx}>
+          <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 0.5 }}>
+            Stats
+          </Typography>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.65 }}>
+            {[
+              {
+                label: "Redeem",
+                value: client.redeem_count,
+                color: STAT_COLORS.redeem,
+              },
+              {
+                label: "Expire",
+                value: client.expire_count,
+                color: STAT_COLORS.expire,
+              },
+              {
+                label: "Overdue",
+                value: client.overdue_count,
+                color: STAT_COLORS.overdue,
+              },
+              {
+                label: "Theft",
+                value: client.theft_count,
+                color: STAT_COLORS.theft,
+              },
+            ].map((stat) => (
+              <Box
+                key={stat.label}
+                sx={{
+                  borderRadius: 1.5,
+                  px: 0.8,
+                  py: 0.5,
+                  backgroundColor: stat.color,
+                  color: "#fff",
+                  boxShadow: 1,
+                  textAlign: "center",
+                  width: "84%",
+                  maxWidth: 96,
+                  alignSelf: "center",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    lineHeight: 1.1,
+                    letterSpacing: 0.15,
+                  }}
+                >
+                  {stat.label}
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: 16,
+                    fontWeight: 800,
+                    lineHeight: 1.1,
+                  }}
+                >
+                  {stat.value}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+
+        <Box sx={panelSx}>
+          <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 0.5 }}>
+            IDs
+          </Typography>
+          <Box
+            sx={{
+              flex: 1,
+              minHeight: 0,
+              maxHeight: 180,
+              overflow: "auto",
+            }}
+          >
+            {identifications.length > 0 ? (
+              identifications.map((element, index) => (
+                <Box key={index}>
+                  <InfoRow
+                    label={`${element.id_type}:`}
+                    value={element.id_value || "-"}
+                  />
+                </Box>
+              ))
+            ) : (
+              <Typography color="text.secondary">
+                No identifications available.
+              </Typography>
             )}
           </Box>
-        )}
+        </Box>
+
+        <Box sx={panelSx}>
+          <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 0.5 }}>
+            Contact
+          </Typography>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 0 }}>
+            <InfoRow label="Address:" value={client.address || "-"} />
+            <InfoRow label="Postal Code:" value={client.postal_code || "-"} />
+            <InfoRow label="City:" value={client.city || "-"} />
+            <InfoRow label="Province:" value={client.province || "-"} />
+            <InfoRow label="Country:" value={client.country || "-"} />
+            <InfoRow label="Phone:" value={client.phone || "-"} />
+            <InfoRow label="Email:" value={client.email || "-"} />
+          </Box>
+        </Box>
+
+        <Box sx={panelSx}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 0.75,
+              gap: 1,
+            }}
+          >
+            <Typography variant="subtitle2" fontWeight={700}>
+              Notes
+            </Typography>
+            <Button variant="outlined" size="small" onClick={handleOpenNoteForm}>
+              Edit Note
+            </Button>
+          </Box>
+          <Box
+            sx={{
+              flex: 1,
+              minHeight: 0,
+              maxHeight: 180,
+              overflow: "auto",
+            }}
+          >
+            <Typography
+              sx={{
+                whiteSpace: "pre-line",
+                fontSize: "0.92rem",
+                lineHeight: 1.45,
+              }}
+            >
+              {client.notes || "No notes available."}
+            </Typography>
+          </Box>
+        </Box>
       </Box>
 
-      <Box
-        sx={{
-          border: "1px solid #ddd",
-          borderRadius: 2,
-          p: 2,
-          my: 2,
-          boxShadow: 2,
-        }}
-      >
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "flex-end",
-            mb: 1,
-          }}
-        >
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={handleOpenNoteForm}
-          >
-            Edit Note
-          </Button>
-        </Box>
-        <Typography sx={{ whiteSpace: "pre-line" }}>
-          {client.notes || "No notes available."}
-        </Typography>
-      </Box>
+      {showEditForm && (
+        <ClientForm
+          clientExisted={client}
+          open={showEditForm}
+          onClose={() => setShowEditForm(false)}
+          onSave={handleSaveClient}
+        />
+      )}
 
       <Dialog
         open={showNoteForm}
@@ -340,10 +407,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
           />
         </DialogContent>
         <DialogActions>
-          <Button
-            onClick={() => setShowNoteForm(false)}
-            disabled={savingNotes}
-          >
+          <Button onClick={() => setShowNoteForm(false)} disabled={savingNotes}>
             Cancel
           </Button>
           <Button
@@ -400,64 +464,6 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
           </Button>
         </DialogActions>
       </Dialog>
-
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          flexWrap: "wrap",
-          gap: 4,
-        }}
-      >
-        <Box
-          sx={{
-            flex: 1,
-            minWidth: 300,
-            display: "flex",
-            flexDirection: "column",
-            gap: 2,
-            border: "1px solid #ddd",
-            borderRadius: 2,
-            p: 2,
-            boxShadow: 2,
-          }}
-        >
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-            <InfoRow label="Address:" value={client.address || "-"} />
-            <InfoRow label="Postal Code:" value={client.postal_code || "-"} />
-            <InfoRow label="City:" value={client.city || "-"} />
-            <InfoRow label="Province:" value={client.province || "-"} />
-            <InfoRow label="Country:" value={client.country || "-"} />
-            <InfoRow label="Phone:" value={client.phone || "-"} />
-            <InfoRow label="Email:" value={client.email || "-"} />
-          </Box>
-        </Box>
-
-        <Box
-          sx={{
-            flex: 1,
-            minWidth: 300,
-            display: "flex",
-            flexDirection: "column",
-            gap: 2,
-            border: "1px solid #ddd",
-            borderRadius: 2,
-            p: 2,
-            boxShadow: 2,
-          }}
-        >
-          {identifications.length > 0 ? (
-            identifications.map((element, index) => (
-              <Box key={index}>
-                <InfoRow label={`${element.id_type}:`} value={element.id_value || "-"} />
-              </Box>
-            ))
-          ) : (
-            <Typography>No identifications available.</Typography>
-          )}
-        </Box>
-      </Box>
     </Box>
   );
 };
