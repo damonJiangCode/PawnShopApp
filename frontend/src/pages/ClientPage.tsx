@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Paper, Typography } from "@mui/material";
 import ClientProfile from "../components/client/profile/ClientProfile";
-import ClientSearchResults from "../components/client/searchresults/ClientSearchResults";
+import ClientSearchResults from "../components/client/searchResults/ClientSearchResults";
 import { useClientSearch } from "../hooks/useClientSearch";
+import defaultClient from "../utils/defaultClient";
 import type { Client } from "../../../shared/types/Client";
 
 interface ClientPageProps {
@@ -146,19 +147,12 @@ const ClientPage: React.FC<ClientPageProps> = ({
         }}
       >
         <Box sx={{ flex: 1, minHeight: 0, overflow: "auto", pr: 0.25 }}>
-          {selectedClient ? (
-            <ClientProfile
-              client={selectedClient}
-              showImage={false}
-              onClientUpdated={handleClientUpdated}
-            />
-          ) : (
-            <Box sx={{ p: 2 }}>
-              <Typography color="text.secondary">
-                Select a client from search results.
-              </Typography>
-            </Box>
-          )}
+          <ClientProfile
+            client={selectedClient ?? defaultClient}
+            showImage={false}
+            onClientUpdated={handleClientUpdated}
+            placeholder={!selectedClient}
+          />
         </Box>
 
         <Box
