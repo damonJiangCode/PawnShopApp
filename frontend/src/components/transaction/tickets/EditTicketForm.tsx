@@ -8,8 +8,8 @@ import {
   Button,
   Box,
 } from "@mui/material";
-import type { Ticket } from "../../../../shared/types/Ticket";
-import { LOCATIONS } from "../../assets/transaction/LOCATIONS";
+import type { Ticket } from "../../../../../shared/types/Ticket";
+import { LOCATIONS } from "../../../assets/transaction/LOCATIONS";
 import Autocomplete from "@mui/material/Autocomplete";
 
 interface EditTicketFormProps {

@@ -2,7 +2,7 @@ import React from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import type { GridColDef, GridValueFormatter } from "@mui/x-data-grid";
 import { Box } from "@mui/material";
-import type { Item } from "../../../../shared/types/Item";
+import type { Item } from "../../../../../shared/types/Item";
 
 interface ItemTableProps {
   items: Item[];

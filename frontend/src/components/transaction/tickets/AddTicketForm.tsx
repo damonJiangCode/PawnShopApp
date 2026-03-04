@@ -9,7 +9,7 @@ import {
   Autocomplete,
   Box,
 } from "@mui/material";
-import { LOCATIONS } from "../../assets/transaction/LOCATIONS";
+import { LOCATIONS } from "../../../assets/transaction/LOCATIONS";
 
 interface AddTicketFormProps {
   open: boolean;

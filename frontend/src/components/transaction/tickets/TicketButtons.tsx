@@ -5,7 +5,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import PrintIcon from "@mui/icons-material/Print";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ChangeCircleIcon from "@mui/icons-material/ChangeCircle";
-import type { Ticket } from "../../../../shared/types/Ticket";
+import type { Ticket } from "../../../../../shared/types/Ticket";
 
 interface TicketButtonsProps {
   selectedTicket: Ticket | null;

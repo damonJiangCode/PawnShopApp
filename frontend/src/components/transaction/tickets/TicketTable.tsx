@@ -2,7 +2,7 @@ import React from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import type { GridColDef } from "@mui/x-data-grid";
 import { Box, Tooltip } from "@mui/material";
-import type { Ticket } from "../../../../shared/types/Ticket";
+import type { Ticket } from "../../../../../shared/types/Ticket";
 
 interface TicketTableProps {
   tickets: Ticket[];
