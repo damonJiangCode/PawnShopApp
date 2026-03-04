@@ -1,5 +1,4 @@
 import {
-  Box,
   Paper,
   Table,
   TableBody,
@@ -7,7 +6,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Typography,
+  Box,
 } from "@mui/material";
 import { useRef, useState } from "react";
 import type { Client } from "../../../../../shared/types/Client";
@@ -25,6 +24,7 @@ const ClientResultsTable: React.FC<ClientResultsTableProps> = ({
   selectedClient,
   onSelect,
 }) => {
+  const indexWidth = 52;
   const minNumberColumnWidth = 64;
   const minNameColumnWidth = 110;
   const minDobColumnWidth = 120;
@@ -66,7 +66,7 @@ const ClientResultsTable: React.FC<ClientResultsTableProps> = ({
         if (dragState.type === "number-last") {
           const nextNumberWidth = Math.max(
             minNumberColumnWidth,
-            dragState.initialNumberWidth + deltaX
+            dragState.initialNumberWidth + deltaX,
           );
           const maxNumberWidth =
             dragState.initialNumberWidth +
@@ -86,7 +86,7 @@ const ClientResultsTable: React.FC<ClientResultsTableProps> = ({
         if (dragState.type === "last-first") {
           const nextLastNameWidth = Math.max(
             minNameColumnWidth,
-            dragState.initialLastNameWidth + deltaX
+            dragState.initialLastNameWidth + deltaX,
           );
           const maxLastNameWidth =
             dragState.initialLastNameWidth +
@@ -94,7 +94,7 @@ const ClientResultsTable: React.FC<ClientResultsTableProps> = ({
             minNameColumnWidth;
           const clampedLastNameWidth = Math.min(
             nextLastNameWidth,
-            maxLastNameWidth
+            maxLastNameWidth,
           );
           const nextFirstNameWidth =
             dragState.initialLastNameWidth +
@@ -108,7 +108,7 @@ const ClientResultsTable: React.FC<ClientResultsTableProps> = ({
 
         const nextFirstNameWidth = Math.max(
           minNameColumnWidth,
-          dragState.initialFirstNameWidth + deltaX
+          dragState.initialFirstNameWidth + deltaX,
         );
         const maxFirstNameWidth =
           dragState.initialFirstNameWidth +
@@ -116,7 +116,7 @@ const ClientResultsTable: React.FC<ClientResultsTableProps> = ({
           minDobColumnWidth;
         const clampedFirstNameWidth = Math.min(
           nextFirstNameWidth,
-          maxFirstNameWidth
+          maxFirstNameWidth,
         );
         const nextDobWidth =
           dragState.initialFirstNameWidth +
@@ -186,9 +186,10 @@ const ClientResultsTable: React.FC<ClientResultsTableProps> = ({
         boxSizing: "border-box",
       }}
     >
-        <TableContainer sx={{ height: "100%", overflowY: "auto" }}>
+      <TableContainer sx={{ height: "100%", overflowY: "auto" }}>
         <Table size="small" stickyHeader sx={{ tableLayout: "fixed" }}>
           <colgroup>
+            <col style={{ width: indexWidth }} />
             <col style={{ width: numberWidth }} />
             <col style={{ width: lastNameWidth }} />
             <col style={{ width: firstNameWidth }} />
@@ -196,6 +197,9 @@ const ClientResultsTable: React.FC<ClientResultsTableProps> = ({
           </colgroup>
           <TableHead>
             <TableRow>
+              <TableCell sx={{ width: indexWidth, fontWeight: 700 }}>
+                #
+              </TableCell>
               <TableCell
                 sx={{
                   width: numberWidth,
@@ -204,7 +208,7 @@ const ClientResultsTable: React.FC<ClientResultsTableProps> = ({
                   fontWeight: 700,
                 }}
               >
-                <Box sx={{ pr: 1.5 }}>#</Box>
+                <Box sx={{ pr: 1.5 }}>Client#</Box>
                 <Box
                   onMouseDown={handleResizeStart("number-last")}
                   sx={resizeHandleSx}
@@ -242,32 +246,25 @@ const ClientResultsTable: React.FC<ClientResultsTableProps> = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {results.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5}>
-                  <Typography color="text.secondary">No results.</Typography>
-                </TableCell>
-              </TableRow>
-            ) : (
-              results.map((client) => {
-                const selected =
-                  selectedClient?.client_number === client.client_number;
-                return (
-                  <TableRow
-                    key={client.client_number}
-                    hover
-                    selected={selected}
-                    onClick={() => onSelect(client)}
-                    sx={{ cursor: "pointer" }}
-                  >
-                    <TableCell>{client.client_number}</TableCell>
-                    <TableCell>{client.last_name?.toUpperCase()}</TableCell>
-                    <TableCell>{client.first_name?.toUpperCase()}</TableCell>
-                    <TableCell>{formatDob(client.date_of_birth)}</TableCell>
-                  </TableRow>
-                );
-              })
-            )}
+            {results.map((client, index) => {
+              const selected =
+                selectedClient?.client_number === client.client_number;
+              return (
+                <TableRow
+                  key={client.client_number}
+                  hover
+                  selected={selected}
+                  onClick={() => onSelect(client)}
+                  sx={{ cursor: "pointer" }}
+                >
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{client.client_number}</TableCell>
+                  <TableCell>{client.last_name?.toUpperCase()}</TableCell>
+                  <TableCell>{client.first_name?.toUpperCase()}</TableCell>
+                  <TableCell>{formatDob(client.date_of_birth)}</TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>
