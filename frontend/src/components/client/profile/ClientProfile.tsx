@@ -12,7 +12,6 @@ import {
 import { useEffect, useRef, useState } from "react";
 import InfoRow from "./InfoRow";
 import STAT_COLORS from "../../../assets/client/STAT_COLORS";
-import ClientForm from "../form/ClientForm";
 import type { Client, ID } from "../../../../../shared/types/Client";
 import { useClientImage } from "../../../hooks/useClientImage";
 
@@ -20,14 +19,15 @@ interface ClientProfileProps {
   client: Client;
   showImage?: boolean;
   onClientUpdated?: (client: Client) => void;
+  placeholder?: boolean;
 }
 
 const ClientProfile: React.FC<ClientProfileProps> = ({
   client,
   showImage = true,
   onClientUpdated,
+  placeholder = false,
 }) => {
-  const [showEditForm, setShowEditForm] = useState(false);
   const [showNoteForm, setShowNoteForm] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [notesDraft, setNotesDraft] = useState("");
@@ -48,6 +48,37 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
     minHeight: 0,
     boxSizing: "border-box" as const,
   };
+  const displayText = (value: unknown) => {
+    if (placeholder) {
+      return "-";
+    }
+
+    if (value === null || value === undefined || value === "") {
+      return "-";
+    }
+
+    return String(value);
+  };
+  const displayCount = (value: number | undefined) =>
+    placeholder ? "-" : String(value ?? 0);
+  const displayDate = (value: unknown) => {
+    if (placeholder || !value) {
+      return "-";
+    }
+
+    const parsed = value instanceof Date ? value : new Date(String(value));
+    if (Number.isNaN(parsed.getTime())) {
+      return String(value);
+    }
+
+    return parsed.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+    });
+  };
+  const displayMeasurement = (value: number | undefined, unit: string) =>
+    placeholder || value === undefined ? "-" : `${value} ${unit}`;
 
   useEffect(() => {
     if (!showPasswordForm) {
@@ -61,11 +92,6 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
 
     return () => clearTimeout(timer);
   }, [showPasswordForm]);
-
-  const handleSaveClient = async (updatedClient: Client) => {
-    onClientUpdated?.(updatedClient);
-    setShowEditForm(false);
-  };
 
   const handleOpenNoteForm = () => {
     setNotesDraft(client.notes || "");
@@ -98,9 +124,9 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
       let nextNotes = "";
 
       if (!skipPassword) {
-        const employee = await (window as any).electronAPI.verifyEmployeePassword(
-          employeePassword
-        );
+        const employee = await (
+          window as any
+        ).electronAPI.verifyEmployeePassword(employeePassword);
 
         if (!employee) {
           alert("No employee found with that password.");
@@ -124,9 +150,14 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
       setNotesDraft("");
       setEmployeePassword("");
     } catch (error) {
-      console.error("Employee password verification or note update failed:", error);
+      console.error(
+        "Employee password verification or note update failed:",
+        error,
+      );
       console.error("Failed to update client notes:", error);
-      alert("Failed to verify employee password or update notes. Please try again.");
+      alert(
+        "Failed to verify employee password or update notes. Please try again.",
+      );
     } finally {
       setSavingNotes(false);
     }
@@ -166,24 +197,6 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
             <Typography variant="subtitle2" fontWeight={700}>
               Profile
             </Typography>
-            <Button
-              sx={{
-                minWidth: 0,
-                px: 1,
-                py: 0.35,
-                fontSize: 11,
-                fontWeight: 700,
-                borderRadius: 1,
-                backgroundColor: "#1976d2",
-                color: "#fff",
-                "&:hover": {
-                  backgroundColor: "#115293",
-                },
-              }}
-              onClick={() => setShowEditForm(true)}
-            >
-              EDIT
-            </Button>
           </Box>
           {showImage && (
             <Box sx={{ display: "flex", justifyContent: "center", mb: 0.45 }}>
@@ -205,11 +218,23 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
             </Box>
           )}
           <Box sx={{ display: "flex", flexDirection: "column", gap: 0 }}>
-            <InfoRow label="Client #:" value={client.client_number} />
-            <InfoRow label="Last Name:" value={client.last_name?.toUpperCase()} />
-            <InfoRow label="First Name:" value={client.first_name?.toUpperCase()} />
-            <InfoRow label="Mid Name:" value={client.middle_name?.toUpperCase()} />
-            <InfoRow label="DoB:" value={client.date_of_birth} />
+            <InfoRow
+              label="Client #:"
+              value={displayText(client.client_number)}
+            />
+            <InfoRow
+              label="Last Name:"
+              value={displayText(client.last_name?.toUpperCase())}
+            />
+            <InfoRow
+              label="First Name:"
+              value={displayText(client.first_name?.toUpperCase())}
+            />
+            <InfoRow
+              label="Mid Name:"
+              value={displayText(client.middle_name?.toUpperCase())}
+            />
+            <InfoRow label="DoB:" value={displayDate(client.date_of_birth)} />
           </Box>
         </Box>
 
@@ -218,11 +243,20 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
             Physical
           </Typography>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 0 }}>
-            <InfoRow label="Gender:" value={client.gender} />
-            <InfoRow label="Hair Color:" value={client.hair_color} />
-            <InfoRow label="Eye Color:" value={client.eye_color} />
-            <InfoRow label="Height:" value={`${client.height_cm ?? "-"} cm`} />
-            <InfoRow label="Weight:" value={`${client.weight_kg ?? "-"} kg`} />
+            <InfoRow label="Gender:" value={displayText(client.gender)} />
+            <InfoRow
+              label="Hair Color:"
+              value={displayText(client.hair_color)}
+            />
+            <InfoRow label="Eye Color:" value={displayText(client.eye_color)} />
+            <InfoRow
+              label="Height:"
+              value={displayMeasurement(client.height_cm, "cm")}
+            />
+            <InfoRow
+              label="Weight:"
+              value={displayMeasurement(client.weight_kg, "kg")}
+            />
           </Box>
         </Box>
 
@@ -285,7 +319,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
                     lineHeight: 1.1,
                   }}
                 >
-                  {stat.value}
+                  {displayCount(stat.value)}
                 </Typography>
               </Box>
             ))}
@@ -304,7 +338,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
               overflow: "auto",
             }}
           >
-            {identifications.length > 0 ? (
+            {!placeholder && identifications.length > 0 ? (
               identifications.map((element, index) => (
                 <Box key={index}>
                   <InfoRow
@@ -315,7 +349,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
               ))
             ) : (
               <Typography color="text.secondary">
-                No identifications available.
+                {placeholder ? "-" : "No identifications available."}
               </Typography>
             )}
           </Box>
@@ -326,13 +360,16 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
             Contact
           </Typography>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 0 }}>
-            <InfoRow label="Address:" value={client.address || "-"} />
-            <InfoRow label="Postal Code:" value={client.postal_code || "-"} />
-            <InfoRow label="City:" value={client.city || "-"} />
-            <InfoRow label="Province:" value={client.province || "-"} />
-            <InfoRow label="Country:" value={client.country || "-"} />
-            <InfoRow label="Phone:" value={client.phone || "-"} />
-            <InfoRow label="Email:" value={client.email || "-"} />
+            <InfoRow label="Address:" value={displayText(client.address)} />
+            <InfoRow
+              label="Postal Code:"
+              value={displayText(client.postal_code)}
+            />
+            <InfoRow label="City:" value={displayText(client.city)} />
+            <InfoRow label="Province:" value={displayText(client.province)} />
+            <InfoRow label="Country:" value={displayText(client.country)} />
+            <InfoRow label="Phone:" value={displayText(client.phone)} />
+            <InfoRow label="Email:" value={displayText(client.email)} />
           </Box>
         </Box>
 
@@ -349,7 +386,12 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
             <Typography variant="subtitle2" fontWeight={700}>
               Notes
             </Typography>
-            <Button variant="outlined" size="small" onClick={handleOpenNoteForm}>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={handleOpenNoteForm}
+              disabled={placeholder}
+            >
               Edit Note
             </Button>
           </Box>
@@ -368,20 +410,11 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
                 lineHeight: 1.45,
               }}
             >
-              {client.notes || "No notes available."}
+              {placeholder ? "-" : client.notes || "No notes available."}
             </Typography>
           </Box>
         </Box>
       </Box>
-
-      {showEditForm && (
-        <ClientForm
-          clientExisted={client}
-          open={showEditForm}
-          onClose={() => setShowEditForm(false)}
-          onSave={handleSaveClient}
-        />
-      )}
 
       <Dialog
         open={showNoteForm}
