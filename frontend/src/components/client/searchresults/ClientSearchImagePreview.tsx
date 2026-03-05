@@ -1,5 +1,6 @@
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { Box, Button, Paper, Typography } from "@mui/material";
 import { useState } from "react";
 import type { Client } from "../../../../../shared/types/Client";
@@ -103,6 +104,24 @@ const ClientSearchImagePreview: React.FC<ClientSearchImagePreviewProps> = ({
           }}
         >
           Edit
+        </Button>
+        <Button
+          size="small"
+          variant="contained"
+          startIcon={<DeleteIcon />}
+          onClick={() => {
+            alert("REMOVE FUNCTION HAS NOT BEEN CREATED!");
+          }}
+          sx={{
+            minWidth: 0,
+            justifyContent: "flex-start",
+            px: 1,
+            "&:hover": {
+              boxShadow: 3,
+            },
+          }}
+        >
+          Rmv
         </Button>
       </Box>
 
