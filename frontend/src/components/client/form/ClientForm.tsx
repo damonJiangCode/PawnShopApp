@@ -36,18 +36,15 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
   const { clientExisted, open, onSave, onClose } = props;
   const isEditMode = Boolean(clientExisted?.client_number);
   const [client, setClient] = useState<Client>(clientExisted || defaultClient);
-  const [identifications] = useState<ID[]>(
-    clientExisted?.identifications ?? client.identifications ?? []
-  );
+  const [identifications] = useState<ID[]>(client.identifications ?? []);
   const idRef = useRef<IDFieldsRef>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
   const [cameraActive, setCameraActive] = useState(true);
   const [photoCaptured, setPhotoCaptured] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [employeePassword, setEmployeePassword] = useState("");
-  const [pendingUpdate, setPendingUpdate] = useState<PendingClientUpdate | null>(
-    null
-  );
+  const [pendingUpdate, setPendingUpdate] =
+    useState<PendingClientUpdate | null>(null);
   const [savingClient, setSavingClient] = useState(false);
 
   useEffect(() => {
@@ -77,7 +74,7 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
   }, [showPasswordDialog]);
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setClient((prev) => ({ ...prev, [name]: value }));
@@ -85,12 +82,12 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
 
   async function handleCapture(
     fileName: string,
-    base64: string
+    base64: string,
   ): Promise<void> {
     try {
       const relPath = await (window as any).electronAPI.saveClientImage(
         fileName,
-        base64
+        base64,
       );
       setClient((prev) => ({ ...prev, image_path: relPath }));
       setPhotoCaptured(true);
@@ -129,7 +126,7 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
 
     const ids = idRef.current?.getIDs() ?? [];
     const validIds = ids.filter(
-      (id) => id.id_type?.trim() && id.id_value?.trim()
+      (id) => id.id_type?.trim() && id.id_value?.trim(),
     );
 
     if (validIds.length < 2) {
@@ -153,12 +150,12 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
     } catch (err) {
       console.error(
         isEditMode ? "Failed to update client:" : "Failed to add client:",
-        err
+        err,
       );
       alert(
         isEditMode
           ? "Failed to update client. Please try again."
-          : "Failed to add client. Please try again."
+          : "Failed to add client. Please try again.",
       );
       throw err;
     } finally {
@@ -187,6 +184,18 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
       return;
     }
 
+    const trimmedNotes = nextPendingUpdate.client.notes?.trim() ?? "";
+    if (!trimmedNotes) {
+      await saveClientRecord({
+        ...nextPendingUpdate,
+        client: {
+          ...nextPendingUpdate.client,
+          notes: "",
+        },
+      });
+      return;
+    }
+
     setPendingUpdate(nextPendingUpdate);
     setEmployeePassword("");
     setShowPasswordDialog(true);
@@ -205,7 +214,7 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
     try {
       setSavingClient(true);
       const employee = await (window as any).electronAPI.verifyEmployeePassword(
-        employeePassword
+        employeePassword,
       );
 
       if (!employee) {
@@ -227,7 +236,9 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
         }
       }
 
-      const savedClient: Client = await (window as any).electronAPI.updateClient({
+      const savedClient: Client = await (
+        window as any
+      ).electronAPI.updateClient({
         client: nextClient,
         identifications: pendingUpdate.identifications,
       });
@@ -237,8 +248,13 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
       setPendingUpdate(null);
       onSave(savedClient);
     } catch (error) {
-      console.error("Failed to verify employee password or update client:", error);
-      alert("Failed to verify employee password or update client. Please try again.");
+      console.error(
+        "Failed to verify employee password or update client:",
+        error,
+      );
+      alert(
+        "Failed to verify employee password or update client. Please try again.",
+      );
     } finally {
       setSavingClient(false);
     }
@@ -258,12 +274,19 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
   return (
     <>
       <Dialog open={open} maxWidth="md" fullWidth>
-        <DialogTitle>{isEditMode ? "Edit Client" : "Add New Client"}</DialogTitle>
+        <DialogTitle>
+          {isEditMode ? "Edit Client" : "Add New Client"}
+        </DialogTitle>
         <DialogContent>
           <form onSubmit={handleSave}>
             <Box sx={{ display: "flex", gap: 2, py: 1 }}>
               <Box
-                sx={{ flex: 3, display: "flex", flexDirection: "column", gap: 2 }}
+                sx={{
+                  flex: 3,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 2,
+                }}
               >
                 <NameFields
                   lastName={client.last_name ?? ""}

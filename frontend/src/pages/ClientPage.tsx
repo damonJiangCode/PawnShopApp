@@ -21,14 +21,17 @@ const ClientPage: React.FC<ClientPageProps> = ({
   onClientSelected,
 }) => {
   const [selectedClient, setSelectedClient] = useState<Client | null>(
-    forcedClient ?? activeClient ?? null
+    forcedClient ?? activeClient ?? null,
   );
 
   const { results, loading, hasCompletedSearch } = useClientSearch(
     searchFirstName,
-    searchLastName
+    searchLastName,
   );
   const [displayResults, setDisplayResults] = useState<Client[]>([]);
+  const [clientOverrides, setClientOverrides] = useState<Record<number, Client>>(
+    {},
+  );
   const lastNoResultPromptKeyRef = useRef<string>("");
 
   useEffect(() => {
@@ -48,20 +51,34 @@ const ClientPage: React.FC<ClientPageProps> = ({
     const queryKey = `${normalizedFirst}|${normalizedLast}`;
     const hasQuery = Boolean(normalizedFirst || normalizedLast);
     const forcedClientNumber = forcedClient?.client_number;
+    const mergedResults = results.map((client) => {
+      const clientNumber = client.client_number;
+      if (!clientNumber) {
+        return client;
+      }
+      return clientOverrides[clientNumber] ?? client;
+    });
 
     if (forcedClientNumber) {
-      const mergedResults = results.some(
-        (client) => client.client_number === forcedClientNumber
+      const mergedWithForced = mergedResults.some(
+        (client) => client.client_number === forcedClientNumber,
       )
-        ? results
-        : [forcedClient, ...results];
-      setDisplayResults(mergedResults);
-      setSelectedClient(forcedClient);
+        ? mergedResults
+        : [
+            clientOverrides[forcedClientNumber] ?? forcedClient,
+            ...mergedResults,
+          ];
+      setDisplayResults(mergedWithForced);
+      setSelectedClient(
+        mergedWithForced.find(
+          (client) => client.client_number === forcedClientNumber,
+        ) ?? (clientOverrides[forcedClientNumber] ?? forcedClient),
+      );
       lastNoResultPromptKeyRef.current = "";
       return;
     }
 
-    setDisplayResults(results);
+    setDisplayResults(mergedResults);
 
     if (!hasQuery) {
       setSelectedClient(null);
@@ -72,7 +89,7 @@ const ClientPage: React.FC<ClientPageProps> = ({
       return;
     }
 
-    if (results.length === 0) {
+    if (mergedResults.length === 0) {
       setSelectedClient(null);
       if (lastNoResultPromptKeyRef.current !== queryKey) {
         alert("No client found.");
@@ -85,13 +102,24 @@ const ClientPage: React.FC<ClientPageProps> = ({
     const preferredClientNumber =
       forcedClient?.client_number ?? activeClient?.client_number;
     const matchedClient = preferredClientNumber
-      ? results.find(
-          (client) => client.client_number === preferredClientNumber
-        ) ?? null
+      ? (mergedResults.find(
+          (client) => client.client_number === preferredClientNumber,
+        ) ?? null)
       : null;
-    setSelectedClient(matchedClient ?? results[0]);
+    setSelectedClient((prev) => {
+      if (prev?.client_number) {
+        const mergedSelected = mergedResults.find(
+          (client) => client.client_number === prev.client_number,
+        );
+        if (mergedSelected) {
+          return mergedSelected;
+        }
+      }
+      return matchedClient ?? mergedResults[0];
+    });
   }, [
     results,
+    clientOverrides,
     searchFirstName,
     searchLastName,
     loading,
@@ -101,9 +129,15 @@ const ClientPage: React.FC<ClientPageProps> = ({
   ]);
 
   const handleClientUpdated = (updatedClient: Client) => {
+    if (updatedClient.client_number) {
+      setClientOverrides((prev) => ({
+        ...prev,
+        [updatedClient.client_number as number]: updatedClient,
+      }));
+    }
     setDisplayResults((prev) => {
       const exists = prev.some(
-        (client) => client.client_number === updatedClient.client_number
+        (client) => client.client_number === updatedClient.client_number,
       );
       if (!exists) {
         return [updatedClient, ...prev];
@@ -112,7 +146,7 @@ const ClientPage: React.FC<ClientPageProps> = ({
       return prev.map((client) =>
         client.client_number === updatedClient.client_number
           ? updatedClient
-          : client
+          : client,
       );
     });
     setSelectedClient(updatedClient);
@@ -158,13 +192,13 @@ const ClientPage: React.FC<ClientPageProps> = ({
         <Box
           sx={{
             flex: "0 0 216px",
-            border: "2px solid",
+            border: "1px solid",
             borderColor: "primary.main",
             borderRadius: 2,
             p: 1,
             backgroundColor: "background.paper",
             boxShadow:
-              "0 0 0 3px rgba(25, 118, 210, 0.14), 0 10px 22px rgba(15, 23, 42, 0.10)",
+              "0 0 0 1px rgba(25, 118, 210, 0.14), 0 10px 22px rgba(15, 23, 42, 0.10)",
             minHeight: 0,
             overflow: "hidden",
             display: "flex",

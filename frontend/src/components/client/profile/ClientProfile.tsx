@@ -100,14 +100,21 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
   };
 
   const handleRequestSaveNote = () => {
-    if (!notesDraft.trim()) {
-      if ((client.notes || "").trim()) {
-        handleSaveNotes(true);
-      } else {
-        alert("Please enter a note first.");
-      }
+    const currentNotes = client.notes ?? "";
+    const trimmedCurrentNotes = currentNotes.trim();
+    const trimmedDraftNotes = notesDraft.trim();
+
+    if (trimmedDraftNotes === trimmedCurrentNotes) {
+      setShowNoteForm(false);
+      setEmployeePassword("");
       return;
     }
+
+    if (!trimmedDraftNotes) {
+      void handleSaveNotes(true);
+      return;
+    }
+
     setEmployeePassword("");
     setShowNoteForm(false);
     setShowPasswordForm(true);
@@ -121,9 +128,9 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
 
     setSavingNotes(true);
     try {
+      const trimmedNotes = notesDraft.trim();
       let nextNotes = "";
-
-      if (!skipPassword) {
+      if (!skipPassword && trimmedNotes) {
         const employee = await (
           window as any
         ).electronAPI.verifyEmployeePassword(employeePassword);
@@ -134,7 +141,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
         }
 
         const formattedDate = new Date().toLocaleDateString("en-CA");
-        nextNotes = `${notesDraft.trim()} (${employee.first_name}, ${formattedDate})`;
+        nextNotes = `${trimmedNotes} (${employee.first_name}, ${formattedDate})`;
       }
 
       const updatedClient = await (window as any).electronAPI.updateClient({
@@ -166,14 +173,14 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
   return (
     <Box
       sx={{
-        border: "2px solid",
-        borderColor: "primary.main",
-        borderRadius: 2,
         p: 1,
-        backgroundColor: "background.paper",
-        boxShadow:
-          "0 0 0 3px rgba(25, 118, 210, 0.14), 0 10px 22px rgba(15, 23, 42, 0.10)",
         boxSizing: "border-box",
+        // border: "2px solid",
+        // borderColor: "primary.main",
+        // borderRadius: 2,
+        // backgroundColor: "background.paper",
+        // boxShadow:
+        //   "0 0 0 3px rgba(25, 118, 210, 0.14), 0 10px 22px rgba(15, 23, 42, 0.10)",
       }}
     >
       <Box
@@ -392,7 +399,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
               onClick={handleOpenNoteForm}
               disabled={placeholder}
             >
-              Edit Note
+              Edit Notes
             </Button>
           </Box>
           <Box
@@ -426,7 +433,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>Edit Note</DialogTitle>
+        <DialogTitle>Edit Notes</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
