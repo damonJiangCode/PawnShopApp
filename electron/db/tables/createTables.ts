@@ -8,10 +8,7 @@ import { createClientIDsTable } from "./clientIDsTable.ts";
 import { createTicketsTable } from "./ticketsTable.ts";
 import { createItemsTable } from "./itemsTable.ts";
 import { createCitiesTable, importCities } from "./citiesTable.ts";
-import {
-  createHairColorsTable,
-  insertHairColors,
-} from "./hairColorsTable.ts";
+import { createHairColorsTable, insertHairColors } from "./hairColorsTable.ts";
 import { createEyeColorsTable, insertEyeColors } from "./eyeColorsTable.ts";
 import { createIDTypesTable, insertIDTypes } from "./IDTypesTable.ts";
 import { createEmployeesTable } from "./employeesTable.ts";
@@ -49,9 +46,9 @@ loadEnvFile();
 
 // create pool connection
 const pool = new Pool({
-  user: process.env.DB_USER ?? "pawnsystem",
+  user: process.env.DB_USER ?? "damon",
   host: process.env.DB_HOST ?? "localhost",
-  database: process.env.DB_NAME ?? "pawnsystemdb",
+  database: process.env.DB_NAME ?? "PawnShopDB",
   password: process.env.DB_PASSWORD ?? "0236",
   port: Number(process.env.DB_PORT ?? 5432),
 });
