@@ -171,28 +171,26 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
       return;
     }
 
-    if (!isEditMode) {
-      await saveClientRecord(nextPendingUpdate);
-      return;
-    }
-
+    const trimmedNotes = nextPendingUpdate.client.notes?.trim() ?? "";
     const notesChanged =
       (clientExisted?.notes ?? "") !== (nextPendingUpdate.client.notes ?? "");
+    const requiresEmployeePassword = isEditMode
+      ? notesChanged && Boolean(trimmedNotes)
+      : Boolean(trimmedNotes);
 
-    if (!notesChanged) {
+    if (!requiresEmployeePassword) {
+      if (isEditMode && notesChanged && !trimmedNotes) {
+        await saveClientRecord({
+          ...nextPendingUpdate,
+          client: {
+            ...nextPendingUpdate.client,
+            notes: "",
+          },
+        });
+        return;
+      }
+
       await saveClientRecord(nextPendingUpdate);
-      return;
-    }
-
-    const trimmedNotes = nextPendingUpdate.client.notes?.trim() ?? "";
-    if (!trimmedNotes) {
-      await saveClientRecord({
-        ...nextPendingUpdate,
-        client: {
-          ...nextPendingUpdate.client,
-          notes: "",
-        },
-      });
       return;
     }
 
@@ -236,12 +234,13 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
         }
       }
 
-      const savedClient: Client = await (
-        window as any
-      ).electronAPI.updateClient({
+      const payload = {
         client: nextClient,
         identifications: pendingUpdate.identifications,
-      });
+      };
+      const savedClient: Client = isEditMode
+        ? await (window as any).electronAPI.updateClient(payload)
+        : await (window as any).electronAPI.addClient(payload);
 
       setShowPasswordDialog(false);
       setEmployeePassword("");
@@ -249,11 +248,11 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
       onSave(savedClient);
     } catch (error) {
       console.error(
-        "Failed to verify employee password or update client:",
+        "Failed to verify employee password or save client:",
         error,
       );
       alert(
-        "Failed to verify employee password or update client. Please try again.",
+        "Failed to verify employee password or save client. Please try again.",
       );
     } finally {
       setSavingClient(false);
