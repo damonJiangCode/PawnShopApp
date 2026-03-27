@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Paper, Typography } from "@mui/material";
 import ClientProfile from "../components/client/profile/ClientProfile";
-import ClientSearchResults from "../components/client/searchResults/ClientSearchResults";
+import ClientSearchResults from "../components/client/searchresults/ClientSearchResults";
 import { useClientSearch } from "../hooks/useClientSearch";
 import defaultClient from "../utils/defaultClient";
 import type { Client } from "../../../shared/types/Client";
@@ -13,6 +13,7 @@ interface ClientPageProps {
   activeClient?: Client | null;
   onClientSelected?: (client: Client | null) => void;
 }
+
 const ClientPage: React.FC<ClientPageProps> = ({
   searchFirstName,
   searchLastName,
@@ -20,6 +21,20 @@ const ClientPage: React.FC<ClientPageProps> = ({
   activeClient,
   onClientSelected,
 }) => {
+  const matchesSearch = (
+    client: Client,
+    normalizedFirst: string,
+    normalizedLast: string,
+  ) => {
+    const clientFirst = client.first_name?.trim().toLowerCase() ?? "";
+    const clientLast = client.last_name?.trim().toLowerCase() ?? "";
+
+    const firstMatches = !normalizedFirst || clientFirst === normalizedFirst;
+    const lastMatches = !normalizedLast || clientLast === normalizedLast;
+
+    return firstMatches && lastMatches;
+  };
+
   const [selectedClient, setSelectedClient] = useState<Client | null>(
     forcedClient ?? activeClient ?? null,
   );
@@ -32,6 +47,8 @@ const ClientPage: React.FC<ClientPageProps> = ({
   const [clientOverrides, setClientOverrides] = useState<Record<number, Client>>(
     {},
   );
+  const [deletedClientNumbers, setDeletedClientNumbers] = useState<number[]>([]);
+  const [createdClient, setCreatedClient] = useState<Client | null>(null);
   const lastNoResultPromptKeyRef = useRef<string>("");
 
   useEffect(() => {
@@ -46,27 +63,65 @@ const ClientPage: React.FC<ClientPageProps> = ({
   }, [forcedClient, activeClient]);
 
   useEffect(() => {
+    setCreatedClient(null);
+  }, [searchFirstName, searchLastName, forcedClient]);
+
+  useEffect(() => {
     const normalizedFirst = searchFirstName.trim().toLowerCase();
     const normalizedLast = searchLastName.trim().toLowerCase();
     const queryKey = `${normalizedFirst}|${normalizedLast}`;
     const hasQuery = Boolean(normalizedFirst || normalizedLast);
     const forcedClientNumber = forcedClient?.client_number;
-    const mergedResults = results.map((client) => {
-      const clientNumber = client.client_number;
-      if (!clientNumber) {
-        return client;
-      }
-      return clientOverrides[clientNumber] ?? client;
-    });
+
+    if (createdClient?.client_number) {
+      setDisplayResults([createdClient]);
+      setSelectedClient(createdClient);
+      lastNoResultPromptKeyRef.current = "";
+      return;
+    }
+
+    const mergedResults = results
+      .map((client) => {
+        const clientNumber = client.client_number;
+        if (!clientNumber) {
+          return client;
+        }
+        return clientOverrides[clientNumber] ?? client;
+      })
+      .filter(
+        (client) =>
+          !client.client_number ||
+          !deletedClientNumbers.includes(client.client_number),
+      );
+    const mergedClientNumbers = new Set(
+      mergedResults
+        .map((client) => client.client_number)
+        .filter((clientNumber): clientNumber is number => Boolean(clientNumber)),
+    );
+    const overrideResults = hasQuery
+      ? Object.values(clientOverrides).filter((client) => {
+          const clientNumber = client.client_number;
+          if (!clientNumber || deletedClientNumbers.includes(clientNumber)) {
+            return false;
+          }
+
+          if (mergedClientNumbers.has(clientNumber)) {
+            return false;
+          }
+
+          return matchesSearch(client, normalizedFirst, normalizedLast);
+        })
+      : [];
+    const combinedResults = [...overrideResults, ...mergedResults];
 
     if (forcedClientNumber) {
-      const mergedWithForced = mergedResults.some(
+      const mergedWithForced = combinedResults.some(
         (client) => client.client_number === forcedClientNumber,
       )
-        ? mergedResults
+        ? combinedResults
         : [
             clientOverrides[forcedClientNumber] ?? forcedClient,
-            ...mergedResults,
+            ...combinedResults,
           ];
       setDisplayResults(mergedWithForced);
       setSelectedClient(
@@ -78,10 +133,10 @@ const ClientPage: React.FC<ClientPageProps> = ({
       return;
     }
 
-    setDisplayResults(mergedResults);
+    setDisplayResults(combinedResults);
 
     if (!hasQuery) {
-      setSelectedClient(null);
+      setSelectedClient(forcedClient ?? activeClient ?? null);
       return;
     }
 
@@ -89,12 +144,18 @@ const ClientPage: React.FC<ClientPageProps> = ({
       return;
     }
 
-    if (mergedResults.length === 0) {
+    if (combinedResults.length === 0) {
       setSelectedClient(null);
-      if (lastNoResultPromptKeyRef.current !== queryKey) {
+      const searchReturnedNoClients = results.length === 0;
+      if (
+        searchReturnedNoClients &&
+        lastNoResultPromptKeyRef.current !== queryKey
+      ) {
         alert("No client found.");
         lastNoResultPromptKeyRef.current = queryKey;
+        return;
       }
+      lastNoResultPromptKeyRef.current = "";
       return;
     }
 
@@ -102,24 +163,26 @@ const ClientPage: React.FC<ClientPageProps> = ({
     const preferredClientNumber =
       forcedClient?.client_number ?? activeClient?.client_number;
     const matchedClient = preferredClientNumber
-      ? (mergedResults.find(
+      ? (combinedResults.find(
           (client) => client.client_number === preferredClientNumber,
         ) ?? null)
       : null;
     setSelectedClient((prev) => {
       if (prev?.client_number) {
-        const mergedSelected = mergedResults.find(
+        const mergedSelected = combinedResults.find(
           (client) => client.client_number === prev.client_number,
         );
         if (mergedSelected) {
           return mergedSelected;
         }
       }
-      return matchedClient ?? mergedResults[0];
+      return matchedClient ?? combinedResults[0];
     });
   }, [
+    createdClient,
     results,
     clientOverrides,
+    deletedClientNumbers,
     searchFirstName,
     searchLastName,
     loading,
@@ -128,13 +191,36 @@ const ClientPage: React.FC<ClientPageProps> = ({
     activeClient,
   ]);
 
+  const handleClientCreated = (newClient: Client) => {
+    if (newClient.client_number) {
+      setDeletedClientNumbers((prev) =>
+        prev.filter((clientNumber) => clientNumber !== newClient.client_number),
+      );
+      setClientOverrides((prev) => ({
+        ...prev,
+        [newClient.client_number as number]: newClient,
+      }));
+    }
+    setCreatedClient(newClient);
+    setDisplayResults([newClient]);
+    setSelectedClient(newClient);
+  };
+
   const handleClientUpdated = (updatedClient: Client) => {
     if (updatedClient.client_number) {
+      setDeletedClientNumbers((prev) =>
+        prev.filter((clientNumber) => clientNumber !== updatedClient.client_number),
+      );
       setClientOverrides((prev) => ({
         ...prev,
         [updatedClient.client_number as number]: updatedClient,
       }));
     }
+
+    if (createdClient?.client_number === updatedClient.client_number) {
+      setCreatedClient(updatedClient);
+    }
+
     setDisplayResults((prev) => {
       const exists = prev.some(
         (client) => client.client_number === updatedClient.client_number,
@@ -150,6 +236,26 @@ const ClientPage: React.FC<ClientPageProps> = ({
       );
     });
     setSelectedClient(updatedClient);
+  };
+
+  const handleClientDeleted = (clientNumber: number) => {
+    if (createdClient?.client_number === clientNumber) {
+      setCreatedClient(null);
+    }
+    setDeletedClientNumbers((prev) =>
+      prev.includes(clientNumber) ? prev : [...prev, clientNumber],
+    );
+    setClientOverrides((prev) => {
+      const next = { ...prev };
+      delete next[clientNumber];
+      return next;
+    });
+    setDisplayResults((prev) =>
+      prev.filter((client) => client.client_number !== clientNumber),
+    );
+    setSelectedClient((prev) =>
+      prev?.client_number === clientNumber ? null : prev,
+    );
   };
 
   useEffect(() => {
@@ -216,7 +322,9 @@ const ClientPage: React.FC<ClientPageProps> = ({
               results={displayResults}
               selectedClient={selectedClient}
               onSelect={setSelectedClient}
+              onClientCreated={handleClientCreated}
               onClientUpdated={handleClientUpdated}
+              onClientDeleted={handleClientDeleted}
             />
           </Box>
         </Box>

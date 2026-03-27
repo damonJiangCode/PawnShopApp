@@ -1,6 +1,7 @@
 import { ipcMain } from "electron";
 import {
   createClient,
+  deleteClient,
   searchClients,
   updateClient,
 } from "../services/clientService.ts";
@@ -21,6 +22,7 @@ const CHANNELS = {
   GET_ID_TYPES: "get-id-types",
   ADD_CLIENT: "add-client",
   UPDATE_CLIENT: "update-client",
+  DELETE_CLIENT: "delete-client",
   SAVE_CLIENT_IMAGE: "save-client-image",
   GET_CLIENT_IMAGE: "get-client-image",
   VERIFY_EMPLOYEE_PASSWORD: "verify-employee-password",
@@ -45,6 +47,9 @@ export const registerIpcHandlers = () => {
   ipcMain.handle(CHANNELS.UPDATE_CLIENT, async (_event, payload) => {
     const { client, identifications } = payload ?? {};
     return updateClient(client, identifications ?? []);
+  });
+  ipcMain.handle(CHANNELS.DELETE_CLIENT, async (_event, clientNumber: number) => {
+    return deleteClient(clientNumber);
   });
   ipcMain.handle(CHANNELS.VERIFY_EMPLOYEE_PASSWORD, async (_event, password: string) => {
     return verifyEmployeePassword(password);

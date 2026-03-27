@@ -301,3 +301,26 @@ export const updateClient = async (
     client.release();
   }
 };
+
+export const deleteClientByNumber = async (
+  clientNumber: number,
+): Promise<boolean> => {
+  const client = await connect();
+
+  try {
+    await client.query("BEGIN");
+    const deleted = await client.query(
+      `DELETE FROM clients WHERE client_number = $1`,
+      [clientNumber],
+    );
+    await client.query("COMMIT");
+
+    return deleted.rowCount > 0;
+  } catch (error) {
+    await client.query("ROLLBACK");
+    console.error("[clientRepository] ERROR: Error deleting client:", error);
+    throw error;
+  } finally {
+    client.release();
+  }
+};

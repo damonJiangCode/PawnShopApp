@@ -8,6 +8,7 @@ const CHANNELS = {
   GET_ID_TYPES: "get-id-types",
   ADD_CLIENT: "add-client",
   UPDATE_CLIENT: "update-client",
+  DELETE_CLIENT: "delete-client",
   SAVE_CLIENT_IMAGE: "save-client-image",
   GET_CLIENT_IMAGE: "get-client-image",
   VERIFY_EMPLOYEE_PASSWORD: "verify-employee-password",
@@ -23,6 +24,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   addClient: (payload) => ipcRenderer.invoke(CHANNELS.ADD_CLIENT, payload),
   updateClient: (payload) =>
     ipcRenderer.invoke(CHANNELS.UPDATE_CLIENT, payload),
+  deleteClient: (clientNumber) =>
+    ipcRenderer.invoke(CHANNELS.DELETE_CLIENT, clientNumber),
   verifyEmployeePassword: (password) =>
     ipcRenderer.invoke(CHANNELS.VERIFY_EMPLOYEE_PASSWORD, password),
   saveClientImage: (fileName, base64) =>

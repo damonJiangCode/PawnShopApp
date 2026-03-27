@@ -7,14 +7,18 @@ interface ClientSearchResultsProps {
   results: Client[];
   selectedClient?: Client | null;
   onSelect: (client: Client) => void;
+  onClientCreated?: (client: Client) => void;
   onClientUpdated?: (client: Client) => void;
+  onClientDeleted?: (clientNumber: number) => void;
 }
 
 const ClientSearchResults: React.FC<ClientSearchResultsProps> = ({
   results,
   selectedClient,
   onSelect,
+  onClientCreated,
   onClientUpdated,
+  onClientDeleted,
 }) => {
   const previewClient = selectedClient ?? results[0] ?? null;
 
@@ -37,7 +41,9 @@ const ClientSearchResults: React.FC<ClientSearchResultsProps> = ({
 
       <ClientSearchImagePreview
         client={previewClient}
+        onClientCreated={onClientCreated}
         onClientUpdated={onClientUpdated}
+        onClientDeleted={onClientDeleted}
       />
     </Box>
   );

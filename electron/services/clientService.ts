@@ -1,6 +1,7 @@
 import type { Client } from "../../shared/types/Client.ts";
 import {
   addClient,
+  deleteClientByNumber,
   searchClientsByName,
   updateClient as updateClientInRepo,
 } from "../db/repositories/clientRepository.ts";
@@ -32,4 +33,12 @@ export const updateClient = async (
   ids: ID[]
 ): Promise<Client> => {
   return updateClientInRepo(clientData, ids ?? []);
+};
+
+export const deleteClient = async (clientNumber: number): Promise<boolean> => {
+  if (!Number.isFinite(clientNumber)) {
+    throw new Error("Invalid client number for delete");
+  }
+
+  return deleteClientByNumber(clientNumber);
 };
