@@ -13,6 +13,7 @@ const MainLayout: React.FC = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const [searchFirstName, setSearchFirstName] = useState("");
   const [searchLastName, setSearchLastName] = useState("");
+  const [searchRequestKey, setSearchRequestKey] = useState(0);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [forcedClient, setForcedClient] = useState<Client | null>(null);
 
@@ -26,12 +27,14 @@ const MainLayout: React.FC = () => {
     setForcedClient(null);
     setSearchFirstName(firstName);
     setSearchLastName(lastName);
+    setSearchRequestKey((prev) => prev + 1);
   };
 
   const handleClear = () => {
     setForcedClient(null);
     setSearchFirstName("");
     setSearchLastName("");
+    setSearchRequestKey(0);
     setSelectedClient(null);
   };
 
@@ -148,6 +151,7 @@ const MainLayout: React.FC = () => {
               <ClientPage
                 searchFirstName={searchFirstName}
                 searchLastName={searchLastName}
+                searchRequestKey={searchRequestKey}
                 forcedClient={forcedClient}
                 activeClient={selectedClient}
                 onClientSelected={setSelectedClient}

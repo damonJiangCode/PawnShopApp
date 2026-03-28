@@ -12,9 +12,12 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onClear }) => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
 
-  const handleSearch = () => {
-    const trimmedFirstName = firstName.trim();
-    const trimmedLastName = lastName.trim();
+  const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
+    const trimmedFirstName = String(formData.get("firstName") ?? "").trim();
+    const trimmedLastName = String(formData.get("lastName") ?? "").trim();
 
     if (!trimmedFirstName && !trimmedLastName) {
       alert("Please enter a first name or last name to search.");
@@ -34,47 +37,51 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onClear }) => {
   };
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        gap: 2,
-        justifyContent: "space-between",
-        alignItems: "center",
-      }}
-    >
-      <TextField
-        size="small"
-        label="Last Name"
-        value={lastName}
-        sx={{ width: 240 }}
-        onChange={(e) => setLastName(e.target.value)}
-      />
-      <TextField
-        size="small"
-        label="First Name"
-        value={firstName}
-        sx={{ width: 240 }}
-        onChange={(e) => setFirstName(e.target.value)}
-      />
-
-      <Button
-        size="small"
-        variant="contained"
-        startIcon={<SearchIcon />}
-        onClick={handleSearch}
+    <form onSubmit={handleSearch}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
       >
-        Search
-      </Button>
+        <TextField
+          name="lastName"
+          size="small"
+          label="Last Name"
+          value={lastName}
+          sx={{ width: 240 }}
+          onChange={(e) => setLastName(e.target.value)}
+        />
+        <TextField
+          name="firstName"
+          size="small"
+          label="First Name"
+          value={firstName}
+          sx={{ width: 240 }}
+          onChange={(e) => setFirstName(e.target.value)}
+        />
 
-      <Button
-        size="small"
-        variant="outlined"
-        startIcon={<ClearIcon />}
-        onClick={handleClear}
-      >
-        Clear
-      </Button>
-    </Box>
+        <Button
+          type="submit"
+          size="small"
+          variant="contained"
+          startIcon={<SearchIcon />}
+        >
+          Search
+        </Button>
+
+        <Button
+          size="small"
+          variant="outlined"
+          startIcon={<ClearIcon />}
+          onClick={handleClear}
+        >
+          Clear
+        </Button>
+      </Box>
+    </form>
   );
 };
 

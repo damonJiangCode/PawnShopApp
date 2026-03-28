@@ -9,6 +9,7 @@ import type { Client } from "../../../shared/types/Client";
 interface ClientPageProps {
   searchFirstName: string;
   searchLastName: string;
+  searchRequestKey?: number;
   forcedClient?: Client | null;
   activeClient?: Client | null;
   onClientSelected?: (client: Client | null) => void;
@@ -17,6 +18,7 @@ interface ClientPageProps {
 const ClientPage: React.FC<ClientPageProps> = ({
   searchFirstName,
   searchLastName,
+  searchRequestKey = 0,
   forcedClient,
   activeClient,
   onClientSelected,
@@ -29,8 +31,10 @@ const ClientPage: React.FC<ClientPageProps> = ({
     const clientFirst = client.first_name?.trim().toLowerCase() ?? "";
     const clientLast = client.last_name?.trim().toLowerCase() ?? "";
 
-    const firstMatches = !normalizedFirst || clientFirst === normalizedFirst;
-    const lastMatches = !normalizedLast || clientLast === normalizedLast;
+    const firstMatches =
+      !normalizedFirst || clientFirst.startsWith(normalizedFirst);
+    const lastMatches =
+      !normalizedLast || clientLast.startsWith(normalizedLast);
 
     return firstMatches && lastMatches;
   };
@@ -39,9 +43,10 @@ const ClientPage: React.FC<ClientPageProps> = ({
     forcedClient ?? activeClient ?? null,
   );
 
-  const { results, loading, hasCompletedSearch } = useClientSearch(
+  const { results, loading, hasCompletedSearch, completedQueryKey } = useClientSearch(
     searchFirstName,
     searchLastName,
+    searchRequestKey,
   );
   const [displayResults, setDisplayResults] = useState<Client[]>([]);
   const [clientOverrides, setClientOverrides] = useState<Record<number, Client>>(
@@ -64,7 +69,7 @@ const ClientPage: React.FC<ClientPageProps> = ({
 
   useEffect(() => {
     setCreatedClient(null);
-  }, [searchFirstName, searchLastName, forcedClient]);
+  }, [searchFirstName, searchLastName, searchRequestKey, forcedClient]);
 
   useEffect(() => {
     const normalizedFirst = searchFirstName.trim().toLowerCase();
@@ -140,7 +145,7 @@ const ClientPage: React.FC<ClientPageProps> = ({
       return;
     }
 
-    if (loading || !hasCompletedSearch) {
+    if (loading || !hasCompletedSearch || completedQueryKey !== queryKey) {
       return;
     }
 
@@ -187,6 +192,7 @@ const ClientPage: React.FC<ClientPageProps> = ({
     searchLastName,
     loading,
     hasCompletedSearch,
+    completedQueryKey,
     forcedClient,
     activeClient,
   ]);

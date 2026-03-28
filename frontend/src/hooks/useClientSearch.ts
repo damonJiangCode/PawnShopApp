@@ -1,43 +1,52 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Client } from "../../../shared/types/Client";
 import { searchClients } from "../services/clientService";
 
-export const useClientSearch = (firstName: string, lastName: string) => {
+export const useClientSearch = (
+  firstName: string,
+  lastName: string,
+  searchRequestKey = 0,
+) => {
   const [results, setResults] = useState<Client[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasCompletedSearch, setHasCompletedSearch] = useState(false);
+  const [completedQueryKey, setCompletedQueryKey] = useState("");
+  const latestRequestIdRef = useRef(0);
 
   useEffect(() => {
-    const hasQuery = Boolean(firstName.trim() || lastName.trim());
+    const normalizedFirst = firstName.trim().toLowerCase();
+    const normalizedLast = lastName.trim().toLowerCase();
+    const queryKey = `${normalizedFirst}|${normalizedLast}`;
+    const hasQuery = Boolean(normalizedFirst || normalizedLast);
 
     if (!hasQuery) {
       setResults([]);
       setLoading(false);
       setHasCompletedSearch(false);
+      setCompletedQueryKey("");
       return;
     }
 
-    let active = true;
+    const requestId = latestRequestIdRef.current + 1;
+    latestRequestIdRef.current = requestId;
 
     const run = async () => {
+      setResults([]);
       setHasCompletedSearch(false);
       setLoading(true);
       try {
-        const data = await searchClients(firstName, lastName);
-        if (!active) return;
+        const data = await searchClients(normalizedFirst, normalizedLast);
+        if (latestRequestIdRef.current !== requestId) return;
         setResults(data);
+        setCompletedQueryKey(queryKey);
       } finally {
-        if (!active) return;
+        if (latestRequestIdRef.current !== requestId) return;
         setLoading(false);
         setHasCompletedSearch(true);
       }
     };
     run();
+  }, [firstName, lastName, searchRequestKey]);
 
-    return () => {
-      active = false;
-    };
-  }, [firstName, lastName]);
-
-  return { results, loading, hasCompletedSearch };
+  return { results, loading, hasCompletedSearch, completedQueryKey };
 };
