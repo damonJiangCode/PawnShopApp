@@ -12,6 +12,7 @@ const CHANNELS = {
   SAVE_CLIENT_IMAGE: "save-client-image",
   GET_CLIENT_IMAGE: "get-client-image",
   VERIFY_EMPLOYEE_PASSWORD: "verify-employee-password",
+  GET_TICKETS: "get-tickets",
 };
 
 contextBridge.exposeInMainWorld("electronAPI", {
@@ -32,6 +33,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke(CHANNELS.SAVE_CLIENT_IMAGE, fileName, base64),
   getClientImage: (imagePath) =>
     ipcRenderer.invoke(CHANNELS.GET_CLIENT_IMAGE, imagePath),
+  getTickets: (clientNumber) =>
+    ipcRenderer.invoke(CHANNELS.GET_TICKETS, clientNumber),
 });
 
 console.log("Preload (CJS) loaded");

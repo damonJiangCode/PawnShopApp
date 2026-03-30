@@ -11,8 +11,12 @@ import {
   fetchHairColors,
   fetchIdTypes,
 } from "../services/lookupService.ts";
-import { getClientImage, saveClientImage } from "../services/clientImageService.ts";
+import {
+  getClientImage,
+  saveClientImage,
+} from "../services/clientImageService.ts";
 import { verifyEmployeePassword } from "../services/employeeService.ts";
+import { fetchTickets } from "../services/ticketService.ts";
 
 const CHANNELS = {
   SEARCH_CLIENTS: "search-clients",
@@ -26,6 +30,7 @@ const CHANNELS = {
   SAVE_CLIENT_IMAGE: "save-client-image",
   GET_CLIENT_IMAGE: "get-client-image",
   VERIFY_EMPLOYEE_PASSWORD: "verify-employee-password",
+  GET_TICKETS: "get-tickets",
 } as const;
 
 export const registerIpcHandlers = () => {
@@ -33,7 +38,7 @@ export const registerIpcHandlers = () => {
     CHANNELS.SEARCH_CLIENTS,
     async (_event, firstName: string, lastName: string) => {
       return searchClients(firstName, lastName);
-    }
+    },
   );
 
   ipcMain.handle(CHANNELS.GET_CITIES, async () => fetchCities());
@@ -48,22 +53,31 @@ export const registerIpcHandlers = () => {
     const { client, identifications } = payload ?? {};
     return updateClient(client, identifications ?? []);
   });
-  ipcMain.handle(CHANNELS.DELETE_CLIENT, async (_event, clientNumber: number) => {
-    return deleteClient(clientNumber);
-  });
-  ipcMain.handle(CHANNELS.VERIFY_EMPLOYEE_PASSWORD, async (_event, password: string) => {
-    return verifyEmployeePassword(password);
-  });
+  ipcMain.handle(
+    CHANNELS.DELETE_CLIENT,
+    async (_event, clientNumber: number) => {
+      return deleteClient(clientNumber);
+    },
+  );
+  ipcMain.handle(
+    CHANNELS.VERIFY_EMPLOYEE_PASSWORD,
+    async (_event, password: string) => {
+      return verifyEmployeePassword(password);
+    },
+  );
   ipcMain.handle(
     CHANNELS.SAVE_CLIENT_IMAGE,
     async (_event, fileName: string, base64: string) => {
       return saveClientImage(fileName, base64);
-    }
+    },
   );
   ipcMain.handle(
     CHANNELS.GET_CLIENT_IMAGE,
     async (_event, imagePath: string) => {
       return getClientImage(imagePath);
-    }
+    },
   );
+  ipcMain.handle(CHANNELS.GET_TICKETS, async (_event, clientNumber: number) => {
+    return fetchTickets(clientNumber);
+  });
 };

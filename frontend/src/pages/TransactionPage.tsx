@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  Avatar,
   Box,
   Paper,
   Typography,
@@ -16,9 +15,7 @@ import ItemTable from "../components/transaction/items/ItemTable";
 import ItemButtons from "../components/transaction/items/ItemButtons";
 import AddTicketForm from "../components/transaction/tickets/AddTicketForm";
 import EditTicketForm from "../components/transaction/tickets/EditTicketForm";
-import { useTickets } from "../hooks/useTickets";
-import { useItems } from "../hooks/useItems";
-import { useClientImage } from "../hooks/useClientImage";
+import { loadItems, loadTickets } from "../services/transactionService";
 
 interface TransactionPageProps {
   clientNumber?: number;
@@ -26,96 +23,249 @@ interface TransactionPageProps {
   clientFirstName?: string;
 }
 
+const INTEREST_RATE = 0.3;
+
 const TransactionPage: React.FC<TransactionPageProps> = (props) => {
   const { clientNumber, clientLastName, clientFirstName } = props;
 
-  const { tickets: fetchedTickets, loading: ticketsLoading } = useTickets(clientNumber);
   const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
-
-  const { items: fetchedItems, loading: itemsLoading } = useItems(selectedTicket?.ticket_number);
   const [items, setItems] = useState<Item[]>([]);
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
-
+  const [ticketsLoading, setTicketsLoading] = useState(false);
+  const [itemsLoading, setItemsLoading] = useState(false);
+  const [ticketsError, setTicketsError] = useState<string>("");
+  const [itemsError, setItemsError] = useState<string>("");
   const [openAddTicketForm, setOpenAddTicketForm] = useState(false);
   const [openEditTicketForm, setOpenEditTicketForm] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
 
-  const itemImageSrc = useClientImage(selectedItem?.image_path);
   const loading = ticketsLoading || itemsLoading;
 
+  const nextTicketNumber = useMemo(() => {
+    const maxNo = tickets.reduce((max, ticket) => {
+      const current = Number(ticket.ticket_number ?? 0);
+      return current > max ? current : max;
+    }, 0);
+    return maxNo + 1;
+  }, [tickets]);
+
   useEffect(() => {
-    setTickets(fetchedTickets);
-  }, [fetchedTickets, clientNumber]);
+    let active = true;
+
+    const fetchTickets = async () => {
+      if (!clientNumber) {
+        setTickets([]);
+        setItems([]);
+        setSelectedTicket(null);
+        setSelectedItem(null);
+        setTicketsError("");
+        setItemsError("");
+        setStatusMessage("");
+        return;
+      }
+
+      setTicketsLoading(true);
+      setTicketsError("");
+      setStatusMessage("");
+
+      try {
+        // console.log("trying to call fetchTickets()");
+        const fetchedTickets = await loadTickets(clientNumber);
+        // console.log("fetchedTickets results: ", fetchedTickets);
+        if (!active) {
+          return;
+        }
+
+        setTickets(fetchedTickets);
+        setSelectedTicket((prev) => {
+          if (!fetchedTickets.length) {
+            return null;
+          }
+
+          if (!prev) {
+            return fetchedTickets[fetchedTickets.length - 1];
+          }
+
+          return (
+            fetchedTickets.find(
+              (ticket) => ticket.ticket_number === prev.ticket_number,
+            ) ?? fetchedTickets[fetchedTickets.length - 1]
+          );
+        });
+      } finally {
+        if (!active) {
+          return;
+        }
+
+        setTicketsLoading(false);
+      }
+    };
+
+    fetchTickets();
+
+    return () => {
+      active = false;
+    };
+  }, [clientNumber]);
+
+  useEffect(() => {
+    let active = true;
+
+    const fetchItems = async () => {
+      if (!selectedTicket?.ticket_number) {
+        setItems([]);
+        setSelectedItem(null);
+        setItemsError("");
+        return;
+      }
+
+      setItemsLoading(true);
+      setItemsError("");
+
+      try {
+        const fetchedItems = await loadItems(selectedTicket.ticket_number);
+        if (!active) {
+          return;
+        }
+
+        setItems(fetchedItems);
+        setSelectedItem((prev) => {
+          if (!fetchedItems.length) {
+            return null;
+          }
+
+          if (!prev) {
+            return fetchedItems[0];
+          }
+
+          return (
+            fetchedItems.find(
+              (item) => item.item_number === prev.item_number,
+            ) ?? fetchedItems[0]
+          );
+        });
+      } finally {
+        if (!active) {
+          return;
+        }
+
+        setItemsLoading(false);
+      }
+    };
+
+    fetchItems();
+
+    return () => {
+      active = false;
+    };
+  }, [selectedTicket?.ticket_number]);
 
   useEffect(() => {
     if (!selectedTicket) {
-      setItems([]);
-      setSelectedItem(null);
       return;
     }
-    setItems(fetchedItems);
-    setSelectedItem((prev) => {
-      if (!prev) return fetchedItems[0] ?? null;
-      return fetchedItems.find((i) => i.item_number === prev.item_number) ?? fetchedItems[0] ?? null;
-    });
-  }, [fetchedItems, selectedTicket]);
 
-  useEffect(() => {
-    if (!selectedTicket) return;
-    const exists = tickets.some((t) => t.ticket_number === selectedTicket.ticket_number);
-    if (!exists) {
+    const matchedTicket =
+      tickets.find(
+        (ticket) => ticket.ticket_number === selectedTicket.ticket_number,
+      ) ?? null;
+
+    if (!matchedTicket) {
       setSelectedTicket(tickets[0] ?? null);
     }
   }, [tickets, selectedTicket]);
 
   useEffect(() => {
-    if (selectedTicket || tickets.length === 0) return;
-    setSelectedTicket(tickets[0]);
-  }, [tickets, selectedTicket]);
+    if (!selectedItem) {
+      return;
+    }
 
-  const nextTicketNumber = useMemo(() => {
-    const maxNo = tickets.reduce((max, t) => {
-      const no = Number(t.ticket_number ?? 0);
-      return no > max ? no : max;
-    }, 0);
-    return maxNo + 1;
-  }, [tickets]);
+    const matchedItem =
+      items.find((item) => item.item_number === selectedItem.item_number) ??
+      null;
+
+    if (!matchedItem) {
+      setSelectedItem(items[0] ?? null);
+    }
+  }, [items, selectedItem]);
+
+  const buildTicketAmounts = (amount: number, oneTimeFee = 0) => {
+    const interest = Number((amount * INTEREST_RATE).toFixed(2));
+    const pickupAmount = Number((amount + interest + oneTimeFee).toFixed(2));
+
+    return {
+      interest,
+      pickup_amount: pickupAmount,
+    };
+  };
 
   const handleTicketSelected = (ticket: Ticket | null) => {
     setSelectedTicket(ticket);
+    setStatusMessage("");
   };
 
   const handleAddButtonClick = () => {
     setOpenAddTicketForm(true);
+    setStatusMessage("");
   };
 
   const handleEditButtonClick = () => {
     setOpenEditTicketForm(true);
+    setStatusMessage("");
   };
 
   const handleTicketPrint = () => {
-    if (!selectedTicket) return;
+    if (!selectedTicket) {
+      return;
+    }
+
     window.print();
   };
 
   const handleTicketChange = () => {
-    if (!selectedTicket || !clientNumber) return;
+    if (!selectedTicket || !clientNumber) {
+      return;
+    }
+
+    const nextTicket = {
+      ...selectedTicket,
+      client_number: clientNumber,
+    };
+
     setTickets((prev) =>
-      prev.map((ticket) => {
-        if (ticket.ticket_number !== selectedTicket.ticket_number) return ticket;
-        return { ...ticket, client_number: clientNumber };
-      })
+      prev.map((ticket) =>
+        ticket.ticket_number === selectedTicket.ticket_number
+          ? nextTicket
+          : ticket,
+      ),
     );
-    alert(`Ticket #${selectedTicket.ticket_number} is now assigned to client #${clientNumber}.`);
+    setSelectedTicket(nextTicket);
+    setStatusMessage(
+      `Ticket #${selectedTicket.ticket_number} is assigned to client #${clientNumber}.`,
+    );
   };
 
   const handleTicketExpire = () => {
-    if (!selectedTicket) return;
+    if (!selectedTicket) {
+      return;
+    }
+
+    const nextTicket: Ticket = {
+      ...selectedTicket,
+      status: "expired",
+    };
+
     setTickets((prev) =>
-      prev.map((ticket) => {
-        if (ticket.ticket_number !== selectedTicket.ticket_number) return ticket;
-        return { ...ticket, status: "expired" };
-      })
+      prev.map((ticket) =>
+        ticket.ticket_number === selectedTicket.ticket_number
+          ? nextTicket
+          : ticket,
+      ),
+    );
+    setSelectedTicket(nextTicket);
+    setStatusMessage(
+      `Ticket #${selectedTicket.ticket_number} marked as expired.`,
     );
   };
 
@@ -126,7 +276,9 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
     oneTimeFee: number;
     employeePassword: string;
   }) => {
-    if (!clientNumber) return;
+    if (!clientNumber) {
+      return;
+    }
 
     const transactionDate = new Date();
     const dueDate = new Date(transactionDate);
@@ -139,70 +291,82 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       description: data.description,
       due_date: dueDate,
       amount: data.amount,
-      interest: Number((0.3 * data.amount).toFixed(2)),
-      pickup_amount: Number((1.3 * data.amount + data.oneTimeFee).toFixed(2)),
       employee_name: "CURRENT_EMPLOYEE",
       status: "pawned",
       client_number: clientNumber,
       items: [],
+      ...buildTicketAmounts(data.amount, data.oneTimeFee),
     };
 
     setTickets((prev) => [newTicket, ...prev]);
     setSelectedTicket(newTicket);
+    setItems([]);
+    setSelectedItem(null);
     setOpenAddTicketForm(false);
+    setStatusMessage(`Ticket #${newTicket.ticket_number} added.`);
   };
 
   const handleEditTicket = (data: Partial<Ticket>) => {
-    if (!selectedTicket) return;
+    if (!selectedTicket) {
+      return;
+    }
+
+    const nextAmount =
+      typeof data.amount === "number" ? data.amount : selectedTicket.amount;
+    const nextTicket: Ticket = {
+      ...selectedTicket,
+      ...data,
+      amount: nextAmount,
+      ...buildTicketAmounts(nextAmount),
+    };
 
     setTickets((prev) =>
-      prev.map((ticket) => {
-        if (ticket.ticket_number !== selectedTicket.ticket_number) return ticket;
-        const nextAmount = typeof data.amount === "number" ? data.amount : ticket.amount;
-        return {
-          ...ticket,
-          ...data,
-          amount: nextAmount,
-          interest: Number((0.3 * nextAmount).toFixed(2)),
-          pickup_amount: Number((1.3 * nextAmount).toFixed(2)),
-        };
-      })
+      prev.map((ticket) =>
+        ticket.ticket_number === selectedTicket.ticket_number
+          ? nextTicket
+          : ticket,
+      ),
     );
-
-    setSelectedTicket((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        ...data,
-      };
-    });
-
+    setSelectedTicket(nextTicket);
     setOpenEditTicketForm(false);
+    setStatusMessage(`Ticket #${nextTicket.ticket_number} updated.`);
   };
 
   const handleItemClick = (item: Item) => {
     setSelectedItem(item);
+    setStatusMessage("");
   };
 
   const handleAddItem = () => {
-    alert("Add Item form is not wired yet.");
+    setStatusMessage("Add item is not wired yet.");
   };
 
   const handleEditItem = (_item: Item) => {
-    alert("Edit Item form is not wired yet.");
+    setStatusMessage("Edit item is not wired yet.");
   };
 
   const handleRemoveItem = (item: Item) => {
-    setItems((prev) => prev.filter((current) => current.item_number !== item.item_number));
-    setSelectedItem((prev) =>
-      prev?.item_number === item.item_number ? null : prev
+    const nextItems = items.filter(
+      (current) => current.item_number !== item.item_number,
     );
+
+    setItems(nextItems);
+    setSelectedItem((prev) => {
+      if (prev?.item_number !== item.item_number) {
+        return prev;
+      }
+
+      return nextItems[0] ?? null;
+    });
+    setStatusMessage(`Item #${item.item_number} removed from view.`);
   };
 
   if (!clientNumber) {
     return (
       <Paper elevation={0} sx={{ p: 2, height: "100%" }}>
-        <Typography color="text.secondary">Please search and select a client first.</Typography>
+        <Typography color="text.secondary">
+          Please search and select a client first.
+        </Typography>
       </Paper>
     );
   }
@@ -326,6 +490,16 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
                   ? `$${selectedTicket.pickup_amount.toFixed(2)}`
                   : "---"}
               </Typography>
+              {ticketsError && (
+                <Typography variant="body2" color="error">
+                  {ticketsError}
+                </Typography>
+              )}
+              {statusMessage && (
+                <Typography variant="body2" color="text.secondary">
+                  {statusMessage}
+                </Typography>
+              )}
             </Box>
           </Paper>
         </Box>
@@ -394,17 +568,9 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
                 {itemsLoading ? (
                   <CircularProgress size={24} />
                 ) : selectedItem ? (
-                  <Avatar
-                    variant="rounded"
-                    src={itemImageSrc ?? undefined}
-                    sx={{ width: "100%", height: "100%", borderRadius: 0.75 }}
-                  >
-                    {selectedItem.description?.[0] ?? "I"}
-                  </Avatar>
+                  <Typography color="text.secondary">img area</Typography>
                 ) : (
-                  <Typography color="text.secondary">
-                    Select an item
-                  </Typography>
+                  <Typography color="text.secondary">Select an item</Typography>
                 )}
               </Box>
 
@@ -424,6 +590,11 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
                   onEdit={handleEditItem}
                   onDelete={handleRemoveItem}
                 />
+                {itemsError && (
+                  <Typography variant="caption" color="error">
+                    {itemsError}
+                  </Typography>
+                )}
               </Box>
             </Paper>
           </Box>

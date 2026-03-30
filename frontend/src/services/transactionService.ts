@@ -7,6 +7,9 @@ const getElectronApi = () => (window as any).electronAPI;
 export const loadTickets = async (clientNumber?: number): Promise<Ticket[]> => {
   try {
     if (!clientNumber || !getElectronApi()?.getTickets) return [];
+    // console.log("transactionService called: client number is ", clientNumber);
+    const res = await getTickets(clientNumber);
+    // console.log("getTickets results: ", res);
     return await getTickets(clientNumber);
   } catch {
     return [];
