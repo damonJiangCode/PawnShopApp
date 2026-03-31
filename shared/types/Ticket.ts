@@ -7,6 +7,7 @@ export interface Ticket {
   description: string;
   due_date: Date;
   amount: number;
+  onetime_fee: number;
   interest: number;
   pickup_amount: number;
   interested_datetime?: Date;
