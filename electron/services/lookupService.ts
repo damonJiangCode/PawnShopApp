@@ -3,7 +3,7 @@ import {
   getEyeColors,
   getHairColors,
   getIdTypes,
-} from "../db/repositories/lookupRepository.ts";
+} from "../db/repo/lookupRepo.ts";
 
 export const fetchIdTypes = async () => getIdTypes();
 export const fetchCities = async () => getCities();

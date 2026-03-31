@@ -4,7 +4,7 @@ import {
   deleteClientByNumber,
   searchClientsByName,
   updateClient as updateClientInRepo,
-} from "../db/repositories/clientRepository.ts";
+} from "../db/repo/clientRepo.ts";
 import type { ID } from "../../shared/types/Client.ts";
 
 export const searchClients = async (
