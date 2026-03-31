@@ -1,6 +1,9 @@
 export const LOCATIONS: string[] = [
-  "A1",
-  "A2",
-  "B1",
-  "B2",
+  "AA11",
+  "AA13",
+  "AB23",
+  "AB25",
+  "AC56",
+  "AC78",
+  "CP11",
 ];
