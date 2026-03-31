@@ -29,7 +29,6 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
   const { open, clientLastName, clientFirstName, onClose, onSave } = props;
 
   const descriptionRef = useRef<HTMLInputElement>(null);
-
   const [description, setDescription] = useState<string>("");
   const [location, setLocation] = useState<string>("");
   const [locationList, setLocationList] = useState<string[]>([]);
@@ -46,13 +45,11 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
   }, []);
 
   useEffect(() => {
-    if (open) {
-      const timer = setTimeout(() => {
-        descriptionRef.current?.focus();
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-    return undefined;
+    if (!open) return;
+    const timer = setTimeout(() => {
+      descriptionRef.current?.focus;
+    }, 100);
+    return () => clearTimeout(timer);
   }, [open]);
 
   useEffect(() => {
@@ -121,7 +118,7 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
             onInputChange={(_event, inputValue, reason) => {
               if (reason === "input") {
                 const transformed = inputValue.replace(/[a-z]/g, (c) =>
-                  c.toUpperCase()
+                  c.toUpperCase(),
                 );
                 setLocation(transformed);
               }

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Paper,
@@ -15,15 +15,13 @@ import ItemTable from "../components/transaction/items/ItemTable";
 import ItemButtons from "../components/transaction/items/ItemButtons";
 import AddTicketForm from "../components/transaction/tickets/AddTicketForm";
 import EditTicketForm from "../components/transaction/tickets/EditTicketForm";
-import { loadItems, loadTickets } from "../services/transactionService";
+import { transactionService } from "../services/transactionService";
 
 interface TransactionPageProps {
   clientNumber?: number;
   clientLastName?: string;
   clientFirstName?: string;
 }
-
-const INTEREST_RATE = 0.3;
 
 const TransactionPage: React.FC<TransactionPageProps> = (props) => {
   const { clientNumber, clientLastName, clientFirstName } = props;
@@ -41,14 +39,6 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
   const [statusMessage, setStatusMessage] = useState("");
 
   const loading = ticketsLoading || itemsLoading;
-
-  const nextTicketNumber = useMemo(() => {
-    const maxNo = tickets.reduce((max, ticket) => {
-      const current = Number(ticket.ticket_number ?? 0);
-      return current > max ? current : max;
-    }, 0);
-    return maxNo + 1;
-  }, [tickets]);
 
   useEffect(() => {
     let active = true;
@@ -71,7 +61,8 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
 
       try {
         // console.log("trying to call fetchTickets()");
-        const fetchedTickets = await loadTickets(clientNumber);
+        const fetchedTickets =
+          await transactionService.loadTickets(clientNumber);
         // console.log("fetchedTickets results: ", fetchedTickets);
         if (!active) {
           return;
@@ -124,7 +115,9 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       setItemsError("");
 
       try {
-        const fetchedItems = await loadItems(selectedTicket.ticket_number);
+        const fetchedItems = await transactionService.loadItems(
+          selectedTicket.ticket_number,
+        );
         if (!active) {
           return;
         }
@@ -189,16 +182,6 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       setSelectedItem(items[0] ?? null);
     }
   }, [items, selectedItem]);
-
-  const buildTicketAmounts = (amount: number, oneTimeFee = 0) => {
-    const interest = Number((amount * INTEREST_RATE).toFixed(2));
-    const pickupAmount = Number((amount + interest + oneTimeFee).toFixed(2));
-
-    return {
-      interest,
-      pickup_amount: pickupAmount,
-    };
-  };
 
   const handleTicketSelected = (ticket: Ticket | null) => {
     setSelectedTicket(ticket);
@@ -269,7 +252,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
     );
   };
 
-  const handleAddTicket = (data: {
+  const handleAddTicket = async (ticketData: {
     description: string;
     location: string;
     amount: number;
@@ -280,30 +263,39 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       return;
     }
 
-    const transactionDate = new Date();
-    const dueDate = new Date(transactionDate);
-    dueDate.setDate(dueDate.getDate() + 30);
+    // const addTicketRes = await addTickets({
+    //   ...ticketData,
+    //   clientNumber,
+    // });
+    // console.log("[add ticket button]: ", addTicketRes);
+    return await transactionService.addTicket({
+      ...ticketData,
+      clientNumber,
+    });
 
-    const newTicket: Ticket = {
-      ticket_number: nextTicketNumber,
-      transaction_datetime: transactionDate,
-      location: data.location,
-      description: data.description,
-      due_date: dueDate,
-      amount: data.amount,
-      employee_name: "CURRENT_EMPLOYEE",
-      status: "pawned",
-      client_number: clientNumber,
-      items: [],
-      ...buildTicketAmounts(data.amount, data.oneTimeFee),
-    };
+    // const transactionDate = new Date();
+    // const dueDate = new Date(transactionDate);
+    // dueDate.setDate(dueDate.getDate() + 30);
 
-    setTickets((prev) => [newTicket, ...prev]);
-    setSelectedTicket(newTicket);
-    setItems([]);
-    setSelectedItem(null);
-    setOpenAddTicketForm(false);
-    setStatusMessage(`Ticket #${newTicket.ticket_number} added.`);
+    // const newTicket: Ticket = {
+    //   ticket_number: nextTicketNumber,
+    //   transaction_datetime: transactionDate,
+    //   location: data.location,
+    //   description: data.description,
+    //   due_date: dueDate,
+    //   amount: data.amount,
+    //   employee_name: "CURRENT_EMPLOYEE",
+    //   status: "pawned",
+    //   client_number: clientNumber,
+    //   items: [],
+    // };
+
+    // setTickets((prev) => [newTicket, ...prev]);
+    // setSelectedTicket(newTicket);
+    // setItems([]);
+    // setSelectedItem(null);
+    // setOpenAddTicketForm(false);
+    // setStatusMessage(`Ticket #${newTicket.ticket_number} added.`);
   };
 
   const handleEditTicket = (data: Partial<Ticket>) => {
@@ -317,7 +309,6 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       ...selectedTicket,
       ...data,
       amount: nextAmount,
-      ...buildTicketAmounts(nextAmount),
     };
 
     setTickets((prev) =>

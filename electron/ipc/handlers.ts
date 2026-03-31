@@ -16,7 +16,7 @@ import {
   saveClientImage,
 } from "../services/clientImageService.ts";
 import { verifyEmployeePassword } from "../services/employeeService.ts";
-import { fetchTickets } from "../services/ticketService.ts";
+import { ticketService } from "../services/ticketService.ts";
 
 const CHANNELS = {
   SEARCH_CLIENTS: "search-clients",
@@ -30,6 +30,7 @@ const CHANNELS = {
   SAVE_CLIENT_IMAGE: "save-client-image",
   GET_CLIENT_IMAGE: "get-client-image",
   VERIFY_EMPLOYEE_PASSWORD: "verify-employee-password",
+  GET_EMPLOYEE_NAME: "get-employee-name",
   GET_TICKETS: "get-tickets",
 } as const;
 
@@ -66,6 +67,12 @@ export const registerIpcHandlers = () => {
     },
   );
   ipcMain.handle(
+    CHANNELS.GET_EMPLOYEE_NAME,
+    async (_event, employeePassword: string) => {
+      return ticketService.fetchEmployeeName(employeePassword);
+    },
+  );
+  ipcMain.handle(
     CHANNELS.SAVE_CLIENT_IMAGE,
     async (_event, fileName: string, base64: string) => {
       return saveClientImage(fileName, base64);
@@ -78,6 +85,6 @@ export const registerIpcHandlers = () => {
     },
   );
   ipcMain.handle(CHANNELS.GET_TICKETS, async (_event, clientNumber: number) => {
-    return fetchTickets(clientNumber);
+    return ticketService.fetchTickets(clientNumber);
   });
 };

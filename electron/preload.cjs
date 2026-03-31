@@ -12,6 +12,7 @@ const CHANNELS = {
   SAVE_CLIENT_IMAGE: "save-client-image",
   GET_CLIENT_IMAGE: "get-client-image",
   VERIFY_EMPLOYEE_PASSWORD: "verify-employee-password",
+  GET_EMPLOYEE_NAME: "get-employee-name",
   GET_TICKETS: "get-tickets",
 };
 
@@ -29,6 +30,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke(CHANNELS.DELETE_CLIENT, clientNumber),
   verifyEmployeePassword: (password) =>
     ipcRenderer.invoke(CHANNELS.VERIFY_EMPLOYEE_PASSWORD, password),
+  getEmployeeName: (employeePassword) =>
+    ipcRenderer.invoke(CHANNELS.GET_EMPLOYEE_NAME, employeePassword),
   saveClientImage: (fileName, base64) =>
     ipcRenderer.invoke(CHANNELS.SAVE_CLIENT_IMAGE, fileName, base64),
   getClientImage: (imagePath) =>
