@@ -14,6 +14,8 @@ const CHANNELS = {
   VERIFY_EMPLOYEE_PASSWORD: "verify-employee-password",
   GET_EMPLOYEE_NAME: "get-employee-name",
   GET_TICKETS: "get-tickets",
+  GET_ITEMS: "get-items",
+  ADD_TICKET: "add-ticket",
 };
 
 contextBridge.exposeInMainWorld("electronAPI", {
@@ -38,6 +40,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke(CHANNELS.GET_CLIENT_IMAGE, imagePath),
   getTickets: (clientNumber) =>
     ipcRenderer.invoke(CHANNELS.GET_TICKETS, clientNumber),
+  getItems: (ticketNumber) =>
+    ipcRenderer.invoke(CHANNELS.GET_ITEMS, ticketNumber),
+  addTicket: (payload) => ipcRenderer.invoke(CHANNELS.ADD_TICKET, payload),
 });
 
 console.log("Preload (CJS) loaded");

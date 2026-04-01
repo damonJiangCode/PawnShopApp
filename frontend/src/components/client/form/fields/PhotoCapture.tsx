@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Button, Typography } from "@mui/material";
 import type { Client } from "../../../../../../shared/types/Client";
+import { getClientImage } from "../../../../services/clientService";
 
 interface PhotoCaptureProps {
   client: Client;
@@ -48,9 +49,7 @@ const PhotoCapture: React.FC<PhotoCaptureProps> = (props) => {
     if (client.client_number && client.image_path) {
       (async () => {
         try {
-          const base64 = await (window as any).electronAPI.getClientImage(
-            client.image_path
-          );
+          const base64 = await getClientImage(client.image_path);
           if (base64) {
             setPhotoData(`data:image/png;base64,${base64}`);
           }

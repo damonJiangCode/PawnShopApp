@@ -1,21 +1,25 @@
 import type { Ticket } from "../../../shared/types/Ticket";
 import type { Item } from "../../../shared/types/Item";
-import { transactionApi } from "../api/transactionApi";
+import { calculation } from "../../../shared/utils/calculation";
+
+const getElectronApi = () => (window as any).electronAPI;
 
 type CreateTicketPayload = {
   description: string;
   location: string;
   amount: number;
-  oneTimeFee: number;
-  employeePassword: string;
-  clientNumber: number;
+  onetime_fee: number;
+  employee_name: string;
+  client_number: number;
 };
 
 export const transactionService = {
   loadTickets: async (clientNumber?: number): Promise<Ticket[]> => {
     try {
       if (!clientNumber) return [];
-      return await transactionApi.getTickets(clientNumber);
+      const api = getElectronApi();
+      if (!api?.getTickets) return [];
+      return await api.getTickets(clientNumber);
     } catch {
       return [];
     }
@@ -24,39 +28,52 @@ export const transactionService = {
   loadItems: async (ticketNumber?: number): Promise<Item[]> => {
     try {
       if (!ticketNumber) return [];
-      return await transactionApi.getItems(ticketNumber);
+      const api = getElectronApi();
+      if (!api?.getItems) return [];
+      return await api.getItems(ticketNumber);
     } catch {
       return [];
     }
   },
 
-  getEmployeeName: async (
-    employeePassword?: string,
-  ): Promise<string | null> => {
-    try {
-      if (!employeePassword || employeePassword.length === 0) return null;
-      return await transactionApi.getEmployeeName(employeePassword);
-    } catch {
-      return null;
+  getEmployeeName: async (employeePassword: string): Promise<string | null> => {
+    if (employeePassword === null || employeePassword.length === 0) {
+      throw new Error(
+        "[transactionService] getEmployeeName(): Cannot process employeePassword",
+      );
     }
+    const api = getElectronApi();
+    if (!api?.getEmployeeName) {
+      throw new Error(
+        "[transactionService] getEmployeeName(): Cannot get api from Electron",
+      );
+    }
+    return await api.getEmployeeName(employeePassword);
   },
 
-  addTicket: async (ticketData?: CreateTicketPayload): Promise<void> => {
-    try {
-      const interest = ticketData?.amount ? ticketData.amount * 0.3 : 0;
-      const status = "pawned";
-      const transaction_datetime = Date.now();
-      const due_date = transaction_datetime + 30;
-      const employee_name = "damon";
+  addTicket: async (
+    ticketData: CreateTicketPayload,
+  ): Promise<Ticket | null> => {
+    const interest = calculation.getIntAmt(ticketData.amount);
+    const pickupAmt = calculation.getPickupAmt(ticketData.amount);
+    const status = "pawned";
+    const transactionDatetime = calculation.getCurrentDatetime();
+    const dueDate = calculation.getDueDatetime(transactionDatetime);
 
-      return await transactionApi.addTicket({
-        ...ticketData,
-        interest: interest,
-        status: status,
-        transaction_datetime: transaction_datetime,
-        due_date: due_date,
-        employee_name: employee_name,
-      });
-    } catch {}
+    const api = getElectronApi();
+    if (!api?.addTicket) {
+      throw new Error(
+        "[transactionService] addTicket(): Cannot get api from Electron",
+      );
+    }
+
+    return await api.addTicket({
+      ...ticketData,
+      interest: interest,
+      pickup_amount: pickupAmt,
+      status: status,
+      transaction_datetime: transactionDatetime,
+      due_date: dueDate,
+    });
   },
 };

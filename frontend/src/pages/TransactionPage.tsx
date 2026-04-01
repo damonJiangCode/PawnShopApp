@@ -256,39 +256,51 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
     description: string;
     location: string;
     amount: number;
-    oneTimeFee: number;
-    employeePassword: string;
+    onetime_fee: number;
+    employee_password: string;
   }) => {
-    if (!clientNumber) {
-      return;
+    try {
+      if (!clientNumber) {
+        console.error(
+          "[TransactionPage] handleAddTicket(): No client number selected",
+        );
+        throw new Error("No client selected!");
+      }
+
+      const employeeName = await transactionService.getEmployeeName(
+        ticketData.employee_password,
+      );
+
+      if (!employeeName) {
+        console.error(
+          "[TransactionPage] handleAddTicket(): No employee name found",
+        );
+        throw new Error("No employee name found!");
+      }
+
+      const { employee_password, ...rest } = ticketData;
+
+      const newTicket = await transactionService.addTicket({
+        ...rest,
+        employee_name: employeeName,
+        client_number: clientNumber,
+      });
+
+      if (!newTicket) {
+        console.error("[TransactionPage] handleAddTicket(): Add ticket failed");
+        throw new Error("Cannot add ticket!");
+      }
+
+      setTickets((prev) => [newTicket, ...prev]);
+      setSelectedTicket(newTicket);
+      setItems([]);
+      setSelectedItem(null);
+      setOpenAddTicketForm(false);
+      setStatusMessage(`Ticket #${newTicket.ticket_number} added.`);
+      return newTicket;
+    } catch (err) {
+      console.error(err);
     }
-
-    // const addTicketRes = await addTickets({
-    //   ...ticketData,
-    //   clientNumber,
-    // });
-    // console.log("[add ticket button]: ", addTicketRes);
-    return await transactionService.addTicket({
-      ...ticketData,
-      clientNumber,
-    });
-
-    // const transactionDate = new Date();
-    // const dueDate = new Date(transactionDate);
-    // dueDate.setDate(dueDate.getDate() + 30);
-
-    // const newTicket: Ticket = {
-    //   ticket_number: nextTicketNumber,
-    //   transaction_datetime: transactionDate,
-    //   location: data.location,
-    //   description: data.description,
-    //   due_date: dueDate,
-    //   amount: data.amount,
-    //   employee_name: "CURRENT_EMPLOYEE",
-    //   status: "pawned",
-    //   client_number: clientNumber,
-    //   items: [],
-    // };
 
     // setTickets((prev) => [newTicket, ...prev]);
     // setSelectedTicket(newTicket);

@@ -14,6 +14,10 @@ import InfoRow from "./InfoRow";
 import STAT_COLORS from "../../../assets/client/STAT_COLORS";
 import type { Client, ID } from "../../../../../shared/types/Client";
 import { useClientImage } from "../../../hooks/useClientImage";
+import {
+  updateClient,
+  verifyEmployeePassword,
+} from "../../../services/clientService";
 
 interface ClientProfileProps {
   client: Client;
@@ -131,9 +135,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
       const trimmedNotes = notesDraft.trim();
       let nextNotes = "";
       if (!skipPassword && trimmedNotes) {
-        const employee = await (
-          window as any
-        ).electronAPI.verifyEmployeePassword(employeePassword);
+        const employee = await verifyEmployeePassword(employeePassword);
 
         if (!employee) {
           alert("No employee found with that password.");
@@ -144,7 +146,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
         nextNotes = `${trimmedNotes} (${employee.first_name}, ${formattedDate})`;
       }
 
-      const updatedClient = await (window as any).electronAPI.updateClient({
+      const updatedClient = await updateClient({
         client: {
           ...client,
           notes: nextNotes,

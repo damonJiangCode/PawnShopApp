@@ -20,8 +20,8 @@ interface AddTicketFormProps {
     description: string;
     location: string;
     amount: number;
-    oneTimeFee: number;
-    employeePassword: string;
+    onetime_fee: number;
+    employee_password: string;
   }) => void;
 }
 
@@ -80,8 +80,8 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
       description,
       location,
       amount: amount ? Number(amount) : 0,
-      oneTimeFee: oneTimeFee ? Number(oneTimeFee) : 0,
-      employeePassword,
+      onetime_fee: oneTimeFee ? Number(oneTimeFee) : 0,
+      employee_password: employeePassword,
     });
   };
 

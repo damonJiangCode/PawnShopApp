@@ -3,7 +3,7 @@ import { Box, TextField, MenuItem } from "@mui/material";
 import {
   loadEyeColors,
   loadHairColors,
-} from "../../../../services/lookupService";
+} from "../../../../services/clientService";
 
 interface DobGenderColorProps {
   date_of_birth?: Date | string;

@@ -15,6 +15,7 @@ import { useState } from "react";
 import type { Client } from "../../../../../shared/types/Client";
 import { useClientImage } from "../../../hooks/useClientImage";
 import ClientForm from "../form/ClientForm";
+import { deleteClient } from "../../../services/clientService";
 
 interface ClientSearchImagePreviewProps {
   client: Client | null;
@@ -42,9 +43,7 @@ const ClientSearchImagePreview: React.FC<ClientSearchImagePreviewProps> = ({
 
     try {
       setDeletingClient(true);
-      const deleted = await (window as any).electronAPI.deleteClient(
-        client.client_number,
-      );
+      const deleted = await deleteClient(client.client_number);
 
       if (!deleted) {
         alert("Client could not be deleted. Please try again.");

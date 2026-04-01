@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getClientImage } from "../services/clientService";
 
 export const useClientImage = (imagePath?: string) => {
   const [src, setSrc] = useState<string | null>(null);
@@ -12,12 +13,8 @@ export const useClientImage = (imagePath?: string) => {
       if (!imagePath) {
         return;
       }
-      const api = (window as any).electronAPI;
-      if (!api?.getClientImage) {
-        return;
-      }
       try {
-        const base64 = await api.getClientImage(imagePath);
+        const base64 = await getClientImage(imagePath);
         if (!active) {
           return;
         }

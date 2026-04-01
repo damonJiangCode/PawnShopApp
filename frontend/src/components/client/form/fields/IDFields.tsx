@@ -15,7 +15,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import type { ID } from "../../../../../../shared/types/Client";
-import { loadIdTypes } from "../../../../services/lookupService";
+import { loadIdTypes } from "../../../../services/clientService";
 
 export interface IDFieldsRef {
   getIDs: () => ID[];

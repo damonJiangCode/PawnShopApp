@@ -19,6 +19,12 @@ import ContactNotesFields from "./fields/ContactNotesFields";
 import IDFields from "./fields/IDFields";
 import type { IDFieldsRef } from "./fields/IDFields";
 import defaultClient from "../../../utils/defaultClient";
+import {
+  addClient,
+  saveClientImage,
+  updateClient,
+  verifyEmployeePassword,
+} from "../../../services/clientService";
 
 interface ClientFormProps {
   clientExisted?: Client;
@@ -85,10 +91,7 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
     base64: string,
   ): Promise<void> {
     try {
-      const relPath = await (window as any).electronAPI.saveClientImage(
-        fileName,
-        base64,
-      );
+      const relPath = await saveClientImage(fileName, base64);
       setClient((prev) => ({ ...prev, image_path: relPath }));
       setPhotoCaptured(true);
     } catch (error) {
@@ -144,8 +147,8 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
     try {
       setSavingClient(true);
       const savedClient: Client = isEditMode
-        ? await (window as any).electronAPI.updateClient(payload)
-        : await (window as any).electronAPI.addClient(payload);
+        ? await updateClient(payload)
+        : await addClient(payload);
       onSave(savedClient);
     } catch (err) {
       console.error(
@@ -211,9 +214,7 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
 
     try {
       setSavingClient(true);
-      const employee = await (window as any).electronAPI.verifyEmployeePassword(
-        employeePassword,
-      );
+      const employee = await verifyEmployeePassword(employeePassword);
 
       if (!employee) {
         alert("No employee found with that password.");
@@ -239,8 +240,8 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
         identifications: pendingUpdate.identifications,
       };
       const savedClient: Client = isEditMode
-        ? await (window as any).electronAPI.updateClient(payload)
-        : await (window as any).electronAPI.addClient(payload);
+        ? await updateClient(payload)
+        : await addClient(payload);
 
       setShowPasswordDialog(false);
       setEmployeePassword("");
