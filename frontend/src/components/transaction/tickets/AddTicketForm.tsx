@@ -10,6 +10,8 @@ import {
   Box,
 } from "@mui/material";
 import { LOCATIONS } from "../../../assets/transaction/LOCATIONS";
+import type { FormFieldError } from "../../../services/transactionService";
+import { calculation } from "../../../../../shared/utils/calculation";
 
 interface AddTicketFormProps {
   open: boolean;
@@ -22,7 +24,7 @@ interface AddTicketFormProps {
     amount: number;
     onetime_fee: number;
     employee_password: string;
-  }) => void;
+  }) => Promise<void>;
 }
 
 const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
@@ -38,51 +40,110 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
   const [employeePassword, setEmployeePassword] = useState<string | "">("");
   const [earlyClaimAmount, setEarlyClaimAmount] = useState(0);
   const [pickupAmount, setPickupAmount] = useState(0);
+  const [descriptionError, setDescriptionError] = useState("");
+  const [locationError, setLocationError] = useState("");
+  const [amountError, setAmountError] = useState("");
+  const [oneTimeFeeError, setOneTimeFeeError] = useState("");
+  const [employeePasswordError, setEmployeePasswordError] = useState("");
 
+  // render locations
   useEffect(() => {
     setLocationList(LOCATIONS);
     setLoading(false);
   }, []);
 
+  // focus on description input
   useEffect(() => {
     if (!open) return;
-    const timer = setTimeout(() => {
-      descriptionRef.current?.focus;
-    }, 100);
-    return () => clearTimeout(timer);
+    const id = requestAnimationFrame(() => {
+      descriptionRef.current?.focus();
+    });
+    return () => cancelAnimationFrame(id);
   }, [open]);
 
+  // initialize states
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    setDescription("");
+    setLocation("");
+    setAmount("");
+    setOneTimeFee("");
+    setEmployeePassword("");
+    setDescriptionError("");
+    setLocationError("");
+    setAmountError("");
+    setOneTimeFeeError("");
+    setEmployeePasswordError("");
+  }, [open]);
+
+  // render pickup amounts
   useEffect(() => {
     const amt = typeof amount === "number" ? amount : 0;
-    setEarlyClaimAmount(1.1 * amt + (oneTimeFee ? Number(oneTimeFee) : 0));
-    setPickupAmount(1.3 * amt + (oneTimeFee ? Number(oneTimeFee) : 0));
+    const fee = typeof oneTimeFee === "number" ? oneTimeFee : 0;
+    setEarlyClaimAmount(calculation.getEarlyAmt(amt, fee));
+    setPickupAmount(calculation.getPickupAmt(amt, fee));
   }, [amount, oneTimeFee]);
 
-  const handleSave = () => {
-    if (!description) {
-      alert("Please enter the description!");
-      return;
-    }
-    if (!location) {
-      alert("Please enter the location!");
-      return;
-    }
-    if (!amount) {
-      alert("Please enter the amount!");
-      return;
-    }
-    if (!employeePassword) {
-      alert("Please enter your employee's password!");
+  // handle save button clicked
+  const handleSave = async () => {
+    const trimmedDescription = description.trim();
+    const trimmedLocation = location.trim();
+    const trimmedPassword = employeePassword.trim();
+    const nextDescriptionError =
+      trimmedDescription.length === 0 ? "Description is required." : "";
+    const nextLocationError =
+      trimmedLocation.length === 0 ? "Location is required." : "";
+    const nextAmountError =
+      typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0
+        ? "Amount must be greater than 0."
+        : "";
+    const nextOneTimeFeeError =
+      oneTimeFee !== "" && (!Number.isFinite(oneTimeFee) || oneTimeFee < 0)
+        ? "One Time Fee cannot be negative."
+        : "";
+    const nextEmployeePasswordError =
+      trimmedPassword.length === 0 ? "Password is required." : "";
+
+    setDescriptionError(nextDescriptionError);
+    setLocationError(nextLocationError);
+    setAmountError(nextAmountError);
+    setOneTimeFeeError(nextOneTimeFeeError);
+    setEmployeePasswordError(nextEmployeePasswordError);
+
+    if (
+      nextDescriptionError ||
+      nextLocationError ||
+      nextAmountError ||
+      nextOneTimeFeeError ||
+      nextEmployeePasswordError
+    ) {
       return;
     }
 
-    onSave({
-      description,
-      location,
-      amount: amount ? Number(amount) : 0,
-      onetime_fee: oneTimeFee ? Number(oneTimeFee) : 0,
-      employee_password: employeePassword,
-    });
+    const normalizedAmount = amount as number;
+
+    try {
+      await onSave({
+        description: trimmedDescription,
+        location: trimmedLocation,
+        amount: normalizedAmount,
+        onetime_fee: typeof oneTimeFee === "number" ? oneTimeFee : 0,
+        employee_password: trimmedPassword,
+      });
+    } catch (err) {
+      console.error(err);
+      const formError = err as FormFieldError;
+
+      if (formError.field === "employee_password") {
+        setEmployeePasswordError(formError.message);
+        return;
+      }
+
+      alert(err instanceof Error ? err.message : "Failed to add ticket!");
+    }
   };
 
   return (
@@ -101,17 +162,27 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
             inputRef={descriptionRef}
             label="Description"
             value={description}
-            onChange={(e) =>
-              setDescription(e.target.value.toUpperCase().slice(0, 15))
-            }
+            onChange={(e) => {
+              setDescription(e.target.value.toUpperCase().slice(0, 15));
+              if (descriptionError) {
+                setDescriptionError("");
+              }
+            }}
             fullWidth
             required
             autoFocus
+            error={Boolean(descriptionError)}
+            helperText={descriptionError || " "}
           />
 
           <Autocomplete
             value={location}
-            onChange={(_event, newValue) => setLocation(newValue || "")}
+            onChange={(_event, newValue) => {
+              setLocation(newValue || "");
+              if (locationError) {
+                setLocationError("");
+              }
+            }}
             options={locationList}
             freeSolo
             disabled={loading}
@@ -121,10 +192,20 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
                   c.toUpperCase(),
                 );
                 setLocation(transformed);
+                if (locationError) {
+                  setLocationError("");
+                }
               }
             }}
             renderInput={(params) => (
-              <TextField {...params} label="Location" required fullWidth />
+              <TextField
+                {...params}
+                label="Location"
+                required
+                fullWidth
+                error={Boolean(locationError)}
+                helperText={locationError || " "}
+              />
             )}
           />
 
@@ -132,19 +213,33 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
             label="Amount"
             type="number"
             value={amount}
-            onChange={(e) => setAmount(Number(e.target.value))}
+            onChange={(e) => {
+              const nextValue = e.target.value;
+              setAmount(nextValue === "" ? "" : Number(nextValue));
+              if (amountError) {
+                setAmountError("");
+              }
+            }}
             fullWidth
             required
+            error={Boolean(amountError)}
+            helperText={amountError || " "}
           />
 
           <TextField
             label="One Time Fee"
             type="number"
             value={oneTimeFee}
-            onChange={(e) =>
-              setOneTimeFee(Number(e.target.value) as unknown as number)
-            }
+            onChange={(e) => {
+              const nextValue = e.target.value;
+              setOneTimeFee(nextValue === "" ? "" : Number(nextValue));
+              if (oneTimeFeeError) {
+                setOneTimeFeeError("");
+              }
+            }}
             fullWidth
+            error={Boolean(oneTimeFeeError)}
+            helperText={oneTimeFeeError || " "}
           />
 
           <Box sx={{ display: "flex", gap: 2 }}>
@@ -165,10 +260,17 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
           <TextField
             label="Employee Password"
             value={employeePassword}
-            onChange={(e) => setEmployeePassword(e.target.value)}
+            onChange={(e) => {
+              setEmployeePassword(e.target.value);
+              if (employeePasswordError) {
+                setEmployeePasswordError("");
+              }
+            }}
             fullWidth
             required
             type="password"
+            error={Boolean(employeePasswordError)}
+            helperText={employeePasswordError || " "}
           />
         </Box>
       </DialogContent>

@@ -15,8 +15,8 @@ import STAT_COLORS from "../../../assets/client/STAT_COLORS";
 import type { Client, ID } from "../../../../../shared/types/Client";
 import { useClientImage } from "../../../hooks/useClientImage";
 import {
+  loadEmployeeMatchByPassword,
   updateClient,
-  verifyEmployeePassword,
 } from "../../../services/clientService";
 
 interface ClientProfileProps {
@@ -135,7 +135,8 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
       const trimmedNotes = notesDraft.trim();
       let nextNotes = "";
       if (!skipPassword && trimmedNotes) {
-        const employee = await verifyEmployeePassword(employeePassword);
+        const employee =
+          await loadEmployeeMatchByPassword(employeePassword);
 
         if (!employee) {
           alert("No employee found with that password.");

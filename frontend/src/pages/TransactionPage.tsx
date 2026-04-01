@@ -23,6 +23,14 @@ interface TransactionPageProps {
   clientFirstName?: string;
 }
 
+type AddTicketInput = {
+  description: string;
+  location: string;
+  amount: number;
+  onetime_fee: number;
+  employee_password: string;
+};
+
 const TransactionPage: React.FC<TransactionPageProps> = (props) => {
   const { clientNumber, clientLastName, clientFirstName } = props;
 
@@ -252,62 +260,22 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
     );
   };
 
-  const handleAddTicket = async (ticketData: {
-    description: string;
-    location: string;
-    amount: number;
-    onetime_fee: number;
-    employee_password: string;
-  }) => {
-    try {
-      if (!clientNumber) {
-        console.error(
-          "[TransactionPage] handleAddTicket(): No client number selected",
-        );
-        throw new Error("No client selected!");
-      }
-
-      const employeeName = await transactionService.getEmployeeName(
-        ticketData.employee_password,
-      );
-
-      if (!employeeName) {
-        console.error(
-          "[TransactionPage] handleAddTicket(): No employee name found",
-        );
-        throw new Error("No employee name found!");
-      }
-
-      const { employee_password, ...rest } = ticketData;
-
-      const newTicket = await transactionService.addTicket({
-        ...rest,
-        employee_name: employeeName,
-        client_number: clientNumber,
-      });
-
-      if (!newTicket) {
-        console.error("[TransactionPage] handleAddTicket(): Add ticket failed");
-        throw new Error("Cannot add ticket!");
-      }
-
-      setTickets((prev) => [newTicket, ...prev]);
-      setSelectedTicket(newTicket);
-      setItems([]);
-      setSelectedItem(null);
-      setOpenAddTicketForm(false);
-      setStatusMessage(`Ticket #${newTicket.ticket_number} added.`);
-      return newTicket;
-    } catch (err) {
-      console.error(err);
+  const handleAddTicket = async (ticketData: AddTicketInput): Promise<void> => {
+    if (!clientNumber) {
+      throw new Error("Please select a client first.");
     }
 
-    // setTickets((prev) => [newTicket, ...prev]);
-    // setSelectedTicket(newTicket);
-    // setItems([]);
-    // setSelectedItem(null);
-    // setOpenAddTicketForm(false);
-    // setStatusMessage(`Ticket #${newTicket.ticket_number} added.`);
+    const newTicket = await transactionService.createTicket({
+      ...ticketData,
+      client_number: clientNumber,
+    });
+
+    setTickets((prev) => [newTicket, ...prev]);
+    setSelectedTicket(newTicket);
+    setItems([]);
+    setSelectedItem(null);
+    setOpenAddTicketForm(false);
+    setStatusMessage(`Ticket #${newTicket.ticket_number} added.`);
   };
 
   const handleEditTicket = (data: Partial<Ticket>) => {

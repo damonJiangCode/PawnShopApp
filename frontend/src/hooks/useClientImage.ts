@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getClientImage } from "../services/clientService";
+import { loadClientImage } from "../services/clientService";
 
 export const useClientImage = (imagePath?: string) => {
   const [src, setSrc] = useState<string | null>(null);
@@ -14,7 +14,7 @@ export const useClientImage = (imagePath?: string) => {
         return;
       }
       try {
-        const base64 = await getClientImage(imagePath);
+        const base64 = await loadClientImage(imagePath);
         if (!active) {
           return;
         }

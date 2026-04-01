@@ -21,9 +21,9 @@ import type { IDFieldsRef } from "./fields/IDFields";
 import defaultClient from "../../../utils/defaultClient";
 import {
   addClient,
+  loadEmployeeMatchByPassword,
   saveClientImage,
   updateClient,
-  verifyEmployeePassword,
 } from "../../../services/clientService";
 
 interface ClientFormProps {
@@ -214,7 +214,7 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
 
     try {
       setSavingClient(true);
-      const employee = await verifyEmployeePassword(employeePassword);
+      const employee = await loadEmployeeMatchByPassword(employeePassword);
 
       if (!employee) {
         alert("No employee found with that password.");

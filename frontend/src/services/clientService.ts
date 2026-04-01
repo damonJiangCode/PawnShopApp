@@ -5,90 +5,99 @@ type CitiesResponse = {
   citiesByProvince: Record<string, string[]>;
 };
 
-type EmployeeMatch = {
+export type EmployeeMatch = {
   employee_number: number;
   first_name: string;
   last_name: string;
 };
 
-type ClientPayload = {
+type SaveClientPayload = {
   client: Client;
   identifications: ID[];
 };
 
 const getElectronApi = () => (window as any).electronAPI;
+const getApi = getElectronApi;
 
 const emptyCities = (): CitiesResponse => ({
   provinces: [],
   citiesByProvince: {},
 });
 
+const normalizeSearchInput = (value?: string) => value?.trim() ?? "";
+const normalizeEmployeePassword = (value?: string) => value?.trim() ?? "";
+
 export const clientService = {
   searchClients: async (
     firstName: string,
     lastName: string,
   ): Promise<Client[]> => {
-    const safeFirst = firstName?.trim() ?? "";
-    const safeLast = lastName?.trim() ?? "";
+    const normalizedFirstName = normalizeSearchInput(firstName);
+    const normalizedLastName = normalizeSearchInput(lastName);
 
-    if (!safeFirst && !safeLast) {
+    if (!normalizedFirstName && !normalizedLastName) {
       return [];
     }
 
-    if (!getElectronApi()?.searchClients) {
+    const api = getApi();
+    if (!api?.searchClients) {
       return [];
     }
 
     try {
-      return await getElectronApi().searchClients(safeFirst, safeLast);
+      return await api.searchClients(normalizedFirstName, normalizedLastName);
     } catch {
       return [];
     }
   },
 
   loadCities: async (): Promise<CitiesResponse> => {
-    if (!getElectronApi()?.getCities) {
+    const api = getApi();
+    if (!api?.getCities) {
       return emptyCities();
     }
 
     try {
-      return await getElectronApi().getCities();
+      return await api.getCities();
     } catch {
       return emptyCities();
     }
   },
 
   loadHairColors: async (): Promise<string[]> => {
-    if (!getElectronApi()?.getHairColors) {
+    const api = getApi();
+    if (!api?.getHairColors) {
       return [];
     }
 
     try {
-      return await getElectronApi().getHairColors();
+      return await api.getHairColors();
     } catch {
       return [];
     }
   },
 
   loadEyeColors: async (): Promise<string[]> => {
-    if (!getElectronApi()?.getEyeColors) {
+    const api = getApi();
+    if (!api?.getEyeColors) {
       return [];
     }
 
     try {
-      return await getElectronApi().getEyeColors();
+      return await api.getEyeColors();
     } catch {
       return [];
     }
   },
 
   loadIdTypes: async (): Promise<string[]> => {
-    if (!getElectronApi()?.getIdTypes) {
+    const api = getApi();
+    if (!api?.getIdTypes) {
       return [];
     }
 
     try {
-      return await getElectronApi().getIdTypes();
+      return await api.getIdTypes();
     } catch {
       return [];
     }
@@ -98,64 +107,71 @@ export const clientService = {
     fileName: string,
     base64: string,
   ): Promise<string> => {
-    if (!getElectronApi()?.saveClientImage) {
+    const api = getApi();
+    if (!api?.saveClientImage) {
       throw new Error("saveClientImage is not available");
     }
 
-    return getElectronApi().saveClientImage(fileName, base64);
+    return api.saveClientImage(fileName, base64);
   },
 
-  getClientImage: async (imagePath?: string): Promise<string | null> => {
-    if (!imagePath || !getElectronApi()?.getClientImage) {
+  loadClientImage: async (imagePath?: string): Promise<string | null> => {
+    const api = getApi();
+
+    if (!imagePath || !api?.getClientImage) {
       return null;
     }
 
     try {
-      return await getElectronApi().getClientImage(imagePath);
+      return await api.getClientImage(imagePath);
     } catch {
       return null;
     }
   },
 
-  addClient: async (payload: ClientPayload): Promise<Client> => {
-    if (!getElectronApi()?.addClient) {
+  addClient: async (payload: SaveClientPayload): Promise<Client> => {
+    const api = getApi();
+    if (!api?.addClient) {
       throw new Error("addClient is not available");
     }
 
-    return getElectronApi().addClient(payload);
+    return api.addClient(payload);
   },
 
-  updateClient: async (payload: ClientPayload): Promise<Client> => {
-    if (!getElectronApi()?.updateClient) {
+  updateClient: async (payload: SaveClientPayload): Promise<Client> => {
+    const api = getApi();
+    if (!api?.updateClient) {
       throw new Error("updateClient is not available");
     }
 
-    return getElectronApi().updateClient(payload);
+    return api.updateClient(payload);
   },
 
   deleteClient: async (clientNumber: number): Promise<boolean> => {
-    if (!getElectronApi()?.deleteClient) {
+    const api = getApi();
+    if (!api?.deleteClient) {
       return false;
     }
 
     try {
-      return await getElectronApi().deleteClient(clientNumber);
+      return await api.deleteClient(clientNumber);
     } catch {
       return false;
     }
   },
 
-  verifyEmployeePassword: async (
+  loadEmployeeMatchByPassword: async (
     password: string,
   ): Promise<EmployeeMatch | null> => {
-    const safePassword = password?.trim() ?? "";
+    const normalizedPassword = normalizeEmployeePassword(password);
+    const api = getApi();
 
-    if (!safePassword || !getElectronApi()?.verifyEmployeePassword) {
+    if (!normalizedPassword || !api?.verifyEmployeePassword) {
       return null;
     }
 
     try {
-      return await getElectronApi().verifyEmployeePassword(safePassword);
+      return await api.verifyEmployeePassword(normalizedPassword);
     } catch {
       return null;
     }
@@ -165,13 +181,13 @@ export const clientService = {
 export const {
   addClient,
   deleteClient,
-  getClientImage,
+  loadClientImage,
   loadCities,
+  loadEmployeeMatchByPassword,
   loadEyeColors,
   loadHairColors,
   loadIdTypes,
   saveClientImage,
   searchClients,
   updateClient,
-  verifyEmployeePassword,
 } = clientService;
