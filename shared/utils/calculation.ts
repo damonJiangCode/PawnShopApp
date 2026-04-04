@@ -10,8 +10,14 @@ export const calculation = {
   },
 
   getEarlyAmt: (amt: number, otf: number) => {
-    const EARLY_RATE = 0.1;
-    return Number((amt * (1 + EARLY_RATE) + otf).toFixed(2));
+    const regularInterest = calculation.getIntAmt(amt) ?? 0;
+
+    if (regularInterest <= 5) {
+      return Number((amt + regularInterest + otf).toFixed(2));
+    }
+
+    const reducedInterest = Math.max(5, Number((amt * 0.1).toFixed(2)));
+    return Number((amt + reducedInterest + otf).toFixed(2));
   },
 
   getCurrentDatetime: () => {
