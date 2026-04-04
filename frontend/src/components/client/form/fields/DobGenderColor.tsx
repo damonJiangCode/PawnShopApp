@@ -10,6 +10,10 @@ interface DobGenderColorProps {
   gender?: string;
   hair_color?: string;
   eye_color?: string;
+  dateOfBirthError?: string;
+  genderError?: string;
+  hairColorError?: string;
+  eyeColorError?: string;
   onChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
@@ -20,6 +24,10 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
   gender,
   hair_color,
   eye_color,
+  dateOfBirthError,
+  genderError,
+  hairColorError,
+  eyeColorError,
   onChange,
 }) => {
   const [hairColors, setHairColors] = useState<string[]>([]);
@@ -71,8 +79,10 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
         size="small"
         InputLabelProps={{ shrink: true }}
         inputProps={{ max: maxDate }}
-        error={Boolean(isUnder18)}
-        helperText={isUnder18 ? "Age under 18 is not allowed" : ""}
+        error={Boolean(dateOfBirthError || isUnder18)}
+        helperText={
+          dateOfBirthError || (isUnder18 ? "Age under 18 is not allowed" : " ")
+        }
       />
 
       <TextField
@@ -84,6 +94,8 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
         value={gender}
         onChange={onChange}
         size="small"
+        error={Boolean(genderError)}
+        helperText={genderError || " "}
       >
         <MenuItem value=""></MenuItem>
         <MenuItem value="male">Male</MenuItem>
@@ -107,6 +119,8 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
         }
         onChange={onChange}
         size="small"
+        error={Boolean(hairColorError)}
+        helperText={hairColorError || " "}
       >
         {hairColors.map((color) => (
           <MenuItem key={color} value={color}>
@@ -131,6 +145,8 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
         }
         onChange={onChange}
         size="small"
+        error={Boolean(eyeColorError)}
+        helperText={eyeColorError || " "}
       >
         {eyeColors.map((color) => (
           <MenuItem key={color} value={color}>

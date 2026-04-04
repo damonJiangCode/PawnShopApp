@@ -8,9 +8,13 @@ import {
   Button,
   Autocomplete,
   Box,
+  Alert,
 } from "@mui/material";
 import { LOCATIONS } from "../../../assets/transaction/LOCATIONS";
-import type { FormFieldError } from "../../../services/transactionService";
+import type {
+  AddTicketInput,
+  FormFieldError,
+} from "../../../services/transactionService";
 import { calculation } from "../../../../../shared/utils/calculation";
 
 interface AddTicketFormProps {
@@ -18,13 +22,9 @@ interface AddTicketFormProps {
   clientLastName: string;
   clientFirstName: string;
   onClose: () => void;
-  onSave: (ticketData: {
-    description: string;
-    location: string;
-    amount: number;
-    onetime_fee: number;
-    employee_password: string;
-  }) => Promise<void>;
+  onSave: (
+    ticketData: Omit<AddTicketInput, "client_number">,
+  ) => Promise<void>;
 }
 
 const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
@@ -45,6 +45,8 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
   const [amountError, setAmountError] = useState("");
   const [oneTimeFeeError, setOneTimeFeeError] = useState("");
   const [employeePasswordError, setEmployeePasswordError] = useState("");
+  const [submitError, setSubmitError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   // render locations
   useEffect(() => {
@@ -77,6 +79,8 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
     setAmountError("");
     setOneTimeFeeError("");
     setEmployeePasswordError("");
+    setSubmitError("");
+    setSaving(false);
   }, [open]);
 
   // render pickup amounts
@@ -112,6 +116,7 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
     setAmountError(nextAmountError);
     setOneTimeFeeError(nextOneTimeFeeError);
     setEmployeePasswordError(nextEmployeePasswordError);
+    setSubmitError("");
 
     if (
       nextDescriptionError ||
@@ -124,6 +129,7 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
     }
 
     const normalizedAmount = amount as number;
+    setSaving(true);
 
     try {
       await onSave({
@@ -142,7 +148,11 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
         return;
       }
 
-      alert(err instanceof Error ? err.message : "Failed to add ticket!");
+      setSubmitError(
+        err instanceof Error ? err.message : "Failed to add ticket.",
+      );
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -151,6 +161,8 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
       <DialogTitle>Add New Ticket</DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
+          {submitError && <Alert severity="error">{submitError}</Alert>}
+
           <TextField
             label="Client"
             value={`${clientLastName.toUpperCase()}, ${clientFirstName.toUpperCase()}`}
@@ -164,6 +176,9 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
             value={description}
             onChange={(e) => {
               setDescription(e.target.value.toUpperCase().slice(0, 15));
+              if (submitError) {
+                setSubmitError("");
+              }
               if (descriptionError) {
                 setDescriptionError("");
               }
@@ -179,6 +194,9 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
             value={location}
             onChange={(_event, newValue) => {
               setLocation(newValue || "");
+              if (submitError) {
+                setSubmitError("");
+              }
               if (locationError) {
                 setLocationError("");
               }
@@ -192,6 +210,9 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
                   c.toUpperCase(),
                 );
                 setLocation(transformed);
+                if (submitError) {
+                  setSubmitError("");
+                }
                 if (locationError) {
                   setLocationError("");
                 }
@@ -216,6 +237,9 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
             onChange={(e) => {
               const nextValue = e.target.value;
               setAmount(nextValue === "" ? "" : Number(nextValue));
+              if (submitError) {
+                setSubmitError("");
+              }
               if (amountError) {
                 setAmountError("");
               }
@@ -233,13 +257,16 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
             onChange={(e) => {
               const nextValue = e.target.value;
               setOneTimeFee(nextValue === "" ? "" : Number(nextValue));
+              if (submitError) {
+                setSubmitError("");
+              }
               if (oneTimeFeeError) {
                 setOneTimeFeeError("");
               }
             }}
             fullWidth
             error={Boolean(oneTimeFeeError)}
-            helperText={oneTimeFeeError || " "}
+            helperText={oneTimeFeeError || "Optional. Leave blank to use 0."}
           />
 
           <Box sx={{ display: "flex", gap: 2 }}>
@@ -262,6 +289,9 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
             value={employeePassword}
             onChange={(e) => {
               setEmployeePassword(e.target.value);
+              if (submitError) {
+                setSubmitError("");
+              }
               if (employeePasswordError) {
                 setEmployeePasswordError("");
               }
@@ -275,10 +305,12 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button variant="contained" onClick={handleSave}>
-          Save
+        <Button variant="contained" onClick={handleSave} disabled={saving}>
+          Add
         </Button>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={onClose} disabled={saving}>
+          Cancel
+        </Button>
       </DialogActions>
     </Dialog>
   );

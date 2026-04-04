@@ -1,9 +1,9 @@
 import { Box } from "@mui/material";
 import type { Client } from "../../../../../shared/types/Client";
-import ClientResultsTable from "./ClientResultsTable";
-import ClientSearchImagePreview from "./ClientSearchImagePreview";
+import ClientTable from "./ClientTable";
+import ClientImagePreview from "./ClientImagePreview";
 
-interface ClientSearchResultsProps {
+interface ClientResultProps {
   results: Client[];
   selectedClient?: Client | null;
   onSelect: (client: Client) => void;
@@ -12,7 +12,7 @@ interface ClientSearchResultsProps {
   onClientDeleted?: (clientNumber: number) => void;
 }
 
-const ClientSearchResults: React.FC<ClientSearchResultsProps> = ({
+const ClientResult: React.FC<ClientResultProps> = ({
   results,
   selectedClient,
   onSelect,
@@ -33,13 +33,13 @@ const ClientSearchResults: React.FC<ClientSearchResultsProps> = ({
         overflow: "hidden",
       }}
     >
-      <ClientResultsTable
+      <ClientTable
         results={results}
         selectedClient={selectedClient}
         onSelect={onSelect}
       />
 
-      <ClientSearchImagePreview
+      <ClientImagePreview
         client={previewClient}
         onClientCreated={onClientCreated}
         onClientUpdated={onClientUpdated}
@@ -49,4 +49,4 @@ const ClientSearchResults: React.FC<ClientSearchResultsProps> = ({
   );
 };
 
-export default ClientSearchResults;
+export default ClientResult;

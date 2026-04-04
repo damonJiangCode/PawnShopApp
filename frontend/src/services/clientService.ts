@@ -5,17 +5,22 @@ type CitiesResponse = {
   citiesByProvince: Record<string, string[]>;
 };
 
-export type EmployeeMatch = {
-  employee_number: number;
-  first_name: string;
-  last_name: string;
+export type ClientFormField = "employee_password";
+
+export type ClientFormError = Error & {
+  field?: ClientFormField;
 };
 
-type SaveClientPayload = {
+export type ClientNotesAction = "keep" | "clear" | "append_signature";
+
+export type SaveClientInput = {
   client: Client;
   identifications: ID[];
+  employee_password?: string;
+  notes_action?: ClientNotesAction;
 };
 
+const FIELD_ERROR_PREFIX = "[field-error]";
 const getElectronApi = () => (window as any).electronAPI;
 const getApi = getElectronApi;
 
@@ -25,7 +30,64 @@ const emptyCities = (): CitiesResponse => ({
 });
 
 const normalizeSearchInput = (value?: string) => value?.trim() ?? "";
-const normalizeEmployeePassword = (value?: string) => value?.trim() ?? "";
+
+const createFieldError = (
+  field: ClientFormField,
+  message: string,
+): ClientFormError => {
+  const error = new Error(message) as ClientFormError;
+  error.field = field;
+  return error;
+};
+
+const mapBackendError = (error: unknown): Error => {
+  if (!(error instanceof Error)) {
+    return new Error("Unknown client error");
+  }
+
+  if (!error.message.startsWith(FIELD_ERROR_PREFIX)) {
+    return error;
+  }
+
+  const payload = error.message.slice(FIELD_ERROR_PREFIX.length);
+  const separatorIndex = payload.indexOf(":");
+
+  if (separatorIndex === -1) {
+    return error;
+  }
+
+  const field = payload.slice(0, separatorIndex) as ClientFormField;
+  const message = payload.slice(separatorIndex + 1).trim();
+  return createFieldError(field, message || error.message);
+};
+
+const normalizeSaveClientInput = (input: SaveClientInput): SaveClientInput => ({
+  client: {
+    ...input.client,
+    first_name: input.client.first_name?.trim() ?? "",
+    last_name: input.client.last_name?.trim() ?? "",
+    middle_name: input.client.middle_name?.trim() ?? "",
+    gender: input.client.gender?.trim() ?? "",
+    hair_color: input.client.hair_color?.trim() ?? "",
+    eye_color: input.client.eye_color?.trim() ?? "",
+    address: input.client.address?.trim() ?? "",
+    postal_code: input.client.postal_code?.trim() ?? "",
+    city: input.client.city?.trim() ?? "",
+    province: input.client.province?.trim() ?? "",
+    country: input.client.country?.trim() ?? "",
+    email: input.client.email?.trim() ?? "",
+    phone: input.client.phone?.trim() ?? "",
+    notes: input.client.notes?.trim() ?? "",
+    image_path: input.client.image_path?.trim() ?? "",
+  },
+  identifications: (input.identifications ?? []).map((id) => ({
+    ...id,
+    id_type: id.id_type?.trim() ?? "",
+    id_value: id.id_value?.trim() ?? "",
+  })),
+  employee_password: input.employee_password?.trim() ?? "",
+  notes_action: input.notes_action ?? "keep",
+});
 
 export const clientService = {
   searchClients: async (
@@ -129,22 +191,30 @@ export const clientService = {
     }
   },
 
-  addClient: async (payload: SaveClientPayload): Promise<Client> => {
+  createClient: async (input: SaveClientInput): Promise<Client> => {
     const api = getApi();
     if (!api?.addClient) {
-      throw new Error("addClient is not available");
+      throw new Error("createClient is not available");
     }
 
-    return api.addClient(payload);
+    try {
+      return await api.addClient(normalizeSaveClientInput(input));
+    } catch (error) {
+      throw mapBackendError(error);
+    }
   },
 
-  updateClient: async (payload: SaveClientPayload): Promise<Client> => {
+  updateClient: async (input: SaveClientInput): Promise<Client> => {
     const api = getApi();
     if (!api?.updateClient) {
       throw new Error("updateClient is not available");
     }
 
-    return api.updateClient(payload);
+    try {
+      return await api.updateClient(normalizeSaveClientInput(input));
+    } catch (error) {
+      throw mapBackendError(error);
+    }
   },
 
   deleteClient: async (clientNumber: number): Promise<boolean> => {
@@ -159,31 +229,13 @@ export const clientService = {
       return false;
     }
   },
-
-  loadEmployeeMatchByPassword: async (
-    password: string,
-  ): Promise<EmployeeMatch | null> => {
-    const normalizedPassword = normalizeEmployeePassword(password);
-    const api = getApi();
-
-    if (!normalizedPassword || !api?.verifyEmployeePassword) {
-      return null;
-    }
-
-    try {
-      return await api.verifyEmployeePassword(normalizedPassword);
-    } catch {
-      return null;
-    }
-  },
 };
 
 export const {
-  addClient,
+  createClient,
   deleteClient,
   loadClientImage,
   loadCities,
-  loadEmployeeMatchByPassword,
   loadEyeColors,
   loadHairColors,
   loadIdTypes,

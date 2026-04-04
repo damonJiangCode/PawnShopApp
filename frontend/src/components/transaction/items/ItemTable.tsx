@@ -92,6 +92,16 @@ const ItemTable: React.FC<ItemTableProps> = (props) => {
           "& .MuiDataGrid-row:hover": {
             backgroundColor: "#f5f5f5",
           },
+          "& .MuiDataGrid-row.Mui-selected": {
+            backgroundColor: "#d0d7de",
+          },
+          "& .MuiDataGrid-row.Mui-selected:hover": {
+            backgroundColor: "#c6d0d9",
+          },
+          "& .MuiDataGrid-row.Mui-selected .MuiDataGrid-cell": {
+            borderRight: "1px solid #9aa4af",
+            borderBottom: "1px solid #9aa4af",
+          },
         }}
       />
     </Box>

@@ -2,6 +2,7 @@ import React from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import type { GridColDef } from "@mui/x-data-grid";
 import { Box, Tooltip } from "@mui/material";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import type { Ticket } from "../../../../../shared/types/Ticket";
 
 interface TicketTableProps {
@@ -12,6 +13,17 @@ interface TicketTableProps {
 
 const TicketTable: React.FC<TicketTableProps> = (props) => {
   const { tickets, selectedTicket, onSelectTicket } = props;
+
+  const renderWithTooltip = (value?: string | number | null) => {
+    const displayValue =
+      value === null || value === undefined || value === "" ? "---" : String(value);
+
+    return (
+      <Tooltip title={displayValue} arrow>
+        <span>{displayValue}</span>
+      </Tooltip>
+    );
+  };
 
   const formatDate = (value?: string | Date | null) => {
     if (!value) return "";
@@ -34,44 +46,120 @@ const TicketTable: React.FC<TicketTableProps> = (props) => {
     return formatDate(due);
   };
 
+  const formatCurrency = (value?: number | null) => {
+    if (typeof value !== "number" || Number.isNaN(value)) {
+      return "---";
+    }
+
+    return `$${value.toFixed(1)}`;
+  };
+
   const columns: GridColDef[] = [
-    { field: "ticket_number", headerName: "Transaction #", width: 120 },
+    {
+      field: "ticket_number",
+      headerName: "#",
+      width: 96,
+      renderCell: (params) => renderWithTooltip(params.value),
+    },
     {
       field: "transaction_datetime",
-      headerName: "Transaction Time",
-      width: 180,
+      headerName: "DATE",
+      width: 110,
       renderCell: (params) => {
         return (
           <Tooltip title={formatDateTime(params.value)} arrow>
-            <span>{formatDateTime(params.value)}</span>
+            <span>{formatDate(params.value)}</span>
           </Tooltip>
         );
       },
     },
-    { field: "description", headerName: "Description", width: 240, flex: 1 },
+    {
+      field: "location",
+      headerName: "LOC",
+      width: 72,
+      renderCell: (params) => renderWithTooltip(params.value),
+    },
+    {
+      field: "description",
+      headerName: "DESC",
+      width: 150,
+      renderCell: (params) => renderWithTooltip(params.value),
+    },
     {
       field: "due_date_display",
-      headerName: "Due Date",
-      width: 120,
+      headerName: "DUE",
+      width: 110,
       valueGetter: (_value, row: Ticket) => getDueDate(row),
+      renderCell: (params) => renderWithTooltip(params.value),
+    },
+    {
+      field: "overdue_display",
+      headerName: "OVD",
+      width: 72,
+      sortable: false,
+      filterable: false,
+      valueGetter: (_value, row: Ticket) => row.is_overdue,
+      renderCell: (params) => {
+        if (!params.value) {
+          return <span />;
+        }
+
+        return (
+          <Box
+            sx={{
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Tooltip title="Overdue" arrow>
+              <WarningAmberIcon sx={{ color: "#d32f2f", fontSize: 18 }} />
+            </Tooltip>
+          </Box>
+        );
+      },
+    },
+    {
+      field: "amount",
+      headerName: "AMT",
+      width: 84,
+      renderCell: (params) => renderWithTooltip(formatCurrency(params.value)),
+    },
+    {
+      field: "interest",
+      headerName: "INT",
+      width: 84,
+      renderCell: (params) => renderWithTooltip(formatCurrency(params.value)),
     },
     {
       field: "interested_datetime",
-      headerName: "Interest Time",
-      width: 180,
+      headerName: "INT DATE",
+      width: 110,
       renderCell: (params) => {
-        if (!params.value) return "---";
+        if (!params.value) {
+          return <span>---</span>;
+        }
+
         return (
           <Tooltip title={formatDateTime(params.value)} arrow>
-            <span>{formatDateTime(params.value)}</span>
+            <span>{formatDate(params.value)}</span>
           </Tooltip>
         );
       },
     },
     {
+      field: "pickup_amount",
+      headerName: "PKUP",
+      width: 84,
+      renderCell: (params) => renderWithTooltip(formatCurrency(params.value)),
+    },
+    {
       field: "employee_name",
-      headerName: "Employee Name",
-      width: 150,
+      headerName: "EMP",
+      width: 120,
+      renderCell: (params) => renderWithTooltip(params.value),
     },
   ];
 
@@ -102,6 +190,8 @@ const TicketTable: React.FC<TicketTableProps> = (props) => {
           "& .MuiDataGrid-cell": {
             borderRight: "1px solid #ddd",
             borderBottom: "1px solid #ddd",
+            display: "flex",
+            alignItems: "center",
           },
           "& .MuiDataGrid-columnHeaders": {
             borderBottom: "2px solid #bbb",
@@ -119,6 +209,13 @@ const TicketTable: React.FC<TicketTableProps> = (props) => {
           },
           "& .MuiDataGrid-row.Mui-selected": {
             backgroundColor: "#d0d7de",
+          },
+          "& .MuiDataGrid-row.Mui-selected:hover": {
+            backgroundColor: "#c6d0d9",
+          },
+          "& .MuiDataGrid-row.Mui-selected .MuiDataGrid-cell": {
+            borderRight: "1px solid #9aa4af",
+            borderBottom: "1px solid #9aa4af",
           },
         }}
       />

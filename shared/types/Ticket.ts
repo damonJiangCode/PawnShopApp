@@ -6,6 +6,7 @@ export interface Ticket {
   location: string;
   description: string;
   due_date: Date;
+  is_overdue: boolean;
   amount: number;
   onetime_fee: number;
   interest: number;

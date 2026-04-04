@@ -2,6 +2,7 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import {
+  Alert,
   Box,
   Button,
   Dialog,
@@ -14,17 +15,17 @@ import {
 import { useState } from "react";
 import type { Client } from "../../../../../shared/types/Client";
 import { useClientImage } from "../../../hooks/useClientImage";
-import ClientForm from "../form/ClientForm";
+import AddEditClientForm from "../form/AddEditClientForm";
 import { deleteClient } from "../../../services/clientService";
 
-interface ClientSearchImagePreviewProps {
+interface ClientImagePreviewProps {
   client: Client | null;
   onClientCreated?: (client: Client) => void;
   onClientUpdated?: (client: Client) => void;
   onClientDeleted?: (clientNumber: number) => void;
 }
 
-const ClientSearchImagePreview: React.FC<ClientSearchImagePreviewProps> = ({
+const ClientImagePreview: React.FC<ClientImagePreviewProps> = ({
   client,
   onClientCreated,
   onClientUpdated,
@@ -35,6 +36,7 @@ const ClientSearchImagePreview: React.FC<ClientSearchImagePreviewProps> = ({
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletingClient, setDeletingClient] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   const handleDeleteClient = async () => {
     if (!client?.client_number) {
@@ -43,10 +45,11 @@ const ClientSearchImagePreview: React.FC<ClientSearchImagePreviewProps> = ({
 
     try {
       setDeletingClient(true);
+      setDeleteError("");
       const deleted = await deleteClient(client.client_number);
 
       if (!deleted) {
-        alert("Client could not be deleted. Please try again.");
+        setDeleteError("Client could not be deleted. Please try again.");
         return;
       }
 
@@ -54,7 +57,7 @@ const ClientSearchImagePreview: React.FC<ClientSearchImagePreviewProps> = ({
       setDeleteOpen(false);
     } catch (error) {
       console.error("Failed to delete client:", error);
-      alert("Failed to delete client. Please try again.");
+      setDeleteError("Failed to delete client. Please try again.");
     } finally {
       setDeletingClient(false);
     }
@@ -165,7 +168,7 @@ const ClientSearchImagePreview: React.FC<ClientSearchImagePreviewProps> = ({
       </Box>
 
       {addOpen && (
-        <ClientForm
+        <AddEditClientForm
           open={addOpen}
           onClose={() => setAddOpen(false)}
           onSave={(createdClient) => {
@@ -176,7 +179,7 @@ const ClientSearchImagePreview: React.FC<ClientSearchImagePreviewProps> = ({
       )}
 
       {editOpen && client && (
-        <ClientForm
+        <AddEditClientForm
           clientExisted={client}
           open={editOpen}
           onClose={() => setEditOpen(false)}
@@ -192,11 +195,17 @@ const ClientSearchImagePreview: React.FC<ClientSearchImagePreviewProps> = ({
         onClose={() => {
           if (!deletingClient) {
             setDeleteOpen(false);
+            setDeleteError("");
           }
         }}
       >
         <DialogTitle>Delete Client?</DialogTitle>
         <DialogContent>
+          {deleteError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {deleteError}
+            </Alert>
+          )}
           <Typography>
             Are you sure you want to delete this client?
           </Typography>
@@ -206,7 +215,10 @@ const ClientSearchImagePreview: React.FC<ClientSearchImagePreviewProps> = ({
         </DialogContent>
         <DialogActions>
           <Button
-            onClick={() => setDeleteOpen(false)}
+            onClick={() => {
+              setDeleteOpen(false);
+              setDeleteError("");
+            }}
             disabled={deletingClient}
           >
             Cancel
@@ -227,4 +239,4 @@ const ClientSearchImagePreview: React.FC<ClientSearchImagePreviewProps> = ({
   );
 };
 
-export default ClientSearchImagePreview;
+export default ClientImagePreview;

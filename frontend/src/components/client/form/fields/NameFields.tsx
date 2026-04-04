@@ -5,13 +5,22 @@ interface NameFieldsProps {
   lastName: string;
   firstName: string;
   middleName: string;
+  lastNameError?: string;
+  firstNameError?: string;
   onChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
 }
 
 const NameFields: React.FC<NameFieldsProps> = (props) => {
-  const { lastName, firstName, middleName, onChange } = props;
+  const {
+    lastName,
+    firstName,
+    middleName,
+    lastNameError,
+    firstNameError,
+    onChange,
+  } = props;
   return (
     <Box sx={{ display: "flex", gap: 2 }}>
       <TextField
@@ -22,6 +31,8 @@ const NameFields: React.FC<NameFieldsProps> = (props) => {
         value={lastName || ""}
         onChange={onChange}
         size="small"
+        error={Boolean(lastNameError)}
+        helperText={lastNameError || " "}
       />
       <TextField
         fullWidth
@@ -31,6 +42,8 @@ const NameFields: React.FC<NameFieldsProps> = (props) => {
         value={firstName || ""}
         onChange={onChange}
         size="small"
+        error={Boolean(firstNameError)}
+        helperText={firstNameError || " "}
       />
       <TextField
         fullWidth

@@ -7,7 +7,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import ChangeCircleIcon from "@mui/icons-material/ChangeCircle";
 import type { Ticket } from "../../../../../shared/types/Ticket";
 
-interface TicketButtonsProps {
+interface TicketButtonProps {
   selectedTicket: Ticket | null;
   onAdd: () => void;
   onEdit: () => void;
@@ -16,7 +16,7 @@ interface TicketButtonsProps {
   onExpire: () => void;
 }
 
-const TicketButtons: React.FC<TicketButtonsProps> = (props) => {
+const TicketButton: React.FC<TicketButtonProps> = (props) => {
   const { selectedTicket, onAdd, onEdit, onPrint, onChange, onExpire } = props;
   const disabled = !selectedTicket;
 
@@ -25,15 +25,16 @@ const TicketButtons: React.FC<TicketButtonsProps> = (props) => {
       sx={{
         display: "flex",
         flexDirection: "column",
-        justifyContent: "flex-start",
-        alignItems: "stretch",
+        justifyContent: "space-between",
+        alignItems: "center",
         gap: 1,
         width: "100%",
+        height: "100%",
       }}
     >
       <Button
         variant="outlined"
-        fullWidth
+        sx={{ width: "100%" }}
         startIcon={<AddIcon />}
         onClick={onAdd}
       >
@@ -41,7 +42,7 @@ const TicketButtons: React.FC<TicketButtonsProps> = (props) => {
       </Button>
       <Button
         variant="outlined"
-        fullWidth
+        sx={{ width: "100%" }}
         startIcon={<EditIcon />}
         onClick={onEdit}
         disabled={disabled}
@@ -50,7 +51,7 @@ const TicketButtons: React.FC<TicketButtonsProps> = (props) => {
       </Button>
       <Button
         variant="outlined"
-        fullWidth
+        sx={{ width: "100%" }}
         startIcon={<PrintIcon />}
         onClick={onPrint}
         disabled={disabled}
@@ -59,7 +60,7 @@ const TicketButtons: React.FC<TicketButtonsProps> = (props) => {
       </Button>
       <Button
         variant="outlined"
-        fullWidth
+        sx={{ width: "100%" }}
         startIcon={<ChangeCircleIcon />}
         onClick={onChange}
         disabled={disabled}
@@ -68,7 +69,7 @@ const TicketButtons: React.FC<TicketButtonsProps> = (props) => {
       </Button>
       <Button
         variant="outlined"
-        fullWidth
+        sx={{ width: "100%" }}
         color="error"
         startIcon={<DeleteIcon />}
         onClick={onExpire}
@@ -80,4 +81,4 @@ const TicketButtons: React.FC<TicketButtonsProps> = (props) => {
   );
 };
 
-export default TicketButtons;
+export default TicketButton;

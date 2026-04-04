@@ -23,9 +23,12 @@ export interface IDFieldsRef {
 
 interface IDFieldsProps {
   ids: ID[];
+  error?: string;
+  onIdsChange?: () => void;
 }
 
-const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(({ ids }, ref) => {
+const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(
+  ({ ids, error, onIdsChange }, ref) => {
   const [identifications, setIdentifications] = useState<ID[]>(ids);
   const [idTypes, setIdTypes] = useState<string[]>([]);
 
@@ -42,6 +45,10 @@ const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(({ ids }, ref) => {
   }, []);
 
   useEffect(() => {
+    setIdentifications(ids);
+  }, [ids]);
+
+  useEffect(() => {
     if (identifications.length >= 2) return;
     setIdentifications((prev) => {
       const next = [...prev];
@@ -53,14 +60,17 @@ const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(({ ids }, ref) => {
   }, [identifications.length]);
 
   const handleAdd = () => {
+    onIdsChange?.();
     setIdentifications([...identifications, { id_type: "", id_value: "" }]);
   };
 
   const handleRemove = (index: number) => {
+    onIdsChange?.();
     setIdentifications(identifications.filter((_, i) => i !== index));
   };
 
   const handleUpdate = (index: number, field: keyof ID, value: string) => {
+    onIdsChange?.();
     setIdentifications((prev) =>
       prev.map((element, i) =>
         i === index ? { ...element, [field]: value } : element
@@ -68,8 +78,8 @@ const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(({ ids }, ref) => {
     );
   };
 
-  return (
-    <Box sx={{ mt: 3 }}>
+    return (
+      <Box sx={{ mt: 3 }}>
       <Box
         sx={{
           display: "flex",
@@ -88,20 +98,26 @@ const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(({ ids }, ref) => {
         </Button>
       </Box>
 
-      <TableContainer component="div" sx={{ mt: 1 }}>
+        <TableContainer component="div" sx={{ mt: 1 }}>
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell align="left">Type</TableCell>
-              <TableCell align="left">Number</TableCell>
-              <TableCell align="center">Actions</TableCell>
+              <TableCell align="left" sx={{ borderBottom: "none" }}>
+                Type
+              </TableCell>
+              <TableCell align="left" sx={{ borderBottom: "none" }}>
+                Number
+              </TableCell>
+              <TableCell align="center" sx={{ borderBottom: "none" }}>
+                Actions
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {identifications.length > 0 &&
               identifications.map((element, i) => (
                 <TableRow key={i}>
-                  <TableCell>
+                  <TableCell sx={{ borderBottom: "none" }}>
                     <TextField
                       select
                       fullWidth
@@ -125,7 +141,7 @@ const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(({ ids }, ref) => {
                       ))}
                     </TextField>
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ borderBottom: "none" }}>
                     <TextField
                       fullWidth
                       size="small"
@@ -137,7 +153,7 @@ const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(({ ids }, ref) => {
                       }
                     />
                   </TableCell>
-                  <TableCell align="center">
+                  <TableCell align="center" sx={{ borderBottom: "none" }}>
                     {identifications.length > 2 && (
                       <Button
                         size="small"
@@ -152,9 +168,17 @@ const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(({ ids }, ref) => {
               ))}
           </TableBody>
         </Table>
-      </TableContainer>
-    </Box>
-  );
-});
+        </TableContainer>
+        <Typography
+          variant="body2"
+          color={error ? "error" : "text.secondary"}
+          sx={{ mt: 1, minHeight: 20 }}
+        >
+          {error || " "}
+        </Typography>
+      </Box>
+    );
+  },
+);
 
 export default IDFields;

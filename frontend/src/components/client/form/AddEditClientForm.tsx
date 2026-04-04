@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
+  Alert,
   Box,
   Button,
-  Divider,
   Dialog,
   DialogActions,
   DialogTitle,
@@ -20,13 +20,15 @@ import IDFields from "./fields/IDFields";
 import type { IDFieldsRef } from "./fields/IDFields";
 import defaultClient from "../../../utils/defaultClient";
 import {
-  addClient,
-  loadEmployeeMatchByPassword,
+  createClient,
+  type ClientFormError,
+  type ClientNotesAction,
+  type SaveClientInput,
   saveClientImage,
   updateClient,
 } from "../../../services/clientService";
 
-interface ClientFormProps {
+interface AddEditClientFormProps {
   clientExisted?: Client;
   open: boolean;
   onSave: (clientUpdated: Client) => void;
@@ -36,13 +38,47 @@ interface ClientFormProps {
 interface PendingClientUpdate {
   client: Client;
   identifications: ID[];
+  notes_action: ClientNotesAction;
 }
 
-const ClientForm: React.FC<ClientFormProps> = (props) => {
+type ClientValidationErrors = {
+  first_name: string;
+  last_name: string;
+  date_of_birth: string;
+  gender: string;
+  hair_color: string;
+  eye_color: string;
+  height_cm: string;
+  weight_kg: string;
+  address: string;
+  city: string;
+  province: string;
+  country: string;
+  photo: string;
+  identifications: string;
+};
+
+const emptyValidationErrors = (): ClientValidationErrors => ({
+  first_name: "",
+  last_name: "",
+  date_of_birth: "",
+  gender: "",
+  hair_color: "",
+  eye_color: "",
+  height_cm: "",
+  weight_kg: "",
+  address: "",
+  city: "",
+  province: "",
+  country: "",
+  photo: "",
+  identifications: "",
+});
+
+const AddEditClientForm: React.FC<AddEditClientFormProps> = (props) => {
   const { clientExisted, open, onSave, onClose } = props;
   const isEditMode = Boolean(clientExisted?.client_number);
   const [client, setClient] = useState<Client>(clientExisted || defaultClient);
-  const [identifications] = useState<ID[]>(client.identifications ?? []);
   const idRef = useRef<IDFieldsRef>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
   const [cameraActive, setCameraActive] = useState(true);
@@ -52,6 +88,11 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
   const [pendingUpdate, setPendingUpdate] =
     useState<PendingClientUpdate | null>(null);
   const [savingClient, setSavingClient] = useState(false);
+  const [employeePasswordError, setEmployeePasswordError] = useState("");
+  const [submitError, setSubmitError] = useState("");
+  const [validationErrors, setValidationErrors] = useState<ClientValidationErrors>(
+    emptyValidationErrors(),
+  );
 
   useEffect(() => {
     if (!open) {
@@ -64,7 +105,16 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
     setEmployeePassword("");
     setPendingUpdate(null);
     setSavingClient(false);
+    setEmployeePasswordError("");
+    setSubmitError("");
+    setValidationErrors(emptyValidationErrors());
   }, [open, clientExisted]);
+
+  const clearValidationError = (field: keyof ClientValidationErrors) => {
+    setValidationErrors((prev) =>
+      prev[field] ? { ...prev, [field]: "" } : prev,
+    );
+  };
 
   useEffect(() => {
     if (!showPasswordDialog) {
@@ -83,6 +133,12 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
+    if (submitError) {
+      setSubmitError("");
+    }
+    if (name in emptyValidationErrors()) {
+      clearValidationError(name as keyof ClientValidationErrors);
+    }
     setClient((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -94,37 +150,71 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
       const relPath = await saveClientImage(fileName, base64);
       setClient((prev) => ({ ...prev, image_path: relPath }));
       setPhotoCaptured(true);
+      clearValidationError("photo");
     } catch (error) {
       setPhotoCaptured(false);
-      console.error("Failed to save client image (ClientForm.tsx):", error);
-      alert("Failed to save client image (ClientForm.tsx).");
+      console.error(
+        "Failed to save client image (AddEditClientForm.tsx):",
+        error,
+      );
+      setSubmitError("Failed to save client image. Please try again.");
       throw error;
     }
   }
 
   const buildPendingUpdate = (): PendingClientUpdate | null => {
-    const requiredMissing =
-      !client.first_name?.trim() ||
-      !client.last_name?.trim() ||
-      !client.date_of_birth ||
-      !client.gender?.trim() ||
-      !client.hair_color?.trim() ||
-      !client.eye_color?.trim() ||
-      !client.height_cm ||
-      !client.weight_kg ||
-      !client.address?.trim() ||
-      !client.city?.trim() ||
-      !client.province?.trim() ||
-      !client.country?.trim();
+    const nextErrors = emptyValidationErrors();
 
-    if (requiredMissing) {
-      alert("Please fill all required fields before saving.");
-      return null;
+    if (!client.last_name?.trim()) {
+      nextErrors.last_name = "Last name is required.";
+    }
+
+    if (!client.first_name?.trim()) {
+      nextErrors.first_name = "First name is required.";
+    }
+
+    if (!client.date_of_birth) {
+      nextErrors.date_of_birth = "Date of birth is required.";
+    }
+
+    if (!client.gender?.trim()) {
+      nextErrors.gender = "Gender is required.";
+    }
+
+    if (!client.hair_color?.trim()) {
+      nextErrors.hair_color = "Hair color is required.";
+    }
+
+    if (!client.eye_color?.trim()) {
+      nextErrors.eye_color = "Eye color is required.";
+    }
+
+    if (!client.height_cm || client.height_cm <= 0) {
+      nextErrors.height_cm = "Height is required.";
+    }
+
+    if (!client.weight_kg || client.weight_kg <= 0) {
+      nextErrors.weight_kg = "Weight is required.";
+    }
+
+    if (!client.address?.trim()) {
+      nextErrors.address = "Address is required.";
+    }
+
+    if (!client.city?.trim()) {
+      nextErrors.city = "City is required.";
+    }
+
+    if (!client.province?.trim()) {
+      nextErrors.province = "Province is required.";
+    }
+
+    if (!client.country?.trim()) {
+      nextErrors.country = "Country is required.";
     }
 
     if (!isEditMode && !photoCaptured && !client.image_path?.trim()) {
-      alert("Please capture a client photo before saving.");
-      return null;
+      nextErrors.photo = "Client photo is required.";
     }
 
     const ids = idRef.current?.getIDs() ?? [];
@@ -133,34 +223,69 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
     );
 
     if (validIds.length < 2) {
-      alert("Please provide at least two valid ID entries.");
+      nextErrors.identifications =
+        "Please provide at least two valid ID entries.";
+    }
+
+    setValidationErrors(nextErrors);
+
+    if (Object.values(nextErrors).some(Boolean)) {
       return null;
+    }
+
+    const trimmedNotes = client.notes?.trim() ?? "";
+    const notesChanged = (clientExisted?.notes ?? "") !== (client.notes ?? "");
+    let notes_action: ClientNotesAction = "keep";
+
+    if (!isEditMode && trimmedNotes) {
+      notes_action = "append_signature";
+    } else if (isEditMode && notesChanged) {
+      notes_action = trimmedNotes ? "append_signature" : "clear";
     }
 
     return {
       client: { ...client, identifications: validIds } as Client,
       identifications: validIds,
+      notes_action,
     };
   };
 
-  const saveClientRecord = async (payload: PendingClientUpdate) => {
+  const saveClientRecord = async (
+    payload: SaveClientInput,
+    options?: { keepPasswordDialogOpen?: boolean },
+  ) => {
     try {
       setSavingClient(true);
+      setSubmitError("");
       const savedClient: Client = isEditMode
         ? await updateClient(payload)
-        : await addClient(payload);
+        : await createClient(payload);
+
+      setShowPasswordDialog(false);
+      setEmployeePassword("");
+      setEmployeePasswordError("");
+      setPendingUpdate(null);
       onSave(savedClient);
     } catch (err) {
+      const clientError = err as ClientFormError;
+
+      if (clientError.field === "employee_password") {
+        setEmployeePasswordError(clientError.message);
+        if (!options?.keepPasswordDialogOpen) {
+          setShowPasswordDialog(true);
+        }
+        return;
+      }
+
       console.error(
         isEditMode ? "Failed to update client:" : "Failed to add client:",
         err,
       );
-      alert(
+      setSubmitError(
         isEditMode
           ? "Failed to update client. Please try again."
           : "Failed to add client. Please try again.",
       );
-      throw err;
     } finally {
       setSavingClient(false);
     }
@@ -168,37 +293,25 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError("");
     const nextPendingUpdate = buildPendingUpdate();
 
     if (!nextPendingUpdate) {
       return;
     }
 
-    const trimmedNotes = nextPendingUpdate.client.notes?.trim() ?? "";
-    const notesChanged =
-      (clientExisted?.notes ?? "") !== (nextPendingUpdate.client.notes ?? "");
-    const requiresEmployeePassword = isEditMode
-      ? notesChanged && Boolean(trimmedNotes)
-      : Boolean(trimmedNotes);
+    const requiresEmployeePassword =
+      nextPendingUpdate.notes_action === "append_signature";
 
     if (!requiresEmployeePassword) {
-      if (isEditMode && notesChanged && !trimmedNotes) {
-        await saveClientRecord({
-          ...nextPendingUpdate,
-          client: {
-            ...nextPendingUpdate.client,
-            notes: "",
-          },
-        });
-        return;
-      }
-
       await saveClientRecord(nextPendingUpdate);
       return;
     }
 
     setPendingUpdate(nextPendingUpdate);
     setEmployeePassword("");
+    setEmployeePasswordError("");
+    setSubmitError("");
     setShowPasswordDialog(true);
   };
 
@@ -208,56 +321,19 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
     }
 
     if (!employeePassword.trim()) {
-      alert("Please enter the employee password.");
+      setEmployeePasswordError("Employee password is required.");
       return;
     }
 
-    try {
-      setSavingClient(true);
-      const employee = await loadEmployeeMatchByPassword(employeePassword);
-
-      if (!employee) {
-        alert("No employee found with that password.");
-        return;
-      }
-
-      const notesChanged =
-        (clientExisted?.notes ?? "") !== (pendingUpdate.client.notes ?? "");
-      const nextClient = { ...pendingUpdate.client };
-
-      if (notesChanged) {
-        const trimmedNotes = nextClient.notes?.trim() ?? "";
-        if (!trimmedNotes) {
-          nextClient.notes = "";
-        } else {
-          const formattedDate = new Date().toLocaleDateString("en-CA");
-          nextClient.notes = `${trimmedNotes} (${employee.first_name}, ${formattedDate})`;
-        }
-      }
-
-      const payload = {
-        client: nextClient,
-        identifications: pendingUpdate.identifications,
-      };
-      const savedClient: Client = isEditMode
-        ? await updateClient(payload)
-        : await addClient(payload);
-
-      setShowPasswordDialog(false);
-      setEmployeePassword("");
-      setPendingUpdate(null);
-      onSave(savedClient);
-    } catch (error) {
-      console.error(
-        "Failed to verify employee password or save client:",
-        error,
-      );
-      alert(
-        "Failed to verify employee password or save client. Please try again.",
-      );
-    } finally {
-      setSavingClient(false);
-    }
+    setSubmitError("");
+    setEmployeePasswordError("");
+    await saveClientRecord(
+      {
+        ...pendingUpdate,
+        employee_password: employeePassword,
+      },
+      { keepPasswordDialogOpen: true },
+    );
   };
 
   const handleClose = () => {
@@ -266,6 +342,8 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
     setShowPasswordDialog(false);
     setEmployeePassword("");
     setPendingUpdate(null);
+    setEmployeePasswordError("");
+    setSubmitError("");
     setTimeout(() => {
       onClose();
     }, 1000);
@@ -278,7 +356,12 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
           {isEditMode ? "Edit Client" : "Add New Client"}
         </DialogTitle>
         <DialogContent>
-          <form onSubmit={handleSave}>
+          <form onSubmit={handleSave} noValidate>
+            {submitError && (
+              <Alert severity="error" sx={{ mt: 1 }}>
+                {submitError}
+              </Alert>
+            )}
             <Box sx={{ display: "flex", gap: 2, py: 1 }}>
               <Box
                 sx={{
@@ -292,6 +375,8 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
                   lastName={client.last_name ?? ""}
                   firstName={client.first_name ?? ""}
                   middleName={client.middle_name ?? ""}
+                  lastNameError={validationErrors.last_name}
+                  firstNameError={validationErrors.first_name}
                   onChange={handleInputChange}
                 />
 
@@ -300,18 +385,28 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
                   gender={client.gender}
                   hair_color={client.hair_color}
                   eye_color={client.eye_color}
+                  dateOfBirthError={validationErrors.date_of_birth}
+                  genderError={validationErrors.gender}
+                  hairColorError={validationErrors.hair_color}
+                  eyeColorError={validationErrors.eye_color}
                   onChange={handleInputChange}
                 />
 
                 <HeightWeightFields
                   height_cm={client.height_cm}
                   weight_kg={client.weight_kg}
+                  heightError={validationErrors.height_cm}
+                  weightError={validationErrors.weight_kg}
                   onHeightCmChange={(value) => {
+                    clearValidationError("height_cm");
                     setClient((prev) => ({ ...prev, height_cm: value }));
                   }}
                   onWeightKgChange={(value) => {
+                    clearValidationError("weight_kg");
                     setClient((prev) => ({ ...prev, weight_kg: value }));
                   }}
+                  onHeightInputChange={() => clearValidationError("height_cm")}
+                  onWeightInputChange={() => clearValidationError("weight_kg")}
                 />
 
                 <AddressFields
@@ -320,6 +415,10 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
                   client_city={client.city ?? ""}
                   client_province={client.province ?? ""}
                   client_country={client.country ?? "Canada"}
+                  addressError={validationErrors.address}
+                  cityError={validationErrors.city}
+                  provinceError={validationErrors.province}
+                  countryError={validationErrors.country}
                   onChange={handleInputChange}
                 />
 
@@ -345,14 +444,27 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
                   onCapture={handleCapture}
                   active={cameraActive}
                 />
+                <Alert
+                  severity="error"
+                  sx={{
+                    width: "100%",
+                    visibility: validationErrors.photo ? "visible" : "hidden",
+                  }}
+                >
+                  {validationErrors.photo || " "}
+                </Alert>
               </Box>
             </Box>
 
             <Box>
-              <IDFields ref={idRef} ids={identifications} />
+              <IDFields
+                ref={idRef}
+                ids={client.identifications ?? []}
+                error={validationErrors.identifications}
+                onIdsChange={() => clearValidationError("identifications")}
+              />
             </Box>
 
-            <Divider sx={{ my: 3 }} />
             <Box
               sx={{
                 display: "flex",
@@ -364,7 +476,7 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
                 Cancel
               </Button>
               <Button type="submit" variant="contained" disabled={savingClient}>
-                Save
+                {isEditMode ? "Update" : "Add"}
               </Button>
             </Box>
           </form>
@@ -377,6 +489,7 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
           if (!savingClient) {
             setShowPasswordDialog(false);
             setEmployeePassword("");
+            setEmployeePasswordError("");
             setPendingUpdate(null);
           }
         }}
@@ -385,14 +498,29 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
       >
         <DialogTitle>Employee Password</DialogTitle>
         <DialogContent>
+          {submitError && (
+            <Alert severity="error" sx={{ mt: 1 }}>
+              {submitError}
+            </Alert>
+          )}
           <TextField
             inputRef={passwordInputRef}
             fullWidth
             type="password"
             label="Password"
             value={employeePassword}
-            onChange={(event) => setEmployeePassword(event.target.value)}
+            onChange={(event) => {
+              setEmployeePassword(event.target.value);
+              if (submitError) {
+                setSubmitError("");
+              }
+              if (employeePasswordError) {
+                setEmployeePasswordError("");
+              }
+            }}
             sx={{ mt: 1 }}
+            error={Boolean(employeePasswordError)}
+            helperText={employeePasswordError || " "}
           />
         </DialogContent>
         <DialogActions>
@@ -400,6 +528,7 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
             onClick={() => {
               setShowPasswordDialog(false);
               setEmployeePassword("");
+              setEmployeePasswordError("");
               setPendingUpdate(null);
             }}
             disabled={savingClient}
@@ -421,4 +550,4 @@ const ClientForm: React.FC<ClientFormProps> = (props) => {
   );
 };
 
-export default ClientForm;
+export default AddEditClientForm;

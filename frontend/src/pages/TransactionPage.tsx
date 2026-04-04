@@ -4,32 +4,27 @@ import {
   Paper,
   Typography,
   CircularProgress,
-  Divider,
 } from "@mui/material";
 import type { Ticket } from "../../../shared/types/Ticket";
 import type { Item } from "../../../shared/types/Item";
 import ClientBar from "../components/transaction/header/ClientBar";
 import TicketTable from "../components/transaction/tickets/TicketTable";
-import TicketButtons from "../components/transaction/tickets/TicketButtons";
+import TicketButton from "../components/transaction/tickets/TicketButton";
 import ItemTable from "../components/transaction/items/ItemTable";
-import ItemButtons from "../components/transaction/items/ItemButtons";
+import ItemButton from "../components/transaction/items/ItemButton";
 import AddTicketForm from "../components/transaction/tickets/AddTicketForm";
 import EditTicketForm from "../components/transaction/tickets/EditTicketForm";
-import { transactionService } from "../services/transactionService";
+import {
+  transactionService,
+  type AddTicketInput,
+  type UpdateTicketInput,
+} from "../services/transactionService";
 
 interface TransactionPageProps {
   clientNumber?: number;
   clientLastName?: string;
   clientFirstName?: string;
 }
-
-type AddTicketInput = {
-  description: string;
-  location: string;
-  amount: number;
-  onetime_fee: number;
-  employee_password: string;
-};
 
 const TransactionPage: React.FC<TransactionPageProps> = (props) => {
   const { clientNumber, clientLastName, clientFirstName } = props;
@@ -260,12 +255,14 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
     );
   };
 
-  const handleAddTicket = async (ticketData: AddTicketInput): Promise<void> => {
+  const handleAddTicket = async (
+    ticketData: Omit<AddTicketInput, "client_number">,
+  ): Promise<void> => {
     if (!clientNumber) {
       throw new Error("Please select a client first.");
     }
 
-    const newTicket = await transactionService.createTicket({
+    const newTicket = await transactionService.addTicket({
       ...ticketData,
       client_number: clientNumber,
     });
@@ -278,29 +275,23 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
     setStatusMessage(`Ticket #${newTicket.ticket_number} added.`);
   };
 
-  const handleEditTicket = (data: Partial<Ticket>) => {
+  const handleEditTicket = async (data: UpdateTicketInput): Promise<void> => {
     if (!selectedTicket) {
-      return;
+      throw new Error("Please select a ticket first.");
     }
 
-    const nextAmount =
-      typeof data.amount === "number" ? data.amount : selectedTicket.amount;
-    const nextTicket: Ticket = {
-      ...selectedTicket,
-      ...data,
-      amount: nextAmount,
-    };
+    const updatedTicket = await transactionService.editTicket(data);
 
     setTickets((prev) =>
       prev.map((ticket) =>
         ticket.ticket_number === selectedTicket.ticket_number
-          ? nextTicket
+          ? updatedTicket
           : ticket,
       ),
     );
-    setSelectedTicket(nextTicket);
+    setSelectedTicket(updatedTicket);
     setOpenEditTicketForm(false);
-    setStatusMessage(`Ticket #${nextTicket.ticket_number} updated.`);
+    setStatusMessage(`Ticket #${updatedTicket.ticket_number} updated.`);
   };
 
   const handleItemClick = (item: Item) => {
@@ -385,28 +376,32 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
           boxSizing: "border-box",
         }}
       >
-        <Box
+        <Paper
           sx={{
             flex: "0 0 56%",
             minHeight: 0,
             display: "flex",
-            gap: 1,
+            gap: 0.75,
+            border: "1px solid",
+            borderColor: "primary.main",
+            borderRadius: 2,
+            p: 1,
+            backgroundColor: "background.paper",
+            boxShadow:
+              "0 0 0 1px rgba(25, 118, 210, 0.14), 0 10px 22px rgba(15, 23, 42, 0.10)",
+            overflow: "hidden",
+            boxSizing: "border-box",
           }}
         >
-          <Paper
+          <Box
             sx={{
               flex: 1,
               minWidth: 0,
               minHeight: 0,
-              p: 1,
-              border: "2px solid",
-              borderColor: "primary.main",
-              borderRadius: 2,
-              boxShadow:
-                "0 0 0 3px rgba(25, 118, 210, 0.14), 0 10px 22px rgba(15, 23, 42, 0.10)",
               display: "flex",
               flexDirection: "column",
               boxSizing: "border-box",
+              overflow: "hidden",
             }}
           >
             <Box sx={{ flex: 1, minHeight: 0 }}>
@@ -416,11 +411,11 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
                 onSelectTicket={handleTicketSelected}
               />
             </Box>
-          </Paper>
+          </Box>
 
           <Paper
             sx={{
-              width: 280,
+              width: 248,
               minHeight: 0,
               p: 1.25,
               border: "1px solid",
@@ -429,11 +424,12 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
               boxShadow: 1,
               display: "flex",
               flexDirection: "column",
-              gap: 1,
+              justifyContent: "center",
+              alignItems: "center",
               boxSizing: "border-box",
             }}
           >
-            <TicketButtons
+            <TicketButton
               selectedTicket={selectedTicket}
               onAdd={handleAddButtonClick}
               onEdit={handleEditButtonClick}
@@ -441,52 +437,37 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
               onChange={handleTicketChange}
               onExpire={handleTicketExpire}
             />
-            <Divider />
-            <Box sx={{ display: "grid", gap: 0.75 }}>
-              <Typography variant="body2">
-                Status: {selectedTicket?.status ?? "---"}
-              </Typography>
-              <Typography variant="body2">
-                Location: {selectedTicket?.location ?? "---"}
-              </Typography>
-              <Typography variant="body2">
-                Amount:{" "}
-                {typeof selectedTicket?.amount === "number"
-                  ? `$${selectedTicket.amount.toFixed(2)}`
-                  : "---"}
-              </Typography>
-              <Typography variant="body2">
-                Pickup:{" "}
-                {typeof selectedTicket?.pickup_amount === "number"
-                  ? `$${selectedTicket.pickup_amount.toFixed(2)}`
-                  : "---"}
-              </Typography>
-              {ticketsError && (
-                <Typography variant="body2" color="error">
-                  {ticketsError}
-                </Typography>
-              )}
-              {statusMessage && (
-                <Typography variant="body2" color="text.secondary">
-                  {statusMessage}
-                </Typography>
-              )}
-            </Box>
           </Paper>
-        </Box>
+        </Paper>
+
+        {(ticketsError || statusMessage) && (
+          <Box sx={{ px: 0.5 }}>
+            {ticketsError && (
+              <Typography variant="body2" color="error">
+                {ticketsError}
+              </Typography>
+            )}
+            {statusMessage && (
+              <Typography variant="body2" color="text.secondary">
+                {statusMessage}
+              </Typography>
+            )}
+          </Box>
+        )}
 
         <Paper
           sx={{
             flex: 1,
             minHeight: 0,
             p: 1,
-            border: "2px solid",
+            border: "1px solid",
             borderColor: "primary.main",
             borderRadius: 2,
             boxShadow:
-              "0 0 0 3px rgba(25, 118, 210, 0.14), 0 10px 22px rgba(15, 23, 42, 0.10)",
+              "0 0 0 1px rgba(25, 118, 210, 0.14), 0 10px 22px rgba(15, 23, 42, 0.10)",
             boxSizing: "border-box",
             overflow: "hidden",
+            backgroundColor: "background.paper",
           }}
         >
           <Box
@@ -555,7 +536,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
                   justifyContent: "center",
                 }}
               >
-                <ItemButtons
+                <ItemButton
                   selectedItem={selectedItem ?? undefined}
                   onAdd={handleAddItem}
                   onEdit={handleEditItem}

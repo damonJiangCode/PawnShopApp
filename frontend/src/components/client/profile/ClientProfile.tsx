@@ -1,4 +1,5 @@
 import {
+  Alert,
   Box,
   Typography,
   Avatar,
@@ -15,7 +16,7 @@ import STAT_COLORS from "../../../assets/client/STAT_COLORS";
 import type { Client, ID } from "../../../../../shared/types/Client";
 import { useClientImage } from "../../../hooks/useClientImage";
 import {
-  loadEmployeeMatchByPassword,
+  type ClientFormError,
   updateClient,
 } from "../../../services/clientService";
 
@@ -37,6 +38,8 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
   const [notesDraft, setNotesDraft] = useState("");
   const [employeePassword, setEmployeePassword] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
+  const [employeePasswordError, setEmployeePasswordError] = useState("");
+  const [submitError, setSubmitError] = useState("");
   const passwordInputRef = useRef<HTMLInputElement>(null);
   const identifications: ID[] = client.identifications || [];
   const imageSrc = useClientImage(client.image_path);
@@ -100,6 +103,8 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
   const handleOpenNoteForm = () => {
     setNotesDraft(client.notes || "");
     setEmployeePassword("");
+    setEmployeePasswordError("");
+    setSubmitError("");
     setShowNoteForm(true);
   };
 
@@ -111,6 +116,8 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
     if (trimmedDraftNotes === trimmedCurrentNotes) {
       setShowNoteForm(false);
       setEmployeePassword("");
+      setEmployeePasswordError("");
+      setSubmitError("");
       return;
     }
 
@@ -120,54 +127,48 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
     }
 
     setEmployeePassword("");
+    setEmployeePasswordError("");
+    setSubmitError("");
     setShowNoteForm(false);
     setShowPasswordForm(true);
   };
 
   const handleSaveNotes = async (skipPassword = false) => {
     if (!skipPassword && !employeePassword.trim()) {
-      alert("Please enter the employee password.");
+      setEmployeePasswordError("Employee password is required.");
       return;
     }
 
+    setSubmitError("");
     setSavingNotes(true);
     try {
       const trimmedNotes = notesDraft.trim();
-      let nextNotes = "";
-      if (!skipPassword && trimmedNotes) {
-        const employee =
-          await loadEmployeeMatchByPassword(employeePassword);
-
-        if (!employee) {
-          alert("No employee found with that password.");
-          return;
-        }
-
-        const formattedDate = new Date().toLocaleDateString("en-CA");
-        nextNotes = `${trimmedNotes} (${employee.first_name}, ${formattedDate})`;
-      }
-
       const updatedClient = await updateClient({
         client: {
           ...client,
-          notes: nextNotes,
+          notes: trimmedNotes,
         },
         identifications,
+        notes_action: skipPassword ? "clear" : "append_signature",
+        employee_password: skipPassword ? "" : employeePassword,
       });
       onClientUpdated?.(updatedClient);
       setShowPasswordForm(false);
       setShowNoteForm(false);
       setNotesDraft("");
       setEmployeePassword("");
+      setEmployeePasswordError("");
+      setSubmitError("");
     } catch (error) {
-      console.error(
-        "Employee password verification or note update failed:",
-        error,
-      );
+      const clientError = error as ClientFormError;
+
+      if (clientError.field === "employee_password") {
+        setEmployeePasswordError(clientError.message);
+        return;
+      }
+
       console.error("Failed to update client notes:", error);
-      alert(
-        "Failed to verify employee password or update notes. Please try again.",
-      );
+      setSubmitError("Failed to update client notes. Please try again.");
     } finally {
       setSavingNotes(false);
     }
@@ -244,7 +245,10 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
               label="Mid Name:"
               value={displayText(client.middle_name?.toUpperCase())}
             />
-            <InfoRow label="DoB:" value={displayDate(client.date_of_birth)} />
+            <InfoRow
+              label="Date of Birth:"
+              value={displayDate(client.date_of_birth)}
+            />
           </Box>
         </Box>
 
@@ -438,6 +442,11 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
       >
         <DialogTitle>Edit Notes</DialogTitle>
         <DialogContent>
+          {submitError && (
+            <Alert severity="error" sx={{ mt: 1 }}>
+              {submitError}
+            </Alert>
+          )}
           <TextField
             autoFocus
             fullWidth
@@ -445,7 +454,12 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
             minRows={6}
             label="Notes"
             value={notesDraft}
-            onChange={(event) => setNotesDraft(event.target.value)}
+            onChange={(event) => {
+              setNotesDraft(event.target.value);
+              if (submitError) {
+                setSubmitError("");
+              }
+            }}
             sx={{ mt: 1 }}
           />
         </DialogContent>
@@ -469,6 +483,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
           if (!savingNotes) {
             setShowPasswordForm(false);
             setShowNoteForm(true);
+            setEmployeePasswordError("");
           }
         }}
         fullWidth
@@ -476,14 +491,29 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
       >
         <DialogTitle>Employee Password</DialogTitle>
         <DialogContent>
+          {submitError && (
+            <Alert severity="error" sx={{ mt: 1 }}>
+              {submitError}
+            </Alert>
+          )}
           <TextField
             inputRef={passwordInputRef}
             fullWidth
             type="password"
             label="Password"
             value={employeePassword}
-            onChange={(event) => setEmployeePassword(event.target.value)}
+            onChange={(event) => {
+              setEmployeePassword(event.target.value);
+              if (submitError) {
+                setSubmitError("");
+              }
+              if (employeePasswordError) {
+                setEmployeePasswordError("");
+              }
+            }}
             sx={{ mt: 1 }}
+            error={Boolean(employeePasswordError)}
+            helperText={employeePasswordError || " "}
           />
         </DialogContent>
         <DialogActions>
@@ -491,6 +521,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
             onClick={() => {
               setShowPasswordForm(false);
               setShowNoteForm(true);
+              setEmployeePasswordError("");
             }}
             disabled={savingNotes}
           >

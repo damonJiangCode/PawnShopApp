@@ -1,7 +1,7 @@
 import React from "react";
 import { Box } from "@mui/material";
 import SearchBar from "./SearchBar";
-import SideButtons from "./SideButtons";
+import SideButton from "./SideButton";
 
 interface TopBarProps {
   onSearch?: (params: { firstName: string; lastName: string }) => void;
@@ -20,7 +20,7 @@ const TopBar: React.FC<TopBarProps> = ({ onSearch, onClear }) => {
       }}
     >
       <SearchBar onSearch={onSearch} onClear={onClear} />
-      <SideButtons />
+      <SideButton />
     </Box>
   );
 };

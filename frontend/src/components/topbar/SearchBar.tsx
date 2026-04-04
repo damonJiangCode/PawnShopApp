@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Box, TextField, Button } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
@@ -11,6 +11,7 @@ interface SearchBarProps {
 const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onClear }) => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const lastNameInputRef = useRef<HTMLInputElement>(null);
 
   const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -34,6 +35,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onClear }) => {
     setFirstName("");
     setLastName("");
     onClear?.();
+    requestAnimationFrame(() => {
+      lastNameInputRef.current?.focus();
+    });
   };
 
   return (
@@ -47,6 +51,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onClear }) => {
         }}
       >
         <TextField
+          inputRef={lastNameInputRef}
           name="lastName"
           size="small"
           label="Last Name"

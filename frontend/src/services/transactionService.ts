@@ -1,6 +1,5 @@
 import type { Ticket } from "../../../shared/types/Ticket";
 import type { Item } from "../../../shared/types/Item";
-import { calculation } from "../../../shared/utils/calculation";
 
 const getElectronApi = () => (window as any).electronAPI;
 const getApi = getElectronApi;
@@ -24,16 +23,9 @@ export const createFieldError = (
   return error;
 };
 
-type AddTicketPayload = {
-  description: string;
-  location: string;
-  amount: number;
-  onetime_fee: number;
-  employee_name: string;
-  client_number: number;
-};
+const FIELD_ERROR_PREFIX = "[field-error]";
 
-type CreateTicketInput = {
+export type AddTicketInput = {
   description: string;
   location: string;
   amount: number;
@@ -42,7 +34,16 @@ type CreateTicketInput = {
   client_number: number;
 };
 
-type NormalizedCreateTicketInput = {
+export type UpdateTicketInput = {
+  ticket_number: number;
+  description: string;
+  location: string;
+  amount: number;
+  onetime_fee: number;
+  employee_password: string;
+};
+
+type NormalizedAddTicketInput = {
   description: string;
   location: string;
   amount: number;
@@ -51,9 +52,18 @@ type NormalizedCreateTicketInput = {
   client_number: number;
 };
 
-const normalizeCreateTicketInput = (
-  input: CreateTicketInput,
-): NormalizedCreateTicketInput => ({
+type NormalizedUpdateTicketInput = {
+  ticket_number: number;
+  description: string;
+  location: string;
+  amount: number;
+  onetime_fee: number;
+  employee_password: string;
+};
+
+const normalizeAddTicketInput = (
+  input: AddTicketInput,
+): NormalizedAddTicketInput => ({
   ...input,
   description: input.description.trim(),
   location: input.location.trim(),
@@ -64,18 +74,39 @@ const normalizeCreateTicketInput = (
   employee_password: input.employee_password.trim(),
 });
 
-const buildAddTicketPayload = (
-  input: Omit<NormalizedCreateTicketInput, "employee_password"> & {
-    employee_name: string;
-  },
-): AddTicketPayload => ({
-  description: input.description,
-  location: input.location,
-  amount: input.amount,
-  onetime_fee: input.onetime_fee,
-  employee_name: input.employee_name,
-  client_number: input.client_number,
+const normalizeUpdateTicketInput = (
+  input: UpdateTicketInput,
+): NormalizedUpdateTicketInput => ({
+  ticket_number: input.ticket_number,
+  description: input.description.trim(),
+  location: input.location.trim(),
+  amount: Number(input.amount),
+  onetime_fee: Number.isFinite(input.onetime_fee)
+    ? Math.max(0, input.onetime_fee)
+    : 0,
+  employee_password: input.employee_password.trim(),
 });
+
+const mapBackendError = (error: unknown): Error => {
+  if (!(error instanceof Error)) {
+    return new Error("Unknown transaction error");
+  }
+
+  if (!error.message.startsWith(FIELD_ERROR_PREFIX)) {
+    return error;
+  }
+
+  const payload = error.message.slice(FIELD_ERROR_PREFIX.length);
+  const separatorIndex = payload.indexOf(":");
+
+  if (separatorIndex === -1) {
+    return error;
+  }
+
+  const field = payload.slice(0, separatorIndex) as TicketFormField;
+  const message = payload.slice(separatorIndex + 1).trim();
+  return createFieldError(field, message || error.message);
+};
 
 export const transactionService = {
   loadTickets: async (clientNumber?: number): Promise<Ticket[]> => {
@@ -100,92 +131,48 @@ export const transactionService = {
     }
   },
 
-  loadEmployeeNameByPassword: async (
-    employeePassword: string,
-  ): Promise<string | null> => {
-    const safePassword = employeePassword?.trim() ?? "";
-
-    if (!safePassword) {
-      throw new Error(
-        "[transactionService] loadEmployeeNameByPassword(): Cannot process employeePassword",
-      );
-    }
-
-    const api = getApi();
-    if (!api?.getEmployeeName) {
-      throw new Error(
-        "[transactionService] loadEmployeeNameByPassword(): Cannot get api from Electron",
-      );
-    }
-
-    return await api.getEmployeeName(safePassword);
-  },
-
   addTicket: async (
-    payload: AddTicketPayload,
-  ): Promise<Ticket | null> => {
-    const interest = calculation.getIntAmt(payload.amount);
-    const pickupAmt = calculation.getPickupAmt(
-      payload.amount,
-      payload.onetime_fee,
-    );
-    const status = "pawned";
-    const transactionDatetime = calculation.getCurrentDatetime();
-    const dueDate = calculation.getDueDatetime(transactionDatetime);
-
+    input: AddTicketInput,
+  ): Promise<Ticket> => {
+    const normalizedInput = normalizeAddTicketInput(input);
     const api = getApi();
+
     if (!api?.addTicket) {
       throw new Error(
         "[transactionService] addTicket(): Cannot get api from Electron",
       );
     }
 
-    return await api.addTicket({
-      ...payload,
-      interest,
-      pickup_amount: pickupAmt,
-      status,
-      transaction_datetime: transactionDatetime,
-      due_date: dueDate,
-    });
+    try {
+      return await api.addTicket(normalizedInput);
+    } catch (error) {
+      throw mapBackendError(error);
+    }
   },
 
-  createTicket: async (
-    input: CreateTicketInput,
+  editTicket: async (
+    input: UpdateTicketInput,
   ): Promise<Ticket> => {
-    const normalizedInput = normalizeCreateTicketInput(input);
+    const normalizedInput = normalizeUpdateTicketInput(input);
+    const api = getApi();
 
-    const employeeName = await transactionService.loadEmployeeNameByPassword(
-      normalizedInput.employee_password,
-    );
-
-    if (!employeeName) {
-      throw createFieldError(
-        "employee_password",
-        "Employee password is incorrect.",
+    if (!api?.updateTicket) {
+      throw new Error(
+        "[transactionService] editTicket(): Cannot get api from Electron",
       );
     }
 
-    const { employee_password, ...rest } = normalizedInput;
-    const newTicket = await transactionService.addTicket(
-      buildAddTicketPayload({
-        ...rest,
-        employee_name: employeeName,
-      }),
-    );
-
-    if (!newTicket) {
-      throw new Error("Cannot add ticket!");
+    try {
+      return await api.updateTicket(normalizedInput);
+    } catch (error) {
+      throw mapBackendError(error);
     }
-
-    return newTicket;
   },
 };
 
 export const {
   addTicket,
-  createTicket,
-  loadEmployeeNameByPassword,
+  editTicket,
   loadItems,
   loadTickets,
 } = transactionService;

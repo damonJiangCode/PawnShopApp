@@ -4,8 +4,12 @@ import { Box, TextField } from "@mui/material";
 interface HeightWeightFieldsProps {
   height_cm?: number;
   weight_kg?: number;
+  heightError?: string;
+  weightError?: string;
   onHeightCmChange: (value: number | undefined) => void;
   onWeightKgChange: (value: number | undefined) => void;
+  onHeightInputChange?: () => void;
+  onWeightInputChange?: () => void;
 }
 
 const cmToFt = (cm: number) => cm / 30.48;
@@ -16,8 +20,12 @@ const lbToKg = (lb: number) => lb / 2.20462;
 const HeightWeightFields: React.FC<HeightWeightFieldsProps> = ({
   height_cm,
   weight_kg,
+  heightError,
+  weightError,
   onHeightCmChange,
   onWeightKgChange,
+  onHeightInputChange,
+  onWeightInputChange,
 }) => {
   const [heightCmInput, setHeightCmInput] = useState<string>("");
   const [heightFtInput, setHeightFtInput] = useState<string>("");
@@ -56,6 +64,7 @@ const HeightWeightFields: React.FC<HeightWeightFieldsProps> = ({
         label="Height (cm)"
         value={heightCmInput}
         onChange={(e) => {
+          onHeightInputChange?.();
           let value = e.target.value;
           value = value.replace(/[^\d.]/g, "");
           value = value.replace(/^(\d*\.\d*?)\..*$/, "$1");
@@ -73,6 +82,8 @@ const HeightWeightFields: React.FC<HeightWeightFieldsProps> = ({
           setHeightFtInput(String(Number(cmToFt(num)).toFixed(1)));
         }}
         size="small"
+        error={Boolean(heightError)}
+        helperText={heightError || " "}
       />
       <TextField
         fullWidth
@@ -82,6 +93,7 @@ const HeightWeightFields: React.FC<HeightWeightFieldsProps> = ({
         label="Height (ft)"
         value={heightFtInput}
         onChange={(e) => {
+          onHeightInputChange?.();
           let value = e.target.value;
           value = value.replace(/[^\d.]/g, "");
           value = value.replace(/^(\d*\.\d*?)\..*$/, "$1");
@@ -100,6 +112,8 @@ const HeightWeightFields: React.FC<HeightWeightFieldsProps> = ({
           setHeightCmInput(String(cm));
         }}
         size="small"
+        error={Boolean(heightError)}
+        helperText={heightError || " "}
       />
       <TextField
         fullWidth
@@ -109,6 +123,7 @@ const HeightWeightFields: React.FC<HeightWeightFieldsProps> = ({
         label="Weight (kg)"
         value={weightKgInput}
         onChange={(e) => {
+          onWeightInputChange?.();
           let value = e.target.value;
           value = value.replace(/[^\d.]/g, "");
           value = value.replace(/^(\d*\.\d*?)\..*$/, "$1");
@@ -126,6 +141,8 @@ const HeightWeightFields: React.FC<HeightWeightFieldsProps> = ({
           setWeightLbInput(String(Number(kgToLb(num)).toFixed(1)));
         }}
         size="small"
+        error={Boolean(weightError)}
+        helperText={weightError || " "}
       />
       <TextField
         fullWidth
@@ -135,6 +152,7 @@ const HeightWeightFields: React.FC<HeightWeightFieldsProps> = ({
         label="Weight (lb)"
         value={weightLbInput}
         onChange={(e) => {
+          onWeightInputChange?.();
           let value = e.target.value;
           value = value.replace(/[^\d.]/g, "");
           value = value.replace(/^(\d*\.\d*?)\..*$/, "$1");
@@ -153,6 +171,8 @@ const HeightWeightFields: React.FC<HeightWeightFieldsProps> = ({
           setWeightKgInput(String(kg));
         }}
         size="small"
+        error={Boolean(weightError)}
+        helperText={weightError || " "}
       />
     </Box>
   );

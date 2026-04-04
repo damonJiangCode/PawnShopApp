@@ -3,11 +3,11 @@ import { Box, Button } from "@mui/material";
 import HistoryIcon from "@mui/icons-material/History";
 import SettingsIcon from "@mui/icons-material/Settings";
 
-interface SideButtonsProps {
+interface SideButtonProps {
   onSettings?: () => void;
 }
 
-const SideButtons: React.FC<SideButtonsProps> = ({ onSettings }) => {
+const SideButton: React.FC<SideButtonProps> = ({ onSettings }) => {
   return (
     <Box
       sx={{
@@ -35,4 +35,4 @@ const SideButtons: React.FC<SideButtonsProps> = ({ onSettings }) => {
   );
 };
 
-export default SideButtons;
+export default SideButton;

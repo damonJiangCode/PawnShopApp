@@ -8,6 +8,10 @@ interface AddressFieldsProps {
   client_city: string;
   client_province: string;
   client_country: string;
+  addressError?: string;
+  cityError?: string;
+  provinceError?: string;
+  countryError?: string;
   onChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
@@ -19,6 +23,10 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
   client_city,
   client_province,
   client_country,
+  addressError,
+  cityError,
+  provinceError,
+  countryError,
   onChange,
 }) => {
   const [loading, setLoading] = useState(true);
@@ -95,6 +103,8 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
           value={client_address || ""}
           onChange={onChange}
           size="small"
+          error={Boolean(addressError)}
+          helperText={addressError || " "}
         />
         <TextField
           fullWidth
@@ -117,6 +127,8 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
           onChange={handleCityChange}
           size="small"
           disabled={!province}
+          error={Boolean(cityError)}
+          helperText={cityError || " "}
         >
           {availableCities.length === 0 ? (
             <MenuItem disabled>Loading cities...</MenuItem>
@@ -139,6 +151,8 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
           onChange={handleProvinceChange}
           size="small"
           disabled={!country}
+          error={Boolean(provinceError)}
+          helperText={provinceError || " "}
         >
           {provinces.length === 0 ? (
             <MenuItem disabled>Loading provinces...</MenuItem>
@@ -160,6 +174,8 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
           value={loading ? "" : country}
           onChange={handleCountryChange}
           size="small"
+          error={Boolean(countryError)}
+          helperText={countryError || " "}
         >
           <MenuItem value="Canada">Canada</MenuItem>
         </TextField>
