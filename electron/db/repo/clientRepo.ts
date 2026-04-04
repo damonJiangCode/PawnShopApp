@@ -314,7 +314,7 @@ export const deleteClientByNumber = async (
       `DELETE FROM client WHERE client_number = $1`,
       [clientNumber],
     );
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   } finally {
     if (!dbClient) {
       client.release();
