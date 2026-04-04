@@ -1,4 +1,6 @@
-import { connect } from "../tables/createTables.ts";
+import { connect } from "../table/createTable.ts";
+
+type DbClient = Awaited<ReturnType<typeof connect>>;
 
 interface EmployeeMatch {
   employee_number: number;
@@ -7,15 +9,16 @@ interface EmployeeMatch {
 }
 
 export const findEmployeeByPassword = async (
-  password: string
+  password: string,
+  dbClient?: DbClient,
 ): Promise<EmployeeMatch | null> => {
-  const dbClient = await connect();
+  const client = dbClient ?? (await connect());
 
   try {
-    const result = await dbClient.query(
+    const result = await client.query(
       `
         SELECT employee_number, first_name, last_name
-        FROM employees
+        FROM employee
         WHERE password = $1
         LIMIT 1
       `,
@@ -23,13 +26,9 @@ export const findEmployeeByPassword = async (
     );
 
     return result.rows[0] ?? null;
-  } catch (error) {
-    console.error(
-      "[employeeRepository] ERROR: Failed to look up employee by password:",
-      error
-    );
-    throw error;
   } finally {
-    dbClient.release();
+    if (!dbClient) {
+      client.release();
+    }
   }
 };

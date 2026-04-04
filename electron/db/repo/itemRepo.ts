@@ -1,4 +1,4 @@
-import { connect } from "../tables/createTables.ts";
+import { connect } from "../table/createTable.ts";
 import type { Item, ItemTicketStatus } from "../../../shared/types/Item.ts";
 
 const mapItemRow = (row: Record<string, unknown>): Item => {
@@ -31,7 +31,7 @@ export const itemRepo = {
         amount,
         item_ticket_status,
         image_path
-      FROM items
+      FROM item
       WHERE EXISTS (
         SELECT 1
         FROM jsonb_array_elements(item_ticket_status) AS status_entry
@@ -41,17 +41,8 @@ export const itemRepo = {
     `;
 
     try {
-      await client.query("BEGIN");
       const result = await client.query(query, [ticketNumber]);
-      await client.query("COMMIT");
       return result.rows.map(mapItemRow);
-    } catch (error) {
-      console.error(
-        `[itemRepo] ERROR getting items for ticket #${ticketNumber}:`,
-        error,
-      );
-      await client.query("ROLLBACK");
-      throw error;
     } finally {
       client.release();
     }

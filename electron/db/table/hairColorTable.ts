@@ -1,10 +1,10 @@
-export const createHairColorsTable = `CREATE TABLE IF NOT EXISTS hair_colors(
+export const createHairColorTable = `CREATE TABLE IF NOT EXISTS hair_color(
   id SERIAL PRIMARY KEY,
   color TEXT NOT NULL
 );`;
 
-export const insertHairColors = `
-INSERT INTO hair_colors (color)
+export const insertHairColor = `
+INSERT INTO hair_color (color)
 SELECT v.color
 FROM (
   VALUES
@@ -27,7 +27,7 @@ FROM (
 ) AS v(color)
 WHERE NOT EXISTS (
   SELECT 1
-  FROM hair_colors h
+  FROM hair_color h
   WHERE h.color = v.color
 );
 `;

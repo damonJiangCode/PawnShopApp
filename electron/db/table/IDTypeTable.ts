@@ -1,12 +1,12 @@
-export const createIDTypesTable = `
-  CREATE TABLE IF NOT EXISTS id_types (
+export const createIDTypeTable = `
+  CREATE TABLE IF NOT EXISTS id_type (
     id SERIAL PRIMARY KEY,
     type TEXT NOT NULL UNIQUE
   );
 `;
 
-export const insertIDTypes = `
-  INSERT INTO id_types (type)
+export const insertIDType = `
+  INSERT INTO id_type (type)
   SELECT v.type
   FROM (
     VALUES
@@ -24,7 +24,7 @@ export const insertIDTypes = `
   ) AS v(type)
   WHERE NOT EXISTS (
     SELECT 1
-    FROM id_types t
+    FROM id_type t
     WHERE t.type = v.type
   )
 `;

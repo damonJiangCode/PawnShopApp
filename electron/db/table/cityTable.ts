@@ -7,8 +7,8 @@ import { dirname } from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-export const createCitiesTable = `
-CREATE TABLE IF NOT EXISTS cities (
+export const createCityTable = `
+CREATE TABLE IF NOT EXISTS city (
     id SERIAL PRIMARY KEY,
     city TEXT,
     province TEXT,
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS cities (
 );
 `;
 
-export async function importCities(client: any) {
+export async function importCity(client: any) {
   const filePath = path.resolve(__dirname, "../seed/canadacities.csv");
 
   try {
@@ -25,7 +25,7 @@ export async function importCities(client: any) {
     let count = 0;
     for await (const row of stream) {
       count++;
-      console.log(`⏳ inserting number ${count} row: ${row.city}`);
+      // console.log(`⏳ inserting number ${count} row: ${row.city}`);
 
       const city = row.city_ascii?.trim();
       const province = row.province_name?.trim();
@@ -34,15 +34,15 @@ export async function importCities(client: any) {
       if (city && province) {
         await client.query(
           `
-            INSERT INTO cities (city, province, country)
+            INSERT INTO city (city, province, country)
             SELECT $1, $2, $3
             WHERE NOT EXISTS (
               SELECT 1
-              FROM cities
+              FROM city
               WHERE city = $1 AND province = $2 AND country = $3
             )
           `,
-          [city, province, country]
+          [city, province, country],
         );
       }
     }

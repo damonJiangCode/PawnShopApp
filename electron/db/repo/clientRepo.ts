@@ -1,41 +1,15 @@
 import type { Client, ID } from "../../../shared/types/Client.ts";
-import { connect } from "../tables/createTables.ts";
+import { connect } from "../table/createTable.ts";
+
+type DbClient = Awaited<ReturnType<typeof connect>>;
 
 const normalize = (value: unknown) => {
   if (typeof value === "string") {
     const trimmed = value.trim();
     return trimmed === "" ? null : trimmed;
   }
-  return value ?? null;
-};
 
-const insertClientIds = async (
-  client: any,
-  clientNumber: number,
-  ids: ID[],
-): Promise<ID[]> => {
-  const insertedIds: ID[] = [];
-  for (const id of ids ?? []) {
-    if (!id.id_type?.trim() || !id.id_value?.trim()) {
-      continue;
-    }
-    const result = await client.query(
-      `
-        INSERT INTO client_ids (client_number, id_type, id_value)
-        VALUES ($1, $2, $3)
-        RETURNING id, id_type, id_value, updated_at
-      `,
-      [clientNumber, id.id_type, id.id_value],
-    );
-    insertedIds.push({
-      id: result.rows[0].id,
-      client_number: clientNumber,
-      id_type: result.rows[0].id_type,
-      id_value: result.rows[0].id_value,
-      updated_at: result.rows[0].updated_at,
-    });
-  }
-  return insertedIds;
+  return value ?? null;
 };
 
 const mapRowToClient = (row: any): Client => ({
@@ -66,32 +40,35 @@ const mapRowToClient = (row: any): Client => ({
   identifications: row.identifications ?? [],
 });
 
+const getClient = async (dbClient?: DbClient) => dbClient ?? (await connect());
+
 export const searchClientsByName = async (
   firstName: string,
   lastName: string,
+  dbClient?: DbClient,
 ): Promise<Client[]> => {
-  const client = await connect();
+  const client = await getClient(dbClient);
   const query = `
     SELECT
       c.*,
       COALESCE(ci.identifications, '[]') AS identifications
-    FROM clients c
+    FROM client c
     LEFT JOIN LATERAL (
       SELECT json_agg(
         jsonb_build_object(
-          'id', client_ids.id,
-          'id_type', client_ids.id_type,
-          'id_value', client_ids.id_value,
-          'updated_at', client_ids.updated_at
+          'id', client_id.id,
+          'id_type', client_id.id_type,
+          'id_value', client_id.id_value,
+          'updated_at', client_id.updated_at
         )
-        ORDER BY client_ids.id
+        ORDER BY client_id.id
       ) AS identifications
-      FROM client_ids
-      WHERE client_ids.client_number = c.client_number
+      FROM client_id
+      WHERE client_id.client_number = c.client_number
     ) ci ON TRUE
-    WHERE 
-      (LOWER(c.first_name) LIKE LOWER($1) || '%' OR $1 = '') 
-      AND 
+    WHERE
+      (LOWER(c.first_name) LIKE LOWER($1) || '%' OR $1 = '')
+      AND
       (LOWER(c.last_name) LIKE LOWER($2) || '%' OR $2 = '')
     ORDER BY c.last_name, c.first_name, c.client_number
   `;
@@ -99,35 +76,26 @@ export const searchClientsByName = async (
     firstName ? firstName.toLowerCase() : "",
     lastName ? lastName.toLowerCase() : "",
   ];
+
   try {
-    await client.query("BEGIN");
     const result = await client.query(query, values);
-    await client.query("COMMIT");
     const clients = result.rows.map(mapRowToClient);
-    if (clients.length === 0) {
-      console.warn(
-        "[clientRepository] WARNING: No clients found matching search criteria,",
-        firstName,
-        lastName,
-      );
-    }
+
     return clients;
-  } catch (error) {
-    console.error("[clientRepository] ERROR: Error searching client:", error);
-    await client.query("ROLLBACK");
-    throw error;
   } finally {
-    client.release();
+    if (!dbClient) {
+      client.release();
+    }
   }
 };
 
-export const addClient = async (
+export const insertClient = async (
   clientData: Client,
-  ids: ID[],
-): Promise<Client> => {
-  const client = await connect();
-  const insertClientQuery = `
-    INSERT INTO clients (
+  dbClient?: DbClient,
+): Promise<{ client_number: number; updated_at: Date }> => {
+  const client = await getClient(dbClient);
+  const query = `
+    INSERT INTO client (
       first_name,
       last_name,
       middle_name,
@@ -182,42 +150,31 @@ export const addClient = async (
   ];
 
   try {
-    await client.query("BEGIN");
-    const inserted = await client.query(insertClientQuery, values);
-    const clientNumber = inserted.rows[0].client_number as number;
-    const updatedAt = inserted.rows[0].updated_at as Date;
-    const insertedIds = await insertClientIds(client, clientNumber, ids);
-
-    await client.query("COMMIT");
-
+    const result = await client.query(query, values);
     return {
-      ...clientData,
-      client_number: clientNumber,
-      updated_at: updatedAt,
-      identifications: insertedIds,
+      client_number: result.rows[0].client_number as number,
+      updated_at: result.rows[0].updated_at as Date,
     };
-  } catch (error) {
-    await client.query("ROLLBACK");
-    console.error("[clientRepository] ERROR: Error adding client:", error);
-    throw error;
   } finally {
-    client.release();
+    if (!dbClient) {
+      client.release();
+    }
   }
 };
 
-export const updateClient = async (
+export const updateClientRecord = async (
   clientData: Client,
-  ids: ID[],
-): Promise<Client> => {
-  const client = await connect();
+  dbClient?: DbClient,
+): Promise<{ updated_at: Date }> => {
+  const client = await getClient(dbClient);
   const clientNumber = clientData.client_number;
 
   if (!clientNumber) {
     throw new Error("Missing client_number for update");
   }
 
-  const updateClientQuery = `
-    UPDATE clients
+  const query = `
+    UPDATE client
     SET
       first_name = $1,
       last_name = $2,
@@ -273,54 +230,94 @@ export const updateClient = async (
   ];
 
   try {
-    await client.query("BEGIN");
-    const updated = await client.query(updateClientQuery, values);
+    const result = await client.query(query, values);
 
-    if (updated.rowCount === 0) {
+    if (result.rowCount === 0) {
       throw new Error(`Client not found: ${clientNumber}`);
     }
 
-    await client.query(`DELETE FROM client_ids WHERE client_number = $1`, [
+    return {
+      updated_at: result.rows[0].updated_at as Date,
+    };
+  } finally {
+    if (!dbClient) {
+      client.release();
+    }
+  }
+};
+
+export const insertClientIds = async (
+  clientNumber: number,
+  ids: ID[],
+  dbClient?: DbClient,
+): Promise<ID[]> => {
+  const client = await getClient(dbClient);
+  const insertedIds: ID[] = [];
+
+  try {
+    for (const id of ids ?? []) {
+      if (!id.id_type?.trim() || !id.id_value?.trim()) {
+        continue;
+      }
+
+      const result = await client.query(
+        `
+          INSERT INTO client_id (client_number, id_type, id_value)
+          VALUES ($1, $2, $3)
+          RETURNING id, id_type, id_value, updated_at
+        `,
+        [clientNumber, id.id_type, id.id_value],
+      );
+
+      insertedIds.push({
+        id: result.rows[0].id,
+        client_number: clientNumber,
+        id_type: result.rows[0].id_type,
+        id_value: result.rows[0].id_value,
+        updated_at: result.rows[0].updated_at,
+      });
+    }
+
+    return insertedIds;
+  } finally {
+    if (!dbClient) {
+      client.release();
+    }
+  }
+};
+
+export const deleteClientIds = async (
+  clientNumber: number,
+  dbClient?: DbClient,
+): Promise<void> => {
+  const client = await getClient(dbClient);
+
+  try {
+    await client.query(`DELETE FROM client_id WHERE client_number = $1`, [
       clientNumber,
     ]);
-    const updatedIds = await insertClientIds(client, clientNumber, ids);
-
-    await client.query("COMMIT");
-
-    return {
-      ...clientData,
-      client_number: clientNumber,
-      updated_at: updated.rows[0].updated_at,
-      identifications: updatedIds,
-    };
-  } catch (error) {
-    await client.query("ROLLBACK");
-    console.error("[clientRepository] ERROR: Error updating client:", error);
-    throw error;
   } finally {
-    client.release();
+    if (!dbClient) {
+      client.release();
+    }
   }
 };
 
 export const deleteClientByNumber = async (
   clientNumber: number,
+  dbClient?: DbClient,
 ): Promise<boolean> => {
-  const client = await connect();
+  const client = await getClient(dbClient);
 
   try {
-    await client.query("BEGIN");
-    const deleted = await client.query(
-      `DELETE FROM clients WHERE client_number = $1`,
+    const result = await client.query(
+      `DELETE FROM client WHERE client_number = $1`,
       [clientNumber],
     );
-    await client.query("COMMIT");
-
-    return deleted.rowCount > 0;
-  } catch (error) {
-    await client.query("ROLLBACK");
-    console.error("[clientRepository] ERROR: Error deleting client:", error);
-    throw error;
+    return result.rowCount > 0;
   } finally {
-    client.release();
+    if (!dbClient) {
+      client.release();
+    }
   }
 };

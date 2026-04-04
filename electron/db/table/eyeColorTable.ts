@@ -1,10 +1,10 @@
-export const createEyeColorsTable = `CREATE TABLE IF NOT EXISTS eye_colors(
+export const createEyeColorTable = `CREATE TABLE IF NOT EXISTS eye_color(
   id SERIAL PRIMARY KEY,
   color TEXT NOT NULL
 );`;
 
-export const insertEyeColors = `
-INSERT INTO eye_colors (color)
+export const insertEyeColor = `
+INSERT INTO eye_color (color)
 SELECT v.color
 FROM (
   VALUES
@@ -24,7 +24,7 @@ FROM (
 ) AS v(color)
 WHERE NOT EXISTS (
   SELECT 1
-  FROM eye_colors e
+  FROM eye_color e
   WHERE e.color = v.color
 );
 `;

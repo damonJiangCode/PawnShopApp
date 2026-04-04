@@ -1,5 +1,5 @@
-export const createItemsTable = `
-  CREATE TABLE IF NOT EXISTS items (
+export const createItemTable = `
+  CREATE TABLE IF NOT EXISTS item (
     item_number SERIAL PRIMARY KEY,
     quantity INTEGER NOT NULL,
     description TEXT,

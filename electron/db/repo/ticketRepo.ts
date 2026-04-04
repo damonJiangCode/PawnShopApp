@@ -1,11 +1,14 @@
-import { connect } from "../tables/createTables.ts";
+import { connect } from "../table/createTable.ts";
 import type { Ticket } from "../../../shared/types/Ticket.ts";
+
+type DbClient = Awaited<ReturnType<typeof connect>>;
 
 type AddTicketPayload = {
   transaction_datetime: Date;
   location: string;
   description: string;
   due_date: Date;
+  is_overdue: boolean;
   amount: number;
   onetime_fee: number;
   interest: number;
@@ -15,6 +18,17 @@ type AddTicketPayload = {
   client_number: number;
 };
 
+type UpdateTicketPayload = {
+  ticket_number: number;
+  location: string;
+  description: string;
+  amount: number;
+  onetime_fee: number;
+  interest: number;
+  pickup_amount: number;
+  employee_name: string;
+};
+
 const mapTicketRow = (row: Record<string, unknown>): Ticket => {
   return {
     ticket_number: Number(row.ticket_number),
@@ -22,6 +36,7 @@ const mapTicketRow = (row: Record<string, unknown>): Ticket => {
     location: row.location ? String(row.location) : "",
     description: row.description ? String(row.description) : "",
     due_date: new Date(String(row.due_date)),
+    is_overdue: Boolean(row.is_overdue),
     amount: Number(row.amount ?? 0),
     onetime_fee: Number(row.onetime_fee ?? 0),
     interest: Number(row.interest ?? 0),
@@ -48,7 +63,9 @@ export const ticketRepo = {
         location,
         description,
         due_date,
+        is_overdue,
         amount,
+        onetime_fee,
         interest,
         pickup_amount,
         interested_datetime,
@@ -56,41 +73,33 @@ export const ticketRepo = {
         pickup_datetime,
         status,
         client_number
-      FROM tickets
+      FROM ticket
       WHERE client_number = $1
       ORDER BY transaction_datetime DESC, ticket_number DESC
     `;
 
     try {
-      await client.query("BEGIN");
       const result = await client.query(query, [clientNumber]);
-      await client.query("COMMIT");
       return result.rows.map(mapTicketRow);
-    } catch (error) {
-      console.error(
-        `[ticketRepo] ERROR getting tickets for client #${clientNumber}:`,
-        error,
-      );
-      await client.query("ROLLBACK");
-      throw error;
     } finally {
       client.release();
     }
   },
 
-  getEmployeeName: async (employeePassword: string): Promise<string | null> => {
-    const client = await connect();
+  getEmployeeName: async (
+    employeePassword: string,
+    dbClient?: DbClient,
+  ): Promise<string | null> => {
+    const client = dbClient ?? (await connect());
     const query = `
       SELECT first_name, last_name
-      FROM employees
+      FROM employee
       WHERE password = $1
       LIMIT 1
     `;
 
     try {
-      await client.query("BEGIN");
       const result = await client.query(query, [employeePassword]);
-      await client.query("COMMIT");
       const employee = result.rows[0];
 
       if (!employee) {
@@ -99,26 +108,25 @@ export const ticketRepo = {
       }
 
       return employee.first_name;
-    } catch (err) {
-      console.error(
-        "[ticketRepo.ts] getEmployeeName(): getting employee name, ",
-        err,
-      );
-      await client.query("ROLLBACK");
-      throw err;
     } finally {
-      client.release();
+      if (!dbClient) {
+        client.release();
+      }
     }
   },
 
-  addTicket: async (payload: AddTicketPayload): Promise<Ticket> => {
-    const client = await connect();
+  addTicket: async (
+    payload: AddTicketPayload,
+    dbClient?: DbClient,
+  ): Promise<Ticket> => {
+    const client = dbClient ?? (await connect());
     const query = `
-      INSERT INTO tickets (
+      INSERT INTO ticket (
         transaction_datetime,
         location,
         description,
         due_date,
+        is_overdue,
         amount,
         onetime_fee,
         interest,
@@ -127,7 +135,7 @@ export const ticketRepo = {
         status,
         client_number
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12
       )
       RETURNING
         ticket_number,
@@ -135,6 +143,7 @@ export const ticketRepo = {
         location,
         description,
         due_date,
+        is_overdue,
         amount,
         onetime_fee,
         interest,
@@ -151,6 +160,7 @@ export const ticketRepo = {
       payload.location,
       payload.description,
       payload.due_date,
+      payload.is_overdue,
       payload.amount,
       payload.onetime_fee,
       payload.interest,
@@ -161,16 +171,75 @@ export const ticketRepo = {
     ];
 
     try {
-      await client.query("BEGIN");
       const result = await client.query(query, values);
-      await client.query("COMMIT");
       return mapTicketRow(result.rows[0]);
-    } catch (error) {
-      console.error("[ticketRepo] ERROR adding ticket:", error);
-      await client.query("ROLLBACK");
-      throw error;
     } finally {
-      client.release();
+      if (!dbClient) {
+        client.release();
+      }
+    }
+  },
+
+  updateTicket: async (
+    payload: UpdateTicketPayload,
+    dbClient?: DbClient,
+  ): Promise<Ticket> => {
+    const client = dbClient ?? (await connect());
+    const query = `
+      UPDATE ticket
+      SET
+        location = $1,
+        description = $2,
+        is_overdue = COALESCE(due_date < NOW(), FALSE),
+        amount = $3,
+        onetime_fee = $4,
+        interest = $5,
+        pickup_amount = $6,
+        employee_name = $7
+      WHERE ticket_number = $8
+      RETURNING
+        ticket_number,
+        transaction_datetime,
+        location,
+        description,
+        due_date,
+        is_overdue,
+        amount,
+        onetime_fee,
+        interest,
+        pickup_amount,
+        interested_datetime,
+        employee_name,
+        pickup_datetime,
+        status,
+        client_number
+    `;
+
+    const values = [
+      payload.location,
+      payload.description,
+      payload.amount,
+      payload.onetime_fee,
+      payload.interest,
+      payload.pickup_amount,
+      payload.employee_name,
+      payload.ticket_number,
+    ];
+
+    try {
+      const result = await client.query(query, values);
+
+      if (!result.rows[0]) {
+        throw new Error(
+          `[ticketRepo] updateTicket(): Ticket #${payload.ticket_number} not found`,
+        );
+      }
+
+      return mapTicketRow(result.rows[0]);
+    } finally {
+      if (!dbClient) {
+        client.release();
+      }
     }
   },
 };

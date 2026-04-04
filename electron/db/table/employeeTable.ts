@@ -1,5 +1,5 @@
-export const createEmployeesTable = `
-  CREATE TABLE IF NOT EXISTS employees (
+export const createEmployeeTable = `
+  CREATE TABLE IF NOT EXISTS employee (
     employee_number SERIAL PRIMARY KEY,
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,

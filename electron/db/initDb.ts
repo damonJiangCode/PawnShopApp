@@ -1,4 +1,4 @@
-import { initializeDatabase } from "./tables/createTables.ts";
+import { initializeDatabase } from "./table/createTable.ts";
 
 const run = async () => {
   try {
