@@ -11,11 +11,10 @@ const CHANNELS = {
   DELETE_CLIENT: "delete-client",
   SAVE_CLIENT_IMAGE: "save-client-image",
   GET_CLIENT_IMAGE: "get-client-image",
-  VERIFY_EMPLOYEE_PASSWORD: "verify-employee-password",
-  GET_EMPLOYEE_NAME: "get-employee-name",
   GET_TICKETS: "get-tickets",
   GET_ITEMS: "get-items",
   ADD_TICKET: "add-ticket",
+  UPDATE_TICKET: "update-ticket",
 };
 
 contextBridge.exposeInMainWorld("electronAPI", {
@@ -30,10 +29,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke(CHANNELS.UPDATE_CLIENT, payload),
   deleteClient: (clientNumber) =>
     ipcRenderer.invoke(CHANNELS.DELETE_CLIENT, clientNumber),
-  verifyEmployeePassword: (password) =>
-    ipcRenderer.invoke(CHANNELS.VERIFY_EMPLOYEE_PASSWORD, password),
-  getEmployeeName: (employeePassword) =>
-    ipcRenderer.invoke(CHANNELS.GET_EMPLOYEE_NAME, employeePassword),
   saveClientImage: (fileName, base64) =>
     ipcRenderer.invoke(CHANNELS.SAVE_CLIENT_IMAGE, fileName, base64),
   getClientImage: (imagePath) =>
@@ -43,6 +38,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   getItems: (ticketNumber) =>
     ipcRenderer.invoke(CHANNELS.GET_ITEMS, ticketNumber),
   addTicket: (payload) => ipcRenderer.invoke(CHANNELS.ADD_TICKET, payload),
+  updateTicket: (payload) =>
+    ipcRenderer.invoke(CHANNELS.UPDATE_TICKET, payload),
 });
 
 console.log("Preload (CJS) loaded");
