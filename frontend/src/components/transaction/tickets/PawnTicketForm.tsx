@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
+  Checkbox,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -9,29 +10,31 @@ import {
   Autocomplete,
   Box,
   Alert,
+  FormControlLabel,
 } from "@mui/material";
-import { LOCATIONS } from "../../../assets/transaction/LOCATIONS";
 import type {
-  AddTicketInput,
-  FormFieldError,
-} from "../../../services/transactionService";
+  CreatePawnTicketInput,
+  TicketFormError,
+} from "../../../services/ticketService";
+import { ticketService } from "../../../services/ticketService";
 import { calculation } from "../../../../../shared/utils/calculation";
 
-interface AddTicketFormProps {
+interface PawnTicketFormProps {
   open: boolean;
   clientLastName: string;
   clientFirstName: string;
   onClose: () => void;
   onSave: (
-    ticketData: Omit<AddTicketInput, "client_number">,
+    ticketData: Omit<CreatePawnTicketInput, "client_number">,
   ) => Promise<void>;
 }
 
-const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
+const PawnTicketForm: React.FC<PawnTicketFormProps> = (props) => {
   const { open, clientLastName, clientFirstName, onClose, onSave } = props;
 
   const descriptionRef = useRef<HTMLInputElement>(null);
   const [description, setDescription] = useState<string>("");
+  const [isLost, setIsLost] = useState(false);
   const [location, setLocation] = useState<string>("");
   const [locationList, setLocationList] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,10 +51,26 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
   const [submitError, setSubmitError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // render locations
   useEffect(() => {
-    setLocationList(LOCATIONS);
-    setLoading(false);
+    let active = true;
+
+    const fetchLocations = async () => {
+      setLoading(true);
+      const locations = await ticketService.loadLocations();
+
+      if (!active) {
+        return;
+      }
+
+      setLocationList(locations);
+      setLoading(false);
+    };
+
+    void fetchLocations();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   // focus on description input
@@ -70,6 +89,7 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
     }
 
     setDescription("");
+    setIsLost(false);
     setLocation("");
     setAmount("");
     setOneTimeFee("");
@@ -134,6 +154,7 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
     try {
       await onSave({
         description: trimmedDescription,
+        is_lost: isLost,
         location: trimmedLocation,
         amount: normalizedAmount,
         onetime_fee: typeof oneTimeFee === "number" ? oneTimeFee : 0,
@@ -141,7 +162,7 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
       });
     } catch (err) {
       console.error(err);
-      const formError = err as FormFieldError;
+      const formError = err as TicketFormError;
 
       if (formError.field === "employee_password") {
         setEmployeePasswordError(formError.message);
@@ -149,7 +170,7 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
       }
 
       setSubmitError(
-        err instanceof Error ? err.message : "Failed to add ticket.",
+        err instanceof Error ? err.message : "Failed to pawn ticket.",
       );
     } finally {
       setSaving(false);
@@ -158,7 +179,7 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Add New Ticket</DialogTitle>
+      <DialogTitle>Pawn Ticket</DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
           {submitError && <Alert severity="error">{submitError}</Alert>}
@@ -188,6 +209,18 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
             autoFocus
             error={Boolean(descriptionError)}
             helperText={descriptionError || " "}
+          />
+
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={isLost}
+                onChange={(_event, checked) => {
+                  setIsLost(checked);
+                }}
+              />
+            }
+            label="Lost Ticket"
           />
 
           <Autocomplete
@@ -316,4 +349,4 @@ const AddTicketForm: React.FC<AddTicketFormProps> = (props) => {
   );
 };
 
-export default AddTicketForm;
+export default PawnTicketForm;

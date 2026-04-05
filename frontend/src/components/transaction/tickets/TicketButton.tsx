@@ -1,24 +1,37 @@
 import React from "react";
 import { Box, Button } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import SellIcon from "@mui/icons-material/Sell";
 import EditIcon from "@mui/icons-material/Edit";
 import PrintIcon from "@mui/icons-material/Print";
 import DeleteIcon from "@mui/icons-material/Delete";
-import ChangeCircleIcon from "@mui/icons-material/ChangeCircle";
+import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
+import AutorenewIcon from "@mui/icons-material/Autorenew";
 import type { Ticket } from "../../../../../shared/types/Ticket";
 
 interface TicketButtonProps {
   selectedTicket: Ticket | null;
-  onAdd: () => void;
+  onPawn: () => void;
+  onSell: () => void;
   onEdit: () => void;
   onPrint: () => void;
-  onChange: () => void;
+  onConvert: () => void;
+  onTransfer: () => void;
   onExpire: () => void;
 }
 
 const TicketButton: React.FC<TicketButtonProps> = (props) => {
-  const { selectedTicket, onAdd, onEdit, onPrint, onChange, onExpire } = props;
-  const disabled = !selectedTicket;
+  const {
+    selectedTicket,
+    onPawn,
+    onSell,
+    onEdit,
+    onPrint,
+    onConvert,
+    onTransfer,
+    onExpire,
+  } = props;
+  const ticketActionDisabled = !selectedTicket;
 
   return (
     <Box
@@ -36,16 +49,24 @@ const TicketButton: React.FC<TicketButtonProps> = (props) => {
         variant="outlined"
         sx={{ width: "100%" }}
         startIcon={<AddIcon />}
-        onClick={onAdd}
+        onClick={onPawn}
       >
-        Add
+        Pawn
+      </Button>
+      <Button
+        variant="outlined"
+        sx={{ width: "100%" }}
+        startIcon={<SellIcon />}
+        onClick={onSell}
+      >
+        Sell
       </Button>
       <Button
         variant="outlined"
         sx={{ width: "100%" }}
         startIcon={<EditIcon />}
         onClick={onEdit}
-        disabled={disabled}
+        disabled={ticketActionDisabled}
       >
         Edit
       </Button>
@@ -54,18 +75,27 @@ const TicketButton: React.FC<TicketButtonProps> = (props) => {
         sx={{ width: "100%" }}
         startIcon={<PrintIcon />}
         onClick={onPrint}
-        disabled={disabled}
+        disabled={ticketActionDisabled}
       >
         Print
       </Button>
       <Button
         variant="outlined"
         sx={{ width: "100%" }}
-        startIcon={<ChangeCircleIcon />}
-        onClick={onChange}
-        disabled={disabled}
+        startIcon={<AutorenewIcon />}
+        onClick={onConvert}
+        disabled={ticketActionDisabled}
       >
-        Change
+        Convert
+      </Button>
+      <Button
+        variant="outlined"
+        sx={{ width: "100%" }}
+        startIcon={<SwapHorizIcon />}
+        onClick={onTransfer}
+        disabled={ticketActionDisabled}
+      >
+        Transfer
       </Button>
       <Button
         variant="outlined"
@@ -73,7 +103,7 @@ const TicketButton: React.FC<TicketButtonProps> = (props) => {
         color="error"
         startIcon={<DeleteIcon />}
         onClick={onExpire}
-        disabled={disabled}
+        disabled={ticketActionDisabled}
       >
         Expire
       </Button>

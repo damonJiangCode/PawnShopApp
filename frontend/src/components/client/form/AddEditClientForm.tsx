@@ -20,12 +20,10 @@ import IDFields from "./fields/IDFields";
 import type { IDFieldsRef } from "./fields/IDFields";
 import defaultClient from "../../../utils/defaultClient";
 import {
-  createClient,
+  clientService,
   type ClientFormError,
   type ClientNotesAction,
   type SaveClientInput,
-  saveClientImage,
-  updateClient,
 } from "../../../services/clientService";
 
 interface AddEditClientFormProps {
@@ -147,7 +145,7 @@ const AddEditClientForm: React.FC<AddEditClientFormProps> = (props) => {
     base64: string,
   ): Promise<void> {
     try {
-      const relPath = await saveClientImage(fileName, base64);
+      const relPath = await clientService.saveClientImage(fileName, base64);
       setClient((prev) => ({ ...prev, image_path: relPath }));
       setPhotoCaptured(true);
       clearValidationError("photo");
@@ -258,8 +256,8 @@ const AddEditClientForm: React.FC<AddEditClientFormProps> = (props) => {
       setSavingClient(true);
       setSubmitError("");
       const savedClient: Client = isEditMode
-        ? await updateClient(payload)
-        : await createClient(payload);
+        ? await clientService.updateClient(payload)
+        : await clientService.createClient(payload);
 
       setShowPasswordDialog(false);
       setEmployeePassword("");

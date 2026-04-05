@@ -47,7 +47,7 @@ export async function importCity(client: any) {
       }
     }
 
-    console.log("✅ All cities have been added。");
+    // console.log("✅ All cities have been added。");
   } catch (err) {
     console.error("❌ Error importing cities:", err);
     throw err;

@@ -2,16 +2,9 @@ import { app } from "electron";
 import fs from "fs/promises";
 import path from "path";
 import type { Client, ID } from "../../shared/types/Client.ts";
-import {
-  deleteClientByNumber,
-  deleteClientIds,
-  insertClient,
-  insertClientIds,
-  searchClientsByName,
-  updateClientRecord,
-} from "../db/repo/clientRepo.ts";
-import { findEmployeeByPassword } from "../db/repo/employeeRepo.ts";
+import { clientRepo } from "../db/repo/clientRepo.ts";
 import { connect } from "../db/table/createTable.ts";
+import { employeeBackendService } from "./employeeBackendService.ts";
 
 const FIELD_ERROR_PREFIX = "[field-error]";
 const getBaseDir = () => path.join(app.getPath("userData"), "client-images");
@@ -141,7 +134,10 @@ const resolveNotes = async (
     throw createFieldError("employee_password", "Employee password is required.");
   }
 
-  const employee = await findEmployeeByPassword(employeePassword, dbClient);
+  const employee = await employeeBackendService.findByPassword(
+    employeePassword,
+    dbClient,
+  );
 
   if (!employee) {
     throw createFieldError(
@@ -177,7 +173,23 @@ export const clientBackendService = {
       return [];
     }
 
-    return searchClientsByName(safeFirst, safeLast);
+    return clientRepo.searchByName(safeFirst, safeLast);
+  },
+
+  loadCities: async () => {
+    return clientRepo.loadCities();
+  },
+
+  loadHairColors: async () => {
+    return clientRepo.loadHairColors();
+  },
+
+  loadEyeColors: async () => {
+    return clientRepo.loadEyeColors();
+  },
+
+  loadIdTypes: async () => {
+    return clientRepo.loadIdTypes();
   },
 
   saveClientImage: async (fileName: string, base64: string): Promise<string> => {
@@ -215,7 +227,10 @@ export const clientBackendService = {
     const normalizedInput = normalizeSaveClientInput(input);
     validateClient(normalizedInput.client, normalizedInput.identifications);
 
-    if (normalizedInput.client.notes && normalizedInput.notes_action !== "append_signature") {
+    if (
+      normalizedInput.client.notes &&
+      normalizedInput.notes_action !== "append_signature"
+    ) {
       throw new Error("Notes require employee authorization before saving.");
     }
 
@@ -232,8 +247,8 @@ export const clientBackendService = {
         notes: nextNotes,
       };
 
-      const insertedClient = await insertClient(preparedClient, client);
-      const insertedIds = await insertClientIds(
+      const insertedClient = await clientRepo.create(preparedClient, client);
+      const insertedIds = await clientRepo.insertIds(
         insertedClient.client_number,
         normalizedInput.identifications,
         client,
@@ -269,9 +284,9 @@ export const clientBackendService = {
         notes: nextNotes,
       };
 
-      const updatedClient = await updateClientRecord(preparedClient, client);
-      await deleteClientIds(preparedClient.client_number as number, client);
-      const insertedIds = await insertClientIds(
+      const updatedClient = await clientRepo.update(preparedClient, client);
+      await clientRepo.deleteIds(preparedClient.client_number as number, client);
+      const insertedIds = await clientRepo.insertIds(
         preparedClient.client_number as number,
         normalizedInput.identifications,
         client,
@@ -290,6 +305,6 @@ export const clientBackendService = {
       return false;
     }
 
-    return deleteClientByNumber(clientNumber);
+    return clientRepo.deleteByNumber(clientNumber);
   },
 };

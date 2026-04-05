@@ -18,7 +18,7 @@ const mapItemRow = (row: Record<string, unknown>): Item => {
 };
 
 export const itemRepo = {
-  getItems: async (ticketNumber: number): Promise<Item[]> => {
+  loadByTicketNumber: async (ticketNumber: number): Promise<Item[]> => {
     const client = await connect();
     const query = `
       SELECT

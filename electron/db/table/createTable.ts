@@ -12,6 +12,7 @@ import { createHairColorTable, insertHairColor } from "./hairColorTable.ts";
 import { createEyeColorTable, insertEyeColor } from "./eyeColorTable.ts";
 import { createIDTypeTable, insertIDType } from "./IDTypeTable.ts";
 import { createEmployeeTable } from "./employeeTable.ts";
+import { createLocationTable } from "./locationTable.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -73,6 +74,20 @@ export const initializeDatabase = async () => {
     // create ticket table
     await client.query(createTicketTable);
     console.log("ticket table created successfully");
+    await client.query(`
+      ALTER TABLE ticket
+      ADD COLUMN IF NOT EXISTS is_lost BOOLEAN NOT NULL DEFAULT FALSE
+    `);
+    console.log("ticket is_lost column ensured successfully");
+    await client.query(
+      `ALTER TABLE ticket DROP CONSTRAINT IF EXISTS ticket_status_check`,
+    );
+    await client.query(`
+      ALTER TABLE ticket
+      ADD CONSTRAINT ticket_status_check
+      CHECK (status IN ('pawned', 'picked_up', 'expired', 'sold'))
+    `);
+    console.log("ticket status constraint updated successfully");
 
     // create item table
     await client.query(createItemTable);
@@ -109,6 +124,10 @@ export const initializeDatabase = async () => {
     // create employee table
     await client.query(createEmployeeTable);
     console.log("employee table created successfully");
+
+    // create location table
+    await client.query(createLocationTable);
+    console.log("location table created successfully");
 
     console.log("All database tables initialized successfully");
   } catch (error) {

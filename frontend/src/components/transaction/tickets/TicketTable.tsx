@@ -39,6 +39,7 @@ const TicketTable: React.FC<TicketTableProps> = (props) => {
   };
 
   const getDueDate = (ticket: Ticket) => {
+    if (ticket.status === "sold") return "";
     if (ticket.due_date) return formatDate(ticket.due_date);
     if (!ticket.transaction_datetime) return "";
     const due = new Date(ticket.transaction_datetime);
@@ -88,35 +89,30 @@ const TicketTable: React.FC<TicketTableProps> = (props) => {
     {
       field: "due_date_display",
       headerName: "DUE",
-      width: 110,
+      width: 132,
       valueGetter: (_value, row: Ticket) => getDueDate(row),
-      renderCell: (params) => renderWithTooltip(params.value),
-    },
-    {
-      field: "overdue_display",
-      headerName: "OVD",
-      width: 72,
-      sortable: false,
-      filterable: false,
-      valueGetter: (_value, row: Ticket) => row.is_overdue,
       renderCell: (params) => {
-        if (!params.value) {
-          return <span />;
-        }
+        const dueDate = params.value;
+        const showOverdueIcon =
+          params.row.status !== "sold" && params.row.is_overdue;
 
         return (
           <Box
             sx={{
               width: "100%",
-              height: "100%",
               display: "flex",
-              justifyContent: "center",
               alignItems: "center",
+              gap: 0.5,
             }}
           >
-            <Tooltip title="Overdue" arrow>
-              <WarningAmberIcon sx={{ color: "#d32f2f", fontSize: 18 }} />
+            <Tooltip title={dueDate || "---"} arrow>
+              <span>{dueDate || "---"}</span>
             </Tooltip>
+            {showOverdueIcon && (
+              <Tooltip title="Overdue" arrow>
+                <WarningAmberIcon sx={{ color: "#d32f2f", fontSize: 18 }} />
+              </Tooltip>
+            )}
           </Box>
         );
       },
@@ -131,7 +127,10 @@ const TicketTable: React.FC<TicketTableProps> = (props) => {
       field: "interest",
       headerName: "INT",
       width: 84,
-      renderCell: (params) => renderWithTooltip(formatCurrency(params.value)),
+      renderCell: (params) =>
+        params.row.status === "sold"
+          ? renderWithTooltip(null)
+          : renderWithTooltip(formatCurrency(params.value)),
     },
     {
       field: "interested_datetime",
@@ -153,7 +152,10 @@ const TicketTable: React.FC<TicketTableProps> = (props) => {
       field: "pickup_amount",
       headerName: "PKUP",
       width: 84,
-      renderCell: (params) => renderWithTooltip(formatCurrency(params.value)),
+      renderCell: (params) =>
+        params.row.status === "sold"
+          ? renderWithTooltip(null)
+          : renderWithTooltip(formatCurrency(params.value)),
     },
     {
       field: "employee_name",
@@ -185,6 +187,9 @@ const TicketTable: React.FC<TicketTableProps> = (props) => {
         hideFooterPagination
         hideFooterSelectedRowCount
         hideFooter
+        localeText={{
+          noRowsLabel: "No tickets",
+        }}
         sx={{
           border: "1px solid #ccc",
           "& .MuiDataGrid-cell": {

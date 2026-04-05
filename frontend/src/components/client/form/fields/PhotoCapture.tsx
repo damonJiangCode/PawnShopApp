@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Button, Typography } from "@mui/material";
 import type { Client } from "../../../../../../shared/types/Client";
-import { loadClientImage } from "../../../../services/clientService";
+import { clientService } from "../../../../services/clientService";
 
 interface PhotoCaptureProps {
   client: Client;
@@ -49,7 +49,7 @@ const PhotoCapture: React.FC<PhotoCaptureProps> = (props) => {
     if (client.client_number && client.image_path) {
       (async () => {
         try {
-          const base64 = await loadClientImage(client.image_path);
+          const base64 = await clientService.loadClientImage(client.image_path);
           if (base64) {
             setPhotoData(`data:image/png;base64,${base64}`);
           }

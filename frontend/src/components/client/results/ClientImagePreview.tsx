@@ -16,7 +16,7 @@ import { useState } from "react";
 import type { Client } from "../../../../../shared/types/Client";
 import { useClientImage } from "../../../hooks/useClientImage";
 import AddEditClientForm from "../form/AddEditClientForm";
-import { deleteClient } from "../../../services/clientService";
+import { clientService } from "../../../services/clientService";
 
 interface ClientImagePreviewProps {
   client: Client | null;
@@ -46,7 +46,7 @@ const ClientImagePreview: React.FC<ClientImagePreviewProps> = ({
     try {
       setDeletingClient(true);
       setDeleteError("");
-      const deleted = await deleteClient(client.client_number);
+      const deleted = await clientService.deleteClient(client.client_number);
 
       if (!deleted) {
         setDeleteError("Client could not be deleted. Please try again.");

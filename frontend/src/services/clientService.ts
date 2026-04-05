@@ -1,6 +1,7 @@
 import type { Client, ID } from "../../../shared/types/Client";
+import { getElectronApi } from "./electronApi";
 
-type CitiesResponse = {
+export type CitiesResponse = {
   provinces: string[];
   citiesByProvince: Record<string, string[]>;
 };
@@ -21,8 +22,6 @@ export type SaveClientInput = {
 };
 
 const FIELD_ERROR_PREFIX = "[field-error]";
-const getElectronApi = () => (window as any).electronAPI;
-const getApi = getElectronApi;
 
 const emptyCities = (): CitiesResponse => ({
   provinces: [],
@@ -101,65 +100,65 @@ export const clientService = {
       return [];
     }
 
-    const api = getApi();
-    if (!api?.searchClients) {
+    const api = getElectronApi()?.client;
+    if (!api?.search) {
       return [];
     }
 
     try {
-      return await api.searchClients(normalizedFirstName, normalizedLastName);
+      return (await api.search(normalizedFirstName, normalizedLastName)) as Client[];
     } catch {
       return [];
     }
   },
 
   loadCities: async (): Promise<CitiesResponse> => {
-    const api = getApi();
-    if (!api?.getCities) {
+    const api = getElectronApi()?.client;
+    if (!api?.loadCities) {
       return emptyCities();
     }
 
     try {
-      return await api.getCities();
+      return (await api.loadCities()) as CitiesResponse;
     } catch {
       return emptyCities();
     }
   },
 
   loadHairColors: async (): Promise<string[]> => {
-    const api = getApi();
-    if (!api?.getHairColors) {
+    const api = getElectronApi()?.client;
+    if (!api?.loadHairColors) {
       return [];
     }
 
     try {
-      return await api.getHairColors();
+      return (await api.loadHairColors()) as string[];
     } catch {
       return [];
     }
   },
 
   loadEyeColors: async (): Promise<string[]> => {
-    const api = getApi();
-    if (!api?.getEyeColors) {
+    const api = getElectronApi()?.client;
+    if (!api?.loadEyeColors) {
       return [];
     }
 
     try {
-      return await api.getEyeColors();
+      return (await api.loadEyeColors()) as string[];
     } catch {
       return [];
     }
   },
 
   loadIdTypes: async (): Promise<string[]> => {
-    const api = getApi();
-    if (!api?.getIdTypes) {
+    const api = getElectronApi()?.client;
+    if (!api?.loadIdTypes) {
       return [];
     }
 
     try {
-      return await api.getIdTypes();
+      return (await api.loadIdTypes()) as string[];
     } catch {
       return [];
     }
@@ -169,77 +168,64 @@ export const clientService = {
     fileName: string,
     base64: string,
   ): Promise<string> => {
-    const api = getApi();
-    if (!api?.saveClientImage) {
+    const api = getElectronApi()?.client;
+    if (!api?.saveImage) {
       throw new Error("saveClientImage is not available");
     }
 
-    return api.saveClientImage(fileName, base64);
+    return api.saveImage(fileName, base64) as Promise<string>;
   },
 
   loadClientImage: async (imagePath?: string): Promise<string | null> => {
-    const api = getApi();
+    const api = getElectronApi()?.client;
 
-    if (!imagePath || !api?.getClientImage) {
+    if (!imagePath || !api?.loadImage) {
       return null;
     }
 
     try {
-      return await api.getClientImage(imagePath);
+      return (await api.loadImage(imagePath)) as string | null;
     } catch {
       return null;
     }
   },
 
   createClient: async (input: SaveClientInput): Promise<Client> => {
-    const api = getApi();
-    if (!api?.addClient) {
+    const api = getElectronApi()?.client;
+    if (!api?.create) {
       throw new Error("createClient is not available");
     }
 
     try {
-      return await api.addClient(normalizeSaveClientInput(input));
+      return (await api.create(normalizeSaveClientInput(input))) as Client;
     } catch (error) {
       throw mapBackendError(error);
     }
   },
 
   updateClient: async (input: SaveClientInput): Promise<Client> => {
-    const api = getApi();
-    if (!api?.updateClient) {
+    const api = getElectronApi()?.client;
+    if (!api?.update) {
       throw new Error("updateClient is not available");
     }
 
     try {
-      return await api.updateClient(normalizeSaveClientInput(input));
+      return (await api.update(normalizeSaveClientInput(input))) as Client;
     } catch (error) {
       throw mapBackendError(error);
     }
   },
 
   deleteClient: async (clientNumber: number): Promise<boolean> => {
-    const api = getApi();
-    if (!api?.deleteClient) {
+    const api = getElectronApi()?.client;
+    if (!api?.delete) {
       return false;
     }
 
     try {
-      return await api.deleteClient(clientNumber);
+      return (await api.delete(clientNumber)) as boolean;
     } catch {
       return false;
     }
   },
 };
-
-export const {
-  createClient,
-  deleteClient,
-  loadClientImage,
-  loadCities,
-  loadEyeColors,
-  loadHairColors,
-  loadIdTypes,
-  saveClientImage,
-  searchClients,
-  updateClient,
-} = clientService;

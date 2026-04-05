@@ -1,7 +1,7 @@
 import { ipcMain } from "electron";
-import { clientBackendService } from "../services/clientService.ts";
-import { referenceDataService } from "../services/referenceDataService.ts";
-import { transactionBackendService } from "../services/transactionService.ts";
+import { clientBackendService } from "../services/clientBackendService.ts";
+import { itemBackendService } from "../services/itemBackendService.ts";
+import { ticketBackendService } from "../services/ticketBackendService.ts";
 
 const CHANNELS = {
   SEARCH_CLIENTS: "search-clients",
@@ -9,6 +9,7 @@ const CHANNELS = {
   GET_HAIR_COLORS: "get-hair-colors",
   GET_EYE_COLORS: "get-eye-colors",
   GET_ID_TYPES: "get-id-types",
+  GET_LOCATIONS: "get-locations",
   ADD_CLIENT: "add-client",
   UPDATE_CLIENT: "update-client",
   DELETE_CLIENT: "delete-client",
@@ -16,7 +17,8 @@ const CHANNELS = {
   GET_CLIENT_IMAGE: "get-client-image",
   GET_TICKETS: "get-tickets",
   GET_ITEMS: "get-items",
-  ADD_TICKET: "add-ticket",
+  ADD_PAWN_TICKET: "add-pawn-ticket",
+  ADD_SELL_TICKET: "add-sell-ticket",
   UPDATE_TICKET: "update-ticket",
 } as const;
 
@@ -29,16 +31,19 @@ export const registerIpcHandlers = () => {
   );
 
   ipcMain.handle(CHANNELS.GET_CITIES, async () =>
-    referenceDataService.loadCities(),
+    clientBackendService.loadCities(),
   );
   ipcMain.handle(CHANNELS.GET_HAIR_COLORS, async () =>
-    referenceDataService.loadHairColors(),
+    clientBackendService.loadHairColors(),
   );
   ipcMain.handle(CHANNELS.GET_EYE_COLORS, async () =>
-    referenceDataService.loadEyeColors(),
+    clientBackendService.loadEyeColors(),
   );
   ipcMain.handle(CHANNELS.GET_ID_TYPES, async () =>
-    referenceDataService.loadIdTypes(),
+    clientBackendService.loadIdTypes(),
+  );
+  ipcMain.handle(CHANNELS.GET_LOCATIONS, async () =>
+    ticketBackendService.loadLocations(),
   );
   ipcMain.handle(CHANNELS.ADD_CLIENT, async (_event, payload) => {
     return clientBackendService.createClient(payload);
@@ -65,15 +70,18 @@ export const registerIpcHandlers = () => {
     },
   );
   ipcMain.handle(CHANNELS.GET_TICKETS, async (_event, clientNumber: number) => {
-    return transactionBackendService.loadTickets(clientNumber);
+    return ticketBackendService.loadTickets(clientNumber);
   });
   ipcMain.handle(CHANNELS.GET_ITEMS, async (_event, ticketNumber: number) => {
-    return transactionBackendService.loadItems(ticketNumber);
+    return itemBackendService.loadItems(ticketNumber);
   });
-  ipcMain.handle(CHANNELS.ADD_TICKET, async (_event, payload) => {
-    return transactionBackendService.addTicket(payload);
+  ipcMain.handle(CHANNELS.ADD_PAWN_TICKET, async (_event, payload) => {
+    return ticketBackendService.createPawnTicket(payload);
+  });
+  ipcMain.handle(CHANNELS.ADD_SELL_TICKET, async (_event, payload) => {
+    return ticketBackendService.createSellTicket(payload);
   });
   ipcMain.handle(CHANNELS.UPDATE_TICKET, async (_event, payload) => {
-    return transactionBackendService.editTicket(payload);
+    return ticketBackendService.updateTicket(payload);
   });
 };

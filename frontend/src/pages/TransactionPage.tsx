@@ -12,13 +12,16 @@ import TicketTable from "../components/transaction/tickets/TicketTable";
 import TicketButton from "../components/transaction/tickets/TicketButton";
 import ItemTable from "../components/transaction/items/ItemTable";
 import ItemButton from "../components/transaction/items/ItemButton";
-import AddTicketForm from "../components/transaction/tickets/AddTicketForm";
+import PawnTicketForm from "../components/transaction/tickets/PawnTicketForm";
+import SellTicketForm from "../components/transaction/tickets/SellTicketForm";
 import EditTicketForm from "../components/transaction/tickets/EditTicketForm";
 import {
-  transactionService,
-  type AddTicketInput,
+  ticketService,
+  type CreatePawnTicketInput,
+  type CreateSellTicketInput,
   type UpdateTicketInput,
-} from "../services/transactionService";
+} from "../services/ticketService";
+import { itemService } from "../services/itemService";
 
 interface TransactionPageProps {
   clientNumber?: number;
@@ -37,7 +40,8 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
   const [itemsLoading, setItemsLoading] = useState(false);
   const [ticketsError, setTicketsError] = useState<string>("");
   const [itemsError, setItemsError] = useState<string>("");
-  const [openAddTicketForm, setOpenAddTicketForm] = useState(false);
+  const [openPawnTicketForm, setOpenPawnTicketForm] = useState(false);
+  const [openSellTicketForm, setOpenSellTicketForm] = useState(false);
   const [openEditTicketForm, setOpenEditTicketForm] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
 
@@ -64,8 +68,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
 
       try {
         // console.log("trying to call fetchTickets()");
-        const fetchedTickets =
-          await transactionService.loadTickets(clientNumber);
+        const fetchedTickets = await ticketService.loadTickets(clientNumber);
         // console.log("fetchedTickets results: ", fetchedTickets);
         if (!active) {
           return;
@@ -118,7 +121,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       setItemsError("");
 
       try {
-        const fetchedItems = await transactionService.loadItems(
+        const fetchedItems = await itemService.loadItems(
           selectedTicket.ticket_number,
         );
         if (!active) {
@@ -191,13 +194,18 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
     setStatusMessage("");
   };
 
-  const handleAddButtonClick = () => {
-    setOpenAddTicketForm(true);
+  const handlePawnButtonClick = () => {
+    setOpenPawnTicketForm(true);
     setStatusMessage("");
   };
 
   const handleEditButtonClick = () => {
     setOpenEditTicketForm(true);
+    setStatusMessage("");
+  };
+
+  const handleSellButtonClick = () => {
+    setOpenSellTicketForm(true);
     setStatusMessage("");
   };
 
@@ -209,26 +217,23 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
     window.print();
   };
 
-  const handleTicketChange = () => {
-    if (!selectedTicket || !clientNumber) {
+  const handleConvertTicket = () => {
+    if (!selectedTicket) {
       return;
     }
 
-    const nextTicket = {
-      ...selectedTicket,
-      client_number: clientNumber,
-    };
-
-    setTickets((prev) =>
-      prev.map((ticket) =>
-        ticket.ticket_number === selectedTicket.ticket_number
-          ? nextTicket
-          : ticket,
-      ),
-    );
-    setSelectedTicket(nextTicket);
     setStatusMessage(
-      `Ticket #${selectedTicket.ticket_number} is assigned to client #${clientNumber}.`,
+      `Convert for ticket #${selectedTicket.ticket_number} is not wired yet.`,
+    );
+  };
+
+  const handleTransferTicket = () => {
+    if (!selectedTicket) {
+      return;
+    }
+
+    setStatusMessage(
+      `Transfer for ticket #${selectedTicket.ticket_number} is not wired yet.`,
     );
   };
 
@@ -255,14 +260,14 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
     );
   };
 
-  const handleAddTicket = async (
-    ticketData: Omit<AddTicketInput, "client_number">,
+  const handlePawnTicket = async (
+    ticketData: Omit<CreatePawnTicketInput, "client_number">,
   ): Promise<void> => {
     if (!clientNumber) {
       throw new Error("Please select a client first.");
     }
 
-    const newTicket = await transactionService.addTicket({
+    const newTicket = await ticketService.createPawnTicket({
       ...ticketData,
       client_number: clientNumber,
     });
@@ -271,8 +276,28 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
     setSelectedTicket(newTicket);
     setItems([]);
     setSelectedItem(null);
-    setOpenAddTicketForm(false);
-    setStatusMessage(`Ticket #${newTicket.ticket_number} added.`);
+    setOpenPawnTicketForm(false);
+    setStatusMessage(`Ticket #${newTicket.ticket_number} pawned.`);
+  };
+
+  const handleSellTicket = async (
+    ticketData: Omit<CreateSellTicketInput, "client_number">,
+  ): Promise<void> => {
+    if (!clientNumber) {
+      throw new Error("Please select a client first.");
+    }
+
+    const newTicket = await ticketService.createSellTicket({
+      ...ticketData,
+      client_number: clientNumber,
+    });
+
+    setTickets((prev) => [newTicket, ...prev]);
+    setSelectedTicket(newTicket);
+    setItems([]);
+    setSelectedItem(null);
+    setOpenSellTicketForm(false);
+    setStatusMessage(`Ticket #${newTicket.ticket_number} sold.`);
   };
 
   const handleEditTicket = async (data: UpdateTicketInput): Promise<void> => {
@@ -280,7 +305,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       throw new Error("Please select a ticket first.");
     }
 
-    const updatedTicket = await transactionService.editTicket(data);
+    const updatedTicket = await ticketService.updateTicket(data);
 
     setTickets((prev) =>
       prev.map((ticket) =>
@@ -431,10 +456,12 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
           >
             <TicketButton
               selectedTicket={selectedTicket}
-              onAdd={handleAddButtonClick}
+              onPawn={handlePawnButtonClick}
+              onSell={handleSellButtonClick}
               onEdit={handleEditButtonClick}
               onPrint={handleTicketPrint}
-              onChange={handleTicketChange}
+              onConvert={handleConvertTicket}
+              onTransfer={handleTransferTicket}
               onExpire={handleTicketExpire}
             />
           </Paper>
@@ -563,13 +590,23 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
         </Typography>
       )}
 
-      {openAddTicketForm && (
-        <AddTicketForm
-          open={openAddTicketForm}
+      {openPawnTicketForm && (
+        <PawnTicketForm
+          open={openPawnTicketForm}
           clientFirstName={clientFirstName || ""}
           clientLastName={clientLastName || ""}
-          onClose={() => setOpenAddTicketForm(false)}
-          onSave={handleAddTicket}
+          onClose={() => setOpenPawnTicketForm(false)}
+          onSave={handlePawnTicket}
+        />
+      )}
+
+      {openSellTicketForm && (
+        <SellTicketForm
+          open={openSellTicketForm}
+          clientFirstName={clientFirstName || ""}
+          clientLastName={clientLastName || ""}
+          onClose={() => setOpenSellTicketForm(false)}
+          onSave={handleSellTicket}
         />
       )}
 

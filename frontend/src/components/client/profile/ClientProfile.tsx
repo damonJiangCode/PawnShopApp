@@ -16,8 +16,8 @@ import STAT_COLORS from "../../../assets/client/STAT_COLORS";
 import type { Client, ID } from "../../../../../shared/types/Client";
 import { useClientImage } from "../../../hooks/useClientImage";
 import {
+  clientService,
   type ClientFormError,
-  updateClient,
 } from "../../../services/clientService";
 
 interface ClientProfileProps {
@@ -143,7 +143,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
     setSavingNotes(true);
     try {
       const trimmedNotes = notesDraft.trim();
-      const updatedClient = await updateClient({
+      const updatedClient = await clientService.updateClient({
         client: {
           ...client,
           notes: trimmedNotes,

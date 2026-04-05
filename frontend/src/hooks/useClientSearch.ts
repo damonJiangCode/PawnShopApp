@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Client } from "../../../shared/types/Client";
-import { searchClients } from "../services/clientService";
+import { clientService } from "../services/clientService";
 
 export const useClientSearch = (
   firstName: string,
@@ -35,7 +35,10 @@ export const useClientSearch = (
       setHasCompletedSearch(false);
       setLoading(true);
       try {
-        const data = await searchClients(normalizedFirst, normalizedLast);
+        const data = await clientService.searchClients(
+          normalizedFirst,
+          normalizedLast,
+        );
         if (latestRequestIdRef.current !== requestId) return;
         setResults(data);
         setCompletedQueryKey(queryKey);

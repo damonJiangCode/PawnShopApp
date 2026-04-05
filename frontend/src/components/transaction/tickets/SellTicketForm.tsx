@@ -1,50 +1,44 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-  Box,
   Alert,
+  Autocomplete,
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
 } from "@mui/material";
-import type { Ticket } from "../../../../../shared/types/Ticket";
 import type {
+  CreateSellTicketInput,
   TicketFormError,
-  UpdateTicketInput,
 } from "../../../services/ticketService";
 import { ticketService } from "../../../services/ticketService";
-import { calculation } from "../../../../../shared/utils/calculation";
-import Autocomplete from "@mui/material/Autocomplete";
 
-interface EditTicketFormProps {
+interface SellTicketFormProps {
   open: boolean;
-  ticket: Ticket | null;
   clientLastName: string;
   clientFirstName: string;
   onClose: () => void;
-  onSave: (ticketData: UpdateTicketInput) => Promise<void>;
+  onSave: (
+    ticketData: Omit<CreateSellTicketInput, "client_number">,
+  ) => Promise<void>;
 }
 
-const EditTicketForm: React.FC<EditTicketFormProps> = (props) => {
-  const { open, ticket, clientLastName, clientFirstName, onClose, onSave } =
-    props;
-  const isSellTicket = ticket?.status === "sold";
-  const amountRef = useRef<HTMLInputElement>(null);
+const SellTicketForm: React.FC<SellTicketFormProps> = (props) => {
+  const { open, clientLastName, clientFirstName, onClose, onSave } = props;
+
+  const descriptionRef = useRef<HTMLInputElement>(null);
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
-  const [amount, setAmount] = useState<number | "">("");
-  const [oneTimeFee, setOneTimeFee] = useState<number | "">("");
-  const [employeePassword, setEmployeePassword] = useState("");
   const [locationList, setLocationList] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [earlyClaimAmount, setEarlyClaimAmount] = useState(0);
-  const [pickupAmount, setPickupAmount] = useState(0);
+  const [amount, setAmount] = useState<number | "">("");
+  const [employeePassword, setEmployeePassword] = useState("");
   const [descriptionError, setDescriptionError] = useState("");
   const [locationError, setLocationError] = useState("");
   const [amountError, setAmountError] = useState("");
-  const [oneTimeFeeError, setOneTimeFeeError] = useState("");
   const [employeePasswordError, setEmployeePasswordError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -74,37 +68,29 @@ const EditTicketForm: React.FC<EditTicketFormProps> = (props) => {
   useEffect(() => {
     if (!open) return;
     const id = requestAnimationFrame(() => {
-      amountRef.current?.focus();
+      descriptionRef.current?.focus();
     });
     return () => cancelAnimationFrame(id);
   }, [open]);
 
   useEffect(() => {
-    if (!open || !ticket) return;
-    setDescription(ticket.description || "");
-    setLocation(ticket.location || "");
-    setAmount(ticket.amount ?? "");
-    setOneTimeFee(ticket.onetime_fee ?? "");
+    if (!open) {
+      return;
+    }
+
+    setDescription("");
+    setLocation("");
+    setAmount("");
     setEmployeePassword("");
     setDescriptionError("");
     setLocationError("");
     setAmountError("");
-    setOneTimeFeeError("");
     setEmployeePasswordError("");
     setSubmitError("");
     setSaving(false);
-  }, [open, ticket]);
-
-  useEffect(() => {
-    const nextAmount = typeof amount === "number" ? amount : 0;
-    const nextFee = typeof oneTimeFee === "number" ? oneTimeFee : 0;
-    setEarlyClaimAmount(calculation.getEarlyAmt(nextAmount, nextFee));
-    setPickupAmount(calculation.getPickupAmt(nextAmount, nextFee));
-  }, [amount, oneTimeFee]);
+  }, [open]);
 
   const handleSave = async () => {
-    if (!ticket) return;
-
     const trimmedDescription = description.trim();
     const trimmedLocation = location.trim();
     const trimmedPassword = employeePassword.trim();
@@ -116,19 +102,12 @@ const EditTicketForm: React.FC<EditTicketFormProps> = (props) => {
       typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0
         ? "Amount must be greater than 0."
         : "";
-    const nextOneTimeFeeError =
-      !isSellTicket &&
-      oneTimeFee !== "" &&
-      (!Number.isFinite(oneTimeFee) || oneTimeFee < 0)
-        ? "One Time Fee cannot be negative."
-        : "";
     const nextEmployeePasswordError =
       trimmedPassword.length === 0 ? "Password is required." : "";
 
     setDescriptionError(nextDescriptionError);
     setLocationError(nextLocationError);
     setAmountError(nextAmountError);
-    setOneTimeFeeError(nextOneTimeFeeError);
     setEmployeePasswordError(nextEmployeePasswordError);
     setSubmitError("");
 
@@ -136,7 +115,6 @@ const EditTicketForm: React.FC<EditTicketFormProps> = (props) => {
       nextDescriptionError ||
       nextLocationError ||
       nextAmountError ||
-      nextOneTimeFeeError ||
       nextEmployeePasswordError
     ) {
       return;
@@ -146,15 +124,9 @@ const EditTicketForm: React.FC<EditTicketFormProps> = (props) => {
 
     try {
       await onSave({
-        ticket_number: ticket.ticket_number as number,
         description: trimmedDescription,
         location: trimmedLocation,
         amount: amount as number,
-        onetime_fee: isSellTicket
-          ? 0
-          : typeof oneTimeFee === "number"
-            ? oneTimeFee
-            : 0,
         employee_password: trimmedPassword,
       });
     } catch (err) {
@@ -167,7 +139,7 @@ const EditTicketForm: React.FC<EditTicketFormProps> = (props) => {
       }
 
       setSubmitError(
-        err instanceof Error ? err.message : "Failed to update ticket.",
+        err instanceof Error ? err.message : "Failed to sell ticket.",
       );
     } finally {
       setSaving(false);
@@ -176,7 +148,7 @@ const EditTicketForm: React.FC<EditTicketFormProps> = (props) => {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Edit Ticket</DialogTitle>
+      <DialogTitle>Sell Ticket</DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
           {submitError && <Alert severity="error">{submitError}</Alert>}
@@ -187,13 +159,9 @@ const EditTicketForm: React.FC<EditTicketFormProps> = (props) => {
             disabled
             fullWidth
           />
+
           <TextField
-            label="Ticket #"
-            value={ticket?.ticket_number ?? ""}
-            disabled
-            fullWidth
-          />
-          <TextField
+            inputRef={descriptionRef}
             label="Description"
             value={description}
             onChange={(e) => {
@@ -207,9 +175,11 @@ const EditTicketForm: React.FC<EditTicketFormProps> = (props) => {
             }}
             fullWidth
             required
+            autoFocus
             error={Boolean(descriptionError)}
             helperText={descriptionError || " "}
           />
+
           <Autocomplete
             value={location}
             onChange={(_event, newValue) => {
@@ -249,8 +219,8 @@ const EditTicketForm: React.FC<EditTicketFormProps> = (props) => {
               />
             )}
           />
+
           <TextField
-            inputRef={amountRef}
             label="Amount"
             type="number"
             value={amount}
@@ -266,46 +236,10 @@ const EditTicketForm: React.FC<EditTicketFormProps> = (props) => {
             }}
             fullWidth
             required
-            autoFocus
             error={Boolean(amountError)}
             helperText={amountError || " "}
           />
-          {!isSellTicket && (
-            <>
-              <TextField
-                label="One Time Fee"
-                type="number"
-                value={oneTimeFee}
-                onChange={(e) => {
-                  const nextValue = e.target.value;
-                  setOneTimeFee(nextValue === "" ? "" : Number(nextValue));
-                  if (submitError) {
-                    setSubmitError("");
-                  }
-                  if (oneTimeFeeError) {
-                    setOneTimeFeeError("");
-                  }
-                }}
-                fullWidth
-                error={Boolean(oneTimeFeeError)}
-                helperText={oneTimeFeeError || "Optional. Leave blank to use 0."}
-              />
-              <Box sx={{ display: "flex", gap: 2 }}>
-                <TextField
-                  label="Early Claim Amount"
-                  value={earlyClaimAmount.toFixed(2)}
-                  disabled
-                  fullWidth
-                />
-                <TextField
-                  label="Pickup Amount"
-                  value={pickupAmount.toFixed(2)}
-                  disabled
-                  fullWidth
-                />
-              </Box>
-            </>
-          )}
+
           <TextField
             label="Employee Password"
             value={employeePassword}
@@ -326,20 +260,17 @@ const EditTicketForm: React.FC<EditTicketFormProps> = (props) => {
           />
         </Box>
       </DialogContent>
+
       <DialogActions>
-        <Button
-          variant="contained"
-          onClick={handleSave}
-          disabled={!ticket || saving}
-        >
-          Update
-        </Button>
         <Button onClick={onClose} disabled={saving}>
           Cancel
+        </Button>
+        <Button onClick={handleSave} variant="contained" disabled={saving}>
+          {saving ? "Saving..." : "Save"}
         </Button>
       </DialogActions>
     </Dialog>
   );
 };
 
-export default EditTicketForm;
+export default SellTicketForm;

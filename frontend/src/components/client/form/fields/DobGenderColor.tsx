@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Box, TextField, MenuItem } from "@mui/material";
-import {
-  loadEyeColors,
-  loadHairColors,
-} from "../../../../services/clientService";
+import { clientService } from "../../../../services/clientService";
 
 interface DobGenderColorProps {
   date_of_birth?: Date | string;
@@ -36,10 +33,10 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
 
   useEffect(() => {
     const fetchColors = async () => {
-      const hair = await loadHairColors();
+      const hair = await clientService.loadHairColors();
       setHairColors(hair);
 
-      const eye = await loadEyeColors();
+      const eye = await clientService.loadEyeColors();
       setEyeColors(eye);
     };
 

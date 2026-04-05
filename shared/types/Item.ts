@@ -1,6 +1,6 @@
 export interface ItemTicketStatus {
   ticket_number: number;
-  status: "pawned" | "picked_up" | "expired";
+  status: "pawned" | "picked_up" | "expired" | "sold";
 }
 
 export interface Item {

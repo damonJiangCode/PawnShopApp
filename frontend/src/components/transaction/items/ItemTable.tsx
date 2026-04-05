@@ -72,6 +72,9 @@ const ItemTable: React.FC<ItemTableProps> = (props) => {
         disableColumnSelector
         disableDensitySelector
         hideFooter
+        localeText={{
+          noRowsLabel: "No items",
+        }}
         sx={{
           border: "1px solid #ccc",
           "& .MuiDataGrid-cell": {
