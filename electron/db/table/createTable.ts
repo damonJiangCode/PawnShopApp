@@ -12,7 +12,7 @@ import { createHairColorTable, insertHairColor } from "./hairColorTable.ts";
 import { createEyeColorTable, insertEyeColor } from "./eyeColorTable.ts";
 import { createIDTypeTable, insertIDType } from "./IDTypeTable.ts";
 import { createEmployeeTable } from "./employeeTable.ts";
-import { createLocationTable } from "./locationTable.ts";
+import { createLocationTable, insertLocation } from "./locationTable.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -128,6 +128,9 @@ export const initializeDatabase = async () => {
     // create location table
     await client.query(createLocationTable);
     console.log("location table created successfully");
+    // insert location
+    await insertLocation(client);
+    console.log("location inserted successfully");
 
     console.log("All database tables initialized successfully");
   } catch (error) {
