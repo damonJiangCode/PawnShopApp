@@ -18,6 +18,7 @@ import type {
 } from "../../../services/ticketService";
 import { ticketService } from "../../../services/ticketService";
 import { calculation } from "../../../../../shared/utils/calculation";
+import { resolveFormFieldError } from "../../../utils/formError";
 
 interface PawnTicketFormProps {
   open: boolean;
@@ -129,7 +130,7 @@ const PawnTicketForm: React.FC<PawnTicketFormProps> = (props) => {
         ? "One Time Fee cannot be negative."
         : "";
     const nextEmployeePasswordError =
-      trimmedPassword.length === 0 ? "Password is required." : "";
+      trimmedPassword.length === 0 ? "Enter employee password." : "";
 
     setDescriptionError(nextDescriptionError);
     setLocationError(nextLocationError);
@@ -164,14 +165,17 @@ const PawnTicketForm: React.FC<PawnTicketFormProps> = (props) => {
       console.error(err);
       const formError = err as TicketFormError;
 
-      if (formError.field === "employee_password") {
-        setEmployeePasswordError(formError.message);
+      const nextEmployeePasswordError = resolveFormFieldError(
+        "employee_password",
+        formError,
+      );
+
+      if (nextEmployeePasswordError) {
+        setEmployeePasswordError(nextEmployeePasswordError);
         return;
       }
 
-      setSubmitError(
-        err instanceof Error ? err.message : "Failed to pawn ticket.",
-      );
+      setSubmitError("Couldn't pawn this ticket right now. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -206,21 +210,8 @@ const PawnTicketForm: React.FC<PawnTicketFormProps> = (props) => {
             }}
             fullWidth
             required
-            autoFocus
             error={Boolean(descriptionError)}
             helperText={descriptionError || " "}
-          />
-
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={isLost}
-                onChange={(_event, checked) => {
-                  setIsLost(checked);
-                }}
-              />
-            }
-            label="Lost Ticket"
           />
 
           <Autocomplete
@@ -316,6 +307,18 @@ const PawnTicketForm: React.FC<PawnTicketFormProps> = (props) => {
               fullWidth
             />
           </Box>
+
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={isLost}
+                onChange={(_event, checked) => {
+                  setIsLost(checked);
+                }}
+              />
+            }
+            label="Lost Ticket"
+          />
 
           <TextField
             label="Employee Password"

@@ -9,7 +9,6 @@ interface ClientResultProps {
   onSelect: (client: Client) => void;
   onClientCreated?: (client: Client) => void;
   onClientUpdated?: (client: Client) => void;
-  onClientDeleted?: (clientNumber: number) => void;
 }
 
 const ClientResult: React.FC<ClientResultProps> = ({
@@ -18,7 +17,6 @@ const ClientResult: React.FC<ClientResultProps> = ({
   onSelect,
   onClientCreated,
   onClientUpdated,
-  onClientDeleted,
 }) => {
   const previewClient = selectedClient ?? results[0] ?? null;
 
@@ -43,7 +41,6 @@ const ClientResult: React.FC<ClientResultProps> = ({
         client={previewClient}
         onClientCreated={onClientCreated}
         onClientUpdated={onClientUpdated}
-        onClientDeleted={onClientDeleted}
       />
     </Box>
   );

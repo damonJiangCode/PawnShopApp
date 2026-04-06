@@ -1,14 +1,8 @@
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
 import {
-  Alert,
   Box,
   Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Paper,
   Typography,
 } from "@mui/material";
@@ -16,52 +10,21 @@ import { useState } from "react";
 import type { Client } from "../../../../../shared/types/Client";
 import { useClientImage } from "../../../hooks/useClientImage";
 import AddEditClientForm from "../form/AddEditClientForm";
-import { clientService } from "../../../services/clientService";
 
 interface ClientImagePreviewProps {
   client: Client | null;
   onClientCreated?: (client: Client) => void;
   onClientUpdated?: (client: Client) => void;
-  onClientDeleted?: (clientNumber: number) => void;
 }
 
 const ClientImagePreview: React.FC<ClientImagePreviewProps> = ({
   client,
   onClientCreated,
   onClientUpdated,
-  onClientDeleted,
 }) => {
   const imageSrc = useClientImage(client?.image_path);
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [deletingClient, setDeletingClient] = useState(false);
-  const [deleteError, setDeleteError] = useState("");
-
-  const handleDeleteClient = async () => {
-    if (!client?.client_number) {
-      return;
-    }
-
-    try {
-      setDeletingClient(true);
-      setDeleteError("");
-      const deleted = await clientService.deleteClient(client.client_number);
-
-      if (!deleted) {
-        setDeleteError("Client could not be deleted. Please try again.");
-        return;
-      }
-
-      onClientDeleted?.(client.client_number);
-      setDeleteOpen(false);
-    } catch (error) {
-      console.error("Failed to delete client:", error);
-      setDeleteError("Failed to delete client. Please try again.");
-    } finally {
-      setDeletingClient(false);
-    }
-  };
 
   return (
     <Paper
@@ -148,23 +111,6 @@ const ClientImagePreview: React.FC<ClientImagePreviewProps> = ({
         >
           Edit
         </Button>
-        <Button
-          size="small"
-          variant="contained"
-          startIcon={<DeleteIcon />}
-          disabled={!client?.client_number}
-          onClick={() => setDeleteOpen(true)}
-          sx={{
-            minWidth: 0,
-            justifyContent: "flex-start",
-            px: 1,
-            "&:hover": {
-              boxShadow: 3,
-            },
-          }}
-        >
-          Rmv
-        </Button>
       </Box>
 
       {addOpen && (
@@ -189,52 +135,6 @@ const ClientImagePreview: React.FC<ClientImagePreviewProps> = ({
           }}
         />
       )}
-
-      <Dialog
-        open={deleteOpen}
-        onClose={() => {
-          if (!deletingClient) {
-            setDeleteOpen(false);
-            setDeleteError("");
-          }
-        }}
-      >
-        <DialogTitle>Delete Client?</DialogTitle>
-        <DialogContent>
-          {deleteError && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {deleteError}
-            </Alert>
-          )}
-          <Typography>
-            Are you sure you want to delete this client?
-          </Typography>
-          <Typography sx={{ mt: 1 }} color="error">
-            This action cannot be undone.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              setDeleteOpen(false);
-              setDeleteError("");
-            }}
-            disabled={deletingClient}
-          >
-            Cancel
-          </Button>
-          <Button
-            color="error"
-            variant="contained"
-            onClick={() => {
-              void handleDeleteClient();
-            }}
-            disabled={deletingClient}
-          >
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Paper>
   );
 };

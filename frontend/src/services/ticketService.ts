@@ -1,5 +1,6 @@
 import type { Ticket } from "../../../shared/types/Ticket";
 import { getElectronApi } from "./electronApi";
+import { extractBackendFieldError } from "../utils/formError";
 
 export type TicketFormField =
   | "description"
@@ -19,8 +20,6 @@ const createFieldError = (
   error.field = field;
   return error;
 };
-
-const FIELD_ERROR_PREFIX = "[field-error]";
 
 export type CreatePawnTicketInput = {
   description: string;
@@ -118,20 +117,16 @@ const mapBackendError = (error: unknown): Error => {
     return new Error("Unknown ticket error");
   }
 
-  if (!error.message.startsWith(FIELD_ERROR_PREFIX)) {
+  const backendFieldError = extractBackendFieldError(error.message);
+
+  if (!backendFieldError) {
     return error;
   }
 
-  const payload = error.message.slice(FIELD_ERROR_PREFIX.length);
-  const separatorIndex = payload.indexOf(":");
-
-  if (separatorIndex === -1) {
-    return error;
-  }
-
-  const field = payload.slice(0, separatorIndex) as TicketFormField;
-  const message = payload.slice(separatorIndex + 1).trim();
-  return createFieldError(field, message || error.message);
+  return createFieldError(
+    backendFieldError.field as TicketFormField,
+    backendFieldError.message,
+  );
 };
 
 export const ticketService = {

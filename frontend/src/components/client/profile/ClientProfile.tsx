@@ -19,6 +19,7 @@ import {
   clientService,
   type ClientFormError,
 } from "../../../services/clientService";
+import { resolveFormFieldError } from "../../../utils/formError";
 
 interface ClientProfileProps {
   client: Client;
@@ -135,7 +136,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
 
   const handleSaveNotes = async (skipPassword = false) => {
     if (!skipPassword && !employeePassword.trim()) {
-      setEmployeePasswordError("Employee password is required.");
+      setEmployeePasswordError("Enter employee password.");
       return;
     }
 
@@ -161,14 +162,18 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
       setSubmitError("");
     } catch (error) {
       const clientError = error as ClientFormError;
+      const nextEmployeePasswordError = resolveFormFieldError(
+        "employee_password",
+        clientError,
+      );
 
-      if (clientError.field === "employee_password") {
-        setEmployeePasswordError(clientError.message);
+      if (nextEmployeePasswordError) {
+        setEmployeePasswordError(nextEmployeePasswordError);
         return;
       }
 
       console.error("Failed to update client notes:", error);
-      setSubmitError("Failed to update client notes. Please try again.");
+      setSubmitError("Couldn't update the client notes right now. Please try again.");
     } finally {
       setSavingNotes(false);
     }
@@ -500,7 +505,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
             inputRef={passwordInputRef}
             fullWidth
             type="password"
-            label="Password"
+            label="Employee Password"
             value={employeePassword}
             onChange={(event) => {
               setEmployeePassword(event.target.value);

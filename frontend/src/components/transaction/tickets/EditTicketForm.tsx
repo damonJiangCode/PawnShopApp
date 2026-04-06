@@ -17,6 +17,7 @@ import type {
 import { ticketService } from "../../../services/ticketService";
 import { calculation } from "../../../../../shared/utils/calculation";
 import Autocomplete from "@mui/material/Autocomplete";
+import { resolveFormFieldError } from "../../../utils/formError";
 
 interface EditTicketFormProps {
   open: boolean;
@@ -123,7 +124,7 @@ const EditTicketForm: React.FC<EditTicketFormProps> = (props) => {
         ? "One Time Fee cannot be negative."
         : "";
     const nextEmployeePasswordError =
-      trimmedPassword.length === 0 ? "Password is required." : "";
+      trimmedPassword.length === 0 ? "Enter employee password." : "";
 
     setDescriptionError(nextDescriptionError);
     setLocationError(nextLocationError);
@@ -161,14 +162,17 @@ const EditTicketForm: React.FC<EditTicketFormProps> = (props) => {
       console.error(err);
       const formError = err as TicketFormError;
 
-      if (formError.field === "employee_password") {
-        setEmployeePasswordError(formError.message);
+      const nextEmployeePasswordError = resolveFormFieldError(
+        "employee_password",
+        formError,
+      );
+
+      if (nextEmployeePasswordError) {
+        setEmployeePasswordError(nextEmployeePasswordError);
         return;
       }
 
-      setSubmitError(
-        err instanceof Error ? err.message : "Failed to update ticket.",
-      );
+      setSubmitError("Couldn't update this ticket right now. Please try again.");
     } finally {
       setSaving(false);
     }

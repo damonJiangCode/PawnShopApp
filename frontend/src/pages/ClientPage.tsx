@@ -244,26 +244,6 @@ const ClientPage: React.FC<ClientPageProps> = ({
     setSelectedClient(updatedClient);
   };
 
-  const handleClientDeleted = (clientNumber: number) => {
-    if (createdClient?.client_number === clientNumber) {
-      setCreatedClient(null);
-    }
-    setDeletedClientNumbers((prev) =>
-      prev.includes(clientNumber) ? prev : [...prev, clientNumber],
-    );
-    setClientOverrides((prev) => {
-      const next = { ...prev };
-      delete next[clientNumber];
-      return next;
-    });
-    setDisplayResults((prev) =>
-      prev.filter((client) => client.client_number !== clientNumber),
-    );
-    setSelectedClient((prev) =>
-      prev?.client_number === clientNumber ? null : prev,
-    );
-  };
-
   useEffect(() => {
     onClientSelected?.(selectedClient);
   }, [selectedClient, onClientSelected]);
@@ -330,7 +310,6 @@ const ClientPage: React.FC<ClientPageProps> = ({
               onSelect={setSelectedClient}
               onClientCreated={handleClientCreated}
               onClientUpdated={handleClientUpdated}
-              onClientDeleted={handleClientDeleted}
             />
           </Box>
         </Box>

@@ -25,6 +25,7 @@ import {
   type ClientNotesAction,
   type SaveClientInput,
 } from "../../../services/clientService";
+import { resolveFormFieldError } from "../../../utils/formError";
 
 interface AddEditClientFormProps {
   clientExisted?: Client;
@@ -266,9 +267,13 @@ const AddEditClientForm: React.FC<AddEditClientFormProps> = (props) => {
       onSave(savedClient);
     } catch (err) {
       const clientError = err as ClientFormError;
+      const nextEmployeePasswordError = resolveFormFieldError(
+        "employee_password",
+        clientError,
+      );
 
-      if (clientError.field === "employee_password") {
-        setEmployeePasswordError(clientError.message);
+      if (nextEmployeePasswordError) {
+        setEmployeePasswordError(nextEmployeePasswordError);
         if (!options?.keepPasswordDialogOpen) {
           setShowPasswordDialog(true);
         }
@@ -281,8 +286,8 @@ const AddEditClientForm: React.FC<AddEditClientFormProps> = (props) => {
       );
       setSubmitError(
         isEditMode
-          ? "Failed to update client. Please try again."
-          : "Failed to add client. Please try again.",
+          ? "Couldn't update this client right now. Please try again."
+          : "Couldn't add this client right now. Please try again.",
       );
     } finally {
       setSavingClient(false);
@@ -319,7 +324,7 @@ const AddEditClientForm: React.FC<AddEditClientFormProps> = (props) => {
     }
 
     if (!employeePassword.trim()) {
-      setEmployeePasswordError("Employee password is required.");
+      setEmployeePasswordError("Enter employee password.");
       return;
     }
 
@@ -505,7 +510,7 @@ const AddEditClientForm: React.FC<AddEditClientFormProps> = (props) => {
             inputRef={passwordInputRef}
             fullWidth
             type="password"
-            label="Password"
+            label="Employee Password"
             value={employeePassword}
             onChange={(event) => {
               setEmployeePassword(event.target.value);

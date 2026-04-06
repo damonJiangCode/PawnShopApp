@@ -15,6 +15,7 @@ import type {
   TicketFormError,
 } from "../../../services/ticketService";
 import { ticketService } from "../../../services/ticketService";
+import { resolveFormFieldError } from "../../../utils/formError";
 
 interface SellTicketFormProps {
   open: boolean;
@@ -103,7 +104,7 @@ const SellTicketForm: React.FC<SellTicketFormProps> = (props) => {
         ? "Amount must be greater than 0."
         : "";
     const nextEmployeePasswordError =
-      trimmedPassword.length === 0 ? "Password is required." : "";
+      trimmedPassword.length === 0 ? "Enter employee password." : "";
 
     setDescriptionError(nextDescriptionError);
     setLocationError(nextLocationError);
@@ -133,14 +134,17 @@ const SellTicketForm: React.FC<SellTicketFormProps> = (props) => {
       console.error(err);
       const formError = err as TicketFormError;
 
-      if (formError.field === "employee_password") {
-        setEmployeePasswordError(formError.message);
+      const nextEmployeePasswordError = resolveFormFieldError(
+        "employee_password",
+        formError,
+      );
+
+      if (nextEmployeePasswordError) {
+        setEmployeePasswordError(nextEmployeePasswordError);
         return;
       }
 
-      setSubmitError(
-        err instanceof Error ? err.message : "Failed to sell ticket.",
-      );
+      setSubmitError("Couldn't sell this ticket right now. Please try again.");
     } finally {
       setSaving(false);
     }
