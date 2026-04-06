@@ -1,10 +1,10 @@
-import { app, BrowserWindow, screen } from "electron";
 import path from "path";
-import { fileURLToPath } from "url";
+import type { Event as ElectronEvent } from "electron";
 import { registerHandlers } from "./handlers/registerHandlers.ts";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const { app, BrowserWindow, screen } = require("electron/main") as typeof import("electron");
+const preloadPath = path.resolve(process.cwd(), "src/preload/index.cjs");
+let mainWindow: Electron.BrowserWindow | null = null;
 
 function createWindow() {
   const { workAreaSize } = screen.getPrimaryDisplay();
@@ -23,8 +23,39 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(__dirname, "../preload/index.cjs"),
+      preload: preloadPath,
     },
+  });
+
+  win.once("ready-to-show", () => {
+    win.show();
+    win.focus();
+  });
+
+  win.on("closed", () => {
+    if (mainWindow === win) {
+      mainWindow = null;
+    }
+  });
+
+  win.webContents.on(
+    "did-fail-load",
+    (
+      _event: ElectronEvent,
+      errorCode: number,
+      errorDescription: string,
+      validatedURL: string,
+    ) => {
+      console.error("[main] failed to load window", {
+        errorCode,
+        errorDescription,
+        validatedURL,
+      });
+    },
+  );
+
+  win.webContents.on("did-finish-load", () => {
+    win.show();
   });
 
   // Open DevTools
@@ -32,6 +63,9 @@ function createWindow() {
 
   // dev: load vite server
   win.loadURL("http://localhost:5173");
+
+  mainWindow = win;
+  return win;
 }
 
 app.whenReady().then(() => {
@@ -39,6 +73,20 @@ app.whenReady().then(() => {
   registerHandlers();
 });
 
+app.on("activate", () => {
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow();
+  }
+});
+
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("[main] uncaught exception", error);
+});
+
+process.on("unhandledRejection", (error) => {
+  console.error("[main] unhandled rejection", error);
 });

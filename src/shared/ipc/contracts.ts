@@ -1,6 +1,6 @@
-import type { Client, ID } from "../types/Client";
-import type { Item } from "../types/Item";
-import type { Ticket } from "../types/Ticket";
+import type { Client, ID } from "../types/Client.ts";
+import type { Item } from "../types/Item.ts";
+import type { Ticket } from "../types/Ticket.ts";
 
 export type CitiesResponse = {
   provinces: string[];

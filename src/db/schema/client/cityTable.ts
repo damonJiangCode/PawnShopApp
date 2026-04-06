@@ -1,11 +1,6 @@
 import path from "path";
 import fs from "fs";
 import csv from "csv-parser";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 export const createCityTable = `
 CREATE TABLE IF NOT EXISTS city (
@@ -17,7 +12,7 @@ CREATE TABLE IF NOT EXISTS city (
 `;
 
 export async function importCity(client: any) {
-  const filePath = path.resolve(__dirname, "../../seed/canadacities.csv");
+  const filePath = path.resolve(process.cwd(), "src/db/seed/canadacities.csv");
 
   try {
     const stream = fs.createReadStream(filePath).pipe(csv());

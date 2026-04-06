@@ -33,10 +33,10 @@ This keeps the app aligned with the actual pawn shop workflow instead of page na
 
 ```text
 .
-├── frontend/
+├── renderer/
 │   ├── index.html
-│   ├── package.json
-│   ├── tsconfig.app.json
+│   ├── main.tsx
+│   ├── tsconfig.json
 │   └── vite.config.ts
 │
 ├── src/
@@ -197,21 +197,13 @@ These are the conventions the current code follows:
 npm install
 ```
 
-2. Install frontend dependencies:
-
-```bash
-cd frontend
-npm install
-cd ..
-```
-
-3. Create your local env file:
+2. Create your local env file:
 
 ```bash
 cp .env.example .env
 ```
 
-4. Update `.env` with your local PostgreSQL credentials:
+3. Update `.env` with your local PostgreSQL credentials:
 
 ```env
 DB_USER=your_postgres_user
@@ -221,7 +213,7 @@ DB_PASSWORD=your_password
 DB_PORT=5432
 ```
 
-5. Initialize the database:
+4. Initialize the database:
 
 ```bash
 npm run db:init
@@ -241,33 +233,45 @@ Run only the renderer:
 npm run dev:frontend
 ```
 
-Run only Electron:
+Run only the main-process build watcher:
 
 ```bash
-npm run dev:electron
+npm run dev:main
 ```
 
-Build the renderer:
+Run only the Electron app against the built main process:
 
 ```bash
-cd frontend
+npm run dev:app
+```
+
+Build the app:
+
+```bash
 npm run build
 ```
 
 ## Scripts
 
 - `npm run dev`
-  Starts Vite and Electron together
+  Starts the renderer dev server, main-process TypeScript watcher, and Electron app together
 - `npm run dev:frontend`
-  Starts the renderer dev server from `frontend/`
-- `npm run dev:electron`
-  Starts Electron against `src/main/index.ts`
+  Starts the renderer dev server from `renderer/`
+- `npm run dev:main`
+  Watches and compiles `src/main`, `src/db`, and `src/shared` into `.electron-build/`
+- `npm run dev:app`
+  Starts Electron against the compiled app in `.electron-build/`
+- `npm run build:main`
+  Builds the Electron-side TypeScript into `.electron-build/`
+- `npm run build`
+  Builds both the Electron-side code and the renderer bundle
 - `npm run db:init`
-  Runs database initialization from `src/db/runInit.ts`
+  Builds the Electron-side code first, then runs database initialization from `.electron-build/db/runInit.js`
 
 ## Practical Notes
 
-- Renderer source lives in `src/renderer`, but Vite config still lives in `frontend/`
+- Renderer source lives in `src/renderer`, while renderer tooling lives in top-level `renderer/`
+- Electron-side code is compiled into `.electron-build/` for development and CLI database tasks
 - The preload file is `src/preload/index.cjs` so Electron can load it directly without an extra build step
 - Main services use shared helpers in `src/main/utils` for field errors, transactions, and image storage
 - Schema files are grouped by object so database structure matches the app's domain model

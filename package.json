@@ -6,16 +6,24 @@
   "main": "src/main/index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev:frontend": "cd frontend && npm run dev",
-    "dev:electron": "wait-on http://localhost:5173 && electron -r ts-node/register src/main/index.ts",
-    "dev": "npm-run-all --parallel dev:frontend dev:electron",
-    "db:init": "ts-node --esm src/db/runInit.ts"
+    "dev:frontend": "vite --config renderer/vite.config.ts",
+    "dev:main": "node scripts/prepareElectronBuild.cjs && tsc -p tsconfig.main.json --watch --preserveWatchOutput",
+    "dev:app": "wait-on http://localhost:5173 file:.electron-build/package.json file:.electron-build/main/index.js && env -u ELECTRON_RUN_AS_NODE electron .electron-build",
+    "dev": "npm-run-all --parallel dev:frontend dev:main dev:app",
+    "typecheck:main": "tsc --noEmit -p tsconfig.main.json",
+    "typecheck:renderer": "tsc --noEmit -p renderer/tsconfig.json",
+    "build:main": "node scripts/prepareElectronBuild.cjs && tsc -p tsconfig.main.json",
+    "build": "npm run build:main && npm run typecheck:renderer && vite build --config renderer/vite.config.ts",
+    "db:init": "npm run build:main && node .electron-build/db/runInit.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
     "@types/node": "^25.0.9",
     "@types/pg": "^8.16.0",
     "concurrently": "^9.2.1",
@@ -23,10 +31,18 @@
     "npm-run-all": "^4.1.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
+    "vite": "^5.4.10",
     "wait-on": "^9.0.3"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^6.4.8",
+    "@mui/material": "^6.4.8",
+    "@mui/x-data-grid": "^7.28.1",
     "csv-parser": "^3.2.0",
-    "pg": "^8.17.2"
+    "pg": "^8.17.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   }
 }

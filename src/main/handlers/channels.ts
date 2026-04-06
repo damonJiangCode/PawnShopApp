@@ -1,6 +1,8 @@
-import { createRequire } from "module";
+import path from "node:path";
 
-const require = createRequire(import.meta.url);
-const { CHANNELS } = require("../../shared/ipc/channels.cjs") as typeof import("../../shared/ipc/channels.cjs");
+const channelsPath = path.resolve(process.cwd(), "src/shared/ipc/channels.cjs");
+const { CHANNELS } = require(channelsPath) as {
+  CHANNELS: Record<string, string>;
+};
 
 export { CHANNELS };

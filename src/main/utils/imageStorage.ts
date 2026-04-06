@@ -1,6 +1,7 @@
-import { app } from "electron";
 import fs from "fs/promises";
 import path from "path";
+
+const { app } = require("electron/main") as typeof import("electron");
 
 const getClientImageBaseDir = () => {
   return path.join(app.getPath("userData"), "client-images");
