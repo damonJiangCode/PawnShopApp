@@ -89,6 +89,7 @@ const ClientFormDialog: React.FC<ClientFormDialogProps> = (props) => {
   const [savingClient, setSavingClient] = useState(false);
   const [employeePasswordError, setEmployeePasswordError] = useState("");
   const [submitError, setSubmitError] = useState("");
+  const lastNameInputRef = useRef<HTMLInputElement>(null);
   const [validationErrors, setValidationErrors] = useState<ClientValidationErrors>(
     emptyValidationErrors(),
   );
@@ -127,6 +128,18 @@ const ClientFormDialog: React.FC<ClientFormDialogProps> = (props) => {
 
     return () => clearTimeout(timer);
   }, [showPasswordDialog]);
+
+  useEffect(() => {
+    if (!open || isEditMode || showPasswordDialog) {
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => {
+      lastNameInputRef.current?.focus();
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [open, isEditMode, showPasswordDialog]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -375,6 +388,7 @@ const ClientFormDialog: React.FC<ClientFormDialogProps> = (props) => {
                 }}
               >
                 <NameFields
+                  lastNameInputRef={lastNameInputRef}
                   lastName={client.last_name ?? ""}
                   firstName={client.first_name ?? ""}
                   middleName={client.middle_name ?? ""}

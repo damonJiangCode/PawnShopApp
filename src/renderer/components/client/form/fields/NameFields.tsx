@@ -7,6 +7,7 @@ interface NameFieldsProps {
   middleName: string;
   lastNameError?: string;
   firstNameError?: string;
+  lastNameInputRef?: React.Ref<HTMLInputElement>;
   onChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
@@ -19,11 +20,13 @@ const NameFields: React.FC<NameFieldsProps> = (props) => {
     middleName,
     lastNameError,
     firstNameError,
+    lastNameInputRef,
     onChange,
   } = props;
   return (
     <Box sx={{ display: "flex", gap: 2 }}>
       <TextField
+        inputRef={lastNameInputRef}
         fullWidth
         required
         name="last_name"
