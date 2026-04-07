@@ -42,6 +42,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
   const [employeePasswordError, setEmployeePasswordError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const passwordInputRef = useRef<HTMLInputElement>(null);
+  const notesInputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
   const identifications: ID[] = client.identifications || [];
   const imageSrc = useClientImage(client.image_path);
   const panelSx = {
@@ -87,6 +88,25 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
   };
   const displayMeasurement = (value: number | undefined, unit: string) =>
     placeholder || value === undefined ? "-" : `${value} ${unit}`;
+
+  useEffect(() => {
+    if (!showNoteForm) {
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => {
+      const input = notesInputRef.current;
+      if (!input) {
+        return;
+      }
+
+      input.focus();
+      const cursorPosition = input.value.length;
+      input.setSelectionRange(cursorPosition, cursorPosition);
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [showNoteForm]);
 
   useEffect(() => {
     if (!showPasswordForm) {
@@ -453,7 +473,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
             </Alert>
           )}
           <TextField
-            autoFocus
+            inputRef={notesInputRef}
             fullWidth
             multiline
             minRows={6}
