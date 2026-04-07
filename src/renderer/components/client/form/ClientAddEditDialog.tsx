@@ -27,7 +27,7 @@ import {
 } from "../../../services/clientService";
 import { resolveFormFieldError } from "../../../utils/formError";
 
-interface ClientFormDialogProps {
+interface ClientAddEditDialogProps {
   clientExisted?: Client;
   open: boolean;
   onSave: (clientUpdated: Client) => void;
@@ -74,7 +74,7 @@ const emptyValidationErrors = (): ClientValidationErrors => ({
   identifications: "",
 });
 
-const ClientFormDialog: React.FC<ClientFormDialogProps> = (props) => {
+const ClientAddEditDialog: React.FC<ClientAddEditDialogProps> = (props) => {
   const { clientExisted, open, onSave, onClose } = props;
   const isEditMode = Boolean(clientExisted?.client_number);
   const [client, setClient] = useState<Client>(clientExisted || defaultClient);
@@ -166,7 +166,7 @@ const ClientFormDialog: React.FC<ClientFormDialogProps> = (props) => {
     } catch (error) {
       setPhotoCaptured(false);
       console.error(
-        "Failed to save client image (ClientFormDialog.tsx):",
+        "Failed to save client image (ClientAddEditDialog.tsx):",
         error,
       );
       setSubmitError("Failed to save client image. Please try again.");
@@ -360,9 +360,7 @@ const ClientFormDialog: React.FC<ClientFormDialogProps> = (props) => {
     setPendingUpdate(null);
     setEmployeePasswordError("");
     setSubmitError("");
-    setTimeout(() => {
-      onClose();
-    }, 1000);
+    onClose();
   };
 
   return (
@@ -567,4 +565,4 @@ const ClientFormDialog: React.FC<ClientFormDialogProps> = (props) => {
   );
 };
 
-export default ClientFormDialog;
+export default ClientAddEditDialog;

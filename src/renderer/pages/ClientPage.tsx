@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Paper, Typography } from "@mui/material";
-import ClientProfile from "../components/client/profile/ClientProfile";
-import ClientResultsPanel from "../components/client/results/ClientResultsPanel";
+import ClientPanel from "../components/client/profile/ClientPanel";
+import ClientsPanel from "../components/client/clientresults/ClientsPanel";
 import { useClientSearch } from "../hooks/useClientSearch";
 import defaultClient from "../utils/defaultClient";
 import type { Client } from "../../shared/types/Client";
@@ -273,7 +273,7 @@ const ClientPage: React.FC<ClientPageProps> = ({
         }}
       >
         <Box sx={{ flex: 1, minHeight: 0, overflow: "auto", pr: 0.25 }}>
-          <ClientProfile
+          <ClientPanel
             client={selectedClient ?? defaultClient}
             showImage={false}
             onClientUpdated={handleClientUpdated}
@@ -304,7 +304,7 @@ const ClientPage: React.FC<ClientPageProps> = ({
             </Typography>
           )}
           <Box sx={{ flex: 1, minHeight: 0 }}>
-            <ClientResultsPanel
+            <ClientsPanel
               results={displayResults}
               selectedClient={selectedClient}
               onSelect={setSelectedClient}

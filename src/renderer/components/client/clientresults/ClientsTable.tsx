@@ -4,16 +4,16 @@ import type { GridColDef } from "@mui/x-data-grid";
 import { Box, Tooltip } from "@mui/material";
 import type { Client } from "../../../../shared/types/Client";
 
-interface ClientTableProps {
-  results: Client[];
+interface ClientsTableProps {
+  clients: Client[];
   selectedClient?: Client | null;
-  onSelect: (client: Client) => void;
+  onClientSelect: (c: Client) => void;
 }
 
-const ClientTable: React.FC<ClientTableProps> = ({
-  results,
+const ClientsTable: React.FC<ClientsTableProps> = ({
+  clients,
   selectedClient,
-  onSelect,
+  onClientSelect,
 }) => {
   const formatDob = (value?: string | Date | null) => {
     if (!value) {
@@ -32,7 +32,7 @@ const ClientTable: React.FC<ClientTableProps> = ({
     });
   };
 
-  const rows = results.map((client, index) => ({
+  const rows = clients.map((client, index) => ({
     ...client,
     row_index: index + 1,
     last_name_display: client.last_name?.toUpperCase() ?? "",
@@ -86,42 +86,29 @@ const ClientTable: React.FC<ClientTableProps> = ({
     <Box sx={{ height: "100%", width: "100%" }}>
       <DataGrid
         columnHeaderHeight={34}
-        rowHeight={24}
+        rowHeight={30}
         rows={rows}
         columns={columns}
         getRowId={(row) => row.client_number}
-        rowSelectionModel={
-          selectedClient?.client_number ? [selectedClient.client_number] : []
-        }
+        rowSelectionModel={selectedClient?.client_number ? [selectedClient.client_number] : []}
         onRowClick={(params) => {
-          const clickedClient =
-            results.find((client) => client.client_number === params.id) ?? null;
-          if (clickedClient) {
-            onSelect(clickedClient);
-          }
+          const selectedClient = clients.find((client) => client.client_number === params.id);
+          if (selectedClient) onClientSelect(selectedClient);
         }}
         disableColumnMenu
         disableColumnSorting
         disableColumnFilter
         disableColumnSelector
         disableDensitySelector
-        disableColumnResize
-        hideFooterPagination
-        hideFooterSelectedRowCount
         hideFooter
+        localeText={{
+          noRowsLabel: "No clients",
+        }}
         sx={{
           border: "1px solid #ccc",
           "& .MuiDataGrid-cell": {
             borderRight: "1px solid #ddd",
             borderBottom: "1px solid #ddd",
-            py: 0,
-            fontSize: 12,
-            lineHeight: 1,
-            display: "flex",
-            alignItems: "center",
-          },
-          "& .MuiDataGrid-cellContent": {
-            lineHeight: 1,
           },
           "& .MuiDataGrid-columnHeaders": {
             borderBottom: "2px solid #bbb",
@@ -130,17 +117,9 @@ const ClientTable: React.FC<ClientTableProps> = ({
             borderRight: "1px solid #ddd",
             backgroundColor: "#fafafa",
             py: 0,
-            display: "flex",
-            alignItems: "center",
           },
           "& .MuiDataGrid-columnHeaderTitle": {
             fontWeight: 600,
-            fontSize: 13,
-            lineHeight: 1.1,
-          },
-          "& .MuiDataGrid-columnHeaderTitleContainer": {
-            height: "100%",
-            alignItems: "center",
           },
           "& .MuiDataGrid-row:hover": {
             backgroundColor: "#f5f5f5",
@@ -161,4 +140,4 @@ const ClientTable: React.FC<ClientTableProps> = ({
   );
 };
 
-export default ClientTable;
+export default ClientsTable;

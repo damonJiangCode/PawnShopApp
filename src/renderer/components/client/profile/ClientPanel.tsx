@@ -21,14 +21,14 @@ import {
 } from "../../../services/clientService";
 import { resolveFormFieldError } from "../../../utils/formError";
 
-interface ClientProfileProps {
+interface ClientPanelProps {
   client: Client;
   showImage?: boolean;
   onClientUpdated?: (client: Client) => void;
   placeholder?: boolean;
 }
 
-const ClientProfile: React.FC<ClientProfileProps> = ({
+const ClientPanel: React.FC<ClientPanelProps> = ({
   client,
   showImage = true,
   onClientUpdated,
@@ -203,13 +203,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
     <Box
       sx={{
         p: 1,
-        boxSizing: "border-box",
-        // border: "2px solid",
-        // borderColor: "primary.main",
-        // borderRadius: 2,
-        // backgroundColor: "background.paper",
-        // boxShadow:
-        //   "0 0 0 3px rgba(25, 118, 210, 0.14), 0 10px 22px rgba(15, 23, 42, 0.10)",
+        boxSizing: "border-box"
       }}
     >
       <Box
@@ -567,4 +561,4 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
   );
 };
 
-export default ClientProfile;
+export default ClientPanel;
