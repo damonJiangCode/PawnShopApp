@@ -98,7 +98,7 @@ Electron main-process code.
 
 Shared contracts and pure utilities.
 
-- `ipc/channels.cjs`
+- `ipc/contracts.ts`
   Shared IPC channel constants
 - `ipc/contracts.ts`
   Shared request/response and API contract types
