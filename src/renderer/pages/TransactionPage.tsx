@@ -3,15 +3,13 @@ import {
   Box,
   Paper,
   Typography,
-  CircularProgress,
 } from "@mui/material";
 import type { Ticket } from "../../shared/types/Ticket";
 import type { Item } from "../../shared/types/Item";
 import ClientBar from "../components/transaction/ClientBar";
 import TicketTable from "../components/ticket/TicketTable";
-import TicketActions from "../components/ticket/TicketActions";
-import ItemTable from "../components/item/ItemTable";
-import ItemActions from "../components/item/ItemActions";
+import TicketAction from "../components/ticket/TicketAction";
+import ItemsPanel from "../components/item/ItemsPanel";
 import PawnTicketDialog from "../components/ticket/dialogs/PawnTicketDialog";
 import SellTicketDialog from "../components/ticket/dialogs/SellTicketDialog";
 import TicketEditDialog from "../components/ticket/dialogs/TicketEditDialog";
@@ -454,7 +452,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
               boxSizing: "border-box",
             }}
           >
-            <TicketActions
+            <TicketAction
               selectedTicket={selectedTicket}
               onPawn={handlePawnButtonClick}
               onSell={handleSellButtonClick}
@@ -497,86 +495,16 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
             backgroundColor: "background.paper",
           }}
         >
-          <Box
-            sx={{
-              display: "flex",
-              gap: 0.75,
-              height: "100%",
-              minHeight: 0,
-              alignItems: "stretch",
-              overflow: "hidden",
-            }}
-          >
-            <Box sx={{ flex: 1, minWidth: 0, minHeight: 0 }}>
-              <ItemTable
-                items={items}
-                selectedItem={selectedItem ?? undefined}
-                onItemSelected={handleItemClick}
-              />
-            </Box>
-
-            <Paper
-              sx={{
-                width: 320,
-                border: "1px solid",
-                borderColor: "divider",
-                minHeight: 0,
-                height: "100%",
-                overflow: "hidden",
-                flexShrink: 0,
-                boxSizing: "border-box",
-                display: "flex",
-                alignItems: "stretch",
-                gap: 0.75,
-                p: 0.75,
-              }}
-            >
-              <Box
-                sx={{
-                  width: 210,
-                  flexShrink: 0,
-                  height: "100%",
-                  backgroundColor: "#f3f4f6",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderRadius: 0.75,
-                  overflow: "hidden",
-                }}
-              >
-                {itemsLoading ? (
-                  <CircularProgress size={24} />
-                ) : selectedItem ? (
-                  <Typography color="text.secondary">img area</Typography>
-                ) : (
-                  <Typography color="text.secondary">Select an item</Typography>
-                )}
-              </Box>
-
-              <Box
-                sx={{
-                  width: 92,
-                  flexShrink: 0,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 1,
-                  justifyContent: "center",
-                }}
-              >
-                <ItemActions
-                  selectedItem={selectedItem ?? undefined}
-                  onAdd={handleAddItem}
-                  onEdit={handleEditItem}
-                  onDelete={handleRemoveItem}
-                />
-                {itemsError && (
-                  <Typography variant="caption" color="error">
-                    {itemsError}
-                  </Typography>
-                )}
-              </Box>
-            </Paper>
-          </Box>
+          <ItemsPanel
+            items={items}
+            selectedItem={selectedItem ?? undefined}
+            loading={itemsLoading}
+            error={itemsError}
+            onItemSelected={handleItemClick}
+            onAdd={handleAddItem}
+            onEdit={handleEditItem}
+            onDelete={handleRemoveItem}
+          />
         </Paper>
       </Box>
 

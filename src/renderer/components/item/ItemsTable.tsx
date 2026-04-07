@@ -4,15 +4,17 @@ import type { GridColDef, GridValueFormatter } from "@mui/x-data-grid";
 import { Box } from "@mui/material";
 import type { Item } from "../../../shared/types/Item";
 
-interface ItemTableProps {
+interface ItemsTableProps {
   items: Item[];
   selectedItem?: Item;
   onItemSelected: (i: Item) => void;
 }
 
-const ItemTable: React.FC<ItemTableProps> = (props) => {
-  const { items, selectedItem, onItemSelected } = props;
-
+const ItemsTable: React.FC<ItemsTableProps> = ({ 
+  items, 
+  selectedItem, 
+  onItemSelected 
+}) => {
   const columns: GridColDef[] = [
     { field: "item_number", headerName: "ITM_NO", width: 120 },
     {
@@ -111,4 +113,4 @@ const ItemTable: React.FC<ItemTableProps> = (props) => {
   );
 };
 
-export default ItemTable;
+export default ItemsTable;
