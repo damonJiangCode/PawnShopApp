@@ -32,19 +32,50 @@ const TicketActions: React.FC<TicketActionsProps> = (props) => {
     onExpire,
   } = props;
   const ticketActionDisabled = !selectedTicket;
+  const renderButtonContent = (
+    icon: React.ReactNode,
+    label: string,
+  ): React.ReactNode => (
+    <Box
+      sx={{
+        width: 112,
+        display: "grid",
+        gridTemplateColumns: "20px 1fr",
+        alignItems: "center",
+        columnGap: 0.75,
+      }}
+    >
+      <Box
+        sx={{
+          width: 20,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {icon}
+      </Box>
+      <Box
+        component="span"
+        sx={{
+          display: "block",
+          textAlign: "center",
+        }}
+      >
+        {label}
+      </Box>
+    </Box>
+  );
   const actionButtonSx = {
     width: "100%",
     minWidth: 0,
     justifyContent: "center",
+    textAlign: "center",
     color: "primary.contrastText",
     backgroundColor: "primary.main",
     "&:hover": {
       boxShadow: 3,
       backgroundColor: "primary.dark",
-    },
-    "& .MuiButton-startIcon": {
-      marginRight: 3,
-      marginLeft: 0,
     },
     "&.Mui-disabled": {
       color: "rgba(15, 23, 42, 0.38)",
@@ -65,10 +96,6 @@ const TicketActions: React.FC<TicketActionsProps> = (props) => {
       backgroundColor: "rgba(248, 113, 113, 0.18)",
       borderColor: "transparent",
     },
-    "& .MuiButton-startIcon": {
-      marginRight: 3,
-      marginLeft: 0,
-    },
   } as const;
 
   return (
@@ -87,69 +114,62 @@ const TicketActions: React.FC<TicketActionsProps> = (props) => {
         size="small"
         variant="contained"
         sx={actionButtonSx}
-        startIcon={<AddIcon />}
         onClick={onPawn}
       >
-        Pawn
+        {renderButtonContent(<AddIcon fontSize="small" />, "Pawn")}
       </Button>
       <Button
         size="small"
         variant="contained"
         sx={actionButtonSx}
-        startIcon={<SellIcon />}
         onClick={onSell}
       >
-        Sell
+        {renderButtonContent(<SellIcon fontSize="small" />, "Sell")}
       </Button>
       <Button
         size="small"
         variant="contained"
         sx={actionButtonSx}
-        startIcon={<EditIcon />}
         onClick={onEdit}
         disabled={ticketActionDisabled}
       >
-        Edit
+        {renderButtonContent(<EditIcon fontSize="small" />, "Edit")}
       </Button>
       <Button
         size="small"
         variant="contained"
         sx={actionButtonSx}
-        startIcon={<PrintIcon />}
         onClick={onPrint}
         disabled={ticketActionDisabled}
       >
-        Print
+        {renderButtonContent(<PrintIcon fontSize="small" />, "Prnt")}
       </Button>
       <Button
         size="small"
         variant="contained"
         sx={actionButtonSx}
-        startIcon={<AutorenewIcon />}
         onClick={onConvert}
         disabled={ticketActionDisabled}
       >
-        Convert
+        {renderButtonContent(<AutorenewIcon fontSize="small" />, "Conv")}
       </Button>
       <Button
         size="small"
         variant="contained"
         sx={actionButtonSx}
-        startIcon={<SwapHorizIcon />}
         onClick={onTransfer}
         disabled={ticketActionDisabled}
       >
-        Transfer
+        {renderButtonContent(<SwapHorizIcon fontSize="small" />, "Trns")}
       </Button>
       <Button
         size="small"
         variant="contained"
         sx={destructiveButtonSx}
-        startIcon={<DeleteIcon />}
         onClick={onExpire}
         disabled={ticketActionDisabled}
       >
-        Expire
+        {renderButtonContent(<DeleteIcon fontSize="small" />, "Expr")}
       </Button>
     </Box>
   );

@@ -21,6 +21,7 @@ type AddTicketPayload = {
 
 type UpdateTicketPayload = {
   ticket_number: number;
+  is_lost: boolean;
   location: string;
   description: string;
   amount: number;
@@ -177,15 +178,16 @@ export const ticketRepo = {
     const query = `
       UPDATE ticket
       SET
-        location = $1,
-        description = $2,
+        is_lost = $1,
+        location = $2,
+        description = $3,
         is_overdue = COALESCE(due_date < NOW(), FALSE),
-        amount = $3,
-        onetime_fee = $4,
-        interest = $5,
-        pickup_amount = $6,
-        employee_name = $7
-      WHERE ticket_number = $8
+        amount = $4,
+        onetime_fee = $5,
+        interest = $6,
+        pickup_amount = $7,
+        employee_name = $8
+      WHERE ticket_number = $9
       RETURNING
         ticket_number,
         transaction_datetime,
@@ -206,6 +208,7 @@ export const ticketRepo = {
     `;
 
     const values = [
+      payload.is_lost,
       payload.location,
       payload.description,
       payload.amount,

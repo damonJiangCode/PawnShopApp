@@ -36,6 +36,7 @@ export type CreateSellTicketInput = {
 
 export type UpdateTicketInput = {
   ticket_number: number;
+  is_lost: boolean;
   description: string;
   location: string;
   amount: number;

@@ -46,6 +46,7 @@ type NormalizedCreateSellTicketInput = {
 
 type NormalizedUpdateTicketInput = {
   ticket_number: number;
+  is_lost: boolean;
   description: string;
   location: string;
   amount: number;
@@ -81,6 +82,7 @@ const normalizeUpdateTicketInput = (
   input: UpdateTicketInput,
 ): NormalizedUpdateTicketInput => ({
   ticket_number: input.ticket_number,
+  is_lost: Boolean(input.is_lost),
   description: input.description.trim(),
   location: input.location.trim(),
   amount: Number(input.amount),

@@ -9,8 +9,8 @@ import type { Item } from "../../shared/types/Item";
 import ClientBar from "../components/transaction/ClientBar";
 import TicketsPanel from "../components/ticket/TicketsPanel";
 import ItemsPanel from "../components/item/ItemsPanel";
-import PawnTicketDialog from "../components/ticket/dialogs/PawnTicketDialog";
-import SellTicketDialog from "../components/ticket/dialogs/SellTicketDialog";
+import TicketPawnDialog from "../components/ticket/dialogs/TicketPawnDialog";
+import TicketSellDialog from "../components/ticket/dialogs/TicketSellDialog";
 import TicketEditDialog from "../components/ticket/dialogs/TicketEditDialog";
 import {
   ticketService,
@@ -467,7 +467,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       )}
 
       {openPawnTicketForm && (
-        <PawnTicketDialog
+        <TicketPawnDialog
           open={openPawnTicketForm}
           clientFirstName={clientFirstName || ""}
           clientLastName={clientLastName || ""}
@@ -478,7 +478,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       )}
 
       {openSellTicketForm && (
-        <SellTicketDialog
+        <TicketSellDialog
           open={openSellTicketForm}
           clientFirstName={clientFirstName || ""}
           clientLastName={clientLastName || ""}

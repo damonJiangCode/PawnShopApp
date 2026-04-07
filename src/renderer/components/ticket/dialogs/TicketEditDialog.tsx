@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
+  Checkbox,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -8,6 +9,7 @@ import {
   Button,
   Box,
   Alert,
+  FormControlLabel,
 } from "@mui/material";
 import type { Ticket } from "../../../../shared/types/Ticket";
 import type {
@@ -46,6 +48,7 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
     .join(" ");
   const amountRef = useRef<HTMLInputElement>(null);
   const [description, setDescription] = useState("");
+  const [isLost, setIsLost] = useState(false);
   const [location, setLocation] = useState("");
   const [amount, setAmount] = useState<number | "">("");
   const [oneTimeFee, setOneTimeFee] = useState<number | "">("");
@@ -95,6 +98,7 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
   useEffect(() => {
     if (!open || !ticket) return;
     setDescription(ticket.description || "");
+    setIsLost(Boolean(ticket.is_lost));
     setLocation(ticket.location || "");
     setAmount(ticket.amount ?? "");
     setOneTimeFee(ticket.onetime_fee ?? "");
@@ -165,6 +169,7 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
     try {
       await onSave({
         ticket_number: ticket.ticket_number as number,
+        is_lost: isLost,
         description: trimmedDescription,
         location: trimmedLocation,
         amount: amount as number,
@@ -214,6 +219,19 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
             disabled
             fullWidth
           />
+          {!isSellTicket && (
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={isLost}
+                  onChange={(_event, checked) => {
+                    setIsLost(checked);
+                  }}
+                />
+              }
+              label="Lost Ticket"
+            />
+          )}
           <TextField
             label="Description"
             value={description}

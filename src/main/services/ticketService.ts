@@ -32,6 +32,7 @@ const normalizeCreateSellTicketInput = (input: CreateSellTicketInput) => ({
 
 const normalizeUpdateTicketInput = (input: UpdateTicketInput) => ({
   ticket_number: input.ticket_number,
+  is_lost: Boolean(input.is_lost),
   description: input.description.trim(),
   location: input.location.trim(),
   amount: Number(input.amount),
@@ -158,6 +159,7 @@ export const ticketService = {
       return ticketRepo.update(
         {
           ticket_number: normalizedInput.ticket_number,
+          is_lost: normalizedInput.is_lost,
           description: normalizedInput.description,
           location: normalizedInput.location,
           amount: normalizedInput.amount,

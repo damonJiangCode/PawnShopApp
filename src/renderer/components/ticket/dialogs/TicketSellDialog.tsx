@@ -17,7 +17,9 @@ import type {
 import { ticketService } from "../../../services/ticketService";
 import { resolveFormFieldError } from "../../../utils/formError";
 
-interface SellTicketDialogProps {
+const DEFAULT_SELL_LOCATION = "BIWK";
+
+interface TicketSellDialogProps {
   open: boolean;
   clientLastName: string;
   clientFirstName: string;
@@ -28,7 +30,7 @@ interface SellTicketDialogProps {
   ) => Promise<void>;
 }
 
-const SellTicketDialog: React.FC<SellTicketDialogProps> = (props) => {
+const TicketSellDialog: React.FC<TicketSellDialogProps> = (props) => {
   const {
     open,
     clientLastName,
@@ -68,6 +70,15 @@ const SellTicketDialog: React.FC<SellTicketDialogProps> = (props) => {
       }
 
       setLocationList(locations);
+      setLocation((prev) => {
+        if (prev.trim()) {
+          return prev;
+        }
+
+        return locations.includes(DEFAULT_SELL_LOCATION)
+          ? DEFAULT_SELL_LOCATION
+          : "";
+      });
       setLoading(false);
     };
 
@@ -92,7 +103,7 @@ const SellTicketDialog: React.FC<SellTicketDialogProps> = (props) => {
     }
 
     setDescription("");
-    setLocation("");
+    setLocation(DEFAULT_SELL_LOCATION);
     setAmount("");
     setEmployeePassword("");
     setDescriptionError("");
@@ -293,4 +304,4 @@ const SellTicketDialog: React.FC<SellTicketDialogProps> = (props) => {
   );
 };
 
-export default SellTicketDialog;
+export default TicketSellDialog;

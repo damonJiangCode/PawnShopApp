@@ -55,6 +55,14 @@ const TicketsTable: React.FC<TicketsTableProps> = (props) => {
     return `$${value.toFixed(1)}`;
   };
 
+  const formatEmployeeName = (value?: string | null) => {
+    if (!value) {
+      return null;
+    }
+
+    return value.toUpperCase();
+  };
+
   const columns: GridColDef[] = [
     {
       field: "ticket_number",
@@ -161,7 +169,8 @@ const TicketsTable: React.FC<TicketsTableProps> = (props) => {
       field: "employee_name",
       headerName: "EMP",
       width: 120,
-      renderCell: (params) => renderWithTooltip(params.value),
+      renderCell: (params) =>
+        renderWithTooltip(formatEmployeeName(params.value)),
     },
   ];
 

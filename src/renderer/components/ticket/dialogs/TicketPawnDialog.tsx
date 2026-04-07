@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-  Checkbox,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -10,7 +9,6 @@ import {
   Autocomplete,
   Box,
   Alert,
-  FormControlLabel,
 } from "@mui/material";
 import type {
   CreatePawnTicketInput,
@@ -20,7 +18,7 @@ import { ticketService } from "../../../services/ticketService";
 import { calculation } from "../../../../shared/utils/calculation";
 import { resolveFormFieldError } from "../../../utils/formError";
 
-interface PawnTicketDialogProps {
+interface TicketPawnDialogProps {
   open: boolean;
   clientLastName: string;
   clientFirstName: string;
@@ -31,7 +29,7 @@ interface PawnTicketDialogProps {
   ) => Promise<void>;
 }
 
-const PawnTicketDialog: React.FC<PawnTicketDialogProps> = (props) => {
+const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
   const {
     open,
     clientLastName,
@@ -47,7 +45,6 @@ const PawnTicketDialog: React.FC<PawnTicketDialogProps> = (props) => {
 
   const descriptionRef = useRef<HTMLInputElement>(null);
   const [description, setDescription] = useState<string>("");
-  const [isLost, setIsLost] = useState(false);
   const [location, setLocation] = useState<string>("");
   const [locationList, setLocationList] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -102,7 +99,6 @@ const PawnTicketDialog: React.FC<PawnTicketDialogProps> = (props) => {
     }
 
     setDescription("");
-    setIsLost(false);
     setLocation("");
     setAmount("");
     setOneTimeFee("");
@@ -172,7 +168,7 @@ const PawnTicketDialog: React.FC<PawnTicketDialogProps> = (props) => {
     try {
       await onSave({
         description: trimmedDescription,
-        is_lost: isLost,
+        is_lost: false,
         location: trimmedLocation,
         amount: normalizedAmount,
         onetime_fee: typeof oneTimeFee === "number" ? oneTimeFee : 0,
@@ -324,18 +320,6 @@ const PawnTicketDialog: React.FC<PawnTicketDialogProps> = (props) => {
             />
           </Box>
 
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={isLost}
-                onChange={(_event, checked) => {
-                  setIsLost(checked);
-                }}
-              />
-            }
-            label="Lost Ticket"
-          />
-
           <TextField
             label="Employee Password"
             value={employeePassword}
@@ -368,4 +352,4 @@ const PawnTicketDialog: React.FC<PawnTicketDialogProps> = (props) => {
   );
 };
 
-export default PawnTicketDialog;
+export default TicketPawnDialog;
