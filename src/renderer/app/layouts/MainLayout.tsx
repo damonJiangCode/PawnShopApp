@@ -34,7 +34,7 @@ const MainLayout: React.FC = () => {
     setForcedClient(null);
     setSearchFirstName("");
     setSearchLastName("");
-    setSearchRequestKey(0);
+    setSearchRequestKey((prev) => prev + 1);
     setSelectedClient(null);
   };
 
@@ -139,6 +139,7 @@ const MainLayout: React.FC = () => {
               flex: 1,
               minHeight: 0,
               overflow: "hidden",
+              position: "relative",
               boxSizing: "border-box",
               backgroundColor: "#ffffff",
               borderBottomLeftRadius: 12,
@@ -147,7 +148,15 @@ const MainLayout: React.FC = () => {
               mb: 0.5,
             }}
           >
-            {currentTab === 0 && (
+            <Box
+              sx={{
+                position: "absolute",
+                inset: 0,
+                height: "100%",
+                visibility: currentTab === 0 ? "visible" : "hidden",
+                pointerEvents: currentTab === 0 ? "auto" : "none",
+              }}
+            >
               <ClientPage
                 searchFirstName={searchFirstName}
                 searchLastName={searchLastName}
@@ -156,15 +165,33 @@ const MainLayout: React.FC = () => {
                 activeClient={selectedClient}
                 onClientSelected={setSelectedClient}
               />
-            )}
-            {currentTab === 1 && (
+            </Box>
+            <Box
+              sx={{
+                position: "absolute",
+                inset: 0,
+                height: "100%",
+                visibility: currentTab === 1 ? "visible" : "hidden",
+                pointerEvents: currentTab === 1 ? "auto" : "none",
+              }}
+            >
               <TransactionPage
                 clientNumber={selectedClient?.client_number}
                 clientLastName={selectedClient?.last_name}
                 clientFirstName={selectedClient?.first_name}
               />
-            )}
-            {currentTab === 2 && <HistoryPage />}
+            </Box>
+            <Box
+              sx={{
+                position: "absolute",
+                inset: 0,
+                height: "100%",
+                visibility: currentTab === 2 ? "visible" : "hidden",
+                pointerEvents: currentTab === 2 ? "auto" : "none",
+              }}
+            >
+              <HistoryPage />
+            </Box>
           </Box>
         </Paper>
       </Box>
