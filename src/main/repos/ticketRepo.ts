@@ -78,7 +78,7 @@ export const ticketRepo = {
         client_number
       FROM ticket
       WHERE client_number = $1
-      ORDER BY transaction_datetime DESC, ticket_number DESC
+      ORDER BY transaction_datetime ASC, ticket_number ASC
     `;
 
     try {
