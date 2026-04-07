@@ -19,6 +19,7 @@ export const createClientTable = `
     phone TEXT,
     notes TEXT,
     image_path TEXT,
+    pickup_self_only BOOLEAN NOT NULL DEFAULT FALSE,
     redeem_count INTEGER,      
     expire_count INTEGER,      
     overdue_count INTEGER,    

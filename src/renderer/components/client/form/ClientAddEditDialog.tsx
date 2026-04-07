@@ -3,10 +3,12 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogTitle,
   DialogContent,
+  FormControlLabel,
   TextField,
 } from "@mui/material";
 import type { Client, ID } from "../../../../shared/types/Client";
@@ -442,6 +444,30 @@ const ClientAddEditDialog: React.FC<ClientAddEditDialogProps> = (props) => {
                   phone={client.phone ?? ""}
                   notes={client.notes}
                   onChange={handleInputChange}
+                />
+
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={Boolean(client.pickup_self_only)}
+                      onChange={(_event, checked) => {
+                        setClient((prev) => ({
+                          ...prev,
+                          pickup_self_only: checked,
+                        }));
+                      }}
+                      color="error"
+                    />
+                  }
+                  label="Only client can pick up his or her own items"
+                  sx={{
+                    alignSelf: "flex-start",
+                    ml: 0,
+                    "& .MuiFormControlLabel-label": {
+                      color: "error.main",
+                      fontWeight: 700,
+                    },
+                  }}
                 />
               </Box>
 

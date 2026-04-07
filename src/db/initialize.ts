@@ -2,12 +2,24 @@ import { connect } from "./connection.ts";
 import { createCityTable, importCity } from "./schema/client/cityTable.ts";
 import { createClientIDTable } from "./schema/client/clientIdTable.ts";
 import { createClientTable } from "./schema/client/clientTable.ts";
-import { createEyeColorTable, insertEyeColor } from "./schema/client/eyeColorTable.ts";
-import { createHairColorTable, insertHairColor } from "./schema/client/hairColorTable.ts";
-import { createIDTypeTable, insertIDType } from "./schema/client/idTypeTable.ts";
+import {
+  createEyeColorTable,
+  insertEyeColor,
+} from "./schema/client/eyeColorTable.ts";
+import {
+  createHairColorTable,
+  insertHairColor,
+} from "./schema/client/hairColorTable.ts";
+import {
+  createIDTypeTable,
+  insertIDType,
+} from "./schema/client/idTypeTable.ts";
 import { createEmployeeTable } from "./schema/employee/employeeTable.ts";
 import { createItemTable } from "./schema/item/itemTable.ts";
-import { createLocationTable, insertLocation } from "./schema/ticket/locationTable.ts";
+import {
+  createLocationTable,
+  insertLocation,
+} from "./schema/ticket/locationTable.ts";
 import { createTicketTable } from "./schema/ticket/ticketTable.ts";
 
 export const initializeDatabase = async () => {

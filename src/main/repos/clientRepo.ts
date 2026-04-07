@@ -33,6 +33,7 @@ const mapRowToClient = (row: any): Client => ({
   phone: row.phone ?? "",
   notes: row.notes ?? "",
   image_path: row.image_path ?? "",
+  pickup_self_only: Boolean(row.pickup_self_only),
   updated_at: row.updated_at,
   redeem_count: row.redeem_count ?? 0,
   expire_count: row.expire_count ?? 0,
@@ -114,12 +115,13 @@ export const clientRepo = {
         phone,
         notes,
         image_path,
+        pickup_self_only,
         redeem_count,
         expire_count,
         overdue_count,
         theft_count
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23
       )
       RETURNING client_number, updated_at
     `;
@@ -143,6 +145,7 @@ export const clientRepo = {
       normalize(clientData.phone),
       normalize(clientData.notes),
       normalize(clientData.image_path),
+      Boolean(clientData.pickup_self_only),
       clientData.redeem_count ?? 0,
       clientData.expire_count ?? 0,
       clientData.overdue_count ?? 0,
@@ -194,12 +197,13 @@ export const clientRepo = {
         phone = $16,
         notes = $17,
         image_path = $18,
-        redeem_count = $19,
-        expire_count = $20,
-        overdue_count = $21,
-        theft_count = $22,
+        pickup_self_only = $19,
+        redeem_count = $20,
+        expire_count = $21,
+        overdue_count = $22,
+        theft_count = $23,
         updated_at = CURRENT_TIMESTAMP
-      WHERE client_number = $23
+      WHERE client_number = $24
       RETURNING updated_at
     `;
 
@@ -222,6 +226,7 @@ export const clientRepo = {
       normalize(clientData.phone),
       normalize(clientData.notes),
       normalize(clientData.image_path),
+      Boolean(clientData.pickup_self_only),
       clientData.redeem_count ?? 0,
       clientData.expire_count ?? 0,
       clientData.overdue_count ?? 0,

@@ -26,6 +26,7 @@ export interface Client {
   phone: string;
   notes: string;
   image_path: string;
+  pickup_self_only: boolean;
   updated_at: Date;
   redeem_count: number;
   expire_count: number;
