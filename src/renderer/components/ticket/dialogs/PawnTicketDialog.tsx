@@ -24,6 +24,7 @@ interface PawnTicketDialogProps {
   open: boolean;
   clientLastName: string;
   clientFirstName: string;
+  clientMiddleName?: string;
   onClose: () => void;
   onSave: (
     ticketData: Omit<CreatePawnTicketInput, "client_number">,
@@ -31,7 +32,18 @@ interface PawnTicketDialogProps {
 }
 
 const PawnTicketDialog: React.FC<PawnTicketDialogProps> = (props) => {
-  const { open, clientLastName, clientFirstName, onClose, onSave } = props;
+  const {
+    open,
+    clientLastName,
+    clientFirstName,
+    clientMiddleName,
+    onClose,
+    onSave,
+  } = props;
+  const formattedClientName = [clientFirstName, clientMiddleName]
+    .filter((value): value is string => Boolean(value?.trim()))
+    .map((value) => value.toUpperCase())
+    .join(" ");
 
   const descriptionRef = useRef<HTMLInputElement>(null);
   const [description, setDescription] = useState<string>("");
@@ -117,10 +129,15 @@ const PawnTicketDialog: React.FC<PawnTicketDialogProps> = (props) => {
     const trimmedDescription = description.trim();
     const trimmedLocation = location.trim();
     const trimmedPassword = employeePassword.trim();
+    const isValidLocation = locationList.includes(trimmedLocation);
     const nextDescriptionError =
       trimmedDescription.length === 0 ? "Description is required." : "";
     const nextLocationError =
-      trimmedLocation.length === 0 ? "Location is required." : "";
+      trimmedLocation.length === 0
+        ? "Location is required."
+        : !isValidLocation
+          ? "Select a valid location from the list."
+          : "";
     const nextAmountError =
       typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0
         ? "Amount must be greater than 0."
@@ -190,7 +207,7 @@ const PawnTicketDialog: React.FC<PawnTicketDialogProps> = (props) => {
 
           <TextField
             label="Client"
-            value={`${clientLastName.toUpperCase()}, ${clientFirstName.toUpperCase()}`}
+            value={`${clientLastName.toUpperCase()}, ${formattedClientName}`}
             disabled
             fullWidth
           />
@@ -226,7 +243,6 @@ const PawnTicketDialog: React.FC<PawnTicketDialogProps> = (props) => {
               }
             }}
             options={locationList}
-            freeSolo
             disabled={loading}
             onInputChange={(_event, inputValue, reason) => {
               if (reason === "input") {

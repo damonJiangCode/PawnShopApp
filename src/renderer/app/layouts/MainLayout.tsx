@@ -179,6 +179,7 @@ const MainLayout: React.FC = () => {
                 clientNumber={selectedClient?.client_number}
                 clientLastName={selectedClient?.last_name}
                 clientFirstName={selectedClient?.first_name}
+                clientMiddleName={selectedClient?.middle_name}
               />
             </Box>
             <Box

@@ -24,10 +24,11 @@ interface TransactionPageProps {
   clientNumber?: number;
   clientLastName?: string;
   clientFirstName?: string;
+  clientMiddleName?: string;
 }
 
 const TransactionPage: React.FC<TransactionPageProps> = (props) => {
-  const { clientNumber, clientLastName, clientFirstName } = props;
+  const { clientNumber, clientLastName, clientFirstName, clientMiddleName } = props;
 
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [items, setItems] = useState<Item[]>([]);
@@ -384,6 +385,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
         <ClientBar
           client_last_name={clientLastName}
           client_first_name={clientFirstName}
+          client_middle_name={clientMiddleName}
         />
       </Box>
 
@@ -469,6 +471,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
           open={openPawnTicketForm}
           clientFirstName={clientFirstName || ""}
           clientLastName={clientLastName || ""}
+          clientMiddleName={clientMiddleName}
           onClose={() => setOpenPawnTicketForm(false)}
           onSave={handlePawnTicket}
         />
@@ -479,6 +482,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
           open={openSellTicketForm}
           clientFirstName={clientFirstName || ""}
           clientLastName={clientLastName || ""}
+          clientMiddleName={clientMiddleName}
           onClose={() => setOpenSellTicketForm(false)}
           onSave={handleSellTicket}
         />
@@ -489,6 +493,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
           open={openEditTicketForm}
           clientFirstName={clientFirstName || ""}
           clientLastName={clientLastName || ""}
+          clientMiddleName={clientMiddleName}
           ticket={selectedTicket}
           onClose={() => setOpenEditTicketForm(false)}
           onSave={handleEditTicket}
