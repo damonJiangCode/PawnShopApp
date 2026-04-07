@@ -5,13 +5,13 @@ import { Box, Tooltip } from "@mui/material";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import type { Ticket } from "../../../shared/types/Ticket";
 
-interface TicketTableProps {
+interface TicketsTableProps {
   tickets: Ticket[];
   selectedTicket?: Ticket | null;
   onSelectTicket: (t: Ticket | null) => void;
 }
 
-const TicketTable: React.FC<TicketTableProps> = (props) => {
+const TicketsTable: React.FC<TicketsTableProps> = (props) => {
   const { tickets, selectedTicket, onSelectTicket } = props;
 
   const renderWithTooltip = (value?: string | number | null) => {
@@ -228,4 +228,4 @@ const TicketTable: React.FC<TicketTableProps> = (props) => {
   );
 };
 
-export default TicketTable;
+export default TicketsTable;

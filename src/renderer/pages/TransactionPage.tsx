@@ -7,8 +7,7 @@ import {
 import type { Ticket } from "../../shared/types/Ticket";
 import type { Item } from "../../shared/types/Item";
 import ClientBar from "../components/transaction/ClientBar";
-import TicketTable from "../components/ticket/TicketTable";
-import TicketAction from "../components/ticket/TicketAction";
+import TicketsPanel from "../components/ticket/TicketsPanel";
 import ItemsPanel from "../components/item/ItemsPanel";
 import PawnTicketDialog from "../components/ticket/dialogs/PawnTicketDialog";
 import SellTicketDialog from "../components/ticket/dialogs/SellTicketDialog";
@@ -399,71 +398,18 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
           boxSizing: "border-box",
         }}
       >
-        <Paper
-          sx={{
-            flex: "0 0 56%",
-            minHeight: 0,
-            display: "flex",
-            gap: 0.75,
-            border: "1px solid",
-            borderColor: "primary.main",
-            borderRadius: 2,
-            p: 1,
-            backgroundColor: "background.paper",
-            boxShadow:
-              "0 0 0 1px rgba(25, 118, 210, 0.14), 0 10px 22px rgba(15, 23, 42, 0.10)",
-            overflow: "hidden",
-            boxSizing: "border-box",
-          }}
-        >
-          <Box
-            sx={{
-              flex: 1,
-              minWidth: 0,
-              minHeight: 0,
-              display: "flex",
-              flexDirection: "column",
-              boxSizing: "border-box",
-              overflow: "hidden",
-            }}
-          >
-            <Box sx={{ flex: 1, minHeight: 0 }}>
-              <TicketTable
-                tickets={tickets}
-                selectedTicket={selectedTicket}
-                onSelectTicket={handleTicketSelected}
-              />
-            </Box>
-          </Box>
-
-          <Paper
-            sx={{
-              width: 248,
-              minHeight: 0,
-              p: 1.25,
-              border: "1px solid",
-              borderColor: "divider",
-              borderRadius: 2,
-              boxShadow: 1,
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: "center",
-              boxSizing: "border-box",
-            }}
-          >
-            <TicketAction
-              selectedTicket={selectedTicket}
-              onPawn={handlePawnButtonClick}
-              onSell={handleSellButtonClick}
-              onEdit={handleEditButtonClick}
-              onPrint={handleTicketPrint}
-              onConvert={handleConvertTicket}
-              onTransfer={handleTransferTicket}
-              onExpire={handleTicketExpire}
-            />
-          </Paper>
-        </Paper>
+        <TicketsPanel
+          tickets={tickets}
+          selectedTicket={selectedTicket}
+          onSelectTicket={handleTicketSelected}
+          onPawn={handlePawnButtonClick}
+          onSell={handleSellButtonClick}
+          onEdit={handleEditButtonClick}
+          onPrint={handleTicketPrint}
+          onConvert={handleConvertTicket}
+          onTransfer={handleTransferTicket}
+          onExpire={handleTicketExpire}
+        />
 
         {(ticketsError || statusMessage) && (
           <Box sx={{ px: 0.5 }}>
