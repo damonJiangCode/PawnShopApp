@@ -400,6 +400,9 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       sx={{
         p: 2,
         height: "100%",
+        width: "100%",
+        maxWidth: 1600,
+        mx: "auto",
         minHeight: 0,
         display: "flex",
         flexDirection: "column",

@@ -1,9 +1,8 @@
 import React from "react";
-import { Box, Paper } from "@mui/material";
+import { Box } from "@mui/material";
 import type { Client } from "../../../../shared/types/Client";
 import ClientsTable from "./ClientsTable";
-import ClientImage from "./ClientImage";
-import ClientActions from "./ClientActions";
+import ClientSidePanel from "./ClientSidePanel";
 
 interface ClientsPanelProps {
   results: Client[];
@@ -39,29 +38,11 @@ const ClientsPanel: React.FC<ClientsPanelProps> = ({
         onClientSelect={onSelect}
       />
 
-      <Paper
-        sx={{
-          width: 306,
-          border: "1px solid",
-          borderColor: "divider",
-          minHeight: 0,
-          height: "100%",
-          overflow: "hidden",
-          flexShrink: 0,
-          boxSizing: "border-box",
-          display: "flex",
-          alignItems: "stretch",
-          gap: 0.75,
-          p: 0.75,
-        }}
-      >
-        <ClientImage client={previewClient} />
-        <ClientActions
-          client={previewClient}
-          onClientCreated={onClientCreated}
-          onClientUpdated={onClientUpdated}
-        />
-      </Paper>
+      <ClientSidePanel
+        client={previewClient}
+        onClientCreated={onClientCreated}
+        onClientUpdated={onClientUpdated}
+      />
     </Box>
   );
 };

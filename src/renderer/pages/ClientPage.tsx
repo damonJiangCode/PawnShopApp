@@ -3,6 +3,7 @@ import { Box, Paper, Typography } from "@mui/material";
 import ClientPanel from "../components/client/profile/ClientPanel";
 import ClientsPanel from "../components/client/clientresults/ClientsPanel";
 import { useClientSearch } from "../hooks/useClientSearch";
+import { CLIENT_RESULTS_HEIGHT } from "../utils/layoutSizing";
 import defaultClient from "../utils/defaultClient";
 import type { Client } from "../../shared/types/Client";
 
@@ -283,7 +284,7 @@ const ClientPage: React.FC<ClientPageProps> = ({
 
         <Box
           sx={{
-            flex: "0 0 216px",
+            flex: `0 0 ${CLIENT_RESULTS_HEIGHT}`,
             border: "1px solid",
             borderColor: "primary.main",
             borderRadius: 2,
@@ -291,7 +292,7 @@ const ClientPage: React.FC<ClientPageProps> = ({
             backgroundColor: "background.paper",
             boxShadow:
               "0 0 0 1px rgba(25, 118, 210, 0.14), 0 10px 22px rgba(15, 23, 42, 0.10)",
-            minHeight: 0,
+            minHeight: 216,
             overflow: "hidden",
             display: "flex",
             flexDirection: "column",

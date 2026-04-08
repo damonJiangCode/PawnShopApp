@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Paper } from "@mui/material";
 import type { Ticket } from "../../../shared/types/Ticket";
+import { TICKET_ACTIONS_PANEL_WIDTH } from "../../utils/layoutSizing";
 import TicketsTable from "./TicketsTable";
 import TicketActions from "./TicketActions";
 
@@ -71,7 +72,7 @@ const TicketsPanel: React.FC<TicketsPanelProps> = ({
 
       <Paper
         sx={{
-          width: 248,
+          width: TICKET_ACTIONS_PANEL_WIDTH,
           minHeight: 0,
           p: 1.25,
           border: "1px solid",

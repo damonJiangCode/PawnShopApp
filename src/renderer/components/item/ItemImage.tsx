@@ -13,10 +13,12 @@ const ItemImage: React.FC<ItemImageProps> = (props) => {
   return (
     <Box
       sx={{
-        height: "100%",
-        width: "auto",
+        width: "100%",
+        height: "auto",
         aspectRatio: "1 / 1",
-        flexShrink: 0,
+        minWidth: 0,
+        maxHeight: "100%",
+        alignSelf: "center",
         backgroundColor: "#f3f4f6",
         display: "flex",
         alignItems: "center",

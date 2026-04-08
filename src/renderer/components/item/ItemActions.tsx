@@ -18,6 +18,7 @@ const ItemActions: React.FC<ItemActionsProps> = (props) => {
   const actionButtonSx = {
     minWidth: 0,
     justifyContent: "center",
+    px: 1.25,
     color: "primary.contrastText",
     backgroundColor: "primary.main",
     "&:hover": {
@@ -25,8 +26,11 @@ const ItemActions: React.FC<ItemActionsProps> = (props) => {
       backgroundColor: "primary.dark",
     },
     "& .MuiButton-startIcon": {
-      marginRight: 3,
+      marginRight: 0.75,
       marginLeft: 0,
+      minWidth: 18,
+      display: "inline-flex",
+      justifyContent: "center",
     },
     "&.Mui-disabled": {
       color: "rgba(15, 23, 42, 0.38)",
@@ -48,8 +52,11 @@ const ItemActions: React.FC<ItemActionsProps> = (props) => {
       borderColor: "transparent",
     },
     "& .MuiButton-startIcon": {
-      marginRight: 3,
+      marginRight: 0.75,
       marginLeft: 0,
+      minWidth: 18,
+      display: "inline-flex",
+      justifyContent: "center",
     },
   } as const;
 
@@ -61,7 +68,11 @@ const ItemActions: React.FC<ItemActionsProps> = (props) => {
         justifyContent: "center",
         alignItems: "stretch",
         gap: 1,
-        width: "100%",
+        width: 96,
+        maxWidth: "100%",
+        minWidth: 96,
+        flexShrink: 0,
+        overflow: "hidden",
       }}
       >
       <Button
