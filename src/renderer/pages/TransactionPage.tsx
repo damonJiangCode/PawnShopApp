@@ -38,9 +38,9 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
   const [itemsLoading, setItemsLoading] = useState(false);
   const [ticketsError, setTicketsError] = useState<string>("");
   const [itemsError, setItemsError] = useState<string>("");
-  const [openPawnTicketForm, setOpenPawnTicketForm] = useState(false);
-  const [openSellTicketForm, setOpenSellTicketForm] = useState(false);
-  const [openEditTicketForm, setOpenEditTicketForm] = useState(false);
+  const [openTicketPawnDialog, setopenTicketPawnDialog] = useState(false);
+  const [openTicketSellDialog, setopenTicketSellDialog] = useState(false);
+  const [openTicketEditDialog, setopenTicketEditDialog] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
 
   const loading = ticketsLoading || itemsLoading;
@@ -65,27 +65,28 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       setStatusMessage("");
 
       try {
-        // console.log("trying to call fetchTickets()");
         const fetchedTickets = await ticketService.loadTickets(clientNumber);
-        // console.log("fetchedTickets results: ", fetchedTickets);
+        const visibleTickets = fetchedTickets.filter(
+          (ticket) => ticket.status === "pawned" || ticket.status === "sold",
+        );
         if (!active) {
           return;
         }
 
-        setTickets(fetchedTickets);
+        setTickets(visibleTickets);
         setSelectedTicket((prev) => {
-          if (!fetchedTickets.length) {
+          if (!visibleTickets.length) {
             return null;
           }
 
           if (!prev) {
-            return fetchedTickets[fetchedTickets.length - 1];
+            return visibleTickets[visibleTickets.length - 1];
           }
 
           return (
-            fetchedTickets.find(
+            visibleTickets.find(
               (ticket) => ticket.ticket_number === prev.ticket_number,
-            ) ?? fetchedTickets[fetchedTickets.length - 1]
+            ) ?? visibleTickets[visibleTickets.length - 1]
           );
         });
       } finally {
@@ -193,17 +194,17 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
   };
 
   const handlePawnButtonClick = () => {
-    setOpenPawnTicketForm(true);
+    setopenTicketPawnDialog(true);
     setStatusMessage("");
   };
 
   const handleEditButtonClick = () => {
-    setOpenEditTicketForm(true);
+    setopenTicketEditDialog(true);
     setStatusMessage("");
   };
 
   const handleSellButtonClick = () => {
-    setOpenSellTicketForm(true);
+    setopenTicketSellDialog(true);
     setStatusMessage("");
   };
 
@@ -274,7 +275,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
     setSelectedTicket(newTicket);
     setItems([]);
     setSelectedItem(null);
-    setOpenPawnTicketForm(false);
+    setopenTicketPawnDialog(false);
     setStatusMessage(`Ticket #${newTicket.ticket_number} pawned.`);
   };
 
@@ -294,7 +295,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
     setSelectedTicket(newTicket);
     setItems([]);
     setSelectedItem(null);
-    setOpenSellTicketForm(false);
+    setopenTicketSellDialog(false);
     setStatusMessage(`Ticket #${newTicket.ticket_number} sold.`);
   };
 
@@ -313,7 +314,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       ),
     );
     setSelectedTicket(updatedTicket);
-    setOpenEditTicketForm(false);
+    setopenTicketEditDialog(false);
     setStatusMessage(`Ticket #${updatedTicket.ticket_number} updated.`);
   };
 
@@ -466,36 +467,36 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
         </Typography>
       )}
 
-      {openPawnTicketForm && (
+      {openTicketPawnDialog && (
         <TicketPawnDialog
-          open={openPawnTicketForm}
+          open={openTicketPawnDialog}
           clientFirstName={clientFirstName || ""}
           clientLastName={clientLastName || ""}
           clientMiddleName={clientMiddleName}
-          onClose={() => setOpenPawnTicketForm(false)}
+          onClose={() => setopenTicketPawnDialog(false)}
           onSave={handlePawnTicket}
         />
       )}
 
-      {openSellTicketForm && (
+      {openTicketSellDialog && (
         <TicketSellDialog
-          open={openSellTicketForm}
+          open={openTicketSellDialog}
           clientFirstName={clientFirstName || ""}
           clientLastName={clientLastName || ""}
           clientMiddleName={clientMiddleName}
-          onClose={() => setOpenSellTicketForm(false)}
+          onClose={() => setopenTicketSellDialog(false)}
           onSave={handleSellTicket}
         />
       )}
 
-      {openEditTicketForm && (
+      {openTicketEditDialog && (
         <TicketEditDialog
-          open={openEditTicketForm}
+          open={openTicketEditDialog}
           clientFirstName={clientFirstName || ""}
           clientLastName={clientLastName || ""}
           clientMiddleName={clientMiddleName}
           ticket={selectedTicket}
-          onClose={() => setOpenEditTicketForm(false)}
+          onClose={() => setopenTicketEditDialog(false)}
           onSave={handleEditTicket}
         />
       )}
