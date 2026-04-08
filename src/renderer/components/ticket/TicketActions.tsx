@@ -11,6 +11,7 @@ import type { Ticket } from "../../../shared/types/Ticket";
 
 interface TicketActionsProps {
   selectedTicket: Ticket | null;
+  transferDisabled?: boolean;
   onPawn: () => void;
   onSell: () => void;
   onEdit: () => void;
@@ -23,6 +24,7 @@ interface TicketActionsProps {
 const TicketActions: React.FC<TicketActionsProps> = (props) => {
   const {
     selectedTicket,
+    transferDisabled = false,
     onPawn,
     onSell,
     onEdit,
@@ -158,7 +160,7 @@ const TicketActions: React.FC<TicketActionsProps> = (props) => {
         variant="contained"
         sx={actionButtonSx}
         onClick={onTransfer}
-        disabled={ticketActionDisabled}
+        disabled={transferDisabled}
       >
         {renderButtonContent(<SwapHorizIcon fontSize="small" />, "Trns")}
       </Button>

@@ -7,6 +7,7 @@ import TicketActions from "./TicketActions";
 interface TicketsPanelProps {
   tickets: Ticket[];
   selectedTicket?: Ticket | null;
+  transferDisabled?: boolean;
   onSelectTicket: (ticket: Ticket | null) => void;
   onPawn: () => void;
   onSell: () => void;
@@ -20,6 +21,7 @@ interface TicketsPanelProps {
 const TicketsPanel: React.FC<TicketsPanelProps> = ({
   tickets,
   selectedTicket,
+  transferDisabled = false,
   onSelectTicket,
   onPawn,
   onSell,
@@ -85,6 +87,7 @@ const TicketsPanel: React.FC<TicketsPanelProps> = ({
       >
         <TicketActions
           selectedTicket={selectedTicket ?? null}
+          transferDisabled={transferDisabled}
           onPawn={onPawn}
           onSell={onSell}
           onEdit={onEdit}

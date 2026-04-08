@@ -1,4 +1,5 @@
 import { connect } from "../../db/connection.ts";
+import type { TransferTicketPreview } from "../../shared/ipc/ticketApi.ts";
 import type { Ticket } from "../../shared/types/Ticket.ts";
 
 type DbClient = Awaited<ReturnType<typeof connect>>;
@@ -30,6 +31,20 @@ type UpdateTicketPayload = {
   pickup_amount: number;
   employee_name: string;
 };
+
+const mapTransferTicketPreviewRow = (
+  row: Record<string, unknown>,
+): TransferTicketPreview => ({
+  ticket_number: Number(row.ticket_number),
+  status: row.status as Ticket["status"],
+  description: row.description ? String(row.description) : "",
+  location: row.location ? String(row.location) : "",
+  amount: Number(row.amount ?? 0),
+  previous_client_number: Number(row.previous_client_number),
+  previous_client_name: row.previous_client_name
+    ? String(row.previous_client_name)
+    : "",
+});
 
 const mapTicketRow = (row: Record<string, unknown>): Ticket => {
   return {
@@ -97,6 +112,41 @@ export const ticketRepo = {
     try {
       const result = await client.query(query);
       return result.rows.map((row) => row.location);
+    } finally {
+      client.release();
+    }
+  },
+
+  loadTransferTicketPreview: async (
+    ticketNumber: number,
+  ): Promise<TransferTicketPreview | null> => {
+    const client = await connect();
+    const query = `
+      SELECT
+        t.ticket_number,
+        t.status,
+        t.description,
+        t.location,
+        t.amount,
+        t.client_number AS previous_client_number,
+        CONCAT(
+          UPPER(c.last_name),
+          ', ',
+          UPPER(c.first_name),
+          CASE
+            WHEN COALESCE(TRIM(c.middle_name), '') = '' THEN ''
+            ELSE CONCAT(' ', UPPER(c.middle_name))
+          END
+        ) AS previous_client_name
+      FROM ticket t
+      INNER JOIN client c ON c.client_number = t.client_number
+      WHERE t.ticket_number = $1
+      LIMIT 1
+    `;
+
+    try {
+      const result = await client.query(query, [ticketNumber]);
+      return result.rows[0] ? mapTransferTicketPreviewRow(result.rows[0]) : null;
     } finally {
       client.release();
     }
@@ -225,6 +275,52 @@ export const ticketRepo = {
       if (!result.rows[0]) {
         throw new Error(
           `[ticketRepo] updateTicket(): Ticket #${payload.ticket_number} not found`,
+        );
+      }
+
+      return mapTicketRow(result.rows[0]);
+    } finally {
+      if (!dbClient) {
+        client.release();
+      }
+    }
+  },
+
+  transfer: async (
+    ticketNumber: number,
+    clientNumber: number,
+    dbClient?: DbClient,
+  ): Promise<Ticket> => {
+    const client = dbClient ?? (await connect());
+    const query = `
+      UPDATE ticket
+      SET client_number = $1
+      WHERE ticket_number = $2
+      RETURNING
+        ticket_number,
+        transaction_datetime,
+        is_lost,
+        location,
+        description,
+        due_date,
+        is_overdue,
+        amount,
+        onetime_fee,
+        interest,
+        pickup_amount,
+        interested_datetime,
+        employee_name,
+        pickup_datetime,
+        status,
+        client_number
+    `;
+
+    try {
+      const result = await client.query(query, [clientNumber, ticketNumber]);
+
+      if (!result.rows[0]) {
+        throw new Error(
+          `[ticketRepo] transfer(): Ticket #${ticketNumber} not found`,
         );
       }
 

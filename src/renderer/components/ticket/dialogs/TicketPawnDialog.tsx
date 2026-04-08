@@ -168,7 +168,6 @@ const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
     try {
       await onSave({
         description: trimmedDescription,
-        is_lost: false,
         location: trimmedLocation,
         amount: normalizedAmount,
         onetime_fee: typeof oneTimeFee === "number" ? oneTimeFee : 0,

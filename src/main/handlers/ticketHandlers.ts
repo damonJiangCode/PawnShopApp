@@ -2,8 +2,9 @@ import type { IpcMainInvokeEvent } from "electron";
 import type {
   CreatePawnTicketInput,
   CreateSellTicketInput,
+  TransferTicketInput,
   UpdateTicketInput,
-} from "../../shared/ipc/contracts.ts";
+} from "../../shared/ipc/ticketApi.ts";
 import { ticketService } from "../services/ticketService.ts";
 import { CHANNELS } from "./channels.ts";
 
@@ -36,5 +37,17 @@ export const registerTicketHandlers = () => {
     payload: UpdateTicketInput,
   ) => {
     return ticketService.updateTicket(payload);
+  });
+  ipcMain.handle(CHANNELS.GET_TRANSFER_TICKET_PREVIEW, async (
+    _event: IpcMainInvokeEvent,
+    ticketNumber: number,
+  ) => {
+    return ticketService.loadTransferTicketPreview(ticketNumber);
+  });
+  ipcMain.handle(CHANNELS.TRANSFER_TICKET, async (
+    _event: IpcMainInvokeEvent,
+    payload: TransferTicketInput,
+  ) => {
+    return ticketService.transferTicket(payload);
   });
 };

@@ -3,8 +3,10 @@ import { calculation } from "../../shared/utils/calculation.ts";
 import type {
   CreatePawnTicketInput,
   CreateSellTicketInput,
+  TransferTicketInput,
+  TransferTicketPreview,
   UpdateTicketInput,
-} from "../../shared/ipc/contracts.ts";
+} from "../../shared/ipc/ticketApi.ts";
 import { ticketRepo } from "../repos/ticketRepo.ts";
 import { employeeService } from "./employeeService.ts";
 import { createFieldError } from "../utils/createFieldError.ts";
@@ -12,7 +14,6 @@ import { runInTransaction } from "../utils/runInTransaction.ts";
 
 const normalizeCreatePawnTicketInput = (input: CreatePawnTicketInput) => ({
   description: input.description.trim(),
-  is_lost: Boolean(input.is_lost),
   location: input.location.trim(),
   amount: Number(input.amount),
   onetime_fee: Number.isFinite(input.onetime_fee)
@@ -42,6 +43,11 @@ const normalizeUpdateTicketInput = (input: UpdateTicketInput) => ({
   employee_password: input.employee_password.trim(),
 });
 
+const normalizeTransferTicketInput = (input: TransferTicketInput) => ({
+  ticket_number: Number(input.ticket_number),
+  client_number: Number(input.client_number),
+});
+
 const resolveIsOverdue = (dueDate: Date) => dueDate.getTime() < Date.now();
 
 export const ticketService = {
@@ -55,6 +61,18 @@ export const ticketService = {
 
   loadLocations: async (): Promise<string[]> => {
     return ticketRepo.loadLocations();
+  },
+
+  loadTransferTicketPreview: async (
+    ticketNumber: number,
+  ): Promise<TransferTicketPreview | null> => {
+    const normalizedTicketNumber = Number(ticketNumber);
+
+    if (!Number.isFinite(normalizedTicketNumber) || normalizedTicketNumber <= 0) {
+      throw createFieldError("ticket_number", "Enter a valid ticket number.");
+    }
+
+    return ticketRepo.loadTransferTicketPreview(normalizedTicketNumber);
   },
 
   createPawnTicket: async (input: CreatePawnTicketInput): Promise<Ticket> => {
@@ -79,7 +97,7 @@ export const ticketService = {
       return ticketRepo.create(
         {
           transaction_datetime: transactionDatetime,
-          is_lost: normalizedInput.is_lost,
+          is_lost: false,
           location: normalizedInput.location,
           description: normalizedInput.description,
           due_date: dueDate,
@@ -171,6 +189,60 @@ export const ticketService = {
           ),
           employee_name: employeeName,
         },
+        client,
+      );
+    });
+  },
+
+  transferTicket: async (input: TransferTicketInput): Promise<Ticket> => {
+    const normalizedInput = normalizeTransferTicketInput(input);
+
+    return runInTransaction("transferTicket", async (client) => {
+      if (
+        !Number.isFinite(normalizedInput.ticket_number) ||
+        normalizedInput.ticket_number <= 0
+      ) {
+        throw createFieldError("ticket_number", "Enter a valid ticket number.");
+      }
+
+      if (
+        !Number.isFinite(normalizedInput.client_number) ||
+        normalizedInput.client_number <= 0
+      ) {
+        throw new Error("A client is required to transfer a ticket.");
+      }
+
+      const transferPreview = await ticketRepo.loadTransferTicketPreview(
+        normalizedInput.ticket_number,
+      );
+
+      if (!transferPreview) {
+        throw createFieldError(
+          "ticket_number",
+          "No ticket was found for that ticket number.",
+        );
+      }
+
+      if (
+        transferPreview.status !== "pawned" &&
+        transferPreview.status !== "sold"
+      ) {
+        throw createFieldError(
+          "ticket_number",
+          "Only pawned or sold tickets can be transferred.",
+        );
+      }
+
+      if (transferPreview.previous_client_number === normalizedInput.client_number) {
+        throw createFieldError(
+          "ticket_number",
+          "This ticket already belongs to the selected client.",
+        );
+      }
+
+      return ticketRepo.transfer(
+        normalizedInput.ticket_number,
+        normalizedInput.client_number,
         client,
       );
     });

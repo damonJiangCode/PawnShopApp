@@ -3,7 +3,7 @@ import type {
   CitiesResponse,
   ClientNotesAction,
   SaveClientInput,
-} from "../../shared/ipc/contracts";
+} from "../../shared/ipc/clientApi";
 import { getElectronApi } from "./electronApi";
 import { extractBackendFieldError } from "../utils/formError";
 

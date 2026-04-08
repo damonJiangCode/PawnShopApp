@@ -2,7 +2,7 @@ import type { Client, ID } from "../../shared/types/Client.ts";
 import type {
   ClientNotesAction,
   SaveClientInput,
-} from "../../shared/ipc/contracts.ts";
+} from "../../shared/ipc/clientApi.ts";
 import { clientRepo } from "../repos/clientRepo.ts";
 import { employeeService } from "./employeeService.ts";
 import { createFieldError } from "../utils/createFieldError.ts";

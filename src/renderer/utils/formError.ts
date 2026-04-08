@@ -27,6 +27,27 @@ const FIELD_MESSAGE_RESOLVERS: Record<string, FieldMessageResolver> = {
       },
     ],
   },
+  ticket_number: {
+    fallback: "No ticket was found for that ticket number.",
+    rules: [
+      {
+        pattern: /required|valid/i,
+        message: "Enter a valid ticket number.",
+      },
+      {
+        pattern: /already belongs/i,
+        message: "This ticket already belongs to the selected client.",
+      },
+      {
+        pattern: /only pawned or sold/i,
+        message: "Only pawned or sold tickets can be transferred.",
+      },
+      {
+        pattern: /not found|no ticket/i,
+        message: "No ticket was found for that ticket number.",
+      },
+    ],
+  },
 };
 
 export const extractBackendFieldError = (

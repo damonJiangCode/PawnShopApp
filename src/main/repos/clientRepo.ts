@@ -1,5 +1,5 @@
 import type { Client, ID } from "../../shared/types/Client.ts";
-import type { CitiesResponse } from "../../shared/ipc/contracts.ts";
+import type { CitiesResponse } from "../../shared/ipc/clientApi.ts";
 import { connect } from "../../db/connection.ts";
 
 type DbClient = Awaited<ReturnType<typeof connect>>;

@@ -2,8 +2,10 @@ import type { Ticket } from "../../shared/types/Ticket";
 import type {
   CreatePawnTicketInput,
   CreateSellTicketInput,
+  TransferTicketInput,
+  TransferTicketPreview,
   UpdateTicketInput,
-} from "../../shared/ipc/contracts";
+} from "../../shared/ipc/ticketApi";
 import { getElectronApi } from "./electronApi";
 import { extractBackendFieldError } from "../utils/formError";
 
@@ -11,7 +13,8 @@ export type TicketFormField =
   | "description"
   | "location"
   | "amount"
-  | "employee_password";
+  | "employee_password"
+  | "ticket_number";
 
 export type TicketFormError = Error & {
   field?: TicketFormField;
@@ -28,7 +31,6 @@ const createFieldError = (
 
 type NormalizedCreatePawnTicketInput = {
   description: string;
-  is_lost: boolean;
   location: string;
   amount: number;
   onetime_fee: number;
@@ -54,12 +56,16 @@ type NormalizedUpdateTicketInput = {
   employee_password: string;
 };
 
+type NormalizedTransferTicketInput = {
+  ticket_number: number;
+  client_number: number;
+};
+
 const normalizeCreatePawnTicketInput = (
   input: CreatePawnTicketInput,
 ): NormalizedCreatePawnTicketInput => ({
   ...input,
   description: input.description.trim(),
-  is_lost: Boolean(input.is_lost),
   location: input.location.trim(),
   amount: Number(input.amount),
   onetime_fee: Number.isFinite(input.onetime_fee)
@@ -90,6 +96,13 @@ const normalizeUpdateTicketInput = (
     ? Math.max(0, input.onetime_fee)
     : 0,
   employee_password: input.employee_password.trim(),
+});
+
+const normalizeTransferTicketInput = (
+  input: TransferTicketInput,
+): NormalizedTransferTicketInput => ({
+  ticket_number: Number(input.ticket_number),
+  client_number: Number(input.client_number),
 });
 
 const mapBackendError = (error: unknown): Error => {
@@ -190,10 +203,46 @@ export const ticketService = {
       throw mapBackendError(error);
     }
   },
+
+  loadTransferTicketPreview: async (
+    ticketNumber: number,
+  ): Promise<TransferTicketPreview | null> => {
+    const normalizedTicketNumber = Number(ticketNumber);
+    const api = getElectronApi()?.ticket;
+
+    if (!api || !Number.isFinite(normalizedTicketNumber) || normalizedTicketNumber <= 0) {
+      return null;
+    }
+
+    try {
+      return await api.loadTransferPreview(normalizedTicketNumber);
+    } catch (error) {
+      throw mapBackendError(error);
+    }
+  },
+
+  transferTicket: async (input: TransferTicketInput): Promise<Ticket> => {
+    const normalizedInput = normalizeTransferTicketInput(input);
+    const api = getElectronApi()?.ticket;
+
+    if (!api) {
+      throw new Error(
+        "[ticketService] transferTicket(): Cannot get api from Electron",
+      );
+    }
+
+    try {
+      return await api.transfer(normalizedInput);
+    } catch (error) {
+      throw mapBackendError(error);
+    }
+  },
 };
 
 export type {
   CreatePawnTicketInput,
   CreateSellTicketInput,
+  TransferTicketInput,
+  TransferTicketPreview,
   UpdateTicketInput,
 };

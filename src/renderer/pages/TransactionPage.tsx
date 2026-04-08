@@ -12,10 +12,12 @@ import ItemsPanel from "../components/item/ItemsPanel";
 import TicketPawnDialog from "../components/ticket/dialogs/TicketPawnDialog";
 import TicketSellDialog from "../components/ticket/dialogs/TicketSellDialog";
 import TicketEditDialog from "../components/ticket/dialogs/TicketEditDialog";
+import TicketTransferDialog from "../components/ticket/dialogs/TicketTransferDialog";
 import {
   ticketService,
   type CreatePawnTicketInput,
   type CreateSellTicketInput,
+  type TransferTicketPreview,
   type UpdateTicketInput,
 } from "../services/ticketService";
 import { itemService } from "../services/itemService";
@@ -41,7 +43,12 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
   const [openTicketPawnDialog, setopenTicketPawnDialog] = useState(false);
   const [openTicketSellDialog, setopenTicketSellDialog] = useState(false);
   const [openTicketEditDialog, setopenTicketEditDialog] = useState(false);
+  const [openTicketTransferDialog, setOpenTicketTransferDialog] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
+  const filterVisibleTickets = (nextTickets: Ticket[]) =>
+    nextTickets.filter(
+      (ticket) => ticket.status === "pawned" || ticket.status === "sold",
+    );
 
   const loading = ticketsLoading || itemsLoading;
 
@@ -66,9 +73,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
 
       try {
         const fetchedTickets = await ticketService.loadTickets(clientNumber);
-        const visibleTickets = fetchedTickets.filter(
-          (ticket) => ticket.status === "pawned" || ticket.status === "sold",
-        );
+        const visibleTickets = filterVisibleTickets(fetchedTickets);
         if (!active) {
           return;
         }
@@ -227,13 +232,12 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
   };
 
   const handleTransferTicket = () => {
-    if (!selectedTicket) {
+    if (!clientNumber) {
       return;
     }
 
-    setStatusMessage(
-      `Transfer for ticket #${selectedTicket.ticket_number} is not wired yet.`,
-    );
+    setOpenTicketTransferDialog(true);
+    setStatusMessage("");
   };
 
   const handleTicketExpire = () => {
@@ -316,6 +320,39 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
     setSelectedTicket(updatedTicket);
     setopenTicketEditDialog(false);
     setStatusMessage(`Ticket #${updatedTicket.ticket_number} updated.`);
+  };
+
+  const handleLoadTransferTicketPreview = async (
+    ticketNumber: number,
+  ): Promise<TransferTicketPreview | null> => {
+    return ticketService.loadTransferTicketPreview(ticketNumber);
+  };
+
+  const handleTransferTicketConfirmed = async (
+    ticketNumber: number,
+  ): Promise<void> => {
+    if (!clientNumber) {
+      throw new Error("Please select a client first.");
+    }
+
+    const transferredTicket = await ticketService.transferTicket({
+      ticket_number: ticketNumber,
+      client_number: clientNumber,
+    });
+    const refreshedTickets = filterVisibleTickets(
+      await ticketService.loadTickets(clientNumber),
+    );
+
+    setTickets(refreshedTickets);
+    setSelectedTicket(
+      refreshedTickets.find(
+        (ticket) => ticket.ticket_number === transferredTicket.ticket_number,
+      ) ?? transferredTicket,
+    );
+    setItems([]);
+    setSelectedItem(null);
+    setOpenTicketTransferDialog(false);
+    setStatusMessage(`Ticket #${transferredTicket.ticket_number} transferred.`);
   };
 
   const handleItemClick = (item: Item) => {
@@ -404,6 +441,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
         <TicketsPanel
           tickets={tickets}
           selectedTicket={selectedTicket}
+          transferDisabled={!clientNumber}
           onSelectTicket={handleTicketSelected}
           onPawn={handlePawnButtonClick}
           onSell={handleSellButtonClick}
@@ -498,6 +536,19 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
           ticket={selectedTicket}
           onClose={() => setopenTicketEditDialog(false)}
           onSave={handleEditTicket}
+        />
+      )}
+
+      {openTicketTransferDialog && (
+        <TicketTransferDialog
+          open={openTicketTransferDialog}
+          clientNumber={clientNumber}
+          clientFirstName={clientFirstName || ""}
+          clientLastName={clientLastName || ""}
+          clientMiddleName={clientMiddleName}
+          onClose={() => setOpenTicketTransferDialog(false)}
+          onLoadPreview={handleLoadTransferTicketPreview}
+          onTransfer={handleTransferTicketConfirmed}
         />
       )}
     </Paper>

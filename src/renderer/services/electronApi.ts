@@ -1,4 +1,4 @@
-import type { ElectronApi } from "../../shared/ipc/contracts";
+import type { ElectronApi } from "../../shared/ipc/electronApi";
 
 declare global {
   interface Window {
@@ -10,4 +10,4 @@ export const getElectronApi = (): ElectronApi | undefined => {
   return window.electronAPI;
 };
 
-export type { ElectronApi } from "../../shared/ipc/contracts";
+export type { ElectronApi } from "../../shared/ipc/electronApi";
