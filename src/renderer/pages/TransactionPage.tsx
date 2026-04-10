@@ -52,6 +52,17 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
     nextTickets.filter(
       (ticket) => ticket.status === "pawned" || ticket.status === "sold",
     );
+  const sortTickets = (nextTickets: Ticket[]) =>
+    [...nextTickets].sort((a, b) => {
+      const aTime = a.transaction_datetime.getTime();
+      const bTime = b.transaction_datetime.getTime();
+
+      if (aTime !== bTime) {
+        return aTime - bTime;
+      }
+
+      return (a.ticket_number ?? 0) - (b.ticket_number ?? 0);
+    });
 
   const loading = ticketsLoading || itemsLoading;
 
@@ -277,7 +288,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       client_number: clientNumber,
     });
 
-    setTickets((prev) => [newTicket, ...prev]);
+    setTickets((prev) => sortTickets([...prev, newTicket]));
     setSelectedTicket(newTicket);
     setItems([]);
     setSelectedItem(null);
@@ -297,7 +308,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       client_number: clientNumber,
     });
 
-    setTickets((prev) => [newTicket, ...prev]);
+    setTickets((prev) => sortTickets([...prev, newTicket]));
     setSelectedTicket(newTicket);
     setItems([]);
     setSelectedItem(null);
