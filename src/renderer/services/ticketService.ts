@@ -1,5 +1,6 @@
 import type { Ticket } from "../../shared/types/Ticket";
 import type {
+  ConvertTicketInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
   TransferTicketInput,
@@ -10,9 +11,11 @@ import { getElectronApi } from "./electronApi";
 import { extractBackendFieldError } from "../utils/formError";
 
 export type TicketFormField =
+  | "target_status"
   | "description"
   | "location"
   | "amount"
+  | "onetime_fee"
   | "employee_password"
   | "ticket_number";
 
@@ -61,6 +64,16 @@ type NormalizedTransferTicketInput = {
   client_number: number;
 };
 
+type NormalizedConvertTicketInput = {
+  ticket_number: number;
+  target_status: "pawned" | "sold";
+  description: string;
+  location: string;
+  amount: number;
+  onetime_fee: number;
+  employee_password: string;
+};
+
 const normalizeCreatePawnTicketInput = (
   input: CreatePawnTicketInput,
 ): NormalizedCreatePawnTicketInput => ({
@@ -103,6 +116,20 @@ const normalizeTransferTicketInput = (
 ): NormalizedTransferTicketInput => ({
   ticket_number: Number(input.ticket_number),
   client_number: Number(input.client_number),
+});
+
+const normalizeConvertTicketInput = (
+  input: ConvertTicketInput,
+): NormalizedConvertTicketInput => ({
+  ticket_number: Number(input.ticket_number),
+  target_status: input.target_status,
+  description: input.description.trim(),
+  location: input.location.trim(),
+  amount: Number(input.amount),
+  onetime_fee: Number.isFinite(input.onetime_fee)
+    ? Math.max(0, input.onetime_fee)
+    : 0,
+  employee_password: input.employee_password.trim(),
 });
 
 const mapBackendError = (error: unknown): Error => {
@@ -204,6 +231,23 @@ export const ticketService = {
     }
   },
 
+  convertTicket: async (input: ConvertTicketInput): Promise<Ticket> => {
+    const normalizedInput = normalizeConvertTicketInput(input);
+    const api = getElectronApi()?.ticket;
+
+    if (!api) {
+      throw new Error(
+        "[ticketService] convertTicket(): Cannot get api from Electron",
+      );
+    }
+
+    try {
+      return await api.convert(normalizedInput);
+    } catch (error) {
+      throw mapBackendError(error);
+    }
+  },
+
   loadTransferTicketPreview: async (
     ticketNumber: number,
   ): Promise<TransferTicketPreview | null> => {
@@ -240,6 +284,7 @@ export const ticketService = {
 };
 
 export type {
+  ConvertTicketInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
   TransferTicketInput,

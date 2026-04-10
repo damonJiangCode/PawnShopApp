@@ -32,6 +32,20 @@ type UpdateTicketPayload = {
   employee_name: string;
 };
 
+type ConvertTicketPayload = {
+  ticket_number: number;
+  status: Ticket["status"];
+  description: string;
+  location: string;
+  amount: number;
+  due_date: Date;
+  is_overdue: boolean;
+  onetime_fee: number;
+  interest: number;
+  pickup_amount: number;
+  employee_name: string;
+};
+
 const mapTransferTicketPreviewRow = (
   row: Record<string, unknown>,
 ): TransferTicketPreview => ({
@@ -102,6 +116,44 @@ export const ticketRepo = {
       return result.rows.map(mapTicketRow);
     } finally {
       client.release();
+    }
+  },
+
+  loadByTicketNumber: async (
+    ticketNumber: number,
+    dbClient?: DbClient,
+  ): Promise<Ticket | null> => {
+    const client = dbClient ?? (await connect());
+    const query = `
+      SELECT
+        ticket_number,
+        transaction_datetime,
+        is_lost,
+        location,
+        description,
+        due_date,
+        is_overdue,
+        amount,
+        onetime_fee,
+        interest,
+        pickup_amount,
+        interested_datetime,
+        employee_name,
+        pickup_datetime,
+        status,
+        client_number
+      FROM ticket
+      WHERE ticket_number = $1
+      LIMIT 1
+    `;
+
+    try {
+      const result = await client.query(query, [ticketNumber]);
+      return result.rows[0] ? mapTicketRow(result.rows[0]) : null;
+    } finally {
+      if (!dbClient) {
+        client.release();
+      }
     }
   },
 
@@ -275,6 +327,75 @@ export const ticketRepo = {
       if (!result.rows[0]) {
         throw new Error(
           `[ticketRepo] updateTicket(): Ticket #${payload.ticket_number} not found`,
+        );
+      }
+
+      return mapTicketRow(result.rows[0]);
+    } finally {
+      if (!dbClient) {
+        client.release();
+      }
+    }
+  },
+
+  convert: async (
+    payload: ConvertTicketPayload,
+    dbClient?: DbClient,
+  ): Promise<Ticket> => {
+    const client = dbClient ?? (await connect());
+    const query = `
+      UPDATE ticket
+      SET
+        status = $1,
+        description = $2,
+        location = $3,
+        amount = $4,
+        due_date = $5,
+        is_overdue = $6,
+        onetime_fee = $7,
+        interest = $8,
+        pickup_amount = $9,
+        employee_name = $10
+      WHERE ticket_number = $11
+      RETURNING
+        ticket_number,
+        transaction_datetime,
+        is_lost,
+        location,
+        description,
+        due_date,
+        is_overdue,
+        amount,
+        onetime_fee,
+        interest,
+        pickup_amount,
+        interested_datetime,
+        employee_name,
+        pickup_datetime,
+        status,
+        client_number
+    `;
+
+    const values = [
+      payload.status,
+      payload.description,
+      payload.location,
+      payload.amount,
+      payload.due_date,
+      payload.is_overdue,
+      payload.onetime_fee,
+      payload.interest,
+      payload.pickup_amount,
+      payload.employee_name,
+      payload.ticket_number,
+    ];
+
+    try {
+      const result = await client.query(query, values);
+
+      if (!result.rows[0]) {
+        throw new Error(
+          `[ticketRepo] convert(): Ticket #${payload.ticket_number} not found`,
         );
       }
 

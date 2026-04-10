@@ -13,7 +13,9 @@ import TicketPawnDialog from "../components/ticket/dialogs/TicketPawnDialog";
 import TicketSellDialog from "../components/ticket/dialogs/TicketSellDialog";
 import TicketEditDialog from "../components/ticket/dialogs/TicketEditDialog";
 import TicketTransferDialog from "../components/ticket/dialogs/TicketTransferDialog";
+import TicketConvertDialog from "../components/ticket/dialogs/TicketConvertDialog";
 import {
+  type ConvertTicketInput,
   ticketService,
   type CreatePawnTicketInput,
   type CreateSellTicketInput,
@@ -43,6 +45,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
   const [openTicketPawnDialog, setopenTicketPawnDialog] = useState(false);
   const [openTicketSellDialog, setopenTicketSellDialog] = useState(false);
   const [openTicketEditDialog, setopenTicketEditDialog] = useState(false);
+  const [openTicketConvertDialog, setOpenTicketConvertDialog] = useState(false);
   const [openTicketTransferDialog, setOpenTicketTransferDialog] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const filterVisibleTickets = (nextTickets: Ticket[]) =>
@@ -226,9 +229,8 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       return;
     }
 
-    setStatusMessage(
-      `Convert for ticket #${selectedTicket.ticket_number} is not wired yet.`,
-    );
+    setOpenTicketConvertDialog(true);
+    setStatusMessage("");
   };
 
   const handleTransferTicket = () => {
@@ -326,6 +328,30 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
     ticketNumber: number,
   ): Promise<TransferTicketPreview | null> => {
     return ticketService.loadTransferTicketPreview(ticketNumber);
+  };
+
+  const handleConvertTicketConfirmed = async (
+    data: ConvertTicketInput,
+  ): Promise<void> => {
+    if (!selectedTicket) {
+      throw new Error("Please select a ticket first.");
+    }
+
+    const convertedTicket = await ticketService.convertTicket(data);
+    const fromStatus = selectedTicket.status;
+
+    setTickets((prev) =>
+      prev.map((ticket) =>
+        ticket.ticket_number === convertedTicket.ticket_number
+          ? convertedTicket
+          : ticket,
+      ),
+    );
+    setSelectedTicket(convertedTicket);
+    setOpenTicketConvertDialog(false);
+    setStatusMessage(
+      `Ticket #${convertedTicket.ticket_number} converted from ${fromStatus} to ${convertedTicket.status}.`,
+    );
   };
 
   const handleTransferTicketConfirmed = async (
@@ -552,6 +578,18 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
           onClose={() => setOpenTicketTransferDialog(false)}
           onLoadPreview={handleLoadTransferTicketPreview}
           onTransfer={handleTransferTicketConfirmed}
+        />
+      )}
+
+      {openTicketConvertDialog && (
+        <TicketConvertDialog
+          open={openTicketConvertDialog}
+          ticket={selectedTicket}
+          clientFirstName={clientFirstName || ""}
+          clientLastName={clientLastName || ""}
+          clientMiddleName={clientMiddleName}
+          onClose={() => setOpenTicketConvertDialog(false)}
+          onSave={handleConvertTicketConfirmed}
         />
       )}
     </Paper>

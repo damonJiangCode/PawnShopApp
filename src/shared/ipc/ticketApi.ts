@@ -42,12 +42,23 @@ export type TransferTicketInput = {
   client_number: number;
 };
 
+export type ConvertTicketInput = {
+  ticket_number: number;
+  target_status: "pawned" | "sold";
+  description: string;
+  location: string;
+  amount: number;
+  onetime_fee: number;
+  employee_password: string;
+};
+
 export type ElectronTicketApi = {
   loadByClient: (clientNumber: number) => Promise<Ticket[]>;
   loadLocations: () => Promise<string[]>;
   createPawn: (payload: CreatePawnTicketInput) => Promise<Ticket>;
   createSell: (payload: CreateSellTicketInput) => Promise<Ticket>;
   update: (payload: UpdateTicketInput) => Promise<Ticket>;
+  convert: (payload: ConvertTicketInput) => Promise<Ticket>;
   loadTransferPreview: (
     ticketNumber: number,
   ) => Promise<TransferTicketPreview | null>;

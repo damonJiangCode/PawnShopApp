@@ -14,6 +14,46 @@ type FieldMessageResolver = {
 };
 
 const FIELD_MESSAGE_RESOLVERS: Record<string, FieldMessageResolver> = {
+  description: {
+    fallback: "Description is required.",
+    rules: [
+      {
+        pattern: /required/i,
+        message: "Description is required.",
+      },
+    ],
+  },
+  location: {
+    fallback: "Location is required.",
+    rules: [
+      {
+        pattern: /required/i,
+        message: "Location is required.",
+      },
+      {
+        pattern: /valid/i,
+        message: "Select a valid location from the list.",
+      },
+    ],
+  },
+  amount: {
+    fallback: "Amount must be greater than 0.",
+    rules: [
+      {
+        pattern: /greater than 0|required|valid/i,
+        message: "Amount must be greater than 0.",
+      },
+    ],
+  },
+  onetime_fee: {
+    fallback: "One Time Fee cannot be negative.",
+    rules: [
+      {
+        pattern: /negative/i,
+        message: "One Time Fee cannot be negative.",
+      },
+    ],
+  },
   employee_password: {
     fallback: "No employee was found for that password.",
     rules: [
@@ -41,6 +81,14 @@ const FIELD_MESSAGE_RESOLVERS: Record<string, FieldMessageResolver> = {
       {
         pattern: /only pawned or sold/i,
         message: "Only pawned or sold tickets can be transferred.",
+      },
+      {
+        pattern: /already in the selected target status/i,
+        message: "This ticket is already in the selected target status.",
+      },
+      {
+        pattern: /converted/i,
+        message: "Only pawned or sold tickets can be converted.",
       },
       {
         pattern: /not found|no ticket/i,

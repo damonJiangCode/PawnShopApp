@@ -1,6 +1,7 @@
 import type { Ticket } from "../../shared/types/Ticket.ts";
 import { calculation } from "../../shared/utils/calculation.ts";
 import type {
+  ConvertTicketInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
   TransferTicketInput,
@@ -46,6 +47,18 @@ const normalizeUpdateTicketInput = (input: UpdateTicketInput) => ({
 const normalizeTransferTicketInput = (input: TransferTicketInput) => ({
   ticket_number: Number(input.ticket_number),
   client_number: Number(input.client_number),
+});
+
+const normalizeConvertTicketInput = (input: ConvertTicketInput) => ({
+  ticket_number: Number(input.ticket_number),
+  target_status: input.target_status,
+  description: input.description.trim(),
+  location: input.location.trim(),
+  amount: Number(input.amount),
+  onetime_fee: Number.isFinite(input.onetime_fee)
+    ? Math.max(0, input.onetime_fee)
+    : 0,
+  employee_password: input.employee_password.trim(),
 });
 
 const resolveIsOverdue = (dueDate: Date) => dueDate.getTime() < Date.now();
@@ -187,6 +200,115 @@ export const ticketService = {
             normalizedInput.amount,
             normalizedInput.onetime_fee,
           ),
+          employee_name: employeeName,
+        },
+        client,
+      );
+    });
+  },
+
+  convertTicket: async (input: ConvertTicketInput): Promise<Ticket> => {
+    const normalizedInput = normalizeConvertTicketInput(input);
+
+    return runInTransaction("convertTicket", async (client) => {
+      if (
+        !Number.isFinite(normalizedInput.ticket_number) ||
+        normalizedInput.ticket_number <= 0
+      ) {
+        throw createFieldError("ticket_number", "Enter a valid ticket number.");
+      }
+
+      if (!normalizedInput.description) {
+        throw createFieldError("description", "Description is required.");
+      }
+
+      if (!normalizedInput.location) {
+        throw createFieldError("location", "Location is required.");
+      }
+
+      if (
+        !Number.isFinite(normalizedInput.amount) ||
+        normalizedInput.amount <= 0
+      ) {
+        throw createFieldError("amount", "Amount must be greater than 0.");
+      }
+
+      if (normalizedInput.onetime_fee < 0) {
+        throw createFieldError(
+          "onetime_fee",
+          "One Time Fee cannot be negative.",
+        );
+      }
+
+      const employeeName =
+        await employeeService.getEmployeeFirstNameByPassword(
+          normalizedInput.employee_password,
+          client,
+        );
+
+      if (!employeeName) {
+        throw createFieldError(
+          "employee_password",
+          "Employee password is incorrect.",
+        );
+      }
+
+      const existingTicket = await ticketRepo.loadByTicketNumber(
+        normalizedInput.ticket_number,
+        client,
+      );
+
+      if (!existingTicket) {
+        throw createFieldError(
+          "ticket_number",
+          "No ticket was found for that ticket number.",
+        );
+      }
+
+      if (
+        existingTicket.status !== "pawned" &&
+        existingTicket.status !== "sold"
+      ) {
+        throw createFieldError(
+          "ticket_number",
+          "Only pawned or sold tickets can be converted.",
+        );
+      }
+
+      if (existingTicket.status === normalizedInput.target_status) {
+        throw createFieldError(
+          "ticket_number",
+          "This ticket is already in the selected target status.",
+        );
+      }
+
+      const conversionDatetime = calculation.getCurrentDatetime();
+      const dueDate =
+        normalizedInput.target_status === "pawned"
+          ? calculation.getDueDatetime(conversionDatetime)
+          : conversionDatetime;
+      const onetimeFee = normalizedInput.target_status === "pawned"
+        ? normalizedInput.onetime_fee
+        : 0;
+      const interest = normalizedInput.target_status === "pawned"
+        ? calculation.getIntAmt(normalizedInput.amount)
+        : 0;
+      const pickupAmount = normalizedInput.target_status === "pawned"
+        ? calculation.getPickupAmt(normalizedInput.amount, onetimeFee)
+        : 0;
+
+      return ticketRepo.convert(
+        {
+          ticket_number: normalizedInput.ticket_number,
+          status: normalizedInput.target_status,
+          description: normalizedInput.description,
+          location: normalizedInput.location,
+          amount: normalizedInput.amount,
+          due_date: dueDate,
+          is_overdue: resolveIsOverdue(dueDate),
+          onetime_fee: onetimeFee,
+          interest,
+          pickup_amount: pickupAmount,
           employee_name: employeeName,
         },
         client,
