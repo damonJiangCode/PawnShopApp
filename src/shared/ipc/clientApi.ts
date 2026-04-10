@@ -1,18 +1,5 @@
-import type { Client, ID } from "../types/Client.ts";
-
-export type CitiesResponse = {
-  provinces: string[];
-  citiesByProvince: Record<string, string[]>;
-};
-
-export type ClientNotesAction = "keep" | "clear" | "append_signature";
-
-export type SaveClientInput = {
-  client: Client;
-  identifications: ID[];
-  employee_password?: string;
-  notes_action?: ClientNotesAction;
-};
+import type { Client } from "../types/Client.ts";
+import type { CitiesResponse, SaveClientInput } from "./clientTypes.ts";
 
 export type ElectronClientApi = {
   search: (firstName: string, lastName: string) => Promise<Client[]>;

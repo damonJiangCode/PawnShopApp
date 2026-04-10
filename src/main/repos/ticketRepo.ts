@@ -1,5 +1,5 @@
 import { connect } from "../../db/connection.ts";
-import type { TransferTicketPreview } from "../../shared/ipc/ticketApi.ts";
+import type { TransferTicketPreview } from "../../shared/ipc/ticketTypes.ts";
 import type { Ticket } from "../../shared/types/Ticket.ts";
 
 type DbClient = Awaited<ReturnType<typeof connect>>;

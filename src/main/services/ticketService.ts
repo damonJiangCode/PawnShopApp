@@ -7,7 +7,7 @@ import type {
   TransferTicketInput,
   TransferTicketPreview,
   UpdateTicketInput,
-} from "../../shared/ipc/ticketApi.ts";
+} from "../../shared/ipc/ticketTypes.ts";
 import { ticketRepo } from "../repos/ticketRepo.ts";
 import { employeeService } from "./employeeService.ts";
 import { createFieldError } from "../utils/createFieldError.ts";
