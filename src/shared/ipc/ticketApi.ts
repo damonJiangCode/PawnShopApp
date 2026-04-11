@@ -7,7 +7,7 @@ import type {
   TransferTicketInput,
   TransferTicketPreview,
   UpdateTicketInput,
-} from "./ticketTypes.ts";
+} from "./ticketPayloadTypes.ts";
 
 export type ElectronTicketApi = {
   loadByClient: (clientNumber: number) => Promise<Ticket[]>;

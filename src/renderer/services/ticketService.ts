@@ -7,7 +7,7 @@ import type {
   TransferTicketInput,
   TransferTicketPreview,
   UpdateTicketInput,
-} from "../../shared/ipc/ticketTypes";
+} from "../../shared/ipc/ticketPayloadTypes";
 import { getElectronApi } from "./electronApi";
 import { extractBackendFieldError } from "../utils/formError";
 

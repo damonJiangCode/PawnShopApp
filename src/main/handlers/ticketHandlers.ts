@@ -6,7 +6,7 @@ import type {
   CreateSellTicketInput,
   TransferTicketInput,
   UpdateTicketInput,
-} from "../../shared/ipc/ticketTypes.ts";
+} from "../../shared/ipc/ticketPayloadTypes.ts";
 import { ticketService } from "../services/ticketService.ts";
 import { CHANNELS } from "./channels.ts";
 
