@@ -16,6 +16,7 @@ const CHANNELS = {
   ADD_SELL_TICKET: "add-sell-ticket",
   UPDATE_TICKET: "update-ticket",
   CONVERT_TICKET: "convert-ticket",
+  EXPIRE_TICKET: "expire-ticket",
   GET_TRANSFER_TICKET_PREVIEW: "get-transfer-ticket-preview",
   TRANSFER_TICKET: "transfer-ticket",
 } as const;

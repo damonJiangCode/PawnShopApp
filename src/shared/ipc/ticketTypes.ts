@@ -51,3 +51,7 @@ export type ConvertTicketInput = {
   onetime_fee: number;
   employee_password: string;
 };
+
+export type ExpireTicketInput = {
+  ticket_number: number;
+};

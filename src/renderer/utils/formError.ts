@@ -79,8 +79,12 @@ const FIELD_MESSAGE_RESOLVERS: Record<string, FieldMessageResolver> = {
         message: "This ticket already belongs to the selected client.",
       },
       {
-        pattern: /only pawned or sold/i,
+        pattern: /only pawned or sold tickets can be transferred/i,
         message: "Only pawned or sold tickets can be transferred.",
+      },
+      {
+        pattern: /only pawned or sold tickets can be expired/i,
+        message: "Only pawned or sold tickets can be expired.",
       },
       {
         pattern: /already in the selected target status/i,

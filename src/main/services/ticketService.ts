@@ -2,6 +2,7 @@ import type { Ticket } from "../../shared/types/Ticket.ts";
 import { calculation } from "../../shared/utils/calculation.ts";
 import type {
   ConvertTicketInput,
+  ExpireTicketInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
   TransferTicketInput,
@@ -59,6 +60,10 @@ const normalizeConvertTicketInput = (input: ConvertTicketInput) => ({
     ? Math.max(0, input.onetime_fee)
     : 0,
   employee_password: input.employee_password.trim(),
+});
+
+const normalizeExpireTicketInput = (input: ExpireTicketInput) => ({
+  ticket_number: Number(input.ticket_number),
 });
 
 const resolveIsOverdue = (dueDate: Date) => dueDate.getTime() < Date.now();
@@ -310,6 +315,49 @@ export const ticketService = {
           interest,
           pickup_amount: pickupAmount,
           employee_name: employeeName,
+        },
+        client,
+      );
+    });
+  },
+
+  expireTicket: async (input: ExpireTicketInput): Promise<Ticket> => {
+    const normalizedInput = normalizeExpireTicketInput(input);
+
+    return runInTransaction("expireTicket", async (client) => {
+      if (
+        !Number.isFinite(normalizedInput.ticket_number) ||
+        normalizedInput.ticket_number <= 0
+      ) {
+        throw createFieldError("ticket_number", "Enter a valid ticket number.");
+      }
+
+      const existingTicket = await ticketRepo.loadByTicketNumber(
+        normalizedInput.ticket_number,
+        client,
+      );
+
+      if (!existingTicket) {
+        throw createFieldError(
+          "ticket_number",
+          "No ticket was found for that ticket number.",
+        );
+      }
+
+      if (
+        existingTicket.status !== "pawned" &&
+        existingTicket.status !== "sold"
+      ) {
+        throw createFieldError(
+          "ticket_number",
+          "Only pawned or sold tickets can be expired.",
+        );
+      }
+
+      return ticketRepo.expire(
+        {
+          ticket_number: normalizedInput.ticket_number,
+          status: "expired",
         },
         client,
       );

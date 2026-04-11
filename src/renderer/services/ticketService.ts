@@ -1,6 +1,7 @@
 import type { Ticket } from "../../shared/types/Ticket";
 import type {
   ConvertTicketInput,
+  ExpireTicketInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
   TransferTicketInput,
@@ -74,6 +75,10 @@ type NormalizedConvertTicketInput = {
   employee_password: string;
 };
 
+type NormalizedExpireTicketInput = {
+  ticket_number: number;
+};
+
 const normalizeCreatePawnTicketInput = (
   input: CreatePawnTicketInput,
 ): NormalizedCreatePawnTicketInput => ({
@@ -130,6 +135,12 @@ const normalizeConvertTicketInput = (
     ? Math.max(0, input.onetime_fee)
     : 0,
   employee_password: input.employee_password.trim(),
+});
+
+const normalizeExpireTicketInput = (
+  input: ExpireTicketInput,
+): NormalizedExpireTicketInput => ({
+  ticket_number: Number(input.ticket_number),
 });
 
 const mapBackendError = (error: unknown): Error => {
@@ -248,6 +259,23 @@ export const ticketService = {
     }
   },
 
+  expireTicket: async (input: ExpireTicketInput): Promise<Ticket> => {
+    const normalizedInput = normalizeExpireTicketInput(input);
+    const api = getElectronApi()?.ticket;
+
+    if (!api) {
+      throw new Error(
+        "[ticketService] expireTicket(): Cannot get api from Electron",
+      );
+    }
+
+    try {
+      return await api.expire(normalizedInput);
+    } catch (error) {
+      throw mapBackendError(error);
+    }
+  },
+
   loadTransferTicketPreview: async (
     ticketNumber: number,
   ): Promise<TransferTicketPreview | null> => {
@@ -285,6 +313,7 @@ export const ticketService = {
 
 export type {
   ConvertTicketInput,
+  ExpireTicketInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
   TransferTicketInput,

@@ -14,8 +14,10 @@ import TicketSellDialog from "../components/ticket/dialogs/TicketSellDialog";
 import TicketEditDialog from "../components/ticket/dialogs/TicketEditDialog";
 import TicketTransferDialog from "../components/ticket/dialogs/TicketTransferDialog";
 import TicketConvertDialog from "../components/ticket/dialogs/TicketConvertDialog";
+import TicketExpireDialog from "../components/ticket/dialogs/TicketExpireDialog";
 import {
   type ConvertTicketInput,
+  type ExpireTicketInput,
   ticketService,
   type CreatePawnTicketInput,
   type CreateSellTicketInput,
@@ -46,6 +48,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
   const [openTicketSellDialog, setopenTicketSellDialog] = useState(false);
   const [openTicketEditDialog, setopenTicketEditDialog] = useState(false);
   const [openTicketConvertDialog, setOpenTicketConvertDialog] = useState(false);
+  const [openTicketExpireDialog, setOpenTicketExpireDialog] = useState(false);
   const [openTicketTransferDialog, setOpenTicketTransferDialog] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const filterVisibleTickets = (nextTickets: Ticket[]) =>
@@ -258,22 +261,8 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       return;
     }
 
-    const nextTicket: Ticket = {
-      ...selectedTicket,
-      status: "expired",
-    };
-
-    setTickets((prev) =>
-      prev.map((ticket) =>
-        ticket.ticket_number === selectedTicket.ticket_number
-          ? nextTicket
-          : ticket,
-      ),
-    );
-    setSelectedTicket(nextTicket);
-    setStatusMessage(
-      `Ticket #${selectedTicket.ticket_number} marked as expired.`,
-    );
+    setOpenTicketExpireDialog(true);
+    setStatusMessage("");
   };
 
   const handlePawnTicket = async (
@@ -363,6 +352,27 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
     setStatusMessage(
       `Ticket #${convertedTicket.ticket_number} converted from ${fromStatus} to ${convertedTicket.status}.`,
     );
+  };
+
+  const handleExpireTicketConfirmed = async (
+    data: ExpireTicketInput,
+  ): Promise<void> => {
+    if (!selectedTicket) {
+      throw new Error("Please select a ticket first.");
+    }
+
+    const expiredTicket = await ticketService.expireTicket(data);
+
+    setTickets((prev) =>
+      prev.filter(
+        (ticket) => ticket.ticket_number !== expiredTicket.ticket_number,
+      ),
+    );
+    setSelectedTicket(null);
+    setItems([]);
+    setSelectedItem(null);
+    setOpenTicketExpireDialog(false);
+    setStatusMessage(`Ticket #${expiredTicket.ticket_number} expired.`);
   };
 
   const handleTransferTicketConfirmed = async (
@@ -589,6 +599,18 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
           onClose={() => setOpenTicketTransferDialog(false)}
           onLoadPreview={handleLoadTransferTicketPreview}
           onTransfer={handleTransferTicketConfirmed}
+        />
+      )}
+
+      {openTicketExpireDialog && (
+        <TicketExpireDialog
+          open={openTicketExpireDialog}
+          ticket={selectedTicket}
+          clientFirstName={clientFirstName || ""}
+          clientLastName={clientLastName || ""}
+          clientMiddleName={clientMiddleName}
+          onClose={() => setOpenTicketExpireDialog(false)}
+          onSave={handleExpireTicketConfirmed}
         />
       )}
 

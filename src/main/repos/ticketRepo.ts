@@ -46,6 +46,11 @@ type ConvertTicketPayload = {
   employee_name: string;
 };
 
+type ExpireTicketPayload = {
+  ticket_number: number;
+  status: Ticket["status"];
+};
+
 const mapTransferTicketPreviewRow = (
   row: Record<string, unknown>,
 ): TransferTicketPreview => ({
@@ -396,6 +401,54 @@ export const ticketRepo = {
       if (!result.rows[0]) {
         throw new Error(
           `[ticketRepo] convert(): Ticket #${payload.ticket_number} not found`,
+        );
+      }
+
+      return mapTicketRow(result.rows[0]);
+    } finally {
+      if (!dbClient) {
+        client.release();
+      }
+    }
+  },
+
+  expire: async (
+    payload: ExpireTicketPayload,
+    dbClient?: DbClient,
+  ): Promise<Ticket> => {
+    const client = dbClient ?? (await connect());
+    const query = `
+      UPDATE ticket
+      SET status = $1
+      WHERE ticket_number = $2
+      RETURNING
+        ticket_number,
+        transaction_datetime,
+        is_lost,
+        location,
+        description,
+        due_date,
+        is_overdue,
+        amount,
+        onetime_fee,
+        interest,
+        pickup_amount,
+        interested_datetime,
+        employee_name,
+        pickup_datetime,
+        status,
+        client_number
+    `;
+
+    try {
+      const result = await client.query(query, [
+        payload.status,
+        payload.ticket_number,
+      ]);
+
+      if (!result.rows[0]) {
+        throw new Error(
+          `[ticketRepo] expire(): Ticket #${payload.ticket_number} not found`,
         );
       }
 
