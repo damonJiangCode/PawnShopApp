@@ -23,6 +23,14 @@ interface TicketPawnDialogProps {
   clientLastName: string;
   clientFirstName: string;
   clientMiddleName?: string;
+  dialogTitle?: string;
+  saveLabel?: string;
+  initialValues?: Partial<
+    Pick<
+      CreatePawnTicketInput,
+      "description" | "location" | "amount" | "onetime_fee"
+    >
+  >;
   onClose: () => void;
   onSave: (
     ticketData: Omit<CreatePawnTicketInput, "client_number">,
@@ -35,6 +43,9 @@ const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
     clientLastName,
     clientFirstName,
     clientMiddleName,
+    dialogTitle = "Pawn Ticket",
+    saveLabel = "Add",
+    initialValues,
     onClose,
     onSave,
   } = props;
@@ -98,10 +109,10 @@ const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
       return;
     }
 
-    setDescription("");
-    setLocation("");
-    setAmount("");
-    setOneTimeFee("");
+    setDescription(initialValues?.description ?? "");
+    setLocation(initialValues?.location ?? "");
+    setAmount(initialValues?.amount ?? "");
+    setOneTimeFee(initialValues?.onetime_fee ?? "");
     setEmployeePassword("");
     setDescriptionError("");
     setLocationError("");
@@ -110,7 +121,7 @@ const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
     setEmployeePasswordError("");
     setSubmitError("");
     setSaving(false);
-  }, [open]);
+  }, [open, initialValues]);
 
   // render pickup amounts
   useEffect(() => {
@@ -195,7 +206,7 @@ const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Pawn Ticket</DialogTitle>
+      <DialogTitle>{dialogTitle}</DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
           {submitError && <Alert severity="error">{submitError}</Alert>}
@@ -341,7 +352,7 @@ const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
       </DialogContent>
       <DialogActions>
         <Button variant="contained" onClick={handleSave} disabled={saving}>
-          Add
+          {saveLabel}
         </Button>
         <Button onClick={onClose} disabled={saving}>
           Cancel

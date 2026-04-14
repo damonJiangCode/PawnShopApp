@@ -7,7 +7,7 @@ import PrintIcon from "@mui/icons-material/Print";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
-import type { Ticket } from "../../../shared/types/Ticket";
+import type { Ticket } from "../../../../shared/types/Ticket";
 
 interface TicketActionsProps {
   selectedTicket: Ticket | null;

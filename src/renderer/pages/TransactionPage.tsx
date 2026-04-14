@@ -6,15 +6,16 @@ import {
 } from "@mui/material";
 import type { Ticket } from "../../shared/types/Ticket";
 import type { Item } from "../../shared/types/Item";
-import ClientBar from "../components/transaction/ClientBar";
-import TicketsPanel from "../components/ticket/TicketsPanel";
-import ItemsPanel from "../components/item/ItemsPanel";
-import TicketPawnDialog from "../components/ticket/dialogs/TicketPawnDialog";
-import TicketSellDialog from "../components/ticket/dialogs/TicketSellDialog";
-import TicketEditDialog from "../components/ticket/dialogs/TicketEditDialog";
-import TicketTransferDialog from "../components/ticket/dialogs/TicketTransferDialog";
-import TicketConvertDialog from "../components/ticket/dialogs/TicketConvertDialog";
-import TicketExpireDialog from "../components/ticket/dialogs/TicketExpireDialog";
+import ClientBar from "../components/shared/ClientBar";
+import TicketsPanel from "../components/transaction/tickets/TicketsPanel";
+import ItemsPanel from "../components/transaction/items/ItemsPanel";
+import TicketPawnDialog from "../components/transaction/dialogs/TicketPawnDialog";
+import TicketSellDialog from "../components/transaction/dialogs/TicketSellDialog";
+import TicketEditDialog from "../components/transaction/dialogs/TicketEditDialog";
+import TicketTransferDialog from "../components/transaction/dialogs/TicketTransferDialog";
+import TicketConvertDialog from "../components/transaction/dialogs/TicketConvertDialog";
+import TicketExpireDialog from "../components/transaction/dialogs/TicketExpireDialog";
+import TicketItemLoadDialog from "../components/transaction/dialogs/TicketItemLoadDialog";
 import {
   type ConvertTicketInput,
   type ExpireTicketInput,
@@ -26,15 +27,39 @@ import {
 } from "../services/ticketService";
 import { itemService } from "../services/itemService";
 
+export interface TransactionItemLoadRequest {
+  requestId: number;
+  targetTicketNumber: number;
+  sourceTicketNumber: number;
+  sourceTicketDescription: string;
+  items: Item[];
+  mode: "repawn" | "load";
+}
+
 interface TransactionPageProps {
   clientNumber?: number;
   clientLastName?: string;
   clientFirstName?: string;
   clientMiddleName?: string;
+  focusTicketNumber?: number;
+  focusRequestId?: number;
+  incomingTicket?: Ticket | null;
+  incomingItemLoadRequest?: TransactionItemLoadRequest | null;
+  onSelectedTicketChange?: (ticket: Ticket | null) => void;
 }
 
 const TransactionPage: React.FC<TransactionPageProps> = (props) => {
-  const { clientNumber, clientLastName, clientFirstName, clientMiddleName } = props;
+  const {
+    clientNumber,
+    clientLastName,
+    clientFirstName,
+    clientMiddleName,
+    focusTicketNumber,
+    focusRequestId,
+    incomingTicket,
+    incomingItemLoadRequest,
+    onSelectedTicketChange,
+  } = props;
 
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [items, setItems] = useState<Item[]>([]);
@@ -50,6 +75,11 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
   const [openTicketConvertDialog, setOpenTicketConvertDialog] = useState(false);
   const [openTicketExpireDialog, setOpenTicketExpireDialog] = useState(false);
   const [openTicketTransferDialog, setOpenTicketTransferDialog] = useState(false);
+  const [openTicketItemLoadDialog, setOpenTicketItemLoadDialog] = useState(false);
+  const [ticketDraftItems, setTicketDraftItems] = useState<Record<number, Item[]>>({});
+  const [draftItemSequence, setDraftItemSequence] = useState(-1);
+  const [pendingLoadRequest, setPendingLoadRequest] =
+    useState<TransactionItemLoadRequest | null>(null);
   const [statusMessage, setStatusMessage] = useState("");
   const filterVisibleTickets = (nextTickets: Ticket[]) =>
     nextTickets.filter(
@@ -68,6 +98,9 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
     });
 
   const loading = ticketsLoading || itemsLoading;
+  const displayedItems = selectedTicket?.ticket_number
+    ? [...items, ...(ticketDraftItems[selectedTicket.ticket_number] ?? [])]
+    : [];
 
   useEffect(() => {
     let active = true;
@@ -76,6 +109,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       if (!clientNumber) {
         setTickets([]);
         setItems([]);
+        setTicketDraftItems({});
         setSelectedTicket(null);
         setSelectedItem(null);
         setTicketsError("");
@@ -126,6 +160,50 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       active = false;
     };
   }, [clientNumber]);
+
+  useEffect(() => {
+    if (!focusRequestId || !focusTicketNumber) {
+      return;
+    }
+
+    const matchedTicket =
+      tickets.find((ticket) => ticket.ticket_number === focusTicketNumber) ?? null;
+
+    if (matchedTicket) {
+      setSelectedTicket(matchedTicket);
+      setStatusMessage("");
+    }
+  }, [focusRequestId, focusTicketNumber, tickets]);
+
+  useEffect(() => {
+    if (!incomingTicket?.ticket_number) {
+      return;
+    }
+
+    setTickets((prev) => {
+      const nextTickets = prev.some(
+        (ticket) => ticket.ticket_number === incomingTicket.ticket_number,
+      )
+        ? prev.map((ticket) =>
+            ticket.ticket_number === incomingTicket.ticket_number
+              ? incomingTicket
+              : ticket,
+          )
+        : sortTickets([...prev, incomingTicket]);
+
+      return nextTickets;
+    });
+  }, [incomingTicket]);
+
+  useEffect(() => {
+    if (!incomingItemLoadRequest) {
+      return;
+    }
+
+    setPendingLoadRequest(incomingItemLoadRequest);
+    setOpenTicketItemLoadDialog(true);
+    setStatusMessage("");
+  }, [incomingItemLoadRequest]);
 
   useEffect(() => {
     let active = true;
@@ -202,13 +280,21 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
     }
 
     const matchedItem =
-      items.find((item) => item.item_number === selectedItem.item_number) ??
+      displayedItems.find(
+        (item) =>
+          (item.draft_id ?? item.item_number) ===
+          (selectedItem.draft_id ?? selectedItem.item_number),
+      ) ??
       null;
 
     if (!matchedItem) {
-      setSelectedItem(items[0] ?? null);
+      setSelectedItem(displayedItems[0] ?? null);
     }
-  }, [items, selectedItem]);
+  }, [displayedItems, selectedItem]);
+
+  useEffect(() => {
+    onSelectedTicketChange?.(selectedTicket);
+  }, [onSelectedTicketChange, selectedTicket]);
 
   const handleTicketSelected = (ticket: Ticket | null) => {
     setSelectedTicket(ticket);
@@ -416,19 +502,76 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
   };
 
   const handleRemoveItem = (item: Item) => {
+    if (item.is_loaded_draft && selectedTicket?.ticket_number) {
+      const ticketNumber = selectedTicket.ticket_number;
+      const nextDraftItems = (ticketDraftItems[ticketNumber] ?? []).filter(
+        (current) => (current.draft_id ?? current.item_number) !== (item.draft_id ?? item.item_number),
+      );
+
+      setTicketDraftItems((prev) => ({
+        ...prev,
+        [ticketNumber]: nextDraftItems,
+      }));
+      setSelectedItem((prev) => {
+        if (
+          (prev?.draft_id ?? prev?.item_number) !==
+          (item.draft_id ?? item.item_number)
+        ) {
+          return prev ?? null;
+        }
+
+        return [...items, ...nextDraftItems][0] ?? null;
+      });
+      setStatusMessage(
+        `Loaded item #${item.source_item_number ?? item.item_number} removed from this ticket view.`,
+      );
+      return;
+    }
+
     const nextItems = items.filter(
       (current) => current.item_number !== item.item_number,
     );
 
     setItems(nextItems);
     setSelectedItem((prev) => {
-      if (prev?.item_number !== item.item_number) {
-        return prev;
+      if ((prev?.draft_id ?? prev?.item_number) !== item.item_number) {
+        return prev ?? null;
       }
 
-      return nextItems[0] ?? null;
+      return [...nextItems, ...(selectedTicket?.ticket_number ? (ticketDraftItems[selectedTicket.ticket_number] ?? []) : [])][0] ?? null;
     });
     setStatusMessage(`Item #${item.item_number} removed from view.`);
+  };
+
+  const handleConfirmLoadedItems = (selectedItems: Item[]) => {
+    if (!pendingLoadRequest || !selectedItems.length) {
+      setOpenTicketItemLoadDialog(false);
+      setPendingLoadRequest(null);
+      return;
+    }
+
+    const nextDraftItems = selectedItems.map((item, index) => ({
+      ...item,
+      source_item_number: item.source_item_number ?? item.item_number,
+      item_number: draftItemSequence - index,
+      draft_id: `draft-${pendingLoadRequest.requestId}-${item.item_number}-${index}`,
+      is_loaded_draft: true,
+    }));
+
+    setDraftItemSequence((prev) => prev - selectedItems.length);
+    setTicketDraftItems((prev) => ({
+      ...prev,
+      [pendingLoadRequest.targetTicketNumber]: [
+        ...(prev[pendingLoadRequest.targetTicketNumber] ?? []),
+        ...nextDraftItems,
+      ],
+    }));
+    setSelectedItem((prev) => prev ?? nextDraftItems[0] ?? null);
+    setOpenTicketItemLoadDialog(false);
+    setStatusMessage(
+      `${selectedItems.length} item(s) loaded from ticket #${pendingLoadRequest.sourceTicketNumber} into ticket #${pendingLoadRequest.targetTicketNumber}.`,
+    );
+    setPendingLoadRequest(null);
   };
 
   if (!clientNumber) {
@@ -533,7 +676,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
           }}
         >
           <ItemsPanel
-            items={items}
+            items={displayedItems}
             selectedItem={selectedItem ?? undefined}
             loading={itemsLoading}
             error={itemsError}
@@ -623,6 +766,25 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
           clientMiddleName={clientMiddleName}
           onClose={() => setOpenTicketConvertDialog(false)}
           onSave={handleConvertTicketConfirmed}
+        />
+      )}
+
+      {pendingLoadRequest && openTicketItemLoadDialog && (
+        <TicketItemLoadDialog
+          open={openTicketItemLoadDialog}
+          title={
+            pendingLoadRequest.mode === "repawn"
+              ? `Repawn Ticket #${pendingLoadRequest.sourceTicketNumber} Items`
+              : `Load Ticket #${pendingLoadRequest.sourceTicketNumber} Items`
+          }
+          description={`Select the items from ticket #${pendingLoadRequest.sourceTicketNumber} (${pendingLoadRequest.sourceTicketDescription}) and add them to ticket #${pendingLoadRequest.targetTicketNumber}.`}
+          actionLabel="Add to Ticket"
+          items={pendingLoadRequest.items}
+          onClose={() => {
+            setOpenTicketItemLoadDialog(false);
+            setPendingLoadRequest(null);
+          }}
+          onConfirm={handleConfirmLoadedItems}
         />
       )}
     </Paper>

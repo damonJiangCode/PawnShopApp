@@ -3,7 +3,7 @@ import { Box, Button } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import type { Client } from "../../../../shared/types/Client";
-import ClientAddEditDialog from "../form/ClientAddEditDialog";
+import ClientAddEditDialog from "../dialogs/ClientAddEditDialog";
 
 interface ClientActionsProps {
   client: Client | null;

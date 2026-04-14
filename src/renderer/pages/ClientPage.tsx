@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Paper, Typography } from "@mui/material";
 import ClientPanel from "../components/client/profile/ClientPanel";
-import ClientsPanel from "../components/client/clientresults/ClientsPanel";
+import ClientsPanel from "../components/client/results/ClientsPanel";
 import { useClientSearch } from "../hooks/useClientSearch";
 import { CLIENT_RESULTS_HEIGHT } from "../utils/layoutSizing";
 import defaultClient from "../utils/defaultClient";

@@ -5,6 +5,7 @@ export interface ItemTicketStatus {
 
 export interface Item {
   item_number: number;
+  source_item_number?: number;
   quantity: number;
   description: string;
   brand_name?: string;
@@ -13,4 +14,6 @@ export interface Item {
   amount: number;
   item_ticket_status: ItemTicketStatus[];
   image_path?: string;
+  draft_id?: string;
+  is_loaded_draft?: boolean;
 }

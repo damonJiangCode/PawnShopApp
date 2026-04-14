@@ -1,7 +1,7 @@
 import React from "react";
 import { Paper, Typography } from "@mui/material";
-import type { Item } from "../../../shared/types/Item";
-import { ITEM_SIDE_PANEL_WIDTH } from "../../utils/layoutSizing";
+import type { Item } from "../../../../shared/types/Item";
+import { ITEM_SIDE_PANEL_WIDTH } from "../../../utils/layoutSizing";
 import ItemActions from "./ItemActions";
 import ItemImage from "./ItemImage";
 

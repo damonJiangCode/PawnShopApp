@@ -2,7 +2,7 @@ import React from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import type { GridColDef, GridValueFormatter } from "@mui/x-data-grid";
 import { Box } from "@mui/material";
-import type { Item } from "../../../shared/types/Item";
+import type { Item } from "../../../../shared/types/Item";
 
 interface ItemsTableProps {
   items: Item[];
@@ -16,7 +16,12 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
   onItemSelected 
 }) => {
   const columns: GridColDef[] = [
-    { field: "item_number", headerName: "ITM_NO", width: 120 },
+    {
+      field: "item_number_display",
+      headerName: "ITM_NO",
+      width: 120,
+      valueGetter: (_value, row: Item) => row.source_item_number ?? row.item_number,
+    },
     {
       field: "quantity",
       headerName: "QTY",
@@ -62,10 +67,16 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
         rowHeight={30}
         rows={items}
         columns={columns}
-        getRowId={(row) => row.item_number}
-        rowSelectionModel={selectedItem?.item_number ? [selectedItem.item_number] : []}
+        getRowId={(row) => row.draft_id ?? row.item_number}
+        rowSelectionModel={
+          selectedItem
+            ? [selectedItem.draft_id ?? selectedItem.item_number]
+            : []
+        }
         onRowClick={(params) => {
-          const selectedItem = items.find((item) => item.item_number === params.id);
+          const selectedItem = items.find(
+            (item) => (item.draft_id ?? item.item_number) === params.id,
+          );
           if (selectedItem) onItemSelected(selectedItem);
         }}
         disableColumnMenu

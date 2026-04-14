@@ -1,6 +1,6 @@
 import React from "react";
 import { Box } from "@mui/material";
-import type { Item } from "../../../shared/types/Item";
+import type { Item } from "../../../../shared/types/Item";
 import ItemsTable from "./ItemsTable";
 import ItemSidePanel from "./ItemSidePanel";
 

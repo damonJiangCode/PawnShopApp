@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, CircularProgress, Typography } from "@mui/material";
-import type { Item } from "../../../shared/types/Item";
+import type { Item } from "../../../../shared/types/Item";
 
 interface ItemImageProps {
   selectedItem?: Item;

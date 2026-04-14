@@ -3,7 +3,7 @@ import { DataGrid } from "@mui/x-data-grid";
 import type { GridColDef } from "@mui/x-data-grid";
 import { Box, Tooltip } from "@mui/material";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
-import type { Ticket } from "../../../shared/types/Ticket";
+import type { Ticket } from "../../../../shared/types/Ticket";
 
 interface TicketsTableProps {
   tickets: Ticket[];
