@@ -1,13 +1,15 @@
 import React from "react";
 import { Box, Button } from "@mui/material";
-import HistoryIcon from "@mui/icons-material/History";
 import SettingsIcon from "@mui/icons-material/Settings";
+import PaymentsIcon from "@mui/icons-material/Payments";
 
-interface SideButtonProps {
+
+interface SideButtonsProps {
+  onPayment?: () => void;
   onSettings?: () => void;
 }
 
-const SideButton: React.FC<SideButtonProps> = ({ onSettings }) => {
+const SideButtons: React.FC<SideButtonsProps> = ({ onPayment, onSettings }) => {
   return (
     <Box
       sx={{
@@ -17,10 +19,15 @@ const SideButton: React.FC<SideButtonProps> = ({ onSettings }) => {
         minWidth: 240,
       }}
     >
-      <Button variant="outlined" startIcon={<HistoryIcon />} size="small">
-        History
-      </Button>
 
+      <Button
+        variant="outlined"
+        startIcon={<PaymentsIcon />}
+        onClick={onPayment}
+        size="small"
+      >
+        Payment
+      </Button>
       <Button
         variant="outlined"
         startIcon={<SettingsIcon />}
@@ -35,4 +42,4 @@ const SideButton: React.FC<SideButtonProps> = ({ onSettings }) => {
   );
 };
 
-export default SideButton;
+export default SideButtons;

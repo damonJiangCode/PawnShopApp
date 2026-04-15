@@ -40,29 +40,17 @@ const MainLayout: React.FC = () => {
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-      {/* Topbar */}
       <TopBar onSearch={handleSearch} onClear={handleClear} />
 
-      {/* Tabs */}
-      <Box
-        sx={{
-          px: 1.5,
-          py: 0.5,
-          display: "flex",
-          flexDirection: "column",
-          flex: 1,
-          minHeight: 0,
-          boxSizing: "border-box",
-          overflow: "hidden",
-        }}
-      >
         <Paper
           elevation={3}
           sx={{
-            flex: 1,
-            minHeight: 0,
+            mx: 1.5,
+            my: 0.5,
             display: "flex",
             flexDirection: "column",
+            flex: 1,
+            minHeight: 0,
             overflow: "hidden",
             borderRadius: 2.5,
             backgroundColor: "#dce8ff",
@@ -80,30 +68,15 @@ const MainLayout: React.FC = () => {
               px: 0.35,
               pt: 0.35,
               minHeight: "unset",
-              display: "flex",
-              alignItems: "flex-end",
               "& .MuiTabs-indicator": {
                 display: "none",
               },
-              "& .MuiTabs-flexContainer": {
-                alignItems: "flex-end",
-              },
               "& .MuiTab-root": {
-                minHeight: 44,
-                py: 0.75,
-                px: 1.5,
-                mr: 0.35,
+                minHeight: 8,
                 borderTopLeftRadius: 12,
                 borderTopRightRadius: 12,
                 color: "#45658f",
-                fontWeight: 700,
-                textTransform: "none",
-                alignSelf: "flex-end",
-                transition:
-                  "background-color 160ms ease, color 160ms ease, box-shadow 160ms ease",
-              },
-              "& .MuiTab-root:last-of-type": {
-                mr: 0,
+                fontWeight: 800,
               },
               "& .MuiTab-root.Mui-selected": {
                 color: "primary.dark",
@@ -196,7 +169,6 @@ const MainLayout: React.FC = () => {
           </Box>
         </Paper>
       </Box>
-    </Box>
   );
 };
 

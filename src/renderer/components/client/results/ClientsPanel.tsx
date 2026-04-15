@@ -32,11 +32,13 @@ const ClientsPanel: React.FC<ClientsPanelProps> = ({
         overflow: "hidden",
       }}
     >
-      <ClientsTable
-        clients={results}
-        selectedClient={selectedClient}
-        onClientSelect={onSelect}
-      />
+      <Box sx={{ flex: "1 1 0", minWidth: 0, minHeight: 0 }}>
+        <ClientsTable
+          clients={results}
+          selectedClient={selectedClient}
+          onClientSelect={onSelect}
+        />
+      </Box>
 
       <ClientSidePanel
         client={previewClient}

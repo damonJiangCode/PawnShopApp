@@ -23,23 +23,33 @@ const ClientActions: React.FC<ClientActionsProps> = ({
     <>
       <Box
         sx={{
-          width: 78,
+          width: 96,
+          minWidth: 96,
           flexShrink: 0,
           display: "flex",
           flexDirection: "column",
           gap: 2,
           justifyContent: "center",
+          alignItems: "stretch",
         }}
       >
         <Button
           size="small"
           variant="contained"
+          fullWidth
           startIcon={<AddIcon />}
           onClick={() => setAddOpen(true)}
           sx={{
             minWidth: 0,
-            justifyContent: "flex-start",
-            px: 1,
+            justifyContent: "center",
+            px: 1.25,
+            "& .MuiButton-startIcon": {
+              marginRight: 0.75,
+              marginLeft: 0,
+              minWidth: 18,
+              display: "inline-flex",
+              justifyContent: "center",
+            },
             "&:hover": {
               boxShadow: 3,
             },
@@ -50,13 +60,21 @@ const ClientActions: React.FC<ClientActionsProps> = ({
         <Button
           size="small"
           variant="contained"
+          fullWidth
           startIcon={<EditIcon />}
           disabled={!client?.client_number}
           onClick={() => setEditOpen(true)}
           sx={{
             minWidth: 0,
-            justifyContent: "flex-start",
-            px: 1,
+            justifyContent: "center",
+            px: 1.25,
+            "& .MuiButton-startIcon": {
+              marginRight: 0.75,
+              marginLeft: 0,
+              minWidth: 18,
+              display: "inline-flex",
+              justifyContent: "center",
+            },
             "&:hover": {
               boxShadow: 3,
             },

@@ -20,7 +20,7 @@ const ClientSidePanel: React.FC<ClientSidePanelProps> = ({
     <Paper
       sx={{
         width: CLIENT_SIDE_PANEL_WIDTH,
-        minWidth: 0,
+        minWidth: 324,
         border: "1px solid",
         borderColor: "divider",
         minHeight: 0,
@@ -28,9 +28,10 @@ const ClientSidePanel: React.FC<ClientSidePanelProps> = ({
         overflow: "hidden",
         flexShrink: 0,
         boxSizing: "border-box",
-        display: "flex",
+        display: "grid",
+        gridTemplateColumns: "minmax(0, 1fr) 96px",
         alignItems: "stretch",
-        gap: 0.75,
+        columnGap: 0.75,
         p: 0.75,
       }}
     >
