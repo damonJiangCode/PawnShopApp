@@ -4,6 +4,13 @@ import type { GridColDef } from "@mui/x-data-grid";
 import { Box, Tooltip } from "@mui/material";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import type { Ticket } from "../../../../shared/types/Ticket";
+import CellTooltip from "../../shared/CellTooltip";
+import {
+  formatCurrency,
+  formatIsoDate,
+  formatIsoDateTime,
+  formatUppercase,
+} from "../../../utils/formatters";
 
 interface TicketsTableProps {
   tickets: Ticket[];
@@ -11,56 +18,18 @@ interface TicketsTableProps {
   onSelectTicket: (t: Ticket | null) => void;
 }
 
-const TicketsTable: React.FC<TicketsTableProps> = (props) => {
-  const { tickets, selectedTicket, onSelectTicket } = props;
-
-  const renderWithTooltip = (value?: string | number | null) => {
-    const displayValue =
-      value === null || value === undefined || value === "" ? "---" : String(value);
-
-    return (
-      <Tooltip title={displayValue} arrow>
-        <span>{displayValue}</span>
-      </Tooltip>
-    );
-  };
-
-  const formatDate = (value?: string | Date | null) => {
-    if (!value) return "";
-    return new Date(value).toISOString().slice(0, 10);
-  };
-
-  const formatDateTime = (value?: string | Date | null) => {
-    if (!value) return "";
-    const date = new Date(value);
-    const datePart = date.toISOString().slice(0, 10);
-    const timePart = date.toTimeString().slice(0, 8);
-    return `${datePart} ${timePart}`;
-  };
-
+const TicketsTable: React.FC<TicketsTableProps> = ({
+  tickets,
+  selectedTicket,
+  onSelectTicket,
+}) => {
   const getDueDate = (ticket: Ticket) => {
     if (ticket.status === "sold") return "";
-    if (ticket.due_date) return formatDate(ticket.due_date);
+    if (ticket.due_date) return formatIsoDate(ticket.due_date);
     if (!ticket.transaction_datetime) return "";
     const due = new Date(ticket.transaction_datetime);
     due.setDate(due.getDate() + 30);
-    return formatDate(due);
-  };
-
-  const formatCurrency = (value?: number | null) => {
-    if (typeof value !== "number" || Number.isNaN(value)) {
-      return "---";
-    }
-
-    return `$${value.toFixed(1)}`;
-  };
-
-  const formatEmployeeName = (value?: string | null) => {
-    if (!value) {
-      return null;
-    }
-
-    return value.toUpperCase();
+    return formatIsoDate(due);
   };
 
   const columns: GridColDef[] = [
@@ -68,31 +37,37 @@ const TicketsTable: React.FC<TicketsTableProps> = (props) => {
       field: "ticket_number",
       headerName: "#",
       width: 96,
-      renderCell: (params) => renderWithTooltip(params.value),
+      renderCell: (params) => (
+        <CellTooltip value={params.value} fallback="---" />
+      ),
     },
     {
       field: "transaction_datetime",
       headerName: "DATE",
       width: 110,
-      renderCell: (params) => {
-        return (
-          <Tooltip title={formatDateTime(params.value)} arrow>
-            <span>{formatDate(params.value)}</span>
-          </Tooltip>
-        );
-      },
+      renderCell: (params) => (
+        <CellTooltip
+          value={params.value ? formatIsoDate(params.value) : null}
+          title={params.value ? formatIsoDateTime(params.value) : "---"}
+          fallback="---"
+        />
+      ),
     },
     {
       field: "location",
       headerName: "LOC",
       width: 72,
-      renderCell: (params) => renderWithTooltip(params.value),
+      renderCell: (params) => (
+        <CellTooltip value={params.value} fallback="---" />
+      ),
     },
     {
       field: "description",
       headerName: "DESC",
       width: 150,
-      renderCell: (params) => renderWithTooltip(params.value),
+      renderCell: (params) => (
+        <CellTooltip value={params.value} fallback="---" />
+      ),
     },
     {
       field: "due_date_display",
@@ -113,9 +88,7 @@ const TicketsTable: React.FC<TicketsTableProps> = (props) => {
               gap: 0.5,
             }}
           >
-            <Tooltip title={dueDate || "---"} arrow>
-              <span>{dueDate || "---"}</span>
-            </Tooltip>
+            <CellTooltip value={dueDate} fallback="---" />
             {showOverdueIcon && (
               <Tooltip title="Overdue" arrow>
                 <WarningAmberIcon sx={{ color: "#d32f2f", fontSize: 18 }} />
@@ -129,7 +102,9 @@ const TicketsTable: React.FC<TicketsTableProps> = (props) => {
       field: "amount",
       headerName: "AMT",
       width: 84,
-      renderCell: (params) => renderWithTooltip(formatCurrency(params.value)),
+      renderCell: (params) => (
+        <CellTooltip value={formatCurrency(params.value)} fallback="---" />
+      ),
     },
     {
       field: "interest",
@@ -137,24 +112,20 @@ const TicketsTable: React.FC<TicketsTableProps> = (props) => {
       width: 84,
       renderCell: (params) =>
         params.row.status === "sold"
-          ? renderWithTooltip(null)
-          : renderWithTooltip(formatCurrency(params.value)),
+          ? <CellTooltip value={null} fallback="---" />
+          : <CellTooltip value={formatCurrency(params.value)} fallback="---" />,
     },
     {
       field: "interested_datetime",
       headerName: "INT DATE",
       width: 110,
-      renderCell: (params) => {
-        if (!params.value) {
-          return <span>---</span>;
-        }
-
-        return (
-          <Tooltip title={formatDateTime(params.value)} arrow>
-            <span>{formatDate(params.value)}</span>
-          </Tooltip>
-        );
-      },
+      renderCell: (params) => (
+        <CellTooltip
+          value={params.value ? formatIsoDate(params.value) : null}
+          title={params.value ? formatIsoDateTime(params.value) : "---"}
+          fallback="---"
+        />
+      ),
     },
     {
       field: "pickup_amount",
@@ -162,15 +133,18 @@ const TicketsTable: React.FC<TicketsTableProps> = (props) => {
       width: 84,
       renderCell: (params) =>
         params.row.status === "sold"
-          ? renderWithTooltip(null)
-          : renderWithTooltip(formatCurrency(params.value)),
+          ? <CellTooltip value={null} fallback="---" />
+          : <CellTooltip value={formatCurrency(params.value)} fallback="---" />,
     },
     {
       field: "employee_name",
       headerName: "EMP",
       width: 120,
       renderCell: (params) =>
-        renderWithTooltip(formatEmployeeName(params.value)),
+        <CellTooltip
+          value={formatUppercase(params.value, "")}
+          fallback="---"
+        />,
     },
   ];
 
@@ -182,7 +156,9 @@ const TicketsTable: React.FC<TicketsTableProps> = (props) => {
         rows={tickets}
         columns={columns}
         getRowId={(row) => row.ticket_number}
-        rowSelectionModel={selectedTicket?.ticket_number ? [selectedTicket.ticket_number] : []}
+        rowSelectionModel={
+          selectedTicket?.ticket_number ? [selectedTicket.ticket_number] : []
+        }
         onRowClick={(params) => {
           const clickedTicket =
             tickets.find((t) => t.ticket_number === params.id) ?? null;

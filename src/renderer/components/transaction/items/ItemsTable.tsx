@@ -1,8 +1,10 @@
 import React from "react";
 import { DataGrid } from "@mui/x-data-grid";
-import type { GridColDef, GridValueFormatter } from "@mui/x-data-grid";
+import type { GridColDef } from "@mui/x-data-grid";
 import { Box } from "@mui/material";
 import type { Item } from "../../../../shared/types/Item";
+import CellTooltip from "../../shared/CellTooltip";
+import { formatDisplayValue } from "../../../utils/formatters";
 
 interface ItemsTableProps {
   items: Item[];
@@ -10,53 +12,70 @@ interface ItemsTableProps {
   onItemSelected: (i: Item) => void;
 }
 
-const ItemsTable: React.FC<ItemsTableProps> = ({ 
-  items, 
-  selectedItem, 
-  onItemSelected 
+const ItemsTable: React.FC<ItemsTableProps> = ({
+  items,
+  selectedItem,
+  onItemSelected,
 }) => {
   const columns: GridColDef[] = [
     {
       field: "item_number_display",
       headerName: "ITM_NO",
       width: 120,
-      valueGetter: (_value, row: Item) => row.source_item_number ?? row.item_number,
+      valueGetter: (_value, row: Item) =>
+        row.source_item_number ?? row.item_number,
+      renderCell: (params) => <CellTooltip value={params.value} />,
     },
     {
       field: "quantity",
       headerName: "QTY",
       width: 40,
-      valueFormatter: ((params: any) =>
-        params.value != null ? `${params.value}` : "") as GridValueFormatter,
+      renderCell: (params) => (
+        <CellTooltip value={formatDisplayValue(params.value, "")} />
+      ),
     },
-    { field: "description", headerName: "DESC", width: 300 },
+    {
+      field: "description",
+      headerName: "DESC",
+      width: 300,
+      renderCell: (params) => <CellTooltip value={params.value} />,
+    },
     {
       field: "amount",
       headerName: "VALUE",
       width: 80,
-      valueFormatter: ((params: any) =>
-        params.value != null ? `$${params.value}` : "") as GridValueFormatter,
+      renderCell: (params) =>
+        <CellTooltip
+          value={
+            params.value != null && params.value !== ""
+              ? `$${params.value}`
+              : ""
+          }
+        />,
     },
     {
       field: "brand_name",
       headerName: "BRAND",
       width: 80,
-      valueFormatter: ((params: any) =>
-        params.value != null ? `${params.value}` : "") as GridValueFormatter,
+      renderCell: (params) => (
+        <CellTooltip value={formatDisplayValue(params.value, "")} />
+      ),
     },
     {
       field: "model_number",
       headerName: "MODEL",
       width: 80,
-      valueFormatter: ((params: any) =>
-        params.value != null ? `${params.value}` : "") as GridValueFormatter,
+      renderCell: (params) => (
+        <CellTooltip value={formatDisplayValue(params.value, "")} />
+      ),
     },
     {
       field: "serial_number",
       headerName: "SERIAL",
       width: 150,
-      valueFormatter: ((params: any) =>
-        params.value != null ? `${params.value}` : "") as GridValueFormatter,
+      renderCell: (params) => (
+        <CellTooltip value={formatDisplayValue(params.value, "")} />
+      ),
     },
   ];
 

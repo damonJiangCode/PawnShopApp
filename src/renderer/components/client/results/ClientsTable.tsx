@@ -1,8 +1,10 @@
 import React from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import type { GridColDef } from "@mui/x-data-grid";
-import { Box, Tooltip } from "@mui/material";
+import { Box } from "@mui/material";
 import type { Client } from "../../../../shared/types/Client";
+import CellTooltip from "../../shared/CellTooltip";
+import { formatShortDate, formatUppercase } from "../../../utils/formatters";
 
 interface ClientsTableProps {
   clients: Client[];
@@ -15,47 +17,13 @@ const ClientsTable: React.FC<ClientsTableProps> = ({
   selectedClient,
   onClientSelect,
 }) => {
-  const formatDob = (value?: string | Date | null) => {
-    if (!value) {
-      return "";
-    }
-
-    const parsed = value instanceof Date ? value : new Date(value);
-    if (Number.isNaN(parsed.getTime())) {
-      return String(value);
-    }
-
-    return parsed.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "2-digit",
-    });
-  };
-
   const rows = clients.map((client, index) => ({
     ...client,
     row_index: index + 1,
-    last_name_display: client.last_name?.toUpperCase() ?? "",
-    first_name_display: client.first_name?.toUpperCase() ?? "",
-    date_of_birth_display: formatDob(client.date_of_birth),
+    last_name_display: formatUppercase(client.last_name, ""),
+    first_name_display: formatUppercase(client.first_name, ""),
+    date_of_birth_display: formatShortDate(client.date_of_birth),
   }));
-
-  const renderWithTooltip = (value?: string) => (
-    <Tooltip title={value || ""} arrow>
-      <Box
-        component="span"
-        sx={{
-          display: "block",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-          width: "100%",
-        }}
-      >
-        {value || ""}
-      </Box>
-    </Tooltip>
-  );
 
   const columns: GridColDef[] = [
     { field: "row_index", headerName: "#", width: 96 },
@@ -64,21 +32,21 @@ const ClientsTable: React.FC<ClientsTableProps> = ({
       headerName: "LAST NAME",
       flex: 1,
       minWidth: 140,
-      renderCell: (params) => renderWithTooltip(params.value),
+      renderCell: (params) => <CellTooltip value={params.value} />,
     },
     {
       field: "first_name_display",
       headerName: "FIRST NAME",
       flex: 1,
       minWidth: 140,
-      renderCell: (params) => renderWithTooltip(params.value),
+      renderCell: (params) => <CellTooltip value={params.value} />,
     },
     {
       field: "date_of_birth_display",
       headerName: "DATE OF BIRTH",
       flex: 1,
       minWidth: 140,
-      renderCell: (params) => renderWithTooltip(params.value),
+      renderCell: (params) => <CellTooltip value={params.value} />,
     },
   ];
 
@@ -90,9 +58,13 @@ const ClientsTable: React.FC<ClientsTableProps> = ({
         rows={rows}
         columns={columns}
         getRowId={(row) => row.client_number}
-        rowSelectionModel={selectedClient?.client_number ? [selectedClient.client_number] : []}
+        rowSelectionModel={
+          selectedClient?.client_number ? [selectedClient.client_number] : []
+        }
         onRowClick={(params) => {
-          const selectedClient = clients.find((client) => client.client_number === params.id);
+          const selectedClient = clients.find(
+            (client) => client.client_number === params.id,
+          );
           if (selectedClient) onClientSelect(selectedClient);
         }}
         disableColumnMenu

@@ -15,6 +15,11 @@ import InfoRow from "./InfoRow";
 import statColors from "../../../assets/client/statColors";
 import type { Client, ID } from "../../../../shared/types/Client";
 import { resolveFormFieldError } from "../../../utils/formError";
+import {
+  formatDisplayValue,
+  formatShortDate,
+  formatUppercase,
+} from "../../../utils/formatters";
 
 interface ClientProfileProps {
   client: Client;
@@ -60,11 +65,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
       return "-";
     }
 
-    if (value === null || value === undefined || value === "") {
-      return "-";
-    }
-
-    return String(value);
+    return formatDisplayValue(value, "-");
   };
   const displayCount = (value: number | undefined) =>
     placeholder ? "-" : String(value ?? 0);
@@ -78,11 +79,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
       return String(value);
     }
 
-    return parsed.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "2-digit",
-    });
+    return formatShortDate(parsed);
   };
   const displayMeasurement = (value: number | undefined, unit: string) =>
     placeholder || value === undefined ? "-" : `${value} ${unit}`;
@@ -187,7 +184,9 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
       }
 
       console.error("Failed to update client notes:", error);
-      setSubmitError("Couldn't update the client notes right now. Please try again.");
+      setSubmitError(
+        "Couldn't update the client notes right now. Please try again.",
+      );
     } finally {
       setSavingNotes(false);
     }
@@ -204,31 +203,31 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
         }}
       >
         <Box sx={panelSx}>
-            <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 0.5 }}>
-              Profile
-            </Typography>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 0 }}>
-              <InfoRow
-                label="Client #:"
-                value={displayText(client.client_number)}
-              />
-              <InfoRow
-                label="Last Name:"
-                value={displayText(client.last_name?.toUpperCase())}
-              />
-              <InfoRow
-                label="First Name:"
-                value={displayText(client.first_name?.toUpperCase())}
-              />
-              <InfoRow
-                label="Mid Name:"
-                value={displayText(client.middle_name?.toUpperCase())}
-              />
-              <InfoRow
-                label="Date of Birth:"
-                value={displayDate(client.date_of_birth)}
-              />
-            </Box>
+          <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 0.5 }}>
+            Profile
+          </Typography>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 0 }}>
+            <InfoRow
+              label="Client #:"
+              value={displayText(client.client_number)}
+            />
+            <InfoRow
+              label="Last Name:"
+              value={displayText(client.last_name?.toUpperCase())}
+            />
+            <InfoRow
+              label="First Name:"
+              value={displayText(client.first_name?.toUpperCase())}
+            />
+            <InfoRow
+              label="Mid Name:"
+              value={displayText(client.middle_name?.toUpperCase())}
+            />
+            <InfoRow
+              label="Date of Birth:"
+              value={displayDate(client.date_of_birth)}
+            />
+          </Box>
         </Box>
 
         <Box sx={panelSx}>
@@ -376,7 +375,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
               gap: 1,
             }}
           >
-            <Typography variant="subtitle2" fontWeight={700} >
+            <Typography variant="subtitle2" fontWeight={700}>
               Notes
             </Typography>
             <Button
