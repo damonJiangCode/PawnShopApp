@@ -2,7 +2,6 @@ import {
   Alert,
   Box,
   Typography,
-  Avatar,
   Button,
   Dialog,
   DialogActions,
@@ -11,27 +10,27 @@ import {
   TextField,
 } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
+import type { ClientNotesAction } from "../../../../shared/ipc/clientPayloadTypes";
 import InfoRow from "./InfoRow";
 import statColors from "../../../assets/client/statColors";
 import type { Client, ID } from "../../../../shared/types/Client";
-import { useClientImage } from "../../../hooks/useClientImage";
-import {
-  clientService,
-  type ClientFormError,
-} from "../../../services/clientService";
 import { resolveFormFieldError } from "../../../utils/formError";
 
-interface ClientPanelProps {
+interface ClientProfileProps {
   client: Client;
-  showImage?: boolean;
-  onClientUpdated?: (client: Client) => void;
+  onSaveNotes: (input: {
+    client: Client;
+    identifications: ID[];
+    notes: string;
+    employeePassword: string;
+    notesAction: ClientNotesAction;
+  }) => Promise<Client>;
   placeholder?: boolean;
 }
 
-const ClientPanel: React.FC<ClientPanelProps> = ({
+const ClientProfile: React.FC<ClientProfileProps> = ({
   client,
-  showImage = true,
-  onClientUpdated,
+  onSaveNotes,
   placeholder = false,
 }) => {
   const [showNoteForm, setShowNoteForm] = useState(false);
@@ -44,7 +43,6 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
   const passwordInputRef = useRef<HTMLInputElement>(null);
   const notesInputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
   const identifications: ID[] = client.identifications || [];
-  const imageSrc = useClientImage(client.image_path);
   const panelSx = {
     minWidth: 0,
     display: "flex",
@@ -164,16 +162,13 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
     setSavingNotes(true);
     try {
       const trimmedNotes = notesDraft.trim();
-      const updatedClient = await clientService.updateClient({
-        client: {
-          ...client,
-          notes: trimmedNotes,
-        },
+      await onSaveNotes({
+        client,
         identifications,
-        notes_action: skipPassword ? "clear" : "append_signature",
-        employee_password: skipPassword ? "" : employeePassword,
+        notes: trimmedNotes,
+        employeePassword: skipPassword ? "" : employeePassword,
+        notesAction: skipPassword ? "clear" : "append_signature",
       });
-      onClientUpdated?.(updatedClient);
       setShowPasswordForm(false);
       setShowNoteForm(false);
       setNotesDraft("");
@@ -181,10 +176,9 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
       setEmployeePasswordError("");
       setSubmitError("");
     } catch (error) {
-      const clientError = error as ClientFormError;
       const nextEmployeePasswordError = resolveFormFieldError(
         "employee_password",
-        clientError,
+        error,
       );
 
       if (nextEmployeePasswordError) {
@@ -200,75 +194,41 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
   };
 
   return (
-    <Box
-      sx={{
-        p: 1,
-        boxSizing: "border-box"
-      }}
-    >
+    <Box>
       <Box
         sx={{
           display: "grid",
           gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-          gap: 1.25,
+          gap: 1.0,
           minHeight: 0,
         }}
       >
         <Box sx={panelSx}>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              gap: 1,
-              mb: 0.5,
-            }}
-          >
-            <Typography variant="subtitle2" fontWeight={700}>
+            <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 0.5 }}>
               Profile
             </Typography>
-          </Box>
-          {showImage && (
-            <Box sx={{ display: "flex", justifyContent: "center", mb: 0.45 }}>
-              <Avatar
-                variant="square"
-                src={imageSrc ?? undefined}
-                alt="Client Photo"
-                sx={{
-                  width: 72,
-                  height: 72,
-                  borderRadius: 2,
-                  boxShadow: 2,
-                }}
-              >
-                {!client.image_path && client.first_name
-                  ? client.first_name[0]
-                  : ""}
-              </Avatar>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 0 }}>
+              <InfoRow
+                label="Client #:"
+                value={displayText(client.client_number)}
+              />
+              <InfoRow
+                label="Last Name:"
+                value={displayText(client.last_name?.toUpperCase())}
+              />
+              <InfoRow
+                label="First Name:"
+                value={displayText(client.first_name?.toUpperCase())}
+              />
+              <InfoRow
+                label="Mid Name:"
+                value={displayText(client.middle_name?.toUpperCase())}
+              />
+              <InfoRow
+                label="Date of Birth:"
+                value={displayDate(client.date_of_birth)}
+              />
             </Box>
-          )}
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 0 }}>
-            <InfoRow
-              label="Client #:"
-              value={displayText(client.client_number)}
-            />
-            <InfoRow
-              label="Last Name:"
-              value={displayText(client.last_name?.toUpperCase())}
-            />
-            <InfoRow
-              label="First Name:"
-              value={displayText(client.first_name?.toUpperCase())}
-            />
-            <InfoRow
-              label="Mid Name:"
-              value={displayText(client.middle_name?.toUpperCase())}
-            />
-            <InfoRow
-              label="Date of Birth:"
-              value={displayDate(client.date_of_birth)}
-            />
-          </Box>
         </Box>
 
         <Box sx={panelSx}>
@@ -412,11 +372,11 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              mb: 0.75,
+              mb: 0.5,
               gap: 1,
             }}
           >
-            <Typography variant="subtitle2" fontWeight={700}>
+            <Typography variant="subtitle2" fontWeight={700} >
               Notes
             </Typography>
             <Button
@@ -561,4 +521,4 @@ const ClientPanel: React.FC<ClientPanelProps> = ({
   );
 };
 
-export default ClientPanel;
+export default ClientProfile;

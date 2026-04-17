@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Paper, Typography } from "@mui/material";
-import ClientPanel from "../components/client/profile/ClientPanel";
+import type { ClientNotesAction } from "../../shared/ipc/clientPayloadTypes";
+import ClientProfile from "../components/client/profile/ClientProfile";
 import ClientsPanel from "../components/client/results/ClientsPanel";
+import { clientService } from "../services/clientService";
 import { useClientSearch } from "../hooks/useClientSearch";
 import { CLIENT_RESULTS_HEIGHT } from "../utils/layoutSizing";
 import defaultClient from "../utils/defaultClient";
-import type { Client } from "../../shared/types/Client";
+import type { Client, ID } from "../../shared/types/Client";
 
 interface ClientPageProps {
   searchFirstName: string;
@@ -245,6 +247,33 @@ const ClientPage: React.FC<ClientPageProps> = ({
     setSelectedClient(updatedClient);
   };
 
+  const handleSaveClientNotes = async ({
+    client,
+    identifications,
+    notes,
+    employeePassword,
+    notesAction,
+  }: {
+    client: Client;
+    identifications: ID[];
+    notes: string;
+    employeePassword: string;
+    notesAction: ClientNotesAction;
+  }) => {
+    const updatedClient = await clientService.updateClient({
+      client: {
+        ...client,
+        notes,
+      },
+      identifications: identifications || [],
+      notes_action: notesAction,
+      employee_password: employeePassword,
+    });
+
+    handleClientUpdated(updatedClient);
+    return updatedClient;
+  };
+
   useEffect(() => {
     onClientSelected?.(selectedClient);
   }, [selectedClient, onClientSelected]);
@@ -274,10 +303,9 @@ const ClientPage: React.FC<ClientPageProps> = ({
         }}
       >
         <Box sx={{ flex: 1, minHeight: 0, overflow: "auto", pr: 0.25 }}>
-          <ClientPanel
+          <ClientProfile
             client={selectedClient ?? defaultClient}
-            showImage={false}
-            onClientUpdated={handleClientUpdated}
+            onSaveNotes={handleSaveClientNotes}
             placeholder={!selectedClient}
           />
         </Box>

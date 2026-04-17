@@ -38,10 +38,9 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, value }) => {
     <Box
       sx={{
         display: "flex",
-        justifyContent: "space-between",
         alignItems: "center",
         py: 0.45,
-        borderBottom: "1px solid",
+        borderBottom: "2px solid",
         borderColor: "divider",
       }}
     >
@@ -49,10 +48,8 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, value }) => {
         sx={{
           flex: 2,
           color: "text.secondary",
-          fontWeight: 500,
-          fontSize: "0.82rem",
-          textAlign: "right",
-          pr: 1.25,
+          fontWeight: 100,
+          fontSize: "0.80rem",
         }}
       >
         {label}
@@ -63,7 +60,6 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, value }) => {
           color: "text.primary",
           fontWeight: 600,
           fontSize: "0.9rem",
-          textAlign: "right",
         }}
       >
         {renderedValue}
