@@ -15,45 +15,31 @@ import {
   insertIDType,
 } from "./schema/client/idTypeTable.ts";
 import { createEmployeeTable } from "./schema/employee/employeeTable.ts";
-import { createItemTable } from "./schema/item/itemTable.ts";
+import {
+  createItemCategoryTable,
+  insertItemCategory,
+} from "./schema/item/itemCategoryTable.ts";
+import {
+  createItemSubcategoryTable,
+  insertItemSubcategory,
+} from "./schema/item/itemSubcategoryTable.ts";
+import {
+  createItemIndexes,
+  createItemTable,
+} from "./schema/item/itemTable.ts";
 import {
   createLocationTable,
   insertLocation,
 } from "./schema/ticket/locationTable.ts";
-import { createTicketTable } from "./schema/ticket/ticketTable.ts";
+import {
+  createTicketIndexes,
+  createTicketTable,
+} from "./schema/ticket/ticketTable.ts";
 
 export const initializeDatabase = async () => {
   const client = await connect();
 
   try {
-    await client.query(createClientTable);
-    console.log("client table created successfully");
-
-    await client.query(createClientIDTable);
-    console.log("client_id table created successfully");
-
-    await client.query(createTicketTable);
-    console.log("ticket table created successfully");
-
-    await client.query(`
-      ALTER TABLE ticket
-      ADD COLUMN IF NOT EXISTS is_lost BOOLEAN NOT NULL DEFAULT FALSE
-    `);
-    console.log("ticket is_lost column ensured successfully");
-
-    await client.query(
-      `ALTER TABLE ticket DROP CONSTRAINT IF EXISTS ticket_status_check`,
-    );
-    await client.query(`
-      ALTER TABLE ticket
-      ADD CONSTRAINT ticket_status_check
-      CHECK (status IN ('pawned', 'picked_up', 'expired', 'sold'))
-    `);
-    console.log("ticket status constraint updated successfully");
-
-    await client.query(createItemTable);
-    console.log("item table created successfully");
-
     await client.query(createCityTable);
     console.log("city table created successfully");
     await importCity(client);
@@ -73,6 +59,34 @@ export const initializeDatabase = async () => {
     console.log("id_type table created successfully");
     await client.query(insertIDType);
     console.log("id type inserted successfully");
+
+    await client.query(createClientTable);
+    console.log("client table created successfully");
+
+    await client.query(createClientIDTable);
+    console.log("client_id table created successfully");
+
+    await client.query(createTicketTable);
+    console.log("ticket table created successfully");
+
+    await client.query(createTicketIndexes);
+    console.log("ticket indexes created successfully");
+
+    await client.query(createItemCategoryTable);
+    console.log("item_category table created successfully");
+    await client.query(insertItemCategory);
+    console.log("item_category seeded successfully");
+
+    await client.query(createItemSubcategoryTable);
+    console.log("item_subcategory table created successfully");
+    await client.query(insertItemSubcategory);
+    console.log("item_subcategory seeded successfully");
+
+    await client.query(createItemTable);
+    console.log("item table created successfully");
+
+    await client.query(createItemIndexes);
+    console.log("item subcategory index ensured successfully");
 
     await client.query(createEmployeeTable);
     console.log("employee table created successfully");

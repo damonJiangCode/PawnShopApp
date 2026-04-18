@@ -19,3 +19,9 @@ export const createTicketTable = `
     client_number INTEGER REFERENCES client(client_number) ON DELETE SET NULL
   );
 `;
+
+export const createTicketIndexes = `
+  CREATE INDEX IF NOT EXISTS idx_ticket_pawned_overdue_location_due_date
+  ON ticket(location, due_date)
+  WHERE status = 'pawned' AND is_overdue = TRUE;
+`;
