@@ -8,7 +8,7 @@ export const createItemTable = `
     model_number TEXT,
     serial_number TEXT,
     amount NUMERIC(10,1),
-    item_ticket_status JSONB,
+    latest_ticket_number INTEGER REFERENCES ticket(ticket_number) ON DELETE SET NULL,
     image_path TEXT
 );
 `;
@@ -16,4 +16,7 @@ export const createItemTable = `
 export const createItemIndexes = `
   CREATE INDEX IF NOT EXISTS idx_item_subcategory_id
   ON item(subcategory_id);
+
+  CREATE INDEX IF NOT EXISTS idx_item_latest_ticket_number
+  ON item(latest_ticket_number);
 `;

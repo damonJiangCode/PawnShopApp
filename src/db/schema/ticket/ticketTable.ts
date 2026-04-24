@@ -16,7 +16,8 @@ export const createTicketTable = `
     employee_name TEXT,
     pickup_datetime TIMESTAMPTZ DEFAULT NULL,
     status TEXT NOT NULL CHECK (status IN ('pawned', 'picked_up', 'expired', 'sold')),
-    client_number INTEGER REFERENCES client(client_number) ON DELETE SET NULL
+    client_number INTEGER REFERENCES client(client_number) ON DELETE SET NULL,
+    items INTEGER[] NOT NULL DEFAULT '{}'
   );
 `;
 
@@ -24,4 +25,7 @@ export const createTicketIndexes = `
   CREATE INDEX IF NOT EXISTS idx_ticket_pawned_overdue_location_due_date
   ON ticket(location, due_date)
   WHERE status = 'pawned' AND is_overdue = TRUE;
+
+  CREATE INDEX IF NOT EXISTS idx_ticket_items
+  ON ticket USING GIN(items);
 `;

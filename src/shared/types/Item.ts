@@ -1,8 +1,3 @@
-export interface ItemTicketStatus {
-  ticket_number: number;
-  status: "pawned" | "picked_up" | "expired" | "sold";
-}
-
 export interface Item {
   item_number: number;
   source_item_number?: number;
@@ -12,7 +7,7 @@ export interface Item {
   model_number?: string;
   serial_number?: string;
   amount: number;
-  item_ticket_status: ItemTicketStatus[];
+  latest_ticket_number?: number;
   image_path?: string;
   draft_id?: string;
   is_loaded_draft?: boolean;

@@ -87,6 +87,7 @@ const mapTicketRow = (row: Record<string, unknown>): Ticket => {
       : undefined,
     status: row.status as Ticket["status"],
     client_number: Number(row.client_number),
+    items: Array.isArray(row.items) ? row.items.map(Number) : [],
   };
 };
 
@@ -110,7 +111,8 @@ export const ticketRepo = {
         employee_name,
         pickup_datetime,
         status,
-        client_number
+        client_number,
+        items
       FROM ticket
       WHERE client_number = $1
       ORDER BY transaction_datetime ASC, ticket_number ASC
@@ -146,7 +148,8 @@ export const ticketRepo = {
         employee_name,
         pickup_datetime,
         status,
-        client_number
+        client_number,
+        items
       FROM ticket
       WHERE ticket_number = $1
       LIMIT 1
@@ -248,7 +251,8 @@ export const ticketRepo = {
         employee_name,
         pickup_datetime,
         status,
-        client_number
+        client_number,
+        items
     `;
 
     const values = [
@@ -311,7 +315,8 @@ export const ticketRepo = {
         employee_name,
         pickup_datetime,
         status,
-        client_number
+        client_number,
+        items
     `;
 
     const values = [
@@ -378,7 +383,8 @@ export const ticketRepo = {
         employee_name,
         pickup_datetime,
         status,
-        client_number
+        client_number,
+        items
     `;
 
     const values = [
@@ -437,7 +443,8 @@ export const ticketRepo = {
         employee_name,
         pickup_datetime,
         status,
-        client_number
+        client_number,
+        items
     `;
 
     try {
@@ -486,7 +493,8 @@ export const ticketRepo = {
         employee_name,
         pickup_datetime,
         status,
-        client_number
+        client_number,
+        items
     `;
 
     try {

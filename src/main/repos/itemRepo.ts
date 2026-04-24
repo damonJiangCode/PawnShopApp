@@ -1,5 +1,5 @@
 import { connect } from "../../db/connection.ts";
-import type { Item, ItemTicketStatus } from "../../shared/types/Item.ts";
+import type { Item } from "../../shared/types/Item.ts";
 
 const mapItemRow = (row: Record<string, unknown>): Item => {
   return {
@@ -10,9 +10,9 @@ const mapItemRow = (row: Record<string, unknown>): Item => {
     model_number: row.model_number ? String(row.model_number) : "",
     serial_number: row.serial_number ? String(row.serial_number) : "",
     amount: Number(row.amount ?? 0),
-    item_ticket_status: Array.isArray(row.item_ticket_status)
-      ? (row.item_ticket_status as ItemTicketStatus[])
-      : [],
+    latest_ticket_number: row.latest_ticket_number
+      ? Number(row.latest_ticket_number)
+      : undefined,
     image_path: row.image_path ? String(row.image_path) : "",
   };
 };
@@ -29,15 +29,13 @@ export const itemRepo = {
         model_number,
         serial_number,
         amount,
-        item_ticket_status,
+        latest_ticket_number,
         image_path
-      FROM item
-      WHERE EXISTS (
-        SELECT 1
-        FROM jsonb_array_elements(item_ticket_status) AS status_entry
-        WHERE (status_entry ->> 'ticket_number')::integer = $1
-      )
-      ORDER BY item_number DESC
+      FROM item i
+      INNER JOIN ticket t
+        ON i.item_number = ANY(t.items)
+      WHERE t.ticket_number = $1
+      ORDER BY i.item_number DESC
     `;
 
     try {

@@ -1,5 +1,3 @@
-import type { Item } from "./Item.ts";
-
 export interface Ticket {
   ticket_number?: number;
   transaction_datetime: Date;
@@ -17,5 +15,5 @@ export interface Ticket {
   pickup_datetime?: Date;
   status: "pawned" | "picked_up" | "expired" | "sold";
   client_number: number;
-  items?: Item[];
+  items?: number[];
 }
