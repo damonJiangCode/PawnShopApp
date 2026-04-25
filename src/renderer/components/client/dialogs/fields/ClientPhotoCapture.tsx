@@ -3,13 +3,13 @@ import { Box, Button, Typography } from "@mui/material";
 import type { Client } from "../../../../../shared/types/Client";
 import { clientService } from "../../../../services/clientService";
 
-interface PhotoCaptureProps {
+interface ClientPhotoCaptureProps {
   client: Client;
   onCapture: (fileName: string, base64: string) => void;
   active?: boolean;
 }
 
-const PhotoCapture: React.FC<PhotoCaptureProps> = (props) => {
+const ClientPhotoCapture: React.FC<ClientPhotoCaptureProps> = (props) => {
   const { client, onCapture, active } = props;
   const [photoData, setPhotoData] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -26,7 +26,7 @@ const PhotoCapture: React.FC<PhotoCaptureProps> = (props) => {
         })
         .catch((err) => {
           console.error("Failed to access camera", err);
-          alert("Failed to access camera (PhotoCapture.tsx).");
+          alert("Failed to access camera (ClientPhotoCapture.tsx).");
         });
     } else {
       if (streamRef.current) {
@@ -55,7 +55,7 @@ const PhotoCapture: React.FC<PhotoCaptureProps> = (props) => {
           }
         } catch (err) {
           console.error("Failed to load client image", err);
-          alert("Failed to load client image (PhotoCapture.tsx).");
+          alert("Failed to load client image (ClientPhotoCapture.tsx).");
           throw err;
         }
       })();
@@ -66,7 +66,7 @@ const PhotoCapture: React.FC<PhotoCaptureProps> = (props) => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas) {
-      alert("Camera not initialized (PhotoCapture.tsx).");
+      alert("Camera not initialized (ClientPhotoCapture.tsx).");
       return;
     }
 
@@ -82,8 +82,8 @@ const PhotoCapture: React.FC<PhotoCaptureProps> = (props) => {
 
     const base64 = imageDataUrl.replace(/^data:image\/png;base64,/, "");
     const fileName = client.client_number
-      ? `client_${client.client_number}.png`
-      : `client_temp_${Date.now()}.png`;
+      ? `client_${client.client_number}_${Date.now()}.png`
+      : `client_pending_${Date.now()}.png`;
 
     onCapture(fileName, base64);
   };
@@ -150,4 +150,4 @@ const PhotoCapture: React.FC<PhotoCaptureProps> = (props) => {
   );
 };
 
-export default PhotoCapture;
+export default ClientPhotoCapture;

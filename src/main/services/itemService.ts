@@ -59,9 +59,21 @@ export const itemService = {
     const normalizedInput = normalizeSaveItemInput(input);
     validateItem(normalizedInput);
 
-    return runInTransaction("createItem", async (client) =>
-      itemRepo.create(normalizedInput, client),
-    );
+    return runInTransaction("createItem", async (client) => {
+      const item = await itemRepo.create(normalizedInput, client);
+      const imagePath = item.image_path
+        ? await imageStorage.finalizeItemImage(item.item_number, item.image_path)
+        : "";
+
+      if (imagePath && imagePath !== item.image_path) {
+        await itemRepo.updateImagePath(item.item_number, imagePath, client);
+      }
+
+      return {
+        ...item,
+        image_path: imagePath || item.image_path,
+      };
+    });
   },
 
   updateItem: async (input: SaveItemInput): Promise<Item> => {
@@ -72,9 +84,20 @@ export const itemService = {
       throw new Error("An item is required.");
     }
 
-    return runInTransaction("updateItem", async (client) =>
-      itemRepo.update(normalizedInput, client),
-    );
+    return runInTransaction("updateItem", async (client) => {
+      const imagePath = normalizedInput.image_path
+        ? await imageStorage.finalizeItemImage(
+            normalizedInput.item_number as number,
+            normalizedInput.image_path,
+          )
+        : "";
+      const preparedInput = {
+        ...normalizedInput,
+        image_path: imagePath || normalizedInput.image_path,
+      };
+
+      return itemRepo.update(preparedInput, client);
+    });
   },
 
   deleteItem: async (

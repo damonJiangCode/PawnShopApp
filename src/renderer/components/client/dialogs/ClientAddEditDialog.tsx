@@ -12,7 +12,7 @@ import {
   TextField,
 } from "@mui/material";
 import type { Client, ID } from "../../../../shared/types/Client";
-import PhotoCapture from "./fields/PhotoCapture";
+import ClientPhotoCapture from "./fields/ClientPhotoCapture";
 import HeightWeightFields from "./fields/HeightWeightFields";
 import NameFields from "./fields/NameFields";
 import DobGenderColor from "./fields/DobGenderColor";
@@ -480,7 +480,7 @@ const ClientAddEditDialog: React.FC<ClientAddEditDialogProps> = (props) => {
                   gap: 1,
                 }}
               >
-                <PhotoCapture
+                <ClientPhotoCapture
                   client={client}
                   onCapture={handleCapture}
                   active={cameraActive}

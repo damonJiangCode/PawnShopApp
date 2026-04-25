@@ -13,8 +13,9 @@ const ItemImage: React.FC<ItemImageProps> = (props) => {
   const [imageSrc, setImageSrc] = useState("");
 
   useEffect(() => {
+    setImageSrc("");
+
     if (!selectedItem?.image_path) {
-      setImageSrc("");
       return;
     }
 

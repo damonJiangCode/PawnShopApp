@@ -251,6 +251,30 @@ export const clientRepo = {
     }
   },
 
+  updateImagePath: async (
+    clientNumber: number,
+    imagePath: string,
+    dbClient?: DbClient,
+  ): Promise<void> => {
+    const client = await getDbClient(dbClient);
+
+    try {
+      await client.query(
+        `
+          UPDATE client
+          SET image_path = $1,
+              updated_at = CURRENT_TIMESTAMP
+          WHERE client_number = $2
+        `,
+        [imagePath, clientNumber],
+      );
+    } finally {
+      if (!dbClient) {
+        client.release();
+      }
+    }
+  },
+
   insertIds: async (
     clientNumber: number,
     ids: ID[],

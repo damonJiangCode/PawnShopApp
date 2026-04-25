@@ -171,6 +171,21 @@ export const clientService = {
       };
 
       const insertedClient = await clientRepo.create(preparedClient, client);
+      const imagePath = preparedClient.image_path
+        ? await imageStorage.finalizeClientImage(
+            insertedClient.client_number,
+            preparedClient.image_path,
+          )
+        : "";
+
+      if (imagePath && imagePath !== preparedClient.image_path) {
+        await clientRepo.updateImagePath(
+          insertedClient.client_number,
+          imagePath,
+          client,
+        );
+      }
+
       const insertedIds = await clientRepo.insertIds(
         insertedClient.client_number,
         normalizedInput.identifications,
@@ -179,6 +194,7 @@ export const clientService = {
 
       return {
         ...preparedClient,
+        image_path: imagePath || preparedClient.image_path,
         client_number: insertedClient.client_number,
         updated_at: insertedClient.updated_at,
         identifications: insertedIds,
@@ -207,16 +223,27 @@ export const clientService = {
         notes: nextNotes,
       };
 
-      const updatedClient = await clientRepo.update(preparedClient, client);
-      await clientRepo.deleteIds(preparedClient.client_number as number, client);
+      const imagePath = preparedClient.image_path
+        ? await imageStorage.finalizeClientImage(
+            preparedClient.client_number as number,
+            preparedClient.image_path,
+          )
+        : "";
+      const preparedClientWithImage = {
+        ...preparedClient,
+        image_path: imagePath || preparedClient.image_path,
+      };
+
+      const updatedClient = await clientRepo.update(preparedClientWithImage, client);
+      await clientRepo.deleteIds(preparedClientWithImage.client_number as number, client);
       const insertedIds = await clientRepo.insertIds(
-        preparedClient.client_number as number,
+        preparedClientWithImage.client_number as number,
         normalizedInput.identifications,
         client,
       );
 
       return {
-        ...preparedClient,
+        ...preparedClientWithImage,
         updated_at: updatedClient.updated_at,
         identifications: insertedIds,
       };

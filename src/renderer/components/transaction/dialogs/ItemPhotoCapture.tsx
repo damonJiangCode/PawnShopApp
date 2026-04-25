@@ -86,8 +86,8 @@ const ItemPhotoCapture: React.FC<ItemPhotoCaptureProps> = ({
     const imageDataUrl = canvas.toDataURL("image/png");
     const base64 = imageDataUrl.replace(/^data:image\/png;base64,/, "");
     const fileName = itemNumber
-      ? `item_${itemNumber}.png`
-      : `item_temp_${Date.now()}.png`;
+      ? `item_${itemNumber}_${Date.now()}.png`
+      : `item_pending_${Date.now()}.png`;
 
     setPhotoData(imageDataUrl);
     onCapture(fileName, base64);

@@ -198,6 +198,21 @@ export const itemRepo = {
     return mapItemRow(result.rows[0]);
   },
 
+  updateImagePath: async (
+    itemNumber: number,
+    imagePath: string,
+    dbClient: DbClient,
+  ): Promise<void> => {
+    await dbClient.query(
+      `
+        UPDATE item
+        SET image_path = $1
+        WHERE item_number = $2
+      `,
+      [imagePath, itemNumber],
+    );
+  },
+
   delete: async (
     ticketNumber: number,
     itemNumber: number,

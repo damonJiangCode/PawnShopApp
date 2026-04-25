@@ -461,6 +461,20 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       ),
     );
     setSelectedTicket(convertedTicket);
+    const refreshedItems = convertedTicket.ticket_number
+      ? await itemService.loadItems(convertedTicket.ticket_number)
+      : [];
+    setItems(refreshedItems);
+    setSelectedItem((prev) => {
+      if (!refreshedItems.length) {
+        return null;
+      }
+
+      return (
+        refreshedItems.find((item) => item.item_number === prev?.item_number) ??
+        refreshedItems[0]
+      );
+    });
     setOpenTicketConvertDialog(false);
     setStatusMessage(
       `Ticket #${convertedTicket.ticket_number} converted from ${fromStatus} to ${convertedTicket.status}.`,
