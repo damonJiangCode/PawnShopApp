@@ -31,7 +31,7 @@ const loadEnvFile = () => {
 loadEnvFile();
 
 const pool = new Pool({
-  user: process.env.DB_USER ?? "damon",
+  user: process.env.DB_USER ?? "moneyexpress",
   host: process.env.DB_HOST ?? "localhost",
   database: process.env.DB_NAME ?? "pawnshopdb",
   password: process.env.DB_PASSWORD ?? "0236",

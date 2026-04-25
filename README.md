@@ -1,8 +1,31 @@
+# Win Setup
+
+1. winget -e --id OpenJS.NodeJS.LTS
+2. winget install -e --id PostgreSQL.PostgreSQL.16
+3. Start-Service postgresql-x64-16
+   (4. Set-Service postgresql-x64-16 -StartupType Automatic)
+4. $env:Path += ";C:\Program Files\PostgreSQL\16\bin"
+5. psql -U postgres
+6. CREATE USER moneyexpress WITH PASSWORD '0236';
+   CREATE DATABASE pawnshopdb OWNER moneyexpress;
+   GRANT ALL PRIVILEGES ON DATABASE pawnshopdb TO me;
+   \q
+
+7. download vsode
+8. Create Documents\PawnShopApp
+9. git clone https://github.com/damonJiangCode/PawnShopApp.git .
+
 # PawnShopApp
 
+user: process.env.DB_USER ?? "damon",
+host: process.env.DB_HOST ?? "localhost",
+database: process.env.DB_NAME ?? "pawnshopdb",
+password: process.env.DB_PASSWORD ?? "0236",
+port: Number(process.env.DB_PORT ?? 5432),
 Electron + React desktop app for pawn shop workflows.
 
 ## Stack
+
 - Electron for the desktop shell, main process, and preload bridge
 - React + Vite + MUI for the renderer UI
 - PostgreSQL for persistence
