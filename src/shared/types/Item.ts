@@ -2,6 +2,9 @@ export interface Item {
   item_number: number;
   source_item_number?: number;
   quantity: number;
+  subcategory_id?: number;
+  category_name?: string;
+  subcategory_name?: string;
   description: string;
   brand_name?: string;
   model_number?: string;

@@ -21,7 +21,7 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
     {
       field: "item_number_display",
       headerName: "ITM_NO",
-      width: 120,
+      width: 90,
       valueGetter: (_value, row: Item) =>
         row.source_item_number ?? row.item_number,
       renderCell: (params) => <CellTooltip value={params.value} />,
@@ -29,7 +29,7 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
     {
       field: "quantity",
       headerName: "QTY",
-      width: 40,
+      width: 55,
       renderCell: (params) => (
         <CellTooltip value={formatDisplayValue(params.value, "")} />
       ),
@@ -44,14 +44,15 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
       field: "amount",
       headerName: "VALUE",
       width: 80,
-      renderCell: (params) =>
+      renderCell: (params) => (
         <CellTooltip
           value={
             params.value != null && params.value !== ""
               ? `$${params.value}`
               : ""
           }
-        />,
+        />
+      ),
     },
     {
       field: "brand_name",

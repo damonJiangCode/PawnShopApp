@@ -36,7 +36,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({
     {
       field: "ticket_number",
       headerName: "#",
-      width: 96,
+      width: 80,
       renderCell: (params) => (
         <CellTooltip value={params.value} fallback="---" />
       ),
@@ -64,7 +64,7 @@ const TicketsTable: React.FC<TicketsTableProps> = ({
     {
       field: "description",
       headerName: "DESC",
-      width: 150,
+      width: 120,
       renderCell: (params) => (
         <CellTooltip value={params.value} fallback="---" />
       ),
@@ -111,9 +111,11 @@ const TicketsTable: React.FC<TicketsTableProps> = ({
       headerName: "INT",
       width: 84,
       renderCell: (params) =>
-        params.row.status === "sold"
-          ? <CellTooltip value={null} fallback="---" />
-          : <CellTooltip value={formatCurrency(params.value)} fallback="---" />,
+        params.row.status === "sold" ? (
+          <CellTooltip value={null} fallback="---" />
+        ) : (
+          <CellTooltip value={formatCurrency(params.value)} fallback="---" />
+        ),
     },
     {
       field: "interested_datetime",
@@ -132,19 +134,19 @@ const TicketsTable: React.FC<TicketsTableProps> = ({
       headerName: "PKUP",
       width: 84,
       renderCell: (params) =>
-        params.row.status === "sold"
-          ? <CellTooltip value={null} fallback="---" />
-          : <CellTooltip value={formatCurrency(params.value)} fallback="---" />,
+        params.row.status === "sold" ? (
+          <CellTooltip value={null} fallback="---" />
+        ) : (
+          <CellTooltip value={formatCurrency(params.value)} fallback="---" />
+        ),
     },
     {
       field: "employee_name",
       headerName: "EMP",
       width: 120,
-      renderCell: (params) =>
-        <CellTooltip
-          value={formatUppercase(params.value, "")}
-          fallback="---"
-        />,
+      renderCell: (params) => (
+        <CellTooltip value={formatUppercase(params.value, "")} fallback="---" />
+      ),
     },
   ];
 

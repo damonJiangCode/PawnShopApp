@@ -14,6 +14,12 @@ const CHANNELS = {
   GET_CLIENT_IMAGE: "get-client-image",
   GET_TICKETS: "get-tickets",
   GET_ITEMS: "get-items",
+  GET_ITEM_CATEGORIES: "get-item-categories",
+  ADD_ITEM: "add-item",
+  UPDATE_ITEM: "update-item",
+  DELETE_ITEM: "delete-item",
+  SAVE_ITEM_IMAGE: "save-item-image",
+  GET_ITEM_IMAGE: "get-item-image",
   ADD_PAWN_TICKET: "add-pawn-ticket",
   ADD_SELL_TICKET: "add-sell-ticket",
   UPDATE_TICKET: "update-ticket",
@@ -55,6 +61,14 @@ const ticketApi = {
 
 const itemApi = {
   loadByTicket: (ticketNumber) => invoke(CHANNELS.GET_ITEMS, ticketNumber),
+  loadCategories: () => invoke(CHANNELS.GET_ITEM_CATEGORIES),
+  create: (payload) => invoke(CHANNELS.ADD_ITEM, payload),
+  update: (payload) => invoke(CHANNELS.UPDATE_ITEM, payload),
+  delete: (ticketNumber, itemNumber) =>
+    invoke(CHANNELS.DELETE_ITEM, ticketNumber, itemNumber),
+  saveImage: (fileName, base64) =>
+    invoke(CHANNELS.SAVE_ITEM_IMAGE, fileName, base64),
+  loadImage: (imagePath) => invoke(CHANNELS.GET_ITEM_IMAGE, imagePath),
 };
 
 contextBridge.exposeInMainWorld("electronAPI", {

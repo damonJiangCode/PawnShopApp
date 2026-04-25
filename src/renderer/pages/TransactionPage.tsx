@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 import {
   Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Paper,
   Typography,
 } from "@mui/material";
@@ -16,6 +21,7 @@ import TicketTransferDialog from "../components/transaction/dialogs/TicketTransf
 import TicketConvertDialog from "../components/transaction/dialogs/TicketConvertDialog";
 import TicketExpireDialog from "../components/transaction/dialogs/TicketExpireDialog";
 import TicketItemLoadDialog from "../components/transaction/dialogs/TicketItemLoadDialog";
+import ItemEditDialog from "../components/transaction/dialogs/ItemEditDialog";
 import {
   type ConvertTicketInput,
   type ExpireTicketInput,
@@ -26,6 +32,7 @@ import {
   type UpdateTicketInput,
 } from "../services/ticketService";
 import { itemService } from "../services/itemService";
+import type { ItemCategoryOption } from "../services/itemService";
 
 export interface TransactionItemLoadRequest {
   requestId: number;
@@ -76,6 +83,10 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
   const [openTicketExpireDialog, setOpenTicketExpireDialog] = useState(false);
   const [openTicketTransferDialog, setOpenTicketTransferDialog] = useState(false);
   const [openTicketItemLoadDialog, setOpenTicketItemLoadDialog] = useState(false);
+  const [openItemDialog, setOpenItemDialog] = useState(false);
+  const [itemDialogMode, setItemDialogMode] = useState<"add" | "edit">("add");
+  const [removeItemTarget, setRemoveItemTarget] = useState<Item | null>(null);
+  const [itemCategories, setItemCategories] = useState<ItemCategoryOption[]>([]);
   const [ticketDraftItems, setTicketDraftItems] = useState<Record<number, Item[]>>({});
   const [draftItemSequence, setDraftItemSequence] = useState(-1);
   const [pendingLoadRequest, setPendingLoadRequest] =
@@ -204,6 +215,22 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
     setOpenTicketItemLoadDialog(true);
     setStatusMessage("");
   }, [incomingItemLoadRequest]);
+
+  useEffect(() => {
+    let active = true;
+
+    itemService.preloadCategories().then((categories) => {
+      if (active) {
+        setItemCategories(categories);
+      }
+    }).catch((err) => {
+      console.error(err);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -494,18 +521,60 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
   };
 
   const handleAddItem = () => {
-    setStatusMessage("Add item is not wired yet.");
+    if (!selectedTicket?.ticket_number) {
+      setStatusMessage("Select a ticket first.");
+      return;
+    }
+
+    setItemDialogMode("add");
+    setSelectedItem(null);
+    setOpenItemDialog(true);
+    setStatusMessage("");
   };
 
-  const handleEditItem = (_item: Item) => {
-    setStatusMessage("Edit item is not wired yet.");
+  const handleEditItem = (item: Item) => {
+    if (item.is_loaded_draft) {
+      setStatusMessage("Loaded draft items must be saved before editing.");
+      return;
+    }
+
+    setSelectedItem(item);
+    setItemDialogMode("edit");
+    setOpenItemDialog(true);
+    setStatusMessage("");
   };
 
   const handleRemoveItem = (item: Item) => {
-    if (item.is_loaded_draft && selectedTicket?.ticket_number) {
+    setRemoveItemTarget(item);
+    setStatusMessage("");
+  };
+
+  const handleItemSaved = (savedItem: Item) => {
+    setItems((prev) => {
+      const exists = prev.some((item) => item.item_number === savedItem.item_number);
+      return exists
+        ? prev.map((item) =>
+            item.item_number === savedItem.item_number ? savedItem : item,
+          )
+        : [savedItem, ...prev];
+    });
+    setSelectedItem(savedItem);
+    setOpenItemDialog(false);
+    setStatusMessage(`Item #${savedItem.item_number} saved.`);
+  };
+
+  const handleConfirmRemoveItem = async () => {
+    if (!removeItemTarget || !selectedTicket?.ticket_number) {
+      setRemoveItemTarget(null);
+      return;
+    }
+
+    if (removeItemTarget.is_loaded_draft) {
       const ticketNumber = selectedTicket.ticket_number;
       const nextDraftItems = (ticketDraftItems[ticketNumber] ?? []).filter(
-        (current) => (current.draft_id ?? current.item_number) !== (item.draft_id ?? item.item_number),
+        (current) =>
+          (current.draft_id ?? current.item_number) !==
+          (removeItemTarget.draft_id ?? removeItemTarget.item_number),
       );
 
       setTicketDraftItems((prev) => ({
@@ -515,7 +584,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       setSelectedItem((prev) => {
         if (
           (prev?.draft_id ?? prev?.item_number) !==
-          (item.draft_id ?? item.item_number)
+          (removeItemTarget.draft_id ?? removeItemTarget.item_number)
         ) {
           return prev ?? null;
         }
@@ -523,24 +592,36 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
         return [...items, ...nextDraftItems][0] ?? null;
       });
       setStatusMessage(
-        `Loaded item #${item.source_item_number ?? item.item_number} removed from this ticket view.`,
+        `Loaded item #${removeItemTarget.source_item_number ?? removeItemTarget.item_number} removed from this ticket view.`,
       );
+      setRemoveItemTarget(null);
       return;
     }
 
+    await itemService.deleteItem(
+      selectedTicket.ticket_number,
+      removeItemTarget.item_number,
+    );
+
     const nextItems = items.filter(
-      (current) => current.item_number !== item.item_number,
+      (current) => current.item_number !== removeItemTarget.item_number,
     );
 
     setItems(nextItems);
     setSelectedItem((prev) => {
-      if ((prev?.draft_id ?? prev?.item_number) !== item.item_number) {
+      if ((prev?.draft_id ?? prev?.item_number) !== removeItemTarget.item_number) {
         return prev ?? null;
       }
 
-      return [...nextItems, ...(selectedTicket?.ticket_number ? (ticketDraftItems[selectedTicket.ticket_number] ?? []) : [])][0] ?? null;
+      return [
+        ...nextItems,
+        ...(selectedTicket.ticket_number
+          ? (ticketDraftItems[selectedTicket.ticket_number] ?? [])
+          : []),
+      ][0] ?? null;
     });
-    setStatusMessage(`Item #${item.item_number} removed from view.`);
+    setRemoveItemTarget(null);
+    setStatusMessage(`Item #${removeItemTarget.item_number} removed.`);
   };
 
   const handleConfirmLoadedItems = (selectedItems: Item[]) => {
@@ -787,6 +868,42 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
           onConfirm={handleConfirmLoadedItems}
         />
       )}
+
+      {selectedTicket?.ticket_number && (
+        <ItemEditDialog
+          open={openItemDialog}
+          mode={itemDialogMode}
+          ticketNumber={selectedTicket.ticket_number}
+          item={itemDialogMode === "edit" ? selectedItem : null}
+          categories={itemCategories}
+          onClose={() => setOpenItemDialog(false)}
+          onSave={handleItemSaved}
+        />
+      )}
+
+      <Dialog
+        open={Boolean(removeItemTarget)}
+        onClose={() => setRemoveItemTarget(null)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Remove Item</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to remove item #{removeItemTarget?.item_number}?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRemoveItemTarget(null)}>Cancel</Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => void handleConfirmRemoveItem()}
+          >
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
 };

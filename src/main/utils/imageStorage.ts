@@ -7,8 +7,23 @@ const getClientImageBaseDir = () => {
   return path.join(app.getPath("userData"), "client-images");
 };
 
+const getItemImageBaseDir = () => {
+  return path.join(app.getPath("userData"), "item-images");
+};
+
 const resolveClientImagePath = (imagePath: string) => {
   const baseDir = getClientImageBaseDir();
+  const resolved = path.resolve(baseDir, imagePath);
+
+  if (!resolved.startsWith(baseDir)) {
+    throw new Error("Invalid image path");
+  }
+
+  return resolved;
+};
+
+const resolveItemImagePath = (imagePath: string) => {
+  const baseDir = getItemImageBaseDir();
   const resolved = path.resolve(baseDir, imagePath);
 
   if (!resolved.startsWith(baseDir)) {
@@ -38,6 +53,37 @@ export const imageStorage = {
 
   loadClientImage: async (imagePath: string): Promise<string> => {
     const baseDir = getClientImageBaseDir();
+    const absPath = path.isAbsolute(imagePath)
+      ? imagePath
+      : path.resolve(app.getPath("userData"), imagePath);
+
+    if (!absPath.startsWith(baseDir)) {
+      throw new Error("Invalid image path");
+    }
+
+    const buffer = await fs.readFile(absPath);
+    return buffer.toString("base64");
+  },
+
+  saveItemImage: async (fileName: string, base64: string): Promise<string> => {
+    if (!base64) {
+      throw new Error("Missing image data");
+    }
+
+    const baseDir = getItemImageBaseDir();
+    await fs.mkdir(baseDir, { recursive: true });
+
+    const safeName = path.basename(fileName);
+    const relPath = path.join("item-images", safeName);
+    const absPath = resolveItemImagePath(safeName);
+    const buffer = Buffer.from(base64, "base64");
+
+    await fs.writeFile(absPath, buffer);
+    return relPath;
+  },
+
+  loadItemImage: async (imagePath: string): Promise<string> => {
+    const baseDir = getItemImageBaseDir();
     const absPath = path.isAbsolute(imagePath)
       ? imagePath
       : path.resolve(app.getPath("userData"), imagePath);
