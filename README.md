@@ -1,19 +1,31 @@
 # Win Setup
 
-1. winget -e --id OpenJS.NodeJS.LTS
-2. winget install -e --id PostgreSQL.PostgreSQL.16
-3. Start-Service postgresql-x64-16
+1. download vsode
+2. Create Documents\PawnShopApp
+3. git clone https://github.com/damonJiangCode/PawnShopApp.git .
+
+4. winget install -e --id OpenJS.NodeJS.LTS
+5. winget install -e --id PostgreSQL.PostgreSQL.16
+6. Start-Service postgresql-x64-16
    (4. Set-Service postgresql-x64-16 -StartupType Automatic)
-4. $env:Path += ";C:\Program Files\PostgreSQL\16\bin"
-5. psql -U postgres
-6. CREATE USER moneyexpress WITH PASSWORD '0236';
+7. $env:Path += ";C:\Program Files\PostgreSQL\16\bin"
+8. psql -U postgres
+   (9. Stop-Service postgresql-x64-16)
+   (10. notepad "C:\Program Files\PostgreSQL\16\data\pg_hba.conf")
+   host all all 127.0.0.1/32 trust
+   host all all ::1/128 trust
+   (11. psql -U postgres -d postgres)
+   (12. ALTER USER postgres WITH PASSWORD '0236';
+   \q)
+   (13. notepad "C:\Program Files\PostgreSQL\16\data\pg_hba.conf")
+   host all all 127.0.0.1/32 scram-sha-256
+   host all all ::1/128 scram-sha-256
+   (14. psql -U postgres -d postgres)
+
+9. CREATE USER moneyexpress WITH PASSWORD '0236';
    CREATE DATABASE pawnshopdb OWNER moneyexpress;
    GRANT ALL PRIVILEGES ON DATABASE pawnshopdb TO me;
    \q
-
-7. download vsode
-8. Create Documents\PawnShopApp
-9. git clone https://github.com/damonJiangCode/PawnShopApp.git .
 
 # PawnShopApp
 
