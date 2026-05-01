@@ -3,7 +3,7 @@ import type { DbClient } from "../../db/connection.ts";
 import type {
   ItemCategoryOption,
   SaveItemInput,
-} from "../../shared/ipc/itemApi.ts";
+} from "../../shared/types/itemPayload.ts";
 import type { Item } from "../../shared/types/Item.ts";
 
 const mapItemRow = (row: Record<string, unknown>): Item => {

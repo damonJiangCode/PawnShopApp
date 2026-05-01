@@ -1,4 +1,4 @@
-import type { Ticket } from "../types/Ticket.ts";
+import type { Ticket } from "./Ticket.ts";
 
 export type CreatePawnTicketInput = {
   description: string;

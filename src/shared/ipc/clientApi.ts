@@ -1,5 +1,5 @@
 import type { Client } from "../types/Client.ts";
-import type { CitiesResponse, SaveClientInput } from "./clientPayloadTypes.ts";
+import type { CitiesResponse, SaveClientInput } from "../types/clientPayload.ts";
 
 export type ElectronClientApi = {
   search: (firstName: string, lastName: string) => Promise<Client[]>;

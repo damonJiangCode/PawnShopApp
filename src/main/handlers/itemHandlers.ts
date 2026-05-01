@@ -1,5 +1,5 @@
 import type { IpcMainInvokeEvent } from "electron";
-import type { SaveItemInput } from "../../shared/ipc/itemApi.ts";
+import type { SaveItemInput } from "../../shared/types/itemPayload.ts";
 import { itemService } from "../services/itemService.ts";
 import { CHANNELS } from "./channels.ts";
 

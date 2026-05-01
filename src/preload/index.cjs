@@ -20,6 +20,10 @@ const CHANNELS = {
   DELETE_ITEM: "delete-item",
   SAVE_ITEM_IMAGE: "save-item-image",
   GET_ITEM_IMAGE: "get-item-image",
+  OPEN_ITEM_LOAD_WINDOW: "open-item-load-window",
+  GET_ITEM_LOAD_WINDOW_PAYLOAD: "get-item-load-window-payload",
+  SUBMIT_ITEM_LOAD_WINDOW: "submit-item-load-window",
+  CANCEL_ITEM_LOAD_WINDOW: "cancel-item-load-window",
   ADD_PAWN_TICKET: "add-pawn-ticket",
   ADD_SELL_TICKET: "add-sell-ticket",
   UPDATE_TICKET: "update-ticket",
@@ -71,10 +75,22 @@ const itemApi = {
   loadImage: (imagePath) => invoke(CHANNELS.GET_ITEM_IMAGE, imagePath),
 };
 
+const windowApi = {
+  openItemLoadWindow: (payload) =>
+    invoke(CHANNELS.OPEN_ITEM_LOAD_WINDOW, payload),
+  loadItemLoadWindowPayload: (requestId) =>
+    invoke(CHANNELS.GET_ITEM_LOAD_WINDOW_PAYLOAD, requestId),
+  submitItemLoadWindow: (requestId, selectedItemIds) =>
+    invoke(CHANNELS.SUBMIT_ITEM_LOAD_WINDOW, requestId, selectedItemIds),
+  cancelItemLoadWindow: (requestId) =>
+    invoke(CHANNELS.CANCEL_ITEM_LOAD_WINDOW, requestId),
+};
+
 contextBridge.exposeInMainWorld("electronAPI", {
   client: clientApi,
   ticket: ticketApi,
   item: itemApi,
+  window: windowApi,
 });
 
 console.log("Preload (CJS) loaded");

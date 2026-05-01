@@ -2,7 +2,7 @@ import type { Item } from "../../shared/types/Item.ts";
 import type {
   ItemCategoryOption,
   SaveItemInput,
-} from "../../shared/ipc/itemApi.ts";
+} from "../../shared/types/itemPayload.ts";
 import { itemRepo } from "../repos/itemRepo.ts";
 import { runInTransaction } from "../utils/runInTransaction.ts";
 import { imageStorage } from "../utils/imageStorage.ts";
