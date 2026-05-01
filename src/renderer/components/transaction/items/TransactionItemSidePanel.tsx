@@ -2,10 +2,10 @@ import React from "react";
 import { Paper, Typography } from "@mui/material";
 import type { Item } from "../../../../shared/types/Item";
 import { ITEM_SIDE_PANEL_WIDTH } from "../../../utils/layoutSizing";
-import ItemActions from "./ItemActions";
-import ItemImage from "./ItemImage";
+import TransactionItemActions from "./TransactionItemActions";
+import TransactionItemImage from "./TransactionItemImage";
 
-interface ItemSidePanelProps {
+interface TransactionItemSidePanelProps {
   selectedItem?: Item;
   loading?: boolean;
   error?: string;
@@ -14,7 +14,7 @@ interface ItemSidePanelProps {
   onDelete: (item: Item) => void;
 }
 
-const ItemSidePanel: React.FC<ItemSidePanelProps> = ({
+const TransactionItemSidePanel: React.FC<TransactionItemSidePanelProps> = ({
   selectedItem,
   loading = false,
   error = "",
@@ -41,8 +41,8 @@ const ItemSidePanel: React.FC<ItemSidePanelProps> = ({
         p: 0.75,
       }}
     >
-      <ItemImage selectedItem={selectedItem} loading={loading} />
-      <ItemActions
+      <TransactionItemImage selectedItem={selectedItem} loading={loading} />
+      <TransactionItemActions
         selectedItem={selectedItem}
         onAdd={onAdd}
         onEdit={onEdit}
@@ -57,4 +57,4 @@ const ItemSidePanel: React.FC<ItemSidePanelProps> = ({
   );
 };
 
-export default ItemSidePanel;
+export default TransactionItemSidePanel;

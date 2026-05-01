@@ -2,10 +2,10 @@ import React from "react";
 import { Box, Paper } from "@mui/material";
 import type { Ticket } from "../../../../shared/types/Ticket";
 import { TICKET_ACTIONS_PANEL_WIDTH } from "../../../utils/layoutSizing";
-import TicketsTable from "./TicketsTable";
-import TicketActions from "./TicketActions";
+import TransactionTicketsTable from "./TransactionTicketsTable";
+import TransactionTicketActions from "./TransactionTicketActions";
 
-interface TicketsPanelProps {
+interface TransactionTicketsPanelProps {
   tickets: Ticket[];
   selectedTicket?: Ticket | null;
   transferDisabled?: boolean;
@@ -19,7 +19,7 @@ interface TicketsPanelProps {
   onExpire: () => void;
 }
 
-const TicketsPanel: React.FC<TicketsPanelProps> = ({
+const TransactionTicketsPanel: React.FC<TransactionTicketsPanelProps> = ({
   tickets,
   selectedTicket,
   transferDisabled = false,
@@ -62,7 +62,7 @@ const TicketsPanel: React.FC<TicketsPanelProps> = ({
         }}
       >
         <Box sx={{ flex: 1, minHeight: 0 }}>
-          <TicketsTable
+          <TransactionTicketsTable
             tickets={tickets}
             selectedTicket={selectedTicket}
             onSelectTicket={onSelectTicket}
@@ -86,7 +86,7 @@ const TicketsPanel: React.FC<TicketsPanelProps> = ({
           boxSizing: "border-box",
         }}
       >
-        <TicketActions
+        <TransactionTicketActions
           selectedTicket={selectedTicket ?? null}
           transferDisabled={transferDisabled}
           onPawn={onPawn}
@@ -102,4 +102,4 @@ const TicketsPanel: React.FC<TicketsPanelProps> = ({
   );
 };
 
-export default TicketsPanel;
+export default TransactionTicketsPanel;

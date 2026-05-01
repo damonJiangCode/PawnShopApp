@@ -9,7 +9,7 @@ import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import type { Ticket } from "../../../../shared/types/Ticket";
 
-interface TicketActionsProps {
+interface TransactionTicketActionsProps {
   selectedTicket: Ticket | null;
   transferDisabled?: boolean;
   onPawn: () => void;
@@ -21,7 +21,7 @@ interface TicketActionsProps {
   onExpire: () => void;
 }
 
-const TicketActions: React.FC<TicketActionsProps> = (props) => {
+const TransactionTicketActions: React.FC<TransactionTicketActionsProps> = (props) => {
   const {
     selectedTicket,
     transferDisabled = false,
@@ -177,4 +177,4 @@ const TicketActions: React.FC<TicketActionsProps> = (props) => {
   );
 };
 
-export default TicketActions;
+export default TransactionTicketActions;

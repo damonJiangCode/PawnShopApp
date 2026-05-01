@@ -12,8 +12,8 @@ import {
 import type { Ticket } from "../../shared/types/Ticket";
 import type { Item } from "../../shared/types/Item";
 import ClientBar from "../components/shared/ClientBar";
-import TicketsPanel from "../components/transaction/tickets/TicketsPanel";
-import ItemsPanel from "../components/transaction/items/ItemsPanel";
+import TransactionTicketsPanel from "../components/transaction/tickets/TransactionTicketsPanel";
+import TransactionItemsPanel from "../components/transaction/items/TransactionItemsPanel";
 import TicketPawnDialog from "../components/transaction/dialogs/TicketPawnDialog";
 import TicketSellDialog from "../components/transaction/dialogs/TicketSellDialog";
 import TicketEditDialog from "../components/transaction/dialogs/TicketEditDialog";
@@ -726,7 +726,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
           boxSizing: "border-box",
         }}
       >
-        <TicketsPanel
+        <TransactionTicketsPanel
           tickets={tickets}
           selectedTicket={selectedTicket}
           transferDisabled={!clientNumber}
@@ -770,7 +770,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
             backgroundColor: "background.paper",
           }}
         >
-          <ItemsPanel
+          <TransactionItemsPanel
             items={displayedItems}
             selectedItem={selectedItem ?? undefined}
             loading={itemsLoading}

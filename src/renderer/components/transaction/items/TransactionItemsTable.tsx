@@ -6,13 +6,13 @@ import type { Item } from "../../../../shared/types/Item";
 import CellTooltip from "../../shared/CellTooltip";
 import { formatDisplayValue } from "../../../utils/formatters";
 
-interface ItemsTableProps {
+interface TransactionItemsTableProps {
   items: Item[];
   selectedItem?: Item;
   onItemSelected: (i: Item) => void;
 }
 
-const ItemsTable: React.FC<ItemsTableProps> = ({
+const TransactionItemsTable: React.FC<TransactionItemsTableProps> = ({
   items,
   selectedItem,
   onItemSelected,
@@ -144,4 +144,4 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
   );
 };
 
-export default ItemsTable;
+export default TransactionItemsTable;

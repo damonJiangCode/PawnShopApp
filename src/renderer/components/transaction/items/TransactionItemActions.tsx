@@ -5,14 +5,14 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import type { Item } from "../../../../shared/types/Item";
 
-interface ItemActionsProps {
+interface TransactionItemActionsProps {
   selectedItem?: Item;
   onAdd: () => void;
   onEdit: (i: Item) => void;
   onDelete: (i: Item) => void;
 }
 
-const ItemActions: React.FC<ItemActionsProps> = (props) => {
+const TransactionItemActions: React.FC<TransactionItemActionsProps> = (props) => {
   const { selectedItem, onAdd, onEdit, onDelete } = props;
   const disabled = !selectedItem;
   const actionButtonSx = {
@@ -111,4 +111,4 @@ const ItemActions: React.FC<ItemActionsProps> = (props) => {
   );
 };
 
-export default ItemActions;
+export default TransactionItemActions;

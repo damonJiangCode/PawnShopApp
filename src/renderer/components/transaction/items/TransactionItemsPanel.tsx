@@ -1,10 +1,10 @@
 import React from "react";
 import { Box } from "@mui/material";
 import type { Item } from "../../../../shared/types/Item";
-import ItemsTable from "./ItemsTable";
-import ItemSidePanel from "./ItemSidePanel";
+import TransactionItemsTable from "./TransactionItemsTable";
+import TransactionItemSidePanel from "./TransactionItemSidePanel";
 
-interface ItemsPanelProps {
+interface TransactionItemsPanelProps {
   items: Item[];
   selectedItem?: Item;
   loading?: boolean;
@@ -15,7 +15,7 @@ interface ItemsPanelProps {
   onDelete: (item: Item) => void;
 }
 
-const ItemsPanel: React.FC<ItemsPanelProps> = (props) => {
+const TransactionItemsPanel: React.FC<TransactionItemsPanelProps> = (props) => {
   const {
     items,
     selectedItem,
@@ -39,14 +39,14 @@ const ItemsPanel: React.FC<ItemsPanelProps> = (props) => {
       }}
     >
       <Box sx={{ flex: "1 1 0", minWidth: 0, minHeight: 0 }}>
-        <ItemsTable
+        <TransactionItemsTable
           items={items}
           selectedItem={selectedItem}
           onItemSelected={onItemSelected}
         />
       </Box>
 
-      <ItemSidePanel
+      <TransactionItemSidePanel
         selectedItem={selectedItem}
         loading={loading}
         error={error}
@@ -58,4 +58,4 @@ const ItemsPanel: React.FC<ItemsPanelProps> = (props) => {
   );
 };
 
-export default ItemsPanel;
+export default TransactionItemsPanel;

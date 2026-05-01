@@ -3,12 +3,12 @@ import { Box, CircularProgress, Typography } from "@mui/material";
 import type { Item } from "../../../../shared/types/Item";
 import { itemService } from "../../../services/itemService";
 
-interface ItemImageProps {
+interface TransactionItemImageProps {
   selectedItem?: Item;
   loading?: boolean;
 }
 
-const ItemImage: React.FC<ItemImageProps> = (props) => {
+const TransactionItemImage: React.FC<TransactionItemImageProps> = (props) => {
   const { selectedItem, loading = false } = props;
   const [imageSrc, setImageSrc] = useState("");
 
@@ -71,4 +71,4 @@ const ItemImage: React.FC<ItemImageProps> = (props) => {
   );
 };
 
-export default ItemImage;
+export default TransactionItemImage;

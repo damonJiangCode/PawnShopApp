@@ -12,13 +12,13 @@ import {
   formatUppercase,
 } from "../../../utils/formatters";
 
-interface TicketsTableProps {
+interface TransactionTicketsTableProps {
   tickets: Ticket[];
   selectedTicket?: Ticket | null;
   onSelectTicket: (t: Ticket | null) => void;
 }
 
-const TicketsTable: React.FC<TicketsTableProps> = ({
+const TransactionTicketsTable: React.FC<TransactionTicketsTableProps> = ({
   tickets,
   selectedTicket,
   onSelectTicket,
@@ -215,4 +215,4 @@ const TicketsTable: React.FC<TicketsTableProps> = ({
   );
 };
 
-export default TicketsTable;
+export default TransactionTicketsTable;
