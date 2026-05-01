@@ -37,26 +37,12 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
     {
       field: "description",
       headerName: "DESC",
-      width: 300,
+      width: 200,
       renderCell: (params) => <CellTooltip value={params.value} />,
     },
     {
-      field: "amount",
-      headerName: "VALUE",
-      width: 80,
-      renderCell: (params) => (
-        <CellTooltip
-          value={
-            params.value != null && params.value !== ""
-              ? `$${params.value}`
-              : ""
-          }
-        />
-      ),
-    },
-    {
-      field: "brand_name",
-      headerName: "BRAND",
+      field: "serial_number",
+      headerName: "SERIAL",
       width: 80,
       renderCell: (params) => (
         <CellTooltip value={formatDisplayValue(params.value, "")} />
@@ -71,11 +57,25 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
       ),
     },
     {
-      field: "serial_number",
-      headerName: "SERIAL",
-      width: 150,
+      field: "brand_name",
+      headerName: "BRAND",
+      width: 80,
       renderCell: (params) => (
         <CellTooltip value={formatDisplayValue(params.value, "")} />
+      ),
+    },
+    {
+      field: "amount",
+      headerName: "VALUE",
+      width: 80,
+      renderCell: (params) => (
+        <CellTooltip
+          value={
+            params.value != null && params.value !== ""
+              ? `$${params.value}`
+              : ""
+          }
+        />
       ),
     },
   ];
