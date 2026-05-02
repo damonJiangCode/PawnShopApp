@@ -10,16 +10,12 @@ import {
   TextField,
 } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
-import type { ClientNotesAction } from "../../../../shared/ipc/clientPayloadTypes";
+import type { ClientNotesAction } from "../../../../shared/types/clientPayload";
 import InfoRow from "./InfoRow";
 import statColors from "../../../assets/client/statColors";
 import type { Client, ID } from "../../../../shared/types/Client";
 import { resolveFormFieldError } from "../../../utils/formError";
-import {
-  formatDisplayValue,
-  formatShortDate,
-  formatUppercase,
-} from "../../../utils/formatters";
+import { formatDisplayValue, formatShortDate } from "../../../utils/formatters";
 
 interface ClientProfileProps {
   client: Client;
