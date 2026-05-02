@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
-import MainLayout from "./layouts/MainLayout";
-import { itemService } from "../services/itemService";
+import { itemService } from "../../services/itemService";
+import MainLayout from "./MainLayout";
 
-const App: React.FC = () => {
+const MainApp: React.FC = () => {
   useEffect(() => {
     itemService.preloadCategories().catch((err) => {
       console.error("Failed to preload item categories", err);
@@ -16,4 +16,4 @@ const App: React.FC = () => {
   );
 };
 
-export default App;
+export default MainApp;

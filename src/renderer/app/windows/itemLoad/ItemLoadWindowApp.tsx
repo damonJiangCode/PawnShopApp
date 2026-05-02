@@ -2,14 +2,14 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Alert, Box, Button, Paper, Typography } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import type { GridRowSelectionModel } from "@mui/x-data-grid";
-import type { ItemLoadWindowPayload } from "../../shared/types/windowPayload";
-import TransactionItemImage from "../components/transaction/items/TransactionItemImage";
+import type { ItemLoadWindowPayload } from "../../../../shared/types/windowPayload";
+import TransactionItemImage from "../../../components/transaction/items/TransactionItemImage";
 import {
   getTransactionItemRowId,
   transactionItemColumns,
   transactionItemsTableSx,
-} from "../components/transaction/items/TransactionItemsTable";
-import { windowService } from "../services/windowService";
+} from "../../../components/transaction/items/TransactionItemsTable";
+import { windowService } from "../../../services/windowService";
 
 const ItemLoadWindowApp: React.FC = () => {
   const requestId = useMemo(() => {
