@@ -2,7 +2,7 @@ import type { Item } from "../../shared/types/Item";
 import type {
   ItemCategoryOption,
   SaveItemInput,
-} from "../../shared/ipc/itemApi";
+} from "../../shared/types/itemPayload";
 import { getElectronApi } from "./electronApi";
 
 let categoryCache: ItemCategoryOption[] | null = null;
