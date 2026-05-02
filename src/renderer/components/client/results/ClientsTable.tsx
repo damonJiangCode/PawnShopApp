@@ -22,6 +22,7 @@ const ClientsTable: React.FC<ClientsTableProps> = ({
     row_index: index + 1,
     last_name_display: formatUppercase(client.last_name, ""),
     first_name_display: formatUppercase(client.first_name, ""),
+    gender_display: formatUppercase(client.gender, ""),
     date_of_birth_display: formatShortDate(client.date_of_birth),
   }));
 
@@ -39,6 +40,12 @@ const ClientsTable: React.FC<ClientsTableProps> = ({
       headerName: "FIRST NAME",
       flex: 1,
       minWidth: 140,
+      renderCell: (params) => <CellTooltip value={params.value} />,
+    },
+    {
+      field: "gender_display",
+      headerName: "GENDER",
+      width: 110,
       renderCell: (params) => <CellTooltip value={params.value} />,
     },
     {

@@ -1,7 +1,10 @@
 import React from "react";
 import { Paper } from "@mui/material";
 import type { Client } from "../../../../shared/types/Client";
-import { CLIENT_SIDE_PANEL_WIDTH } from "../../../utils/layoutSizing";
+import {
+  ITEM_ACTIONS_PANEL_WIDTH,
+  ITEM_SIDE_PANEL_WIDTH,
+} from "../../layout/layoutSizing";
 import ClientActions from "./ClientActions";
 import ClientImage from "./ClientImage";
 
@@ -19,8 +22,8 @@ const ClientSidePanel: React.FC<ClientSidePanelProps> = ({
   return (
     <Paper
       sx={{
-        width: CLIENT_SIDE_PANEL_WIDTH,
-        minWidth: 324,
+        width: ITEM_SIDE_PANEL_WIDTH,
+        minWidth: 292,
         border: "1px solid",
         borderColor: "divider",
         minHeight: 0,
@@ -29,7 +32,7 @@ const ClientSidePanel: React.FC<ClientSidePanelProps> = ({
         flexShrink: 0,
         boxSizing: "border-box",
         display: "grid",
-        gridTemplateColumns: "minmax(0, 1fr) 96px",
+        gridTemplateColumns: `minmax(0, 1fr) ${ITEM_ACTIONS_PANEL_WIDTH}px`,
         alignItems: "stretch",
         columnGap: 0.75,
         p: 0.75,

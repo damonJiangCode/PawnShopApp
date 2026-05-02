@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { Box, Button } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import type { Client } from "../../../../shared/types/Client";
+import ItemActionsLayout from "../../layout/ItemActionsLayout";
 import ClientAddEditDialog from "../dialogs/ClientAddEditDialog";
 
 interface ClientActionsProps {
@@ -21,68 +21,21 @@ const ClientActions: React.FC<ClientActionsProps> = ({
 
   return (
     <>
-      <Box
-        sx={{
-          width: 96,
-          minWidth: 96,
-          flexShrink: 0,
-          display: "flex",
-          flexDirection: "column",
-          gap: 2,
-          justifyContent: "center",
-          alignItems: "stretch",
-        }}
-      >
-        <Button
-          size="small"
-          variant="contained"
-          fullWidth
-          startIcon={<AddIcon />}
-          onClick={() => setAddOpen(true)}
-          sx={{
-            minWidth: 0,
-            justifyContent: "center",
-            px: 1.25,
-            "& .MuiButton-startIcon": {
-              marginRight: 0.75,
-              marginLeft: 0,
-              minWidth: 18,
-              display: "inline-flex",
-              justifyContent: "center",
-            },
-            "&:hover": {
-              boxShadow: 3,
-            },
-          }}
-        >
-          Add
-        </Button>
-        <Button
-          size="small"
-          variant="contained"
-          fullWidth
-          startIcon={<EditIcon />}
-          disabled={!client?.client_number}
-          onClick={() => setEditOpen(true)}
-          sx={{
-            minWidth: 0,
-            justifyContent: "center",
-            px: 1.25,
-            "& .MuiButton-startIcon": {
-              marginRight: 0.75,
-              marginLeft: 0,
-              minWidth: 18,
-              display: "inline-flex",
-              justifyContent: "center",
-            },
-            "&:hover": {
-              boxShadow: 3,
-            },
-          }}
-        >
-          Edt
-        </Button>
-      </Box>
+      <ItemActionsLayout
+        actions={[
+          {
+            label: "Add Client",
+            icon: <AddIcon />,
+            onClick: () => setAddOpen(true),
+          },
+          {
+            label: "Edit Client",
+            icon: <EditIcon />,
+            disabled: !client?.client_number,
+            onClick: () => setEditOpen(true),
+          },
+        ]}
+      />
 
       {addOpen && (
         <ClientAddEditDialog

@@ -13,9 +13,13 @@ const ClientImage: React.FC<ClientImageProps> = ({ client }) => {
   return (
     <Box
       sx={{
-        width: 210,
+        width: "100%",
+        height: "auto",
+        aspectRatio: "1 / 1",
+        minWidth: 0,
+        maxHeight: "100%",
+        alignSelf: "center",
         flexShrink: 0,
-        height: "100%",
         backgroundColor: "#f3f4f6",
         display: "flex",
         alignItems: "center",
