@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Paper, Typography } from "@mui/material";
-import type { ClientNotesAction } from "../../shared/ipc/clientPayloadTypes";
+import type { ClientNotesAction } from "../../shared/types/clientPayload";
 import ClientProfile from "../components/client/profile/ClientProfile";
 import ClientsPanel from "../components/client/results/ClientsPanel";
 import { clientService } from "../services/clientService";
 import { useClientSearch } from "../hooks/useClientSearch";
-import { CLIENT_RESULTS_HEIGHT } from "../utils/layoutSizing";
+import { CLIENT_RESULTS_HEIGHT } from "../components/layout/layoutSizing";
 import defaultClient from "../utils/defaultClient";
 import type { Client, ID } from "../../shared/types/Client";
 

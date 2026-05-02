@@ -3,11 +3,14 @@ import { Box, Tabs, Tab, Paper } from "@mui/material";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import HistoryEduIcon from "@mui/icons-material/HistoryEdu";
-import TopBar from "../../components/layout/TopBar";
+import TopBar from "../../components/appShell/TopBar";
 import ClientPage from "../../pages/ClientPage";
 import TransactionPage from "../../pages/TransactionPage";
+import type { TransactionItemLoadRequest } from "../../pages/TransactionPage";
 import HistoryPage from "../../pages/HistoryPage";
 import type { Client } from "../../../shared/types/Client";
+import type { Ticket } from "../../../shared/types/Ticket";
+import type { Item } from "../../../shared/types/Item";
 
 const MainLayout: React.FC = () => {
   const [currentTab, setCurrentTab] = useState(0);
@@ -16,6 +19,15 @@ const MainLayout: React.FC = () => {
   const [searchRequestKey, setSearchRequestKey] = useState(0);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [forcedClient, setForcedClient] = useState<Client | null>(null);
+  const [selectedTransactionTicket, setSelectedTransactionTicket] =
+    useState<Ticket | null>(null);
+  const [incomingTransactionTicket, setIncomingTransactionTicket] =
+    useState<Ticket | null>(null);
+  const [incomingItemLoadRequest, setIncomingItemLoadRequest] =
+    useState<TransactionItemLoadRequest | null>(null);
+  const [focusTicketNumber, setFocusTicketNumber] = useState<number | undefined>();
+  const [focusRequestId, setFocusRequestId] = useState(0);
+  const [itemLoadRequestId, setItemLoadRequestId] = useState(0);
 
   const handleSearch = ({
     firstName,
@@ -36,6 +48,59 @@ const MainLayout: React.FC = () => {
     setSearchLastName("");
     setSearchRequestKey((prev) => prev + 1);
     setSelectedClient(null);
+    setSelectedTransactionTicket(null);
+    setIncomingTransactionTicket(null);
+    setIncomingItemLoadRequest(null);
+    setFocusTicketNumber(undefined);
+  };
+
+  const sendItemsToTransaction = (
+    targetTicket: Ticket,
+    sourceTicket: Ticket,
+    sourceItems: Item[],
+    mode: "repawn" | "load",
+  ) => {
+    if (!targetTicket.ticket_number || !sourceTicket.ticket_number) {
+      return;
+    }
+
+    const nextRequestId = itemLoadRequestId + 1;
+    setItemLoadRequestId(nextRequestId);
+    setIncomingItemLoadRequest({
+      requestId: nextRequestId,
+      targetTicketNumber: targetTicket.ticket_number,
+      sourceTicketNumber: sourceTicket.ticket_number,
+      sourceTicketDescription: sourceTicket.description,
+      items: sourceItems,
+      mode,
+    });
+  };
+
+  const handleRepawnCreated = (
+    ticket: Ticket,
+    sourceTicket: Ticket,
+    sourceItems: Item[],
+  ) => {
+    setIncomingTransactionTicket(ticket);
+    setFocusTicketNumber(ticket.ticket_number);
+    setFocusRequestId((prev) => prev + 1);
+    setCurrentTab(1);
+    sendItemsToTransaction(ticket, sourceTicket, sourceItems, "repawn");
+  };
+
+  const handleLoadHistoryItems = (sourceTicket: Ticket, sourceItems: Item[]) => {
+    if (!selectedTransactionTicket) {
+      setCurrentTab(1);
+      return;
+    }
+
+    setCurrentTab(1);
+    sendItemsToTransaction(
+      selectedTransactionTicket,
+      sourceTicket,
+      sourceItems,
+      "load",
+    );
   };
 
   return (
@@ -153,6 +218,11 @@ const MainLayout: React.FC = () => {
                 clientLastName={selectedClient?.last_name}
                 clientFirstName={selectedClient?.first_name}
                 clientMiddleName={selectedClient?.middle_name}
+                focusTicketNumber={focusTicketNumber}
+                focusRequestId={focusRequestId}
+                incomingTicket={incomingTransactionTicket}
+                incomingItemLoadRequest={incomingItemLoadRequest}
+                onSelectedTicketChange={setSelectedTransactionTicket}
               />
             </Box>
             <Box
@@ -164,7 +234,15 @@ const MainLayout: React.FC = () => {
                 pointerEvents: currentTab === 2 ? "auto" : "none",
               }}
             >
-              <HistoryPage />
+              <HistoryPage
+                clientNumber={selectedClient?.client_number}
+                clientLastName={selectedClient?.last_name}
+                clientFirstName={selectedClient?.first_name}
+                clientMiddleName={selectedClient?.middle_name}
+                transactionTargetTicket={selectedTransactionTicket}
+                onRepawnCreated={handleRepawnCreated}
+                onLoadItemsToTransaction={handleLoadHistoryItems}
+              />
             </Box>
           </Box>
         </Paper>
