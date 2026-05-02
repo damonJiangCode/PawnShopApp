@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -20,7 +20,6 @@ import TicketEditDialog from "../components/transaction/dialogs/TicketEditDialog
 import TicketTransferDialog from "../components/transaction/dialogs/TicketTransferDialog";
 import TicketConvertDialog from "../components/transaction/dialogs/TicketConvertDialog";
 import TicketExpireDialog from "../components/transaction/dialogs/TicketExpireDialog";
-import TicketItemLoadDialog from "../components/transaction/dialogs/TicketItemLoadDialog";
 import ItemEditDialog from "../components/transaction/dialogs/ItemEditDialog";
 import {
   type ConvertTicketInput,
@@ -33,6 +32,7 @@ import {
 } from "../services/ticketService";
 import { itemService } from "../services/itemService";
 import type { ItemCategoryOption } from "../services/itemService";
+import { windowService } from "../services/windowService";
 
 export interface TransactionItemLoadRequest {
   requestId: number;
@@ -82,7 +82,6 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
   const [openTicketConvertDialog, setOpenTicketConvertDialog] = useState(false);
   const [openTicketExpireDialog, setOpenTicketExpireDialog] = useState(false);
   const [openTicketTransferDialog, setOpenTicketTransferDialog] = useState(false);
-  const [openTicketItemLoadDialog, setOpenTicketItemLoadDialog] = useState(false);
   const [openItemDialog, setOpenItemDialog] = useState(false);
   const [itemDialogMode, setItemDialogMode] = useState<"add" | "edit">("add");
   const [removeItemTarget, setRemoveItemTarget] = useState<Item | null>(null);
@@ -92,6 +91,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
   const [pendingLoadRequest, setPendingLoadRequest] =
     useState<TransactionItemLoadRequest | null>(null);
   const [statusMessage, setStatusMessage] = useState("");
+  const lastItemLoadRequestIdRef = useRef<number | null>(null);
   const filterVisibleTickets = (nextTickets: Ticket[]) =>
     nextTickets.filter(
       (ticket) => ticket.status === "pawned" || ticket.status === "sold",
@@ -211,9 +211,44 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       return;
     }
 
+    if (lastItemLoadRequestIdRef.current === incomingItemLoadRequest.requestId) {
+      return;
+    }
+
+    lastItemLoadRequestIdRef.current = incomingItemLoadRequest.requestId;
     setPendingLoadRequest(incomingItemLoadRequest);
-    setOpenTicketItemLoadDialog(true);
     setStatusMessage("");
+
+    const openItemLoadWindow = async (request: TransactionItemLoadRequest) => {
+      try {
+        const selectedItems = await windowService.openItemLoadWindow({
+          title:
+            request.mode === "repawn"
+              ? `Repawn Ticket #${request.sourceTicketNumber} Items`
+              : `Load Ticket #${request.sourceTicketNumber} Items`,
+          description: `Select the items from ticket #${request.sourceTicketNumber} (${request.sourceTicketDescription}) and add them to ticket #${request.targetTicketNumber}.`,
+          actionLabel: "Add to Ticket",
+          items: request.items,
+        });
+
+        if (!selectedItems?.length) {
+          setPendingLoadRequest((prev) =>
+            prev?.requestId === request.requestId ? null : prev,
+          );
+          return;
+        }
+
+        handleConfirmLoadedItems(selectedItems, request);
+      } catch (err) {
+        console.error(err);
+        setStatusMessage("Unable to open item load window.");
+        setPendingLoadRequest((prev) =>
+          prev?.requestId === request.requestId ? null : prev,
+        );
+      }
+    };
+
+    void openItemLoadWindow(incomingItemLoadRequest);
   }, [incomingItemLoadRequest]);
 
   useEffect(() => {
@@ -638,10 +673,14 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
     setStatusMessage(`Item #${removeItemTarget.item_number} removed.`);
   };
 
-  const handleConfirmLoadedItems = (selectedItems: Item[]) => {
-    if (!pendingLoadRequest || !selectedItems.length) {
-      setOpenTicketItemLoadDialog(false);
-      setPendingLoadRequest(null);
+  const handleConfirmLoadedItems = (
+    selectedItems: Item[],
+    loadRequest: TransactionItemLoadRequest | null = pendingLoadRequest,
+  ) => {
+    if (!loadRequest || !selectedItems.length) {
+      setPendingLoadRequest((prev) =>
+        prev?.requestId === loadRequest?.requestId ? null : prev,
+      );
       return;
     }
 
@@ -649,24 +688,25 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       ...item,
       source_item_number: item.source_item_number ?? item.item_number,
       item_number: draftItemSequence - index,
-      draft_id: `draft-${pendingLoadRequest.requestId}-${item.item_number}-${index}`,
+      draft_id: `draft-${loadRequest.requestId}-${item.item_number}-${index}`,
       is_loaded_draft: true,
     }));
 
     setDraftItemSequence((prev) => prev - selectedItems.length);
     setTicketDraftItems((prev) => ({
       ...prev,
-      [pendingLoadRequest.targetTicketNumber]: [
-        ...(prev[pendingLoadRequest.targetTicketNumber] ?? []),
+      [loadRequest.targetTicketNumber]: [
+        ...(prev[loadRequest.targetTicketNumber] ?? []),
         ...nextDraftItems,
       ],
     }));
     setSelectedItem((prev) => prev ?? nextDraftItems[0] ?? null);
-    setOpenTicketItemLoadDialog(false);
     setStatusMessage(
-      `${selectedItems.length} item(s) loaded from ticket #${pendingLoadRequest.sourceTicketNumber} into ticket #${pendingLoadRequest.targetTicketNumber}.`,
+      `${selectedItems.length} item(s) loaded from ticket #${loadRequest.sourceTicketNumber} into ticket #${loadRequest.targetTicketNumber}.`,
     );
-    setPendingLoadRequest(null);
+    setPendingLoadRequest((prev) =>
+      prev?.requestId === loadRequest.requestId ? null : prev,
+    );
   };
 
   if (!clientNumber) {
@@ -696,24 +736,12 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
         boxSizing: "border-box",
       }}
     >
-      <Box
-        sx={{
-          mb: 1,
-          border: "1px solid",
-          borderColor: "divider",
-          borderRadius: 2,
-          px: 1.5,
-          py: 1,
-          backgroundColor: "background.paper",
-          boxShadow: 1,
-        }}
-      >
-        <ClientBar
-          client_last_name={clientLastName}
-          client_first_name={clientFirstName}
-          client_middle_name={clientMiddleName}
-        />
-      </Box>
+      <ClientBar
+        client_last_name={clientLastName}
+        client_first_name={clientFirstName}
+        client_middle_name={clientMiddleName}
+        sx={{ mb: 1 }}
+      />
 
       <Box
         sx={{
@@ -861,25 +889,6 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
           clientMiddleName={clientMiddleName}
           onClose={() => setOpenTicketConvertDialog(false)}
           onSave={handleConvertTicketConfirmed}
-        />
-      )}
-
-      {pendingLoadRequest && openTicketItemLoadDialog && (
-        <TicketItemLoadDialog
-          open={openTicketItemLoadDialog}
-          title={
-            pendingLoadRequest.mode === "repawn"
-              ? `Repawn Ticket #${pendingLoadRequest.sourceTicketNumber} Items`
-              : `Load Ticket #${pendingLoadRequest.sourceTicketNumber} Items`
-          }
-          description={`Select the items from ticket #${pendingLoadRequest.sourceTicketNumber} (${pendingLoadRequest.sourceTicketDescription}) and add them to ticket #${pendingLoadRequest.targetTicketNumber}.`}
-          actionLabel="Add to Ticket"
-          items={pendingLoadRequest.items}
-          onClose={() => {
-            setOpenTicketItemLoadDialog(false);
-            setPendingLoadRequest(null);
-          }}
-          onConfirm={handleConfirmLoadedItems}
         />
       )}
 
