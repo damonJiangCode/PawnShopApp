@@ -44,6 +44,7 @@ const MainLayout: React.FC = () => {
     incomingItemLoadRequest,
     focusTicketNumber,
     focusRequestId,
+    historyRefreshKey,
   } = state;
 
   return (
@@ -154,6 +155,7 @@ const MainLayout: React.FC = () => {
               incomingTicket={incomingTransactionTicket}
               incomingItemLoadRequest={incomingItemLoadRequest}
               onSelectedTicketChange={actions.setSelectedTransactionTicket}
+              onHistoryRefreshRequest={actions.requestHistoryRefresh}
             />
           </MainTabPanel>
 
@@ -163,6 +165,7 @@ const MainLayout: React.FC = () => {
               clientLastName={selectedClient?.last_name}
               clientFirstName={selectedClient?.first_name}
               clientMiddleName={selectedClient?.middle_name}
+              refreshKey={historyRefreshKey}
               transactionTargetTicket={selectedTransactionTicket}
               onRepawnCreated={actions.handleRepawnCreated}
               onLoadItemsToTransaction={actions.handleLoadHistoryItems}

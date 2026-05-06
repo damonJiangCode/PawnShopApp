@@ -17,6 +17,7 @@ interface HistoryPageProps {
   clientLastName?: string;
   clientFirstName?: string;
   clientMiddleName?: string;
+  refreshKey?: number;
   transactionTargetTicket?: Ticket | null;
   onRepawnCreated?: (
     ticket: Ticket,
@@ -37,6 +38,7 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
   clientLastName,
   clientFirstName,
   clientMiddleName,
+  refreshKey = 0,
   transactionTargetTicket,
   onRepawnCreated,
   onLoadItemsToTransaction,
@@ -111,7 +113,7 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
     return () => {
       active = false;
     };
-  }, [clientNumber]);
+  }, [clientNumber, refreshKey]);
 
   useEffect(() => {
     let active = true;

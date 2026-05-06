@@ -29,6 +29,7 @@ export const useMainLayoutState = () => {
   >();
   const [focusRequestId, setFocusRequestId] = useState(0);
   const [itemLoadRequestId, setItemLoadRequestId] = useState(0);
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
 
   const handleSearch = ({ firstName, lastName }: SearchParams) => {
     setForcedClient(null);
@@ -47,6 +48,11 @@ export const useMainLayoutState = () => {
     setIncomingTransactionTicket(null);
     setIncomingItemLoadRequest(null);
     setFocusTicketNumber(undefined);
+    setHistoryRefreshKey((prev) => prev + 1);
+  };
+
+  const requestHistoryRefresh = () => {
+    setHistoryRefreshKey((prev) => prev + 1);
   };
 
   const sendItemsToTransaction = (
@@ -111,6 +117,7 @@ export const useMainLayoutState = () => {
       incomingItemLoadRequest,
       focusTicketNumber,
       focusRequestId,
+      historyRefreshKey,
     },
     actions: {
       setCurrentTab,
@@ -118,6 +125,7 @@ export const useMainLayoutState = () => {
       setSelectedTransactionTicket,
       handleSearch,
       handleClear,
+      requestHistoryRefresh,
       handleRepawnCreated,
       handleLoadHistoryItems,
     },

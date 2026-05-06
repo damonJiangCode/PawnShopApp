@@ -53,6 +53,7 @@ interface TransactionPageProps {
   incomingTicket?: Ticket | null;
   incomingItemLoadRequest?: TransactionItemLoadRequest | null;
   onSelectedTicketChange?: (ticket: Ticket | null) => void;
+  onHistoryRefreshRequest?: () => void;
 }
 
 const TransactionPage: React.FC<TransactionPageProps> = (props) => {
@@ -66,6 +67,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
     incomingTicket,
     incomingItemLoadRequest,
     onSelectedTicketChange,
+    onHistoryRefreshRequest,
   } = props;
 
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -530,6 +532,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
     setSelectedItem(null);
     setOpenTicketExpireDialog(false);
     setStatusMessage(`Ticket #${expiredTicket.ticket_number} expired.`);
+    onHistoryRefreshRequest?.();
   };
 
   const handleTransferTicketConfirmed = async (
