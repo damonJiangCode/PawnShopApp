@@ -86,8 +86,6 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
   const [itemDialogMode, setItemDialogMode] = useState<"add" | "edit">("add");
   const [removeItemTarget, setRemoveItemTarget] = useState<Item | null>(null);
   const [itemCategories, setItemCategories] = useState<ItemCategoryOption[]>([]);
-  const [ticketDraftItems, setTicketDraftItems] = useState<Record<number, Item[]>>({});
-  const [draftItemSequence, setDraftItemSequence] = useState(-1);
   const [pendingLoadRequest, setPendingLoadRequest] =
     useState<TransactionItemLoadRequest | null>(null);
   const [statusMessage, setStatusMessage] = useState("");
@@ -109,9 +107,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
     });
 
   const loading = ticketsLoading || itemsLoading;
-  const displayedItems = selectedTicket?.ticket_number
-    ? [...items, ...(ticketDraftItems[selectedTicket.ticket_number] ?? [])]
-    : [];
+  const displayedItems = selectedTicket?.ticket_number ? items : [];
 
   useEffect(() => {
     let active = true;
@@ -120,7 +116,6 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       if (!clientNumber) {
         setTickets([]);
         setItems([]);
-        setTicketDraftItems({});
         setSelectedTicket(null);
         setSelectedItem(null);
         setTicketsError("");
@@ -238,7 +233,7 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
           return;
         }
 
-        handleConfirmLoadedItems(selectedItems, request);
+        await handleConfirmLoadedItems(selectedItems, request);
       } catch (err) {
         console.error(err);
         setStatusMessage("Unable to open item load window.");
@@ -618,35 +613,6 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       return;
     }
 
-    if (removeItemTarget.is_loaded_draft) {
-      const ticketNumber = selectedTicket.ticket_number;
-      const nextDraftItems = (ticketDraftItems[ticketNumber] ?? []).filter(
-        (current) =>
-          (current.draft_id ?? current.item_number) !==
-          (removeItemTarget.draft_id ?? removeItemTarget.item_number),
-      );
-
-      setTicketDraftItems((prev) => ({
-        ...prev,
-        [ticketNumber]: nextDraftItems,
-      }));
-      setSelectedItem((prev) => {
-        if (
-          (prev?.draft_id ?? prev?.item_number) !==
-          (removeItemTarget.draft_id ?? removeItemTarget.item_number)
-        ) {
-          return prev ?? null;
-        }
-
-        return [...items, ...nextDraftItems][0] ?? null;
-      });
-      setStatusMessage(
-        `Loaded item #${removeItemTarget.source_item_number ?? removeItemTarget.item_number} removed from this ticket view.`,
-      );
-      setRemoveItemTarget(null);
-      return;
-    }
-
     await itemService.deleteItem(
       selectedTicket.ticket_number,
       removeItemTarget.item_number,
@@ -664,16 +630,13 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
 
       return [
         ...nextItems,
-        ...(selectedTicket.ticket_number
-          ? (ticketDraftItems[selectedTicket.ticket_number] ?? [])
-          : []),
       ][0] ?? null;
     });
     setRemoveItemTarget(null);
     setStatusMessage(`Item #${removeItemTarget.item_number} removed.`);
   };
 
-  const handleConfirmLoadedItems = (
+  const handleConfirmLoadedItems = async (
     selectedItems: Item[],
     loadRequest: TransactionItemLoadRequest | null = pendingLoadRequest,
   ) => {
@@ -684,29 +647,38 @@ const TransactionPage: React.FC<TransactionPageProps> = (props) => {
       return;
     }
 
-    const nextDraftItems = selectedItems.map((item, index) => ({
-      ...item,
-      source_item_number: item.source_item_number ?? item.item_number,
-      item_number: draftItemSequence - index,
-      draft_id: `draft-${loadRequest.requestId}-${item.item_number}-${index}`,
-      is_loaded_draft: true,
-    }));
+    try {
+      const linkedItems = await itemService.linkItemsToTicket(
+        loadRequest.targetTicketNumber,
+        selectedItems.map((item) => item.item_number),
+      );
 
-    setDraftItemSequence((prev) => prev - selectedItems.length);
-    setTicketDraftItems((prev) => ({
-      ...prev,
-      [loadRequest.targetTicketNumber]: [
-        ...(prev[loadRequest.targetTicketNumber] ?? []),
-        ...nextDraftItems,
-      ],
-    }));
-    setSelectedItem((prev) => prev ?? nextDraftItems[0] ?? null);
-    setStatusMessage(
-      `${selectedItems.length} item(s) loaded from ticket #${loadRequest.sourceTicketNumber} into ticket #${loadRequest.targetTicketNumber}.`,
-    );
-    setPendingLoadRequest((prev) =>
-      prev?.requestId === loadRequest.requestId ? null : prev,
-    );
+      setItems((prev) => {
+        const existingItemNumbers = new Set(
+          prev.map((item) => item.item_number),
+        );
+        const newItems = linkedItems.filter(
+          (item) => !existingItemNumbers.has(item.item_number),
+        );
+
+        return [...newItems, ...prev];
+      });
+      setSelectedItem((prev) => prev ?? linkedItems[0] ?? null);
+      setStatusMessage(
+        `${linkedItems.length} item(s) loaded from ticket #${loadRequest.sourceTicketNumber} into ticket #${loadRequest.targetTicketNumber}.`,
+      );
+    } catch (err) {
+      console.error(err);
+      setStatusMessage(
+        err instanceof Error
+          ? err.message
+          : "Unable to load the selected item(s).",
+      );
+    } finally {
+      setPendingLoadRequest((prev) =>
+        prev?.requestId === loadRequest.requestId ? null : prev,
+      );
+    }
   };
 
   if (!clientNumber) {

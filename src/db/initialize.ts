@@ -35,6 +35,12 @@ import {
   createTicketIndexes,
   createTicketTable,
 } from "./schema/ticket/ticketTable.ts";
+import {
+  createItemWithStatusView,
+  createTicketItemIndexes,
+  createTicketItemGuards,
+  createTicketItemTable,
+} from "./schema/ticket/ticketItemTable.ts";
 
 export const initializeDatabase = async () => {
   const client = await connect();
@@ -87,6 +93,18 @@ export const initializeDatabase = async () => {
 
     await client.query(createItemIndexes);
     console.log("item subcategory index ensured successfully");
+
+    await client.query(createTicketItemTable);
+    console.log("ticket_item table created successfully");
+
+    await client.query(createTicketItemIndexes);
+    console.log("ticket_item indexes created successfully");
+
+    await client.query(createItemWithStatusView);
+    console.log("item_with_status view created successfully");
+
+    await client.query(createTicketItemGuards);
+    console.log("ticket_item guards created successfully");
 
     await client.query(createEmployeeTable);
     console.log("employee table created successfully");

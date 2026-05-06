@@ -113,6 +113,42 @@ export const itemService = {
     );
   },
 
+  linkItemsToTicket: async (
+    ticketNumber: number,
+    itemNumbers: number[],
+  ): Promise<Item[]> => {
+    const normalizedTicketNumber = Number(ticketNumber);
+    const normalizedItemNumbers = [...new Set(itemNumbers.map(Number))].filter(
+      (itemNumber) => Number.isFinite(itemNumber) && itemNumber > 0,
+    );
+
+    if (
+      !Number.isFinite(normalizedTicketNumber) ||
+      normalizedTicketNumber <= 0
+    ) {
+      throw new Error("A ticket is required.");
+    }
+
+    if (!normalizedItemNumbers.length) {
+      return [];
+    }
+
+    return runInTransaction("linkItemsToTicket", async (client) => {
+      const linkedItems: Item[] = [];
+
+      for (const itemNumber of normalizedItemNumbers) {
+        const linkedItem = await itemRepo.linkItemToTicket(
+          normalizedTicketNumber,
+          itemNumber,
+          client,
+        );
+        linkedItems.push(linkedItem);
+      }
+
+      return linkedItems;
+    });
+  },
+
   saveItemImage: async (fileName: string, base64: string): Promise<string> => {
     return imageStorage.saveItemImage(fileName, base64);
   },

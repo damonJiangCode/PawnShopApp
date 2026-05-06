@@ -7,6 +7,7 @@ export type ElectronItemApi = {
   create: (payload: SaveItemInput) => Promise<Item>;
   update: (payload: SaveItemInput) => Promise<Item>;
   delete: (ticketNumber: number, itemNumber: number) => Promise<void>;
+  linkToTicket: (ticketNumber: number, itemNumbers: number[]) => Promise<Item[]>;
   saveImage: (fileName: string, base64: string) => Promise<string>;
   loadImage: (imagePath: string) => Promise<string>;
 };

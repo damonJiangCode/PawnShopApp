@@ -1,3 +1,5 @@
+import type { Ticket } from "./Ticket.ts";
+
 export interface Item {
   item_number: number;
   source_item_number?: number;
@@ -11,6 +13,8 @@ export interface Item {
   serial_number?: string;
   amount: number;
   latest_ticket_number?: number;
+  latest_ticket_status?: Ticket["status"];
+  is_loadable?: boolean;
   image_path?: string;
   draft_id?: string;
   is_loaded_draft?: boolean;

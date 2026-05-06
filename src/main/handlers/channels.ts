@@ -15,6 +15,7 @@ const CHANNELS = {
   ADD_ITEM: "add-item",
   UPDATE_ITEM: "update-item",
   DELETE_ITEM: "delete-item",
+  LINK_ITEMS_TO_TICKET: "link-items-to-ticket",
   SAVE_ITEM_IMAGE: "save-item-image",
   GET_ITEM_IMAGE: "get-item-image",
   OPEN_ITEM_LOAD_WINDOW: "open-item-load-window",

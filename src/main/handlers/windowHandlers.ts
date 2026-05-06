@@ -38,7 +38,11 @@ const finishItemLoadWindow = (
     const selectedIdSet = new Set(selectedItemIds.map(String));
     const selectedItems = session.payload.items.filter((item) => {
       const id = getItemRowId(item);
-      return id !== undefined && selectedIdSet.has(String(id));
+      return (
+        id !== undefined &&
+        selectedIdSet.has(String(id)) &&
+        item.is_loadable !== false
+      );
     });
 
     session.resolve(selectedItems);

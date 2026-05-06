@@ -77,6 +77,18 @@ export const itemService = {
     return api.delete(ticketNumber, itemNumber);
   },
 
+  linkItemsToTicket: async (
+    ticketNumber: number,
+    itemNumbers: number[],
+  ): Promise<Item[]> => {
+    const api = getElectronApi()?.item;
+    if (!api) {
+      throw new Error("Item API is unavailable.");
+    }
+
+    return api.linkToTicket(ticketNumber, itemNumbers);
+  },
+
   saveItemImage: async (fileName: string, base64: string): Promise<string> => {
     const api = getElectronApi()?.item;
     if (!api) {

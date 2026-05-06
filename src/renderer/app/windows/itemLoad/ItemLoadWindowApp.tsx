@@ -22,6 +22,8 @@ const ItemLoadWindowApp: React.FC = () => {
   const previewItem =
     payload?.items.find((item) => String(getTransactionItemRowId(item)) === String(previewItemId)) ??
     payload?.items[0];
+  const blockedItemCount =
+    payload?.items.filter((item) => item.is_loadable === false).length ?? 0;
 
   useEffect(() => {
     let active = true;
@@ -44,7 +46,11 @@ const ItemLoadWindowApp: React.FC = () => {
       }
 
       setPayload(nextPayload);
-      setSelectionModel(nextPayload.items.map(getTransactionItemRowId));
+      setSelectionModel(
+        nextPayload.items
+          .filter((item) => item.is_loadable !== false)
+          .map(getTransactionItemRowId),
+      );
       setPreviewItemId(
         nextPayload.items[0] ? getTransactionItemRowId(nextPayload.items[0]) : null,
       );
@@ -139,6 +145,12 @@ const ItemLoadWindowApp: React.FC = () => {
               }}
             >
               <Box sx={{ minWidth: 0, minHeight: 0 }}>
+                {blockedItemCount > 0 && (
+                  <Alert severity="error" sx={{ mb: 1 }}>
+                    {blockedItemCount} item(s) are already active on a pawn
+                    ticket and cannot be loaded.
+                  </Alert>
+                )}
                 <DataGrid
                   columnHeaderHeight={34}
                   rowHeight={30}
@@ -148,7 +160,27 @@ const ItemLoadWindowApp: React.FC = () => {
                   checkboxSelection
                   disableRowSelectionOnClick
                   rowSelectionModel={selectionModel}
-                  onRowSelectionModelChange={setSelectionModel}
+                  isRowSelectable={(params) =>
+                    params.row.is_loadable !== false
+                  }
+                  getRowClassName={(params) =>
+                    params.row.is_loadable === false
+                      ? "item-load-row-blocked"
+                      : ""
+                  }
+                  onRowSelectionModelChange={(nextSelectionModel) => {
+                    const loadableIds = new Set(
+                      payload.items
+                        .filter((item) => item.is_loadable !== false)
+                        .map((item) => String(getTransactionItemRowId(item))),
+                    );
+
+                    setSelectionModel(
+                      nextSelectionModel.filter((id) =>
+                        loadableIds.has(String(id)),
+                      ),
+                    );
+                  }}
                   onRowClick={(params) => setPreviewItemId(params.id)}
                   disableColumnMenu
                   disableColumnFilter
@@ -156,7 +188,19 @@ const ItemLoadWindowApp: React.FC = () => {
                   disableDensitySelector
                   hideFooter
                   localeText={{ noRowsLabel: "No items" }}
-                  sx={transactionItemsTableSx}
+                  sx={{
+                    ...transactionItemsTableSx,
+                    "& .MuiDataGrid-row.item-load-row-blocked": {
+                      backgroundColor: "rgba(211, 47, 47, 0.18)",
+                    },
+                    "& .MuiDataGrid-row.item-load-row-blocked:hover": {
+                      backgroundColor: "rgba(211, 47, 47, 0.26)",
+                    },
+                    "& .MuiDataGrid-row.item-load-row-blocked .MuiDataGrid-cell": {
+                      borderRight: "1px solid rgba(211, 47, 47, 0.35)",
+                      borderBottom: "1px solid rgba(211, 47, 47, 0.35)",
+                    },
+                  }}
                 />
               </Box>
 

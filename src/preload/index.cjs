@@ -18,6 +18,7 @@ const CHANNELS = {
   ADD_ITEM: "add-item",
   UPDATE_ITEM: "update-item",
   DELETE_ITEM: "delete-item",
+  LINK_ITEMS_TO_TICKET: "link-items-to-ticket",
   SAVE_ITEM_IMAGE: "save-item-image",
   GET_ITEM_IMAGE: "get-item-image",
   OPEN_ITEM_LOAD_WINDOW: "open-item-load-window",
@@ -70,6 +71,8 @@ const itemApi = {
   update: (payload) => invoke(CHANNELS.UPDATE_ITEM, payload),
   delete: (ticketNumber, itemNumber) =>
     invoke(CHANNELS.DELETE_ITEM, ticketNumber, itemNumber),
+  linkToTicket: (ticketNumber, itemNumbers) =>
+    invoke(CHANNELS.LINK_ITEMS_TO_TICKET, ticketNumber, itemNumbers),
   saveImage: (fileName, base64) =>
     invoke(CHANNELS.SAVE_ITEM_IMAGE, fileName, base64),
   loadImage: (imagePath) => invoke(CHANNELS.GET_ITEM_IMAGE, imagePath),

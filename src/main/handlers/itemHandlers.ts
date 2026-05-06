@@ -39,6 +39,14 @@ export const registerItemHandlers = () => {
     return itemService.deleteItem(ticketNumber, itemNumber);
   });
 
+  ipcMain.handle(CHANNELS.LINK_ITEMS_TO_TICKET, async (
+    _event: IpcMainInvokeEvent,
+    ticketNumber: number,
+    itemNumbers: number[],
+  ) => {
+    return itemService.linkItemsToTicket(ticketNumber, itemNumbers);
+  });
+
   ipcMain.handle(CHANNELS.SAVE_ITEM_IMAGE, async (
     _event: IpcMainInvokeEvent,
     fileName: string,

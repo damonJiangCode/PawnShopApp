@@ -5,8 +5,13 @@ import type {
   SaveItemInput,
 } from "../../shared/types/itemPayload.ts";
 import type { Item } from "../../shared/types/Item.ts";
+import type { Ticket } from "../../shared/types/Ticket.ts";
 
 const mapItemRow = (row: Record<string, unknown>): Item => {
+  const latestTicketStatus = row.latest_ticket_status
+    ? (String(row.latest_ticket_status) as Ticket["status"])
+    : undefined;
+
   return {
     item_number: Number(row.item_number),
     quantity: Number(row.quantity ?? 0),
@@ -21,6 +26,8 @@ const mapItemRow = (row: Record<string, unknown>): Item => {
     latest_ticket_number: row.latest_ticket_number
       ? Number(row.latest_ticket_number)
       : undefined,
+    latest_ticket_status: latestTicketStatus,
+    is_loadable: latestTicketStatus ? latestTicketStatus !== "pawned" : true,
     image_path: row.image_path ? String(row.image_path) : "",
   };
 };
@@ -70,15 +77,22 @@ export const itemRepo = {
         i.serial_number,
         i.amount,
         i.latest_ticket_number,
+        latest_ticket.status AS latest_ticket_status,
         i.image_path
       FROM item i
-      INNER JOIN ticket t
-        ON i.item_number = ANY(t.items)
+      LEFT JOIN ticket_item ti
+        ON ti.item_number = i.item_number
+       AND ti.ticket_number = $1
+      LEFT JOIN ticket source_ticket
+        ON source_ticket.ticket_number = $1
+      LEFT JOIN ticket latest_ticket
+        ON latest_ticket.ticket_number = i.latest_ticket_number
       LEFT JOIN item_subcategory s
         ON s.id = i.subcategory_id
       LEFT JOIN item_category c
         ON c.id = s.category_id
-      WHERE t.ticket_number = $1
+      WHERE ti.ticket_number IS NOT NULL
+         OR i.item_number = ANY(COALESCE(source_ticket.items, '{}'))
       ORDER BY i.item_number DESC
     `;
 
@@ -88,6 +102,129 @@ export const itemRepo = {
     } finally {
       client.release();
     }
+  },
+
+  loadByItemNumber: async (
+    itemNumber: number,
+    dbClient: DbClient,
+  ): Promise<Item | null> => {
+    const query = `
+      SELECT
+        i.item_number,
+        i.quantity,
+        i.subcategory_id,
+        c.name AS category_name,
+        s.name AS subcategory_name,
+        i.description,
+        i.brand_name,
+        i.model_number,
+        i.serial_number,
+        i.amount,
+        i.latest_ticket_number,
+        latest_ticket.status AS latest_ticket_status,
+        i.image_path
+      FROM item i
+      LEFT JOIN ticket latest_ticket
+        ON latest_ticket.ticket_number = i.latest_ticket_number
+      LEFT JOIN item_subcategory s
+        ON s.id = i.subcategory_id
+      LEFT JOIN item_category c
+        ON c.id = s.category_id
+      WHERE i.item_number = $1
+      LIMIT 1
+    `;
+
+    const result = await dbClient.query(query, [itemNumber]);
+    return result.rows[0] ? mapItemRow(result.rows[0]) : null;
+  },
+
+  assertItemCanBeLoaded: async (
+    itemNumber: number,
+    targetTicketNumber: number,
+    dbClient: DbClient,
+  ): Promise<void> => {
+    const result = await dbClient.query(
+      `
+        SELECT
+          i.item_number,
+          i.latest_ticket_number,
+          latest_ticket.status AS latest_ticket_status
+        FROM item i
+        LEFT JOIN ticket latest_ticket
+          ON latest_ticket.ticket_number = i.latest_ticket_number
+        WHERE i.item_number = $1
+        LIMIT 1
+      `,
+      [itemNumber],
+    );
+
+    const row = result.rows[0];
+
+    if (!row) {
+      throw new Error(`Item #${itemNumber} was not found.`);
+    }
+
+    const latestTicketNumber = row.latest_ticket_number
+      ? Number(row.latest_ticket_number)
+      : undefined;
+    const latestTicketStatus = row.latest_ticket_status
+      ? String(row.latest_ticket_status)
+      : "";
+
+    if (
+      latestTicketStatus === "pawned" &&
+      latestTicketNumber !== targetTicketNumber
+    ) {
+      throw new Error(
+        `Item #${itemNumber} is already active on pawn ticket #${latestTicketNumber}.`,
+      );
+    }
+  },
+
+  linkItemToTicket: async (
+    ticketNumber: number,
+    itemNumber: number,
+    dbClient: DbClient,
+  ): Promise<Item> => {
+    await itemRepo.assertItemCanBeLoaded(itemNumber, ticketNumber, dbClient);
+
+    await dbClient.query(
+      `
+        INSERT INTO ticket_item (ticket_number, item_number)
+        VALUES ($1, $2)
+        ON CONFLICT (ticket_number, item_number) DO NOTHING
+      `,
+      [ticketNumber, itemNumber],
+    );
+
+    await dbClient.query(
+      `
+        UPDATE ticket
+        SET items = CASE
+          WHEN $2 = ANY(items) THEN items
+          ELSE array_append(items, $2)
+        END
+        WHERE ticket_number = $1
+      `,
+      [ticketNumber, itemNumber],
+    );
+
+    await dbClient.query(
+      `
+        UPDATE item
+        SET latest_ticket_number = $1
+        WHERE item_number = $2
+      `,
+      [ticketNumber, itemNumber],
+    );
+
+    const item = await itemRepo.loadByItemNumber(itemNumber, dbClient);
+
+    if (!item) {
+      throw new Error(`Item #${itemNumber} was not found after linking.`);
+    }
+
+    return item;
   },
 
   create: async (
@@ -132,6 +269,15 @@ export const itemRepo = {
     ]);
 
     const item = mapItemRow(result.rows[0]);
+
+    await dbClient.query(
+      `
+        INSERT INTO ticket_item (ticket_number, item_number)
+        VALUES ($1, $2)
+        ON CONFLICT (ticket_number, item_number) DO NOTHING
+      `,
+      [payload.ticket_number, item.item_number],
+    );
 
     await dbClient.query(
       `
@@ -223,6 +369,15 @@ export const itemRepo = {
         UPDATE ticket
         SET items = array_remove(items, $2)
         WHERE ticket_number = $1
+      `,
+      [ticketNumber, itemNumber],
+    );
+
+    await dbClient.query(
+      `
+        DELETE FROM ticket_item
+        WHERE ticket_number = $1
+          AND item_number = $2
       `,
       [ticketNumber, itemNumber],
     );
