@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import { Box, Paper, Typography } from "@mui/material";
 import type { Ticket } from "../../shared/types/Ticket";
 import type { Item } from "../../shared/types/Item";
@@ -7,10 +7,7 @@ import HistoryTicketsPanel from "../components/history/tickets/HistoryTicketsPan
 import HistoryItemsPanel from "../components/history/items/HistoryItemsPanel";
 import TicketPawnDialog from "../components/transaction/dialogs/TicketPawnDialog";
 import ItemEditDialog from "../components/transaction/dialogs/ItemEditDialog";
-import { itemService } from "../services/itemService";
-import type { ItemCategoryOption } from "../services/itemService";
-import { ticketService, type CreatePawnTicketInput } from "../services/ticketService";
-import { windowService } from "../services/windowService";
+import { useHistoryPageController } from "./controllers/useHistoryPageController";
 
 interface HistoryPageProps {
   clientNumber?: number;
@@ -27,12 +24,6 @@ interface HistoryPageProps {
   onLoadItemsToTransaction?: (sourceTicket: Ticket, sourceItems: Item[]) => void;
 }
 
-const historyTicketStatuses = new Set<Ticket["status"]>([
-  "expired",
-  "picked_up",
-  "sold",
-]);
-
 const HistoryPage: React.FC<HistoryPageProps> = ({
   clientNumber,
   clientLastName,
@@ -43,182 +34,25 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
   onRepawnCreated,
   onLoadItemsToTransaction,
 }) => {
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
-  const [items, setItems] = useState<Item[]>([]);
-  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
-  const [ticketsLoading, setTicketsLoading] = useState(false);
-  const [itemsLoading, setItemsLoading] = useState(false);
-  const [statusMessage, setStatusMessage] = useState("");
-  const [openRepawnDialog, setOpenRepawnDialog] = useState(false);
-  const [openItemEditDialog, setOpenItemEditDialog] = useState(false);
-  const [itemCategories, setItemCategories] = useState<ItemCategoryOption[]>([]);
-  const transactionTargetTicketRef = useRef<Ticket | null>(transactionTargetTicket ?? null);
-
-  useEffect(() => {
-    transactionTargetTicketRef.current = transactionTargetTicket ?? null;
-  }, [transactionTargetTicket]);
-
-  useEffect(() => {
-    let active = true;
-
-    itemService.preloadCategories().then((categories) => {
-      if (active) {
-        setItemCategories(categories);
-      }
-    }).catch((err) => {
-      console.error(err);
-    });
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    let active = true;
-
-    const loadTickets = async () => {
-      if (!clientNumber) {
-        setTickets([]);
-        setSelectedTicket(null);
-        setItems([]);
-        setSelectedItem(null);
-        setStatusMessage("");
-        return;
-      }
-
-      setTicketsLoading(true);
-      const fetchedTickets = await ticketService.loadTickets(clientNumber);
-      const historyTickets = fetchedTickets.filter((ticket) =>
-        historyTicketStatuses.has(ticket.status),
-      );
-
-      if (!active) return;
-
-      setTickets(historyTickets);
-      setSelectedTicket((prev) => {
-        if (!historyTickets.length) return null;
-        return (
-          historyTickets.find(
-            (ticket) => ticket.ticket_number === prev?.ticket_number,
-          ) ?? historyTickets[historyTickets.length - 1]
-        );
-      });
-      setTicketsLoading(false);
-    };
-
-    void loadTickets();
-
-    return () => {
-      active = false;
-    };
-  }, [clientNumber, refreshKey]);
-
-  useEffect(() => {
-    let active = true;
-
-    const loadItems = async () => {
-      if (!selectedTicket?.ticket_number) {
-        setItems([]);
-        setSelectedItem(null);
-        return;
-      }
-
-      setItemsLoading(true);
-      const fetchedItems = await itemService.loadItems(selectedTicket.ticket_number);
-
-      if (!active) return;
-
-      setItems(fetchedItems);
-      setSelectedItem((prev) => {
-        if (!fetchedItems.length) return null;
-        return (
-          fetchedItems.find((item) => item.item_number === prev?.item_number) ??
-          fetchedItems[0]
-        );
-      });
-      setItemsLoading(false);
-    };
-
-    void loadItems();
-
-    return () => {
-      active = false;
-    };
-  }, [selectedTicket?.ticket_number]);
-
-  const handleRepawn = () => {
-    if (!selectedTicket) return;
-    setOpenRepawnDialog(true);
-    setStatusMessage("");
-  };
-
-  const handleRepawnSave = async (
-    ticketData: Omit<CreatePawnTicketInput, "client_number">,
-  ) => {
-    if (!clientNumber || !selectedTicket) {
-      throw new Error("Please select a client and ticket first.");
-    }
-
-    const newTicket = await ticketService.createPawnTicket({
-      ...ticketData,
-      client_number: clientNumber,
-    });
-
-    setOpenRepawnDialog(false);
-    setStatusMessage(`Ticket #${newTicket.ticket_number} repawned.`);
-    onRepawnCreated?.(newTicket, selectedTicket, items);
-  };
-
-  const handleLoad = async () => {
-    if (!selectedTicket) return;
-    setStatusMessage("");
-
-    try {
-      const selectedItems = await windowService.openItemLoadWindow({
-        title: `Load Ticket #${selectedTicket.ticket_number} Items`,
-        description: `Select items from ticket #${selectedTicket.ticket_number}.`,
-        actionLabel: "Add to Ticket",
-        items,
-      });
-
-      handleConfirmLoad(selectedTicket, selectedItems ?? []);
-    } catch (err) {
-      console.error(err);
-      setStatusMessage("Unable to open item load window.");
-    }
-  };
-
-  const handleEditItem = (item: Item) => {
-    setSelectedItem(item);
-    setOpenItemEditDialog(true);
-    setStatusMessage("");
-  };
-
-  const handleItemSaved = (savedItem: Item) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.item_number === savedItem.item_number ? savedItem : item,
-      ),
-    );
-    setSelectedItem(savedItem);
-    setOpenItemEditDialog(false);
-    setStatusMessage(`Item #${savedItem.item_number} updated.`);
-  };
-
-  const handleConfirmLoad = (sourceTicket: Ticket, selectedItems: Item[]) => {
-    if (!selectedItems.length) {
-      return;
-    }
-
-    if (!transactionTargetTicketRef.current?.ticket_number) {
-      setStatusMessage("Select or create a transaction ticket before loading items.");
-      return;
-    }
-
-    onLoadItemsToTransaction?.(sourceTicket, selectedItems);
-  };
+  const { state, actions } = useHistoryPageController({
+    clientNumber,
+    refreshKey,
+    transactionTargetTicket,
+    onRepawnCreated,
+    onLoadItemsToTransaction,
+  });
+  const {
+    tickets,
+    selectedTicket,
+    items,
+    selectedItem,
+    ticketsLoading,
+    itemsLoading,
+    statusMessage,
+    openRepawnDialog,
+    openItemEditDialog,
+    itemCategories,
+  } = state;
 
   if (!clientNumber) {
     return (
@@ -268,11 +102,11 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
           selectedTicket={selectedTicket}
           loading={ticketsLoading}
           onSelectTicket={(ticket) => {
-            setSelectedTicket(ticket);
-            setStatusMessage("");
+            actions.setSelectedTicket(ticket);
+            actions.setStatusMessage("");
           }}
-          onRepawn={handleRepawn}
-          onLoad={handleLoad}
+          onRepawn={actions.handleRepawn}
+          onLoad={actions.handleLoad}
         />
 
         {statusMessage && (
@@ -285,8 +119,8 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
           items={items}
           selectedItem={selectedItem}
           loading={itemsLoading}
-          onSelectItem={setSelectedItem}
-          onEditItem={handleEditItem}
+          onSelectItem={actions.setSelectedItem}
+          onEditItem={actions.handleEditItem}
         />
       </Box>
 
@@ -304,8 +138,8 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
             amount: selectedTicket.amount,
             onetime_fee: selectedTicket.onetime_fee,
           }}
-          onClose={() => setOpenRepawnDialog(false)}
-          onSave={handleRepawnSave}
+          onClose={() => actions.setOpenRepawnDialog(false)}
+          onSave={actions.handleRepawnSave}
         />
       )}
 
@@ -316,8 +150,8 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
           ticketNumber={selectedTicket.ticket_number}
           item={selectedItem}
           categories={itemCategories}
-          onClose={() => setOpenItemEditDialog(false)}
-          onSave={handleItemSaved}
+          onClose={() => actions.setOpenItemEditDialog(false)}
+          onSave={actions.handleItemSaved}
         />
       )}
     </Paper>

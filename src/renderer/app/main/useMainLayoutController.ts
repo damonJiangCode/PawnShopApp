@@ -11,7 +11,7 @@ type SearchParams = {
 
 type ItemLoadMode = "repawn" | "load";
 
-export const useMainLayoutState = () => {
+export const useMainLayoutController = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const [searchFirstName, setSearchFirstName] = useState("");
   const [searchLastName, setSearchLastName] = useState("");

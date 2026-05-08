@@ -14,7 +14,7 @@ Keep these layers separate:
 - `utils/`: pure formatting and form helpers.
 - `assets/`: small renderer-only constants or visual assets.
 
-If a file starts doing two jobs, split it. For example, layout should not also own transaction business logic; move that logic into a hook like `useMainLayoutState`.
+If a file starts doing two jobs, split it. For example, layout should not also own transaction business logic; move that logic into a controller hook like `useMainLayoutController`.
 
 ## `app/`
 
@@ -28,7 +28,7 @@ app/
   main/
     MainApp.tsx
     MainLayout.tsx
-    useMainLayoutState.ts
+    useMainLayoutController.ts
   windows/
     itemLoad/
       ItemLoadWindowApp.tsx
@@ -39,7 +39,7 @@ app/
 - `windowRegistry.tsx`: maps `?window=item-load` style URL keys to window apps.
 - `main/MainApp.tsx`: the normal primary app window.
 - `main/MainLayout.tsx`: visual shell for the main window.
-- `main/useMainLayoutState.ts`: cross-page state and handlers for the main window.
+- `main/useMainLayoutController.ts`: cross-page state and handlers for the main window.
 - `windows/*`: independent Electron child-window UIs.
 
 To add a new Electron renderer window:
@@ -58,12 +58,13 @@ Current pages:
 - `ClientPage.tsx`: search, select, show profile/results for clients.
 - `TransactionPage.tsx`: active pawn/sell transaction workflow.
 - `HistoryPage.tsx`: historical tickets/items and repawn/load workflows.
+- `controllers/`: page controller hooks. These hold page state, effects, service calls, and event handlers so the page files stay mostly visual.
 
 Rule of thumb:
 
 - If it owns a full screen area, it is probably a page.
 - If it is a repeated or reusable visual piece, put it in `components/`.
-- If it is page logic that makes the page hard to read, move it into a nearby hook.
+- If it is page logic that makes the page hard to read, move it into `pages/controllers/useXxxPageController.ts`.
 
 ## `components/`
 
