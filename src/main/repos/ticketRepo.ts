@@ -51,6 +51,27 @@ type ExpireTicketPayload = {
   status: Ticket["status"];
 };
 
+const ticketSelectColumns = `
+  ticket_number,
+  transaction_datetime,
+  is_lost,
+  location,
+  description,
+  due_date,
+  is_overdue,
+  amount,
+  onetime_fee,
+  interest,
+  pickup_amount,
+  interested_datetime,
+  employee_name,
+  pickup_datetime,
+  status,
+  status_updated_at,
+  client_number,
+  items
+`;
+
 const mapTransferTicketPreviewRow = (
   row: Record<string, unknown>,
 ): TransferTicketPreview => ({
@@ -86,6 +107,9 @@ const mapTicketRow = (row: Record<string, unknown>): Ticket => {
       ? new Date(String(row.pickup_datetime))
       : undefined,
     status: row.status as Ticket["status"],
+    status_updated_at: row.status_updated_at
+      ? new Date(String(row.status_updated_at))
+      : new Date(String(row.transaction_datetime)),
     client_number: Number(row.client_number),
     items: Array.isArray(row.items) ? row.items.map(Number) : [],
   };
@@ -95,24 +119,7 @@ export const ticketRepo = {
   loadByClientNumber: async (clientNumber: number): Promise<Ticket[]> => {
     const client = await connect();
     const query = `
-      SELECT
-        ticket_number,
-        transaction_datetime,
-        is_lost,
-        location,
-        description,
-        due_date,
-        is_overdue,
-        amount,
-        onetime_fee,
-        interest,
-        pickup_amount,
-        interested_datetime,
-        employee_name,
-        pickup_datetime,
-        status,
-        client_number,
-        items
+      SELECT ${ticketSelectColumns}
       FROM ticket
       WHERE client_number = $1
       ORDER BY transaction_datetime ASC, ticket_number ASC
@@ -132,24 +139,7 @@ export const ticketRepo = {
   ): Promise<Ticket | null> => {
     const client = dbClient ?? (await connect());
     const query = `
-      SELECT
-        ticket_number,
-        transaction_datetime,
-        is_lost,
-        location,
-        description,
-        due_date,
-        is_overdue,
-        amount,
-        onetime_fee,
-        interest,
-        pickup_amount,
-        interested_datetime,
-        employee_name,
-        pickup_datetime,
-        status,
-        client_number,
-        items
+      SELECT ${ticketSelectColumns}
       FROM ticket
       WHERE ticket_number = $1
       LIMIT 1
@@ -235,24 +225,7 @@ export const ticketRepo = {
       ) VALUES (
         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13
       )
-      RETURNING
-        ticket_number,
-        transaction_datetime,
-        is_lost,
-        location,
-        description,
-        due_date,
-        is_overdue,
-        amount,
-        onetime_fee,
-        interest,
-        pickup_amount,
-        interested_datetime,
-        employee_name,
-        pickup_datetime,
-        status,
-        client_number,
-        items
+      RETURNING ${ticketSelectColumns}
     `;
 
     const values = [
@@ -299,24 +272,7 @@ export const ticketRepo = {
         pickup_amount = $7,
         employee_name = $8
       WHERE ticket_number = $9
-      RETURNING
-        ticket_number,
-        transaction_datetime,
-        is_lost,
-        location,
-        description,
-        due_date,
-        is_overdue,
-        amount,
-        onetime_fee,
-        interest,
-        pickup_amount,
-        interested_datetime,
-        employee_name,
-        pickup_datetime,
-        status,
-        client_number,
-        items
+      RETURNING ${ticketSelectColumns}
     `;
 
     const values = [
@@ -367,24 +323,7 @@ export const ticketRepo = {
         pickup_amount = $9,
         employee_name = $10
       WHERE ticket_number = $11
-      RETURNING
-        ticket_number,
-        transaction_datetime,
-        is_lost,
-        location,
-        description,
-        due_date,
-        is_overdue,
-        amount,
-        onetime_fee,
-        interest,
-        pickup_amount,
-        interested_datetime,
-        employee_name,
-        pickup_datetime,
-        status,
-        client_number,
-        items
+      RETURNING ${ticketSelectColumns}
     `;
 
     const values = [
@@ -425,26 +364,11 @@ export const ticketRepo = {
     const client = dbClient ?? (await connect());
     const query = `
       UPDATE ticket
-      SET status = $1
+      SET
+        status = $1,
+        status_updated_at = CURRENT_TIMESTAMP
       WHERE ticket_number = $2
-      RETURNING
-        ticket_number,
-        transaction_datetime,
-        is_lost,
-        location,
-        description,
-        due_date,
-        is_overdue,
-        amount,
-        onetime_fee,
-        interest,
-        pickup_amount,
-        interested_datetime,
-        employee_name,
-        pickup_datetime,
-        status,
-        client_number,
-        items
+      RETURNING ${ticketSelectColumns}
     `;
 
     try {
@@ -477,24 +401,7 @@ export const ticketRepo = {
       UPDATE ticket
       SET client_number = $1
       WHERE ticket_number = $2
-      RETURNING
-        ticket_number,
-        transaction_datetime,
-        is_lost,
-        location,
-        description,
-        due_date,
-        is_overdue,
-        amount,
-        onetime_fee,
-        interest,
-        pickup_amount,
-        interested_datetime,
-        employee_name,
-        pickup_datetime,
-        status,
-        client_number,
-        items
+      RETURNING ${ticketSelectColumns}
     `;
 
     try {

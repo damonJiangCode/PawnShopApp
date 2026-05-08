@@ -13,7 +13,8 @@ export interface Ticket {
   interested_datetime?: Date;
   employee_name: string;
   pickup_datetime?: Date;
-  status: "pawned" | "picked_up" | "expired" | "sold";
+  status: "pawned" | "pawn_expired" | "picked_up" | "sold" | "sell_expired";
+  status_updated_at: Date;
   client_number: number;
   items?: number[];
 }

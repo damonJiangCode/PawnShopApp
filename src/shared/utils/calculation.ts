@@ -29,4 +29,10 @@ export const calculation = {
     due.setDate(due.getDate() + 30);
     return due;
   },
+
+  getSellDueDatetime: (transactionDatetime: Date) => {
+    const due = new Date(transactionDatetime);
+    due.setDate(due.getDate() + 45);
+    return due;
+  },
 };

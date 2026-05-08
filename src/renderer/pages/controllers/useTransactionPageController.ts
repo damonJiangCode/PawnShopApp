@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Item } from "../../../shared/types/Item";
 import type { Ticket } from "../../../shared/types/Ticket";
 import { itemService, type ItemCategoryOption } from "../../services/itemService";
+import { ticketPrintService } from "../../services/ticketPrintService";
 import {
   type ConvertTicketInput,
   type ExpireTicketInput,
@@ -354,7 +355,10 @@ export const useTransactionPageController = ({
       return;
     }
 
-    window.print();
+    ticketPrintService.printEnvelopeTicket(selectedTicket);
+    setStatusMessage(
+      `Print placeholder ready for ticket #${selectedTicket.ticket_number}.`,
+    );
   };
 
   const handleConvertTicket = () => {
@@ -380,6 +384,11 @@ export const useTransactionPageController = ({
       return;
     }
 
+    if (!selectedTicket.due_date || selectedTicket.due_date.getTime() <= Date.now()) {
+      setStatusMessage("Only tickets with a due date after today can be expired.");
+      return;
+    }
+
     setOpenTicketExpireDialog(true);
     setStatusMessage("");
   };
@@ -401,6 +410,7 @@ export const useTransactionPageController = ({
     setItems([]);
     setSelectedItem(null);
     setopenTicketPawnDialog(false);
+    ticketPrintService.printEnvelopeTicket(newTicket);
     setStatusMessage(`Ticket #${newTicket.ticket_number} pawned.`);
   };
 
@@ -421,6 +431,7 @@ export const useTransactionPageController = ({
     setItems([]);
     setSelectedItem(null);
     setopenTicketSellDialog(false);
+    ticketPrintService.printEnvelopeTicket(newTicket);
     setStatusMessage(`Ticket #${newTicket.ticket_number} sold.`);
   };
 

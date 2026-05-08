@@ -24,11 +24,10 @@ const TransactionTicketsTable: React.FC<TransactionTicketsTableProps> = ({
   onSelectTicket,
 }) => {
   const getDueDate = (ticket: Ticket) => {
-    if (ticket.status === "sold") return "";
     if (ticket.due_date) return formatIsoDate(ticket.due_date);
     if (!ticket.transaction_datetime) return "";
     const due = new Date(ticket.transaction_datetime);
-    due.setDate(due.getDate() + 30);
+    due.setDate(due.getDate() + (ticket.status === "sold" ? 45 : 30));
     return formatIsoDate(due);
   };
 

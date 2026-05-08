@@ -32,9 +32,13 @@ const TransactionTicketActions: React.FC<TransactionTicketActionsProps> = (props
     onPrint,
     onConvert,
     onTransfer,
-    onExpire,
-  } = props;
+  onExpire,
+} = props;
   const ticketActionDisabled = !selectedTicket;
+  const expireDisabled =
+    ticketActionDisabled ||
+    !selectedTicket?.due_date ||
+    selectedTicket.due_date.getTime() <= Date.now();
 
   return (
     <TicketActionsLayout
@@ -77,7 +81,7 @@ const TransactionTicketActions: React.FC<TransactionTicketActionsProps> = (props
         {
           label: "Expr",
           icon: <DeleteIcon fontSize="small" />,
-          disabled: ticketActionDisabled,
+          disabled: expireDisabled,
           onClick: onExpire,
           sx: destructiveButtonSx,
         },

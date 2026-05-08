@@ -21,10 +21,22 @@ interface UseHistoryPageControllerParams {
 }
 
 const historyTicketStatuses = new Set<Ticket["status"]>([
-  "expired",
+  "pawn_expired",
   "picked_up",
-  "sold",
+  "sell_expired",
 ]);
+
+const sortHistoryTickets = (tickets: Ticket[]) =>
+  [...tickets].sort((a, b) => {
+    const aTime = a.status_updated_at.getTime();
+    const bTime = b.status_updated_at.getTime();
+
+    if (aTime !== bTime) {
+      return aTime - bTime;
+    }
+
+    return (a.ticket_number ?? 0) - (b.ticket_number ?? 0);
+  });
 
 export const useHistoryPageController = ({
   clientNumber,
@@ -85,8 +97,8 @@ export const useHistoryPageController = ({
 
       setTicketsLoading(true);
       const fetchedTickets = await ticketService.loadTickets(clientNumber);
-      const historyTickets = fetchedTickets.filter((ticket) =>
-        historyTicketStatuses.has(ticket.status),
+      const historyTickets = sortHistoryTickets(
+        fetchedTickets.filter((ticket) => historyTicketStatuses.has(ticket.status)),
       );
 
       if (!active) return;

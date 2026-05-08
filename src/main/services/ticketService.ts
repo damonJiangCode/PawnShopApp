@@ -160,7 +160,7 @@ export const ticketService = {
           is_lost: false,
           location: normalizedInput.location,
           description: normalizedInput.description,
-          due_date: transactionDatetime,
+          due_date: calculation.getSellDueDatetime(transactionDatetime),
           is_overdue: false,
           amount: normalizedInput.amount,
           onetime_fee: 0,
@@ -291,7 +291,7 @@ export const ticketService = {
       const dueDate =
         normalizedInput.target_status === "pawned"
           ? calculation.getDueDatetime(conversionDatetime)
-          : conversionDatetime;
+          : calculation.getSellDueDatetime(conversionDatetime);
       const onetimeFee = normalizedInput.target_status === "pawned"
         ? normalizedInput.onetime_fee
         : 0;
@@ -310,7 +310,10 @@ export const ticketService = {
           location: normalizedInput.location,
           amount: normalizedInput.amount,
           due_date: dueDate,
-          is_overdue: resolveIsOverdue(dueDate),
+          is_overdue:
+            normalizedInput.target_status === "pawned"
+              ? resolveIsOverdue(dueDate)
+              : false,
           onetime_fee: onetimeFee,
           interest,
           pickup_amount: pickupAmount,
@@ -354,10 +357,13 @@ export const ticketService = {
         );
       }
 
+      const expiredStatus =
+        existingTicket.status === "sold" ? "sell_expired" : "pawn_expired";
+
       return ticketRepo.expire(
         {
           ticket_number: normalizedInput.ticket_number,
-          status: "expired",
+          status: expiredStatus,
         },
         client,
       );
