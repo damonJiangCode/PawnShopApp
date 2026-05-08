@@ -29,9 +29,9 @@ const defaultClient: Client = {
   pickup_self_only: false,
   updated_at: new Date(""),
   redeem_count: 0,
+  sold_count: 0,
   expire_count: 0,
   overdue_count: 0,
-  theft_count: 0,
   identifications: [],
 };
 

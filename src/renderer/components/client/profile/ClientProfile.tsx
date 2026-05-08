@@ -252,12 +252,26 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
           <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 0.5 }}>
             Stats
           </Typography>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.65 }}>
+          <Box
+            sx={{
+              flex: 1,
+              minHeight: 0,
+              display: "grid",
+              gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+              gap: 0.65,
+              alignContent: "center",
+            }}
+          >
             {[
               {
                 label: "Redeem",
                 value: client.redeem_count,
                 color: statColors.redeem,
+              },
+              {
+                label: "Sold",
+                value: client.sold_count,
+                color: statColors.sold,
               },
               {
                 label: "Expire",
@@ -268,11 +282,6 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
                 label: "Overdue",
                 value: client.overdue_count,
                 color: statColors.overdue,
-              },
-              {
-                label: "Theft",
-                value: client.theft_count,
-                color: statColors.theft,
               },
             ].map((stat) => (
               <Box
@@ -285,9 +294,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
                   color: "#fff",
                   boxShadow: 1,
                   textAlign: "center",
-                  width: "84%",
-                  maxWidth: 96,
-                  alignSelf: "center",
+                  minWidth: 0,
                 }}
               >
                 <Typography

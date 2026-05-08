@@ -21,9 +21,9 @@ export const createClientTable = `
     image_path TEXT,
     pickup_self_only BOOLEAN NOT NULL DEFAULT FALSE,
     redeem_count INTEGER,      
+    sold_count INTEGER,
     expire_count INTEGER,      
     overdue_count INTEGER,    
-    theft_count INTEGER,    
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
   );
 `;

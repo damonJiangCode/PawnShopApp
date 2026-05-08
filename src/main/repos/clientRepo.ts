@@ -36,9 +36,9 @@ const mapRowToClient = (row: any): Client => ({
   pickup_self_only: Boolean(row.pickup_self_only),
   updated_at: row.updated_at,
   redeem_count: row.redeem_count ?? 0,
+  sold_count: row.sold_count ?? 0,
   expire_count: row.expire_count ?? 0,
   overdue_count: row.overdue_count ?? 0,
-  theft_count: row.theft_count ?? 0,
   identifications: row.identifications ?? [],
 });
 
@@ -117,9 +117,9 @@ export const clientRepo = {
         image_path,
         pickup_self_only,
         redeem_count,
+        sold_count,
         expire_count,
-        overdue_count,
-        theft_count
+        overdue_count
       ) VALUES (
         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23
       )
@@ -147,9 +147,9 @@ export const clientRepo = {
       normalize(clientData.image_path),
       Boolean(clientData.pickup_self_only),
       clientData.redeem_count ?? 0,
+      clientData.sold_count ?? 0,
       clientData.expire_count ?? 0,
       clientData.overdue_count ?? 0,
-      clientData.theft_count ?? 0,
     ];
 
     try {
@@ -199,9 +199,9 @@ export const clientRepo = {
         image_path = $18,
         pickup_self_only = $19,
         redeem_count = $20,
-        expire_count = $21,
-        overdue_count = $22,
-        theft_count = $23,
+        sold_count = $21,
+        expire_count = $22,
+        overdue_count = $23,
         updated_at = CURRENT_TIMESTAMP
       WHERE client_number = $24
       RETURNING updated_at
@@ -228,9 +228,9 @@ export const clientRepo = {
       normalize(clientData.image_path),
       Boolean(clientData.pickup_self_only),
       clientData.redeem_count ?? 0,
+      clientData.sold_count ?? 0,
       clientData.expire_count ?? 0,
       clientData.overdue_count ?? 0,
-      clientData.theft_count ?? 0,
       clientNumber,
     ];
 
