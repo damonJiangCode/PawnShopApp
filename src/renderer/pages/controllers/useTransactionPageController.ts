@@ -384,8 +384,8 @@ export const useTransactionPageController = ({
       return;
     }
 
-    if (!selectedTicket.due_date || selectedTicket.due_date.getTime() <= Date.now()) {
-      setStatusMessage("Only tickets with a due date after today can be expired.");
+    if (!selectedTicket.due_date || selectedTicket.due_date.getTime() >= Date.now()) {
+      setStatusMessage("Only tickets past the due date can be expired.");
       return;
     }
 

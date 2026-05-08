@@ -38,7 +38,7 @@ const TransactionTicketActions: React.FC<TransactionTicketActionsProps> = (props
   const expireDisabled =
     ticketActionDisabled ||
     !selectedTicket?.due_date ||
-    selectedTicket.due_date.getTime() <= Date.now();
+    selectedTicket.due_date.getTime() >= Date.now();
 
   return (
     <TicketActionsLayout
