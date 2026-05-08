@@ -22,7 +22,9 @@ interface TicketTransferDialogProps {
   clientMiddleName?: string;
   clientNumber?: number;
   onClose: () => void;
-  onLoadPreview: (ticketNumber: number) => Promise<TransferTicketPreview | null>;
+  onLoadPreview: (
+    ticketNumber: number,
+  ) => Promise<TransferTicketPreview | null>;
   onTransfer: (ticketNumber: number) => Promise<void>;
 }
 
@@ -46,7 +48,9 @@ const TicketTransferDialog: React.FC<TicketTransferDialogProps> = (props) => {
   const [ticketNumber, setTicketNumber] = useState<number | "">("");
   const [ticketNumberError, setTicketNumberError] = useState("");
   const [preview, setPreview] = useState<TransferTicketPreview | null>(null);
-  const [loadedTicketNumber, setLoadedTicketNumber] = useState<number | null>(null);
+  const [loadedTicketNumber, setLoadedTicketNumber] = useState<number | null>(
+    null,
+  );
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [transferring, setTransferring] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -134,9 +138,7 @@ const TicketTransferDialog: React.FC<TicketTransferDialogProps> = (props) => {
         return;
       }
 
-      setSubmitError(
-        "Couldn't load that ticket right now. Please try again.",
-      );
+      setSubmitError("Couldn't load that ticket right now. Please try again.");
     } finally {
       setLoadingPreview(false);
     }
@@ -292,15 +294,15 @@ const TicketTransferDialog: React.FC<TicketTransferDialogProps> = (props) => {
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose} disabled={transferring}>
-          Cancel
-        </Button>
         <Button
           onClick={handleTransfer}
           variant="contained"
           disabled={transferring || loadingPreview}
         >
           {transferring ? "Transferring..." : "Transfer"}
+        </Button>
+        <Button onClick={onClose} disabled={transferring}>
+          Cancel
         </Button>
       </DialogActions>
     </Dialog>

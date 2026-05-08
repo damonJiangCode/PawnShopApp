@@ -119,16 +119,10 @@ const TicketConvertDialog: React.FC<TicketConvertDialogProps> = ({
 
     setDescription(ticket.description || "");
     setLocation(
-      targetStatus === "sold"
-        ? DEFAULT_SELL_LOCATION
-        : ticket.location || "",
+      targetStatus === "sold" ? DEFAULT_SELL_LOCATION : ticket.location || "",
     );
     setAmount(ticket.amount ?? "");
-    setOneTimeFee(
-      targetStatus === "pawned"
-        ? (ticket.onetime_fee ?? "")
-        : 0,
-    );
+    setOneTimeFee(targetStatus === "pawned" ? (ticket.onetime_fee ?? "") : 0);
     setEmployeePassword("");
     setDescriptionError("");
     setLocationError("");
@@ -256,7 +250,9 @@ const TicketConvertDialog: React.FC<TicketConvertDialogProps> = ({
         return;
       }
 
-      setSubmitError("Couldn't convert this ticket right now. Please try again.");
+      setSubmitError(
+        "Couldn't convert this ticket right now. Please try again.",
+      );
     } finally {
       setSaving(false);
     }
@@ -431,11 +427,11 @@ const TicketConvertDialog: React.FC<TicketConvertDialogProps> = ({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose} disabled={saving}>
-          Cancel
-        </Button>
         <Button onClick={handleSave} variant="contained" disabled={saving}>
           {saving ? "Saving..." : "Convert"}
+        </Button>
+        <Button onClick={onClose} disabled={saving}>
+          Cancel
         </Button>
       </DialogActions>
     </Dialog>

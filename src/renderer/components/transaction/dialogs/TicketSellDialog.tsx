@@ -293,11 +293,11 @@ const TicketSellDialog: React.FC<TicketSellDialogProps> = (props) => {
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose} disabled={saving}>
-          Cancel
-        </Button>
         <Button onClick={handleSave} variant="contained" disabled={saving}>
           {saving ? "Saving..." : "Save"}
+        </Button>
+        <Button onClick={onClose} disabled={saving}>
+          Cancel
         </Button>
       </DialogActions>
     </Dialog>
