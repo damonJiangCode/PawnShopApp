@@ -1,85 +1,23 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React from "react";
 import { Alert, Box, Button, Paper, Typography } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import type { GridRowSelectionModel } from "@mui/x-data-grid";
-import type { ItemLoadWindowPayload } from "../../../../shared/types/windowPayload";
 import TransactionItemImage from "../../../components/transaction/items/TransactionItemImage";
 import {
   getTransactionItemRowId,
   transactionItemColumns,
   transactionItemsTableSx,
 } from "../../../components/transaction/items/TransactionItemsTable";
-import { windowService } from "../../../services/windowService";
+import { useItemLoadWindowController } from "./useItemLoadWindowController";
 
 const ItemLoadWindowApp: React.FC = () => {
-  const requestId = useMemo(() => {
-    return new URLSearchParams(window.location.search).get("requestId") ?? "";
-  }, []);
-  const [payload, setPayload] = useState<ItemLoadWindowPayload | null>(null);
-  const [selectionModel, setSelectionModel] = useState<GridRowSelectionModel>([]);
-  const [previewItemId, setPreviewItemId] = useState<number | string | null>(null);
-  const [error, setError] = useState("");
-  const previewItem =
-    payload?.items.find((item) => String(getTransactionItemRowId(item)) === String(previewItemId)) ??
-    payload?.items[0];
-  const blockedItemCount =
-    payload?.items.filter((item) => item.is_loadable === false).length ?? 0;
-
-  useEffect(() => {
-    let active = true;
-
-    const loadPayload = async () => {
-      if (!requestId) {
-        setError("Missing window request.");
-        return;
-      }
-
-      const nextPayload = await windowService.loadItemLoadWindowPayload(requestId);
-
-      if (!active) {
-        return;
-      }
-
-      if (!nextPayload) {
-        setError("This load window is no longer available.");
-        return;
-      }
-
-      setPayload(nextPayload);
-      setSelectionModel(
-        nextPayload.items
-          .filter((item) => item.is_loadable !== false)
-          .map(getTransactionItemRowId),
-      );
-      setPreviewItemId(
-        nextPayload.items[0] ? getTransactionItemRowId(nextPayload.items[0]) : null,
-      );
-      document.title = nextPayload.title;
-    };
-
-    void loadPayload();
-
-    return () => {
-      active = false;
-    };
-  }, [requestId]);
-
-  const handleSubmit = async () => {
-    if (!requestId) {
-      return;
-    }
-
-    await windowService.submitItemLoadWindow(requestId, [...selectionModel]);
-  };
-
-  const handleCancel = async () => {
-    if (!requestId) {
-      window.close();
-      return;
-    }
-
-    await windowService.cancelItemLoadWindow(requestId);
-  };
+  const { state, actions } = useItemLoadWindowController();
+  const {
+    payload,
+    selectionModel,
+    previewItem,
+    blockedItemCount,
+    error,
+  } = state;
 
   return (
     <Box
@@ -168,20 +106,8 @@ const ItemLoadWindowApp: React.FC = () => {
                       ? "item-load-row-blocked"
                       : ""
                   }
-                  onRowSelectionModelChange={(nextSelectionModel) => {
-                    const loadableIds = new Set(
-                      payload.items
-                        .filter((item) => item.is_loadable !== false)
-                        .map((item) => String(getTransactionItemRowId(item))),
-                    );
-
-                    setSelectionModel(
-                      nextSelectionModel.filter((id) =>
-                        loadableIds.has(String(id)),
-                      ),
-                    );
-                  }}
-                  onRowClick={(params) => setPreviewItemId(params.id)}
+                  onRowSelectionModelChange={actions.handleSelectionChange}
+                  onRowClick={(params) => actions.setPreviewItemId(params.id)}
                   disableColumnMenu
                   disableColumnFilter
                   disableColumnSelector
@@ -249,12 +175,12 @@ const ItemLoadWindowApp: React.FC = () => {
         >
           <Button
             variant="contained"
-            onClick={handleSubmit}
+            onClick={actions.handleSubmit}
             disabled={!payload?.items.length || !selectionModel.length}
           >
             {payload?.actionLabel ?? "Add to Ticket"}
           </Button>
-          <Button onClick={handleCancel}>Cancel</Button>
+          <Button onClick={actions.handleCancel}>Cancel</Button>
         </Box>
       </Paper>
     </Box>
