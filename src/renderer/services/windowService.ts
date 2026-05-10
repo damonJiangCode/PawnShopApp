@@ -1,8 +1,21 @@
-import type { ItemLoadWindowPayload } from "../../shared/types/windowPayload";
+import type {
+  ItemLoadWindowPayload,
+  PaymentWindowPayload,
+} from "../../shared/types/windowPayload";
 import type { Item } from "../../shared/types/Item";
 import { getElectronApi } from "./electronApi";
 
 export const windowService = {
+  openPaymentWindow: async (payload: PaymentWindowPayload): Promise<void> => {
+    const api = getElectronApi()?.window;
+
+    if (!api) {
+      throw new Error("Window API is unavailable.");
+    }
+
+    return api.openPaymentWindow(payload);
+  },
+
   openItemLoadWindow: async (
     payload: ItemLoadWindowPayload,
   ): Promise<Item[] | null> => {

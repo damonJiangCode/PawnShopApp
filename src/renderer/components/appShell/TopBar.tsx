@@ -6,9 +6,10 @@ import SideButtons from "./SideButtons";
 interface TopBarProps {
   onSearch?: (params: { firstName: string; lastName: string }) => void;
   onClear?: () => void;
+  onPayment?: () => void;
 }
 
-const TopBar: React.FC<TopBarProps> = ({ onSearch, onClear }) => {
+const TopBar: React.FC<TopBarProps> = ({ onSearch, onClear, onPayment }) => {
   return (
     <Box
       sx={{
@@ -20,7 +21,7 @@ const TopBar: React.FC<TopBarProps> = ({ onSearch, onClear }) => {
       }}
     >
       <SearchBar onSearch={onSearch} onClear={onClear} />
-      <SideButtons />
+      <SideButtons onPayment={onPayment} />
     </Box>
   );
 };

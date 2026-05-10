@@ -18,6 +18,7 @@ const CHANNELS = {
   LINK_ITEMS_TO_TICKET: "link-items-to-ticket",
   SAVE_ITEM_IMAGE: "save-item-image",
   GET_ITEM_IMAGE: "get-item-image",
+  OPEN_PAYMENT_WINDOW: "open-payment-window",
   OPEN_ITEM_LOAD_WINDOW: "open-item-load-window",
   GET_ITEM_LOAD_WINDOW_PAYLOAD: "get-item-load-window-payload",
   SUBMIT_ITEM_LOAD_WINDOW: "submit-item-load-window",

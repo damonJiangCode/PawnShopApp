@@ -3,6 +3,7 @@ import type { Client } from "../../../shared/types/Client";
 import type { Item } from "../../../shared/types/Item";
 import type { Ticket } from "../../../shared/types/Ticket";
 import type { TransactionItemLoadRequest } from "../../pages/TransactionPage";
+import { windowService } from "../../services/windowService";
 
 type SearchParams = {
   firstName: string;
@@ -53,6 +54,14 @@ export const useMainLayoutController = () => {
 
   const requestHistoryRefresh = () => {
     setHistoryRefreshKey((prev) => prev + 1);
+  };
+
+  const handlePayment = () => {
+    void windowService.openPaymentWindow({
+      clientNumber: selectedClient?.client_number,
+      clientLastName: selectedClient?.last_name,
+      clientFirstName: selectedClient?.first_name,
+    });
   };
 
   const sendItemsToTransaction = (
@@ -125,6 +134,7 @@ export const useMainLayoutController = () => {
       setSelectedTransactionTicket,
       handleSearch,
       handleClear,
+      handlePayment,
       requestHistoryRefresh,
       handleRepawnCreated,
       handleLoadHistoryItems,

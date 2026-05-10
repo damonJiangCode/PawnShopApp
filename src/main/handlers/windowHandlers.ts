@@ -1,6 +1,9 @@
 import path from "path";
 import type { IpcMainInvokeEvent } from "electron";
-import type { ItemLoadWindowPayload } from "../../shared/types/windowPayload.ts";
+import type {
+  ItemLoadWindowPayload,
+  PaymentWindowPayload,
+} from "../../shared/types/windowPayload.ts";
 import type { Item } from "../../shared/types/Item.ts";
 import { CHANNELS } from "./channels.ts";
 
@@ -54,6 +57,51 @@ const finishItemLoadWindow = (
 };
 
 export const registerWindowHandlers = () => {
+  ipcMain.handle(
+    CHANNELS.OPEN_PAYMENT_WINDOW,
+    async (_event: IpcMainInvokeEvent, payload: PaymentWindowPayload) => {
+      const childWindow = new BrowserWindow({
+        width: 1180,
+        height: 680,
+        minWidth: 980,
+        minHeight: 560,
+        center: true,
+        show: false,
+        title: "Payment",
+        webPreferences: {
+          nodeIntegration: false,
+          contextIsolation: true,
+          preload: preloadPath,
+        },
+      });
+
+      childWindow.setMenu(null);
+
+      childWindow.once("ready-to-show", () => {
+        childWindow.show();
+        childWindow.focus();
+      });
+
+      const searchParams = new URLSearchParams({
+        window: "payment",
+      });
+
+      if (payload.clientNumber) {
+        searchParams.set("clientNumber", String(payload.clientNumber));
+      }
+
+      if (payload.clientLastName) {
+        searchParams.set("clientLastName", payload.clientLastName);
+      }
+
+      if (payload.clientFirstName) {
+        searchParams.set("clientFirstName", payload.clientFirstName);
+      }
+
+      await childWindow.loadURL(`http://localhost:5173?${searchParams.toString()}`);
+    },
+  );
+
   ipcMain.handle(
     CHANNELS.OPEN_ITEM_LOAD_WINDOW,
     async (_event: IpcMainInvokeEvent, payload: ItemLoadWindowPayload) => {

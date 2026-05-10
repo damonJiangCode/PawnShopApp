@@ -6,3 +6,9 @@ export type ItemLoadWindowPayload = {
   actionLabel: string;
   items: Item[];
 };
+
+export type PaymentWindowPayload = {
+  clientNumber?: number;
+  clientLastName?: string;
+  clientFirstName?: string;
+};

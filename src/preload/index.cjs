@@ -21,6 +21,7 @@ const CHANNELS = {
   LINK_ITEMS_TO_TICKET: "link-items-to-ticket",
   SAVE_ITEM_IMAGE: "save-item-image",
   GET_ITEM_IMAGE: "get-item-image",
+  OPEN_PAYMENT_WINDOW: "open-payment-window",
   OPEN_ITEM_LOAD_WINDOW: "open-item-load-window",
   GET_ITEM_LOAD_WINDOW_PAYLOAD: "get-item-load-window-payload",
   SUBMIT_ITEM_LOAD_WINDOW: "submit-item-load-window",
@@ -79,6 +80,8 @@ const itemApi = {
 };
 
 const windowApi = {
+  openPaymentWindow: (payload) =>
+    invoke(CHANNELS.OPEN_PAYMENT_WINDOW, payload),
   openItemLoadWindow: (payload) =>
     invoke(CHANNELS.OPEN_ITEM_LOAD_WINDOW, payload),
   loadItemLoadWindowPayload: (requestId) =>

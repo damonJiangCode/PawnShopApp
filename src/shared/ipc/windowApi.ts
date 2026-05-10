@@ -1,7 +1,11 @@
 import type { Item } from "../types/Item.ts";
-import type { ItemLoadWindowPayload } from "../types/windowPayload.ts";
+import type {
+  ItemLoadWindowPayload,
+  PaymentWindowPayload,
+} from "../types/windowPayload.ts";
 
 export type ElectronWindowApi = {
+  openPaymentWindow: (payload: PaymentWindowPayload) => Promise<void>;
   openItemLoadWindow: (
     payload: ItemLoadWindowPayload,
   ) => Promise<Item[] | null>;

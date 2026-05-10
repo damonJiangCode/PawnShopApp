@@ -52,8 +52,8 @@ const MainLayout: React.FC = () => {
       <TopBar
         onSearch={actions.handleSearch}
         onClear={actions.handleClear}
+        onPayment={actions.handlePayment}
       />
-
       <Paper
         elevation={3}
         sx={{
