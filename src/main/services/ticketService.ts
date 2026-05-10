@@ -122,8 +122,8 @@ export const ticketService = {
           is_overdue: resolveIsOverdue(dueDate),
           amount: normalizedInput.amount,
           onetime_fee: normalizedInput.onetime_fee,
-          interest: calculation.getIntAmt(normalizedInput.amount),
-          pickup_amount: calculation.getPickupAmt(
+          interest: calculation.getBaseIntAmt(normalizedInput.amount),
+          pickup_amount: calculation.getBasePickupAmt(
             normalizedInput.amount,
             normalizedInput.onetime_fee,
           ),
@@ -200,8 +200,8 @@ export const ticketService = {
           location: normalizedInput.location,
           amount: normalizedInput.amount,
           onetime_fee: normalizedInput.onetime_fee,
-          interest: calculation.getIntAmt(normalizedInput.amount),
-          pickup_amount: calculation.getPickupAmt(
+          interest: calculation.getBaseIntAmt(normalizedInput.amount),
+          pickup_amount: calculation.getBasePickupAmt(
             normalizedInput.amount,
             normalizedInput.onetime_fee,
           ),
@@ -296,10 +296,10 @@ export const ticketService = {
         ? normalizedInput.onetime_fee
         : 0;
       const interest = normalizedInput.target_status === "pawned"
-        ? calculation.getIntAmt(normalizedInput.amount)
+        ? calculation.getBaseIntAmt(normalizedInput.amount)
         : 0;
       const pickupAmount = normalizedInput.target_status === "pawned"
-        ? calculation.getPickupAmt(normalizedInput.amount, onetimeFee)
+        ? calculation.getBasePickupAmt(normalizedInput.amount, onetimeFee)
         : 0;
 
       return ticketRepo.convert(

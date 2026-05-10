@@ -128,7 +128,7 @@ const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
     const amt = typeof amount === "number" ? amount : 0;
     const fee = typeof oneTimeFee === "number" ? oneTimeFee : 0;
     setEarlyClaimAmount(calculation.getEarlyAmt(amt, fee));
-    setPickupAmount(calculation.getPickupAmt(amt, fee));
+    setPickupAmount(calculation.getBasePickupAmt(amt, fee));
   }, [amount, oneTimeFee]);
 
   // handle save button clicked

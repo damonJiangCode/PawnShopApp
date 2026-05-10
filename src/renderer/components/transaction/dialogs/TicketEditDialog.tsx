@@ -116,7 +116,7 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
     const nextAmount = typeof amount === "number" ? amount : 0;
     const nextFee = typeof oneTimeFee === "number" ? oneTimeFee : 0;
     setEarlyClaimAmount(calculation.getEarlyAmt(nextAmount, nextFee));
-    setPickupAmount(calculation.getPickupAmt(nextAmount, nextFee));
+    setPickupAmount(calculation.getBasePickupAmt(nextAmount, nextFee));
   }, [amount, oneTimeFee]);
 
   const handleSave = async () => {
