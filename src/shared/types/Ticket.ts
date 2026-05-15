@@ -9,6 +9,7 @@ export interface Ticket {
   amount: number;
   onetime_fee: number;
   interest: number;
+  interest_paid_months: number;
   pickup_amount: number;
   interested_datetime?: Date;
   employee_name: string;

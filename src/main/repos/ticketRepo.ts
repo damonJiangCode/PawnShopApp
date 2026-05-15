@@ -62,6 +62,7 @@ const ticketSelectColumns = `
   amount,
   onetime_fee,
   interest,
+  interest_paid_months,
   pickup_amount,
   interested_datetime,
   employee_name,
@@ -98,6 +99,7 @@ const mapTicketRow = (row: Record<string, unknown>): Ticket => {
     amount: Number(row.amount ?? 0),
     onetime_fee: Number(row.onetime_fee ?? 0),
     interest: Number(row.interest ?? 0),
+    interest_paid_months: Number(row.interest_paid_months ?? 0),
     pickup_amount: Number(row.pickup_amount ?? 0),
     interested_datetime: row.interested_datetime
       ? new Date(String(row.interested_datetime))

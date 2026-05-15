@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React from "react";
 import {
   Box,
   Button,
@@ -10,12 +10,12 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import { DataGrid } from "@mui/x-data-grid";
-import type { GridColDef } from "@mui/x-data-grid";
-import CellTooltip from "../../../components/shared/CellTooltip";
 import ClientBar from "../../../components/shared/ClientBar";
 import { formatCurrency } from "../../../utils/formatters";
-
-type PaymentMode = "pickup" | "extension";
+import {
+  type PaymentMode,
+  usePaymentWindowController,
+} from "./usePaymentWindowController";
 
 const modeStyles: Record<
   PaymentMode,
@@ -31,15 +31,6 @@ const modeStyles: Record<
   },
 };
 const summaryBackground = "#eaf3ff";
-
-type PaymentTicketRow = {
-  id: number;
-  ticketNumber: number;
-  location: string;
-  description: string;
-  pickupAmount?: number;
-  extensionAmount: number;
-};
 
 const paymentTableSx = {
   border: "1px solid #ccc",
@@ -76,64 +67,18 @@ const paymentTableSx = {
 };
 
 const PaymentWindowApp: React.FC = () => {
-  const params = new URLSearchParams(window.location.search);
-  const ticketSearchInputRef = useRef<HTMLInputElement>(null);
-  const [mode, setMode] = useState<PaymentMode>("pickup");
+  const { state, actions } = usePaymentWindowController();
+  const {
+    mode,
+    availableRows,
+    loading,
+    statusMessage,
+    clientLastName,
+    clientFirstName,
+    columns,
+    ticketSearchInputRef,
+  } = state;
   const selectedStyle = modeStyles[mode];
-  const clientLastName = params.get("clientLastName") || "";
-  const clientFirstName = params.get("clientFirstName") || "";
-  const columns = useMemo<GridColDef<PaymentTicketRow>[]>(
-    () => [
-      {
-        field: "ticketNumber",
-        headerName: "TICKET #",
-        width: 92,
-        renderCell: (params) => <CellTooltip value={params.value} />,
-      },
-      {
-        field: "location",
-        headerName: "LOC",
-        width: 86,
-        renderCell: (params) => <CellTooltip value={params.value} />,
-      },
-      {
-        field: "description",
-        headerName: "DESC",
-        flex: 1,
-        minWidth: 160,
-        renderCell: (params) => <CellTooltip value={params.value} />,
-      },
-      ...(mode === "pickup"
-        ? [
-            {
-              field: "pickupAmount",
-              headerName: "PICKUP",
-              width: 104,
-              renderCell: (params) => (
-                <CellTooltip value={formatCurrency(params.value)} />
-              ),
-            } satisfies GridColDef<PaymentTicketRow>,
-          ]
-        : []),
-      {
-        field: "extensionAmount",
-        headerName: "EXT / 30",
-        width: 112,
-        renderCell: (params) => (
-          <CellTooltip value={formatCurrency(params.value)} />
-        ),
-      },
-    ],
-    [mode],
-  );
-
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => {
-      ticketSearchInputRef.current?.focus();
-    });
-
-    return () => cancelAnimationFrame(frame);
-  }, []);
 
   const renderSummaryField = (
     label: string,
@@ -174,7 +119,8 @@ const PaymentWindowApp: React.FC = () => {
       <DataGrid
         columnHeaderHeight={34}
         rowHeight={30}
-        rows={[]}
+        loading={loading}
+        rows={side === "available" ? availableRows : []}
         columns={columns}
         getRowId={(row) => row.id}
         disableColumnMenu
@@ -265,13 +211,19 @@ const PaymentWindowApp: React.FC = () => {
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Button variant="contained">Load</Button>
+            <Button
+              variant="contained"
+              onClick={() => void actions.handleLoad()}
+              disabled={loading}
+            >
+              Load
+            </Button>
             <Button variant="outlined">Clear</Button>
           </Box>
 
           <Tabs
             value={mode}
-            onChange={(_event, nextMode) => setMode(nextMode)}
+            onChange={(_event, nextMode) => actions.setMode(nextMode)}
             sx={{
               minHeight: 36,
               "& .MuiTab-root": {
@@ -309,6 +261,12 @@ const PaymentWindowApp: React.FC = () => {
             </Button>
           </Box>
         </Box>
+
+        {statusMessage && (
+          <Typography variant="body2" color="text.secondary">
+            {statusMessage}
+          </Typography>
+        )}
 
         <Box
           sx={{

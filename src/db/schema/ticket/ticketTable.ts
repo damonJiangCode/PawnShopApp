@@ -11,6 +11,7 @@ export const createTicketTable = `
     amount NUMERIC(10, 1),
     onetime_fee NUMERIC(10, 1),
     interest NUMERIC(5, 1),
+    interest_paid_months INTEGER NOT NULL DEFAULT 0,
     pickup_amount NUMERIC(10, 1),
     interested_datetime TIMESTAMPTZ DEFAULT NULL,
     employee_name TEXT,
