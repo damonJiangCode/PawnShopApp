@@ -16,6 +16,9 @@ export const registerTicketHandlers = () => {
   ipcMain.handle(CHANNELS.GET_LOCATIONS, async () =>
     ticketService.loadLocations(),
   );
+  ipcMain.handle(CHANNELS.GET_HOLIDAY_DATES, async () =>
+    ticketService.loadHolidayDates(),
+  );
   ipcMain.handle(CHANNELS.GET_TICKETS, async (
     _event: IpcMainInvokeEvent,
     clientNumber: number,

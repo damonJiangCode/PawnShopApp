@@ -72,6 +72,9 @@ const PaymentWindowApp: React.FC = () => {
   const {
     mode,
     availableRows,
+    selectedRows,
+    availableSelectionModel,
+    selectedSelectionModel,
     loading,
     statusMessage,
     statusSeverity,
@@ -79,6 +82,9 @@ const PaymentWindowApp: React.FC = () => {
     clientFirstName,
     columns,
     ticketSearchInputRef,
+    pickupSummaryAmount,
+    extensionSummaryAmount,
+    totalSummaryAmount,
   } = state;
   const selectedStyle = modeStyles[mode];
 
@@ -122,9 +128,30 @@ const PaymentWindowApp: React.FC = () => {
         columnHeaderHeight={34}
         rowHeight={30}
         loading={loading}
-        rows={side === "available" ? availableRows : []}
+        rows={side === "available" ? availableRows : selectedRows}
         columns={columns}
         getRowId={(row) => row.id}
+        rowSelectionModel={
+          side === "available" ? availableSelectionModel : selectedSelectionModel
+        }
+        onRowSelectionModelChange={
+          side === "available"
+            ? actions.setAvailableSelectionModel
+            : actions.setSelectedSelectionModel
+        }
+        onRowClick={(params) => {
+          const nextSelection = [params.id];
+          if (side === "available") {
+            actions.setAvailableSelectionModel(nextSelection);
+          } else {
+            actions.setSelectedSelectionModel(nextSelection);
+          }
+        }}
+        getRowClassName={(params) =>
+          mode === "pickup" && !params.row.isPickupAllowed
+            ? "payment-row-hold"
+            : ""
+        }
         disableColumnMenu
         disableColumnSorting
         disableColumnFilter
@@ -141,6 +168,19 @@ const PaymentWindowApp: React.FC = () => {
           ...paymentTableSx,
           "& .MuiDataGrid-virtualScroller": {
             backgroundColor: selectedStyle.tableBackground,
+          },
+          "& .MuiDataGrid-row.payment-row-hold": {
+            backgroundColor: "rgba(211, 47, 47, 0.18)",
+          },
+          "& .MuiDataGrid-row.payment-row-hold:hover": {
+            backgroundColor: "rgba(211, 47, 47, 0.26)",
+          },
+          "& .MuiDataGrid-row.payment-row-hold.Mui-selected": {
+            backgroundColor: "rgba(211, 47, 47, 0.32)",
+          },
+          "& .MuiDataGrid-row.payment-row-hold .MuiDataGrid-cell": {
+            borderRight: "1px solid rgba(211, 47, 47, 0.35)",
+            borderBottom: "1px solid rgba(211, 47, 47, 0.35)",
           },
         }}
       />
@@ -181,13 +221,13 @@ const PaymentWindowApp: React.FC = () => {
             gap: 1,
           }}
         >
-          {renderSummaryField("Pickup Amt", formatCurrency(0))}
+          {renderSummaryField("Pickup Amt", formatCurrency(pickupSummaryAmount))}
           {renderSummaryField(
             "Extension Amt",
-            formatCurrency(0),
+            formatCurrency(extensionSummaryAmount),
             modeStyles.extension.tableBackground,
           )}
-          {renderSummaryField("Total Amt", formatCurrency(0))}
+          {renderSummaryField("Total Amt", formatCurrency(totalSummaryAmount))}
         </Box>
       </Paper>
 
@@ -220,7 +260,9 @@ const PaymentWindowApp: React.FC = () => {
             >
               Load
             </Button>
-            <Button variant="outlined">Clear</Button>
+            <Button variant="outlined" onClick={actions.handleClear}>
+              Clear
+            </Button>
           </Box>
 
           <Tabs
@@ -302,10 +344,16 @@ const PaymentWindowApp: React.FC = () => {
               gap: 1,
             }}
           >
-            {[">", ">>", "<<", "<"].map((label) => (
+            {[
+              { label: ">", onClick: actions.moveSelectedToSelected },
+              { label: ">>", onClick: actions.moveAllToSelected },
+              { label: "<<", onClick: actions.moveAllToAvailable },
+              { label: "<", onClick: actions.moveSelectedToAvailable },
+            ].map(({ label, onClick }) => (
               <Button
                 key={label}
                 variant="outlined"
+                onClick={onClick}
                 sx={{ minWidth: 48, fontWeight: 900 }}
               >
                 {label}

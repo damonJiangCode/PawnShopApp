@@ -1,4 +1,5 @@
 import type { Ticket } from "../../shared/types/Ticket.ts";
+import type { HolidayDate } from "../../shared/types/holidayDate.ts";
 import { calculation } from "../../shared/utils/calculation.ts";
 import type {
   ConvertTicketInput,
@@ -75,6 +76,10 @@ export const ticketService = {
     }
 
     return ticketRepo.loadByClientNumber(clientNumber);
+  },
+
+  loadHolidayDates: async (): Promise<HolidayDate[]> => {
+    return ticketRepo.loadHolidayDates();
   },
 
   loadLocations: async (): Promise<string[]> => {

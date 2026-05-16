@@ -1,4 +1,5 @@
 import { connect } from "../../db/connection.ts";
+import type { HolidayDate } from "../../shared/types/holidayDate.ts";
 import type { TransferTicketPreview } from "../../shared/types/ticketPayload.ts";
 import type { Ticket } from "../../shared/types/Ticket.ts";
 
@@ -164,6 +165,27 @@ export const ticketRepo = {
     try {
       const result = await client.query(query);
       return result.rows.map((row) => row.location);
+    } finally {
+      client.release();
+    }
+  },
+
+  loadHolidayDates: async (): Promise<HolidayDate[]> => {
+    const client = await connect();
+    const query = `
+      SELECT
+        holiday_date::text AS holiday_date,
+        name
+      FROM holiday_date
+      ORDER BY holiday_date ASC
+    `;
+
+    try {
+      const result = await client.query(query);
+      return result.rows.map((row) => ({
+        holiday_date: String(row.holiday_date),
+        name: String(row.name),
+      }));
     } finally {
       client.release();
     }

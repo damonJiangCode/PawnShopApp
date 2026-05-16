@@ -1,4 +1,5 @@
 import type { Ticket } from "../../shared/types/Ticket";
+import type { HolidayDate } from "../../shared/types/holidayDate";
 import type {
   ConvertTicketInput,
   ExpireTicketInput,
@@ -173,6 +174,19 @@ export const ticketService = {
       }
 
       return await api.loadByClient(clientNumber);
+    } catch {
+      return [];
+    }
+  },
+
+  loadHolidayDates: async (): Promise<HolidayDate[]> => {
+    const api = getElectronApi()?.ticket;
+    if (!api) {
+      return [];
+    }
+
+    try {
+      return await api.loadHolidayDates();
     } catch {
       return [];
     }

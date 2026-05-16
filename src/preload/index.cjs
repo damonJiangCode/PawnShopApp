@@ -13,6 +13,7 @@ const CHANNELS = {
   SAVE_CLIENT_IMAGE: "save-client-image",
   GET_CLIENT_IMAGE: "get-client-image",
   GET_TICKETS: "get-tickets",
+  GET_HOLIDAY_DATES: "get-holiday-dates",
   GET_ITEMS: "get-items",
   GET_ITEM_CATEGORIES: "get-item-categories",
   ADD_ITEM: "add-item",
@@ -54,6 +55,7 @@ const clientApi = {
 
 const ticketApi = {
   loadByClient: (clientNumber) => invoke(CHANNELS.GET_TICKETS, clientNumber),
+  loadHolidayDates: () => invoke(CHANNELS.GET_HOLIDAY_DATES),
   loadLocations: () => invoke(CHANNELS.GET_LOCATIONS),
   createPawn: (payload) => invoke(CHANNELS.ADD_PAWN_TICKET, payload),
   createSell: (payload) => invoke(CHANNELS.ADD_SELL_TICKET, payload),

@@ -10,6 +10,7 @@ const CHANNELS = {
   SAVE_CLIENT_IMAGE: "save-client-image",
   GET_CLIENT_IMAGE: "get-client-image",
   GET_TICKETS: "get-tickets",
+  GET_HOLIDAY_DATES: "get-holiday-dates",
   GET_ITEMS: "get-items",
   GET_ITEM_CATEGORIES: "get-item-categories",
   ADD_ITEM: "add-item",
