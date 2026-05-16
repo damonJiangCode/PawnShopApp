@@ -71,6 +71,32 @@ describe("calculation", () => {
     assert.equal(actual, 120);
   });
 
+  it("uses early claim amount through the 7th calendar day", () => {
+    const transactionDate = utcDate(2026, 5, 8);
+    const asOf = utcDate(2026, 5, 15);
+    const actual = calculation.getPaymentPickupAmt(
+      201,
+      0,
+      transactionDate,
+      0,
+      asOf,
+    );
+
+    logCase(
+      "early claim 7th calendar day",
+      {
+        amount: 201,
+        oneTimeFee: 0,
+        transactionDate: shortDate(transactionDate),
+        interestPaidMonths: 0,
+        asOf: shortDate(asOf),
+      },
+      221.1,
+      actual,
+    );
+    assert.equal(actual, 221.1);
+  });
+
   it("charges one interest month through the first 30 days after transaction", () => {
     const transactionDate = utcDate(2026, 1, 1);
     const asOf = utcDate(2026, 1, 31);

@@ -1,3 +1,17 @@
+const MS_PER_DAY = 1000 * 60 * 60 * 24;
+
+const getCalendarDate = (date: Date) =>
+  new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+const getCalendarDayDiff = (start: Date, end: Date) => {
+  const startDate = getCalendarDate(start);
+  const endDate = getCalendarDate(end);
+  return Math.max(
+    0,
+    Math.round((endDate.getTime() - startDate.getTime()) / MS_PER_DAY),
+  );
+};
+
 export const calculation = {
   getEarlyAmt: (amt: number, otf: number) => {
     const regularInterest = calculation.getBaseIntAmt(amt) ?? 0;
@@ -27,8 +41,7 @@ export const calculation = {
     interestPaidMonths = 0,
     asOf = new Date(),
   ) => {
-    const elapsedMs = asOf.getTime() - transactionDatetime.getTime();
-    const elapsedDays = Math.max(0, elapsedMs / (1000 * 60 * 60 * 24));
+    const elapsedDays = getCalendarDayDiff(transactionDatetime, asOf);
 
     if (elapsedDays <= 7) {
       return calculation.getEarlyAmt(amt, otf);
