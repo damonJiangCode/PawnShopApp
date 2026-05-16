@@ -7,6 +7,7 @@ import { ticketService } from "../../../services/ticketService";
 import { formatCurrency } from "../../../utils/formatters";
 
 export type PaymentMode = "pickup" | "extension";
+export type PaymentStatusSeverity = "info" | "success" | "warning";
 
 export type PaymentTicketRow = {
   id: number;
@@ -47,6 +48,8 @@ export const usePaymentWindowController = () => {
   const [availableRows, setAvailableRows] = useState<PaymentTicketRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
+  const [statusSeverity, setStatusSeverity] =
+    useState<PaymentStatusSeverity>("info");
   const clientNumber = Number(params.get("clientNumber"));
   const clientLastName = params.get("clientLastName") || "";
   const clientFirstName = params.get("clientFirstName") || "";
@@ -106,12 +109,14 @@ export const usePaymentWindowController = () => {
 
   const handleLoad = async () => {
     if (!Number.isFinite(clientNumber) || clientNumber <= 0) {
+      setStatusSeverity("warning");
       setStatusMessage("Select a client before loading payment tickets.");
       return;
     }
 
     setLoading(true);
     setStatusMessage("");
+    setStatusSeverity("info");
 
     try {
       const tickets = await ticketService.loadTickets(clientNumber);
@@ -121,6 +126,7 @@ export const usePaymentWindowController = () => {
         .filter((row): row is PaymentTicketRow => Boolean(row));
 
       setAvailableRows(rows);
+      setStatusSeverity(rows.length ? "success" : "info");
       setStatusMessage(
         rows.length
           ? `${rows.length} pawned ticket(s) loaded.`
@@ -137,6 +143,7 @@ export const usePaymentWindowController = () => {
       availableRows,
       loading,
       statusMessage,
+      statusSeverity,
       clientLastName,
       clientFirstName,
       columns,

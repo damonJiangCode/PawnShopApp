@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  Alert,
   Box,
   Button,
   Paper,
@@ -73,6 +74,7 @@ const PaymentWindowApp: React.FC = () => {
     availableRows,
     loading,
     statusMessage,
+    statusSeverity,
     clientLastName,
     clientFirstName,
     columns,
@@ -263,9 +265,20 @@ const PaymentWindowApp: React.FC = () => {
         </Box>
 
         {statusMessage && (
-          <Typography variant="body2" color="text.secondary">
+          <Alert
+            severity={statusSeverity}
+            variant={statusSeverity === "warning" ? "filled" : "outlined"}
+            sx={{
+              py: 0.25,
+              alignItems: "center",
+              fontWeight: statusSeverity === "warning" ? 800 : 600,
+              "& .MuiAlert-message": {
+                py: 0.5,
+              },
+            }}
+          >
             {statusMessage}
-          </Typography>
+          </Alert>
         )}
 
         <Box
