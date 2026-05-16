@@ -200,4 +200,5 @@ describe("calculation", () => {
     );
     assert.equal(actual, 110);
   });
+
 });

@@ -1,0 +1,83 @@
+{
+  "generated_at": "2026-05-16T00:38:25.619Z",
+  "cases": [
+    {
+      "case": "monday pawn no holidays",
+      "input": {
+        "transactionDate": "2026-05-11",
+        "holidays": [],
+        "holdBusinessDays": 2
+      },
+      "expected": {
+        "earliestPickupDate": "2026-05-14"
+      },
+      "actual": {
+        "earliestPickupDate": "2026-05-14"
+      }
+    },
+    {
+      "case": "monday pawn with wednesday holiday",
+      "input": {
+        "transactionDate": "2026-05-11",
+        "holidays": [
+          "2026-05-13"
+        ],
+        "holdBusinessDays": 2
+      },
+      "expected": {
+        "earliestPickupDate": "2026-05-15"
+      },
+      "actual": {
+        "earliestPickupDate": "2026-05-15"
+      }
+    },
+    {
+      "case": "friday pawn skips weekend",
+      "input": {
+        "transactionDate": "2026-05-15",
+        "holidays": [],
+        "holdBusinessDays": 2
+      },
+      "expected": {
+        "earliestPickupDate": "2026-05-20"
+      },
+      "actual": {
+        "earliestPickupDate": "2026-05-20"
+      }
+    },
+    {
+      "case": "monday pawn with tuesday holiday",
+      "input": {
+        "transactionDate": "2026-05-11",
+        "holidays": [
+          "2026-05-12"
+        ],
+        "holdBusinessDays": 2
+      },
+      "expected": {
+        "earliestPickupDate": "2026-05-15"
+      },
+      "actual": {
+        "earliestPickupDate": "2026-05-15"
+      }
+    },
+    {
+      "case": "pickup allowed boundary",
+      "input": {
+        "transactionDate": "2026-05-11",
+        "holidays": [],
+        "beforePickupDate": "2026-05-13",
+        "earliestPickupDate": "2026-05-14",
+        "holdBusinessDays": 2
+      },
+      "expected": {
+        "beforePickupAllowed": false,
+        "earliestPickupAllowed": true
+      },
+      "actual": {
+        "beforePickupAllowed": false,
+        "earliestPickupAllowed": true
+      }
+    }
+  ]
+}
