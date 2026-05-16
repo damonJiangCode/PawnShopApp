@@ -16,6 +16,10 @@ import {
 } from "./schema/client/idTypeTable.ts";
 import { createEmployeeTable } from "./schema/employee/employeeTable.ts";
 import {
+  createHolidayDateTable,
+  insertHolidayDate,
+} from "./schema/ticket/holidayDateTable.ts";
+import {
   createItemCategoryTable,
   insertItemCategory,
 } from "./schema/item/itemCategoryTable.ts";
@@ -77,6 +81,11 @@ export const initializeDatabase = async () => {
 
     await client.query(createTicketIndexes);
     console.log("ticket indexes created successfully");
+
+    await client.query(createHolidayDateTable);
+    console.log("holiday_date table created successfully");
+    await client.query(insertHolidayDate);
+    console.log("holiday dates seeded successfully");
 
     await client.query(createItemCategoryTable);
     console.log("item_category table created successfully");
