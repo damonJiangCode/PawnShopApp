@@ -7,6 +7,13 @@ const resolveDate = (value?: string | Date | null) => {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 
+const formatLocalIsoDatePart = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 export const formatDisplayValue = (
   value: unknown,
   fallback = "-",
@@ -37,7 +44,7 @@ export const formatIsoDate = (value?: string | Date | null): string => {
     return value ? String(value) : "";
   }
 
-  return parsed.toISOString().slice(0, 10);
+  return formatLocalIsoDatePart(parsed);
 };
 
 export const formatIsoDateTime = (value?: string | Date | null): string => {
@@ -46,7 +53,7 @@ export const formatIsoDateTime = (value?: string | Date | null): string => {
     return value ? String(value) : "";
   }
 
-  const datePart = parsed.toISOString().slice(0, 10);
+  const datePart = formatLocalIsoDatePart(parsed);
   const timePart = parsed.toTimeString().slice(0, 8);
   return `${datePart} ${timePart}`;
 };
