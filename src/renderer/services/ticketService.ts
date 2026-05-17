@@ -3,6 +3,7 @@ import type { HolidayDate } from "../../shared/types/holidayDate";
 import type {
   ConvertTicketInput,
   ExpireTicketInput,
+  PickupTicketsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
   TransferTicketInput,
@@ -80,6 +81,10 @@ type NormalizedExpireTicketInput = {
   ticket_number: number;
 };
 
+type NormalizedPickupTicketsInput = {
+  ticket_numbers: number[];
+};
+
 const normalizeCreatePawnTicketInput = (
   input: CreatePawnTicketInput,
 ): NormalizedCreatePawnTicketInput => ({
@@ -142,6 +147,14 @@ const normalizeExpireTicketInput = (
   input: ExpireTicketInput,
 ): NormalizedExpireTicketInput => ({
   ticket_number: Number(input.ticket_number),
+});
+
+const normalizePickupTicketsInput = (
+  input: PickupTicketsInput,
+): NormalizedPickupTicketsInput => ({
+  ticket_numbers: [...new Set(input.ticket_numbers.map(Number))].filter(
+    (ticketNumber) => Number.isFinite(ticketNumber) && ticketNumber > 0,
+  ),
 });
 
 const mapBackendError = (error: unknown): Error => {
@@ -290,6 +303,27 @@ export const ticketService = {
     }
   },
 
+  pickupTickets: async (input: PickupTicketsInput): Promise<Ticket[]> => {
+    const normalizedInput = normalizePickupTicketsInput(input);
+    const api = getElectronApi()?.ticket;
+
+    if (!api) {
+      throw new Error(
+        "[ticketService] pickupTickets(): Cannot get api from Electron",
+      );
+    }
+
+    if (!normalizedInput.ticket_numbers.length) {
+      return [];
+    }
+
+    try {
+      return await api.pickup(normalizedInput);
+    } catch (error) {
+      throw mapBackendError(error);
+    }
+  },
+
   loadTransferTicketPreview: async (
     ticketNumber: number,
   ): Promise<TransferTicketPreview | null> => {
@@ -328,6 +362,7 @@ export const ticketService = {
 export type {
   ConvertTicketInput,
   ExpireTicketInput,
+  PickupTicketsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
   TransferTicketInput,

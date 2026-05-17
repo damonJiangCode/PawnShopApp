@@ -55,3 +55,7 @@ export type ConvertTicketInput = {
 export type ExpireTicketInput = {
   ticket_number: number;
 };
+
+export type PickupTicketsInput = {
+  ticket_numbers: number[];
+};

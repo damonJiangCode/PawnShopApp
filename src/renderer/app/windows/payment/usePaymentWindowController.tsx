@@ -84,6 +84,7 @@ export const usePaymentWindowController = () => {
   const [selectedSelectionByMode, setSelectedSelectionByMode] =
     useState<PaymentSelectionByMode>(createEmptySelectionByMode);
   const [loading, setLoading] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const [statusSeverity, setStatusSeverity] =
     useState<PaymentStatusSeverity>("info");
@@ -281,6 +282,62 @@ export const usePaymentWindowController = () => {
     setStatusMessage("");
   };
 
+  const handleDone = async () => {
+    const pickupRows = selectedRowsByMode.pickup;
+
+    if (!pickupRows.length) {
+      setStatusSeverity("warning");
+      setStatusMessage("Move pickup ticket(s) to the right table first.");
+      return;
+    }
+
+    setProcessing(true);
+    setStatusSeverity("info");
+    setStatusMessage("");
+
+    try {
+      const pickedUpTickets = await ticketService.pickupTickets({
+        ticket_numbers: pickupRows.map((row) => row.ticketNumber),
+      });
+      const pickedUpIds = new Set(
+        pickedUpTickets
+          .map((ticket) => ticket.ticket_number)
+          .filter((ticketNumber): ticketNumber is number =>
+            Number.isFinite(ticketNumber),
+          ),
+      );
+
+      setSelectedRowsByMode((prev) => ({
+        ...prev,
+        pickup: prev.pickup.filter((row) => !pickedUpIds.has(row.ticketNumber)),
+        extension: prev.extension.filter(
+          (row) => !pickedUpIds.has(row.ticketNumber),
+        ),
+      }));
+      setAvailableRowsByMode((prev) => ({
+        ...prev,
+        pickup: prev.pickup.filter((row) => !pickedUpIds.has(row.ticketNumber)),
+        extension: prev.extension.filter(
+          (row) => !pickedUpIds.has(row.ticketNumber),
+        ),
+      }));
+      setAvailableSelectionByMode(createEmptySelectionByMode());
+      setSelectedSelectionByMode(createEmptySelectionByMode());
+      setStatusSeverity("success");
+      setStatusMessage(
+        `${pickedUpTickets.length} ticket(s) picked up successfully.`,
+      );
+    } catch (err) {
+      console.error(err);
+      setStatusSeverity("warning");
+      setStatusMessage(
+        err instanceof Error ? err.message : "Unable to pickup ticket(s).",
+      );
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   return {
     state: {
       mode,
@@ -288,7 +345,8 @@ export const usePaymentWindowController = () => {
       selectedRows,
       availableSelectionModel,
       selectedSelectionModel,
-      loading,
+      loading: loading || processing,
+      processing,
       statusMessage,
       statusSeverity,
       clientLastName,
@@ -303,6 +361,7 @@ export const usePaymentWindowController = () => {
       setMode,
       handleLoad,
       handleClear,
+      handleDone,
       setAvailableSelectionModel: (selectionModel: GridRowSelectionModel) =>
         setAvailableSelectionByMode((prev) => ({
           ...prev,

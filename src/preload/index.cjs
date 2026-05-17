@@ -32,6 +32,7 @@ const CHANNELS = {
   UPDATE_TICKET: "update-ticket",
   CONVERT_TICKET: "convert-ticket",
   EXPIRE_TICKET: "expire-ticket",
+  PICKUP_TICKETS: "pickup-tickets",
   GET_TRANSFER_TICKET_PREVIEW: "get-transfer-ticket-preview",
   TRANSFER_TICKET: "transfer-ticket",
 };
@@ -62,6 +63,7 @@ const ticketApi = {
   update: (payload) => invoke(CHANNELS.UPDATE_TICKET, payload),
   convert: (payload) => invoke(CHANNELS.CONVERT_TICKET, payload),
   expire: (payload) => invoke(CHANNELS.EXPIRE_TICKET, payload),
+  pickup: (payload) => invoke(CHANNELS.PICKUP_TICKETS, payload),
   loadTransferPreview: (ticketNumber) =>
     invoke(CHANNELS.GET_TRANSFER_TICKET_PREVIEW, ticketNumber),
   transfer: (payload) => invoke(CHANNELS.TRANSFER_TICKET, payload),

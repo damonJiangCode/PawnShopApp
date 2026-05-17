@@ -76,6 +76,7 @@ const PaymentWindowApp: React.FC = () => {
     availableSelectionModel,
     selectedSelectionModel,
     loading,
+    processing,
     statusMessage,
     statusSeverity,
     clientLastName,
@@ -367,7 +368,13 @@ const PaymentWindowApp: React.FC = () => {
         </Box>
 
         <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
-          <Button variant="contained">Done</Button>
+          <Button
+            variant="contained"
+            onClick={() => void actions.handleDone()}
+            disabled={loading || processing}
+          >
+            Done
+          </Button>
           <Button variant="outlined" onClick={() => window.close()}>
             Cancel
           </Button>

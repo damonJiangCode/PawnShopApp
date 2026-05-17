@@ -3,6 +3,7 @@ import type { HolidayDate } from "../types/holidayDate.ts";
 import type {
   ConvertTicketInput,
   ExpireTicketInput,
+  PickupTicketsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
   TransferTicketInput,
@@ -19,6 +20,7 @@ export type ElectronTicketApi = {
   update: (payload: UpdateTicketInput) => Promise<Ticket>;
   convert: (payload: ConvertTicketInput) => Promise<Ticket>;
   expire: (payload: ExpireTicketInput) => Promise<Ticket>;
+  pickup: (payload: PickupTicketsInput) => Promise<Ticket[]>;
   loadTransferPreview: (
     ticketNumber: number,
   ) => Promise<TransferTicketPreview | null>;

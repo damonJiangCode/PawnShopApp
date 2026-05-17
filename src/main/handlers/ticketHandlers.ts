@@ -2,6 +2,7 @@ import type { IpcMainInvokeEvent } from "electron";
 import type {
   ConvertTicketInput,
   ExpireTicketInput,
+  PickupTicketsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
   TransferTicketInput,
@@ -54,6 +55,12 @@ export const registerTicketHandlers = () => {
     payload: ExpireTicketInput,
   ) => {
     return ticketService.expireTicket(payload);
+  });
+  ipcMain.handle(CHANNELS.PICKUP_TICKETS, async (
+    _event: IpcMainInvokeEvent,
+    payload: PickupTicketsInput,
+  ) => {
+    return ticketService.pickupTickets(payload);
   });
   ipcMain.handle(CHANNELS.GET_TRANSFER_TICKET_PREVIEW, async (
     _event: IpcMainInvokeEvent,

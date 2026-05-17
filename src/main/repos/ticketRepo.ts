@@ -52,6 +52,11 @@ type ExpireTicketPayload = {
   status: Ticket["status"];
 };
 
+type PickupTicketsPayload = {
+  ticket_numbers: number[];
+  pickup_datetime: Date;
+};
+
 const ticketSelectColumns = `
   ticket_number,
   transaction_datetime,
@@ -408,6 +413,55 @@ export const ticketRepo = {
       }
 
       return mapTicketRow(result.rows[0]);
+    } finally {
+      if (!dbClient) {
+        client.release();
+      }
+    }
+  },
+
+  pickup: async (
+    payload: PickupTicketsPayload,
+    dbClient?: DbClient,
+  ): Promise<Ticket[]> => {
+    const client = dbClient ?? (await connect());
+    const query = `
+      WITH picked AS (
+        UPDATE ticket
+        SET
+          status = 'picked_up',
+          pickup_datetime = $1,
+          status_updated_at = $1,
+          is_overdue = FALSE
+        WHERE ticket_number = ANY($2::int[])
+          AND status = 'pawned'
+        RETURNING ${ticketSelectColumns}
+      ),
+      client_counts AS (
+        SELECT client_number, COUNT(*)::int AS picked_count
+        FROM picked
+        GROUP BY client_number
+      ),
+      updated_clients AS (
+        UPDATE client c
+        SET
+          redeem_count = COALESCE(c.redeem_count, 0) + cc.picked_count,
+          updated_at = CURRENT_TIMESTAMP
+        FROM client_counts cc
+        WHERE c.client_number = cc.client_number
+        RETURNING c.client_number
+      )
+      SELECT ${ticketSelectColumns}
+      FROM picked
+      ORDER BY ticket_number ASC
+    `;
+
+    try {
+      const result = await client.query(query, [
+        payload.pickup_datetime,
+        payload.ticket_numbers,
+      ]);
+      return result.rows.map(mapTicketRow);
     } finally {
       if (!dbClient) {
         client.release();

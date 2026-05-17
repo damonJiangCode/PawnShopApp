@@ -30,6 +30,7 @@ const CHANNELS = {
   UPDATE_TICKET: "update-ticket",
   CONVERT_TICKET: "convert-ticket",
   EXPIRE_TICKET: "expire-ticket",
+  PICKUP_TICKETS: "pickup-tickets",
   GET_TRANSFER_TICKET_PREVIEW: "get-transfer-ticket-preview",
   TRANSFER_TICKET: "transfer-ticket",
 } as const;

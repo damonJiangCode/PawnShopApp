@@ -4,6 +4,7 @@ import { calculation } from "../../shared/utils/calculation.ts";
 import type {
   ConvertTicketInput,
   ExpireTicketInput,
+  PickupTicketsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
   TransferTicketInput,
@@ -65,6 +66,12 @@ const normalizeConvertTicketInput = (input: ConvertTicketInput) => ({
 
 const normalizeExpireTicketInput = (input: ExpireTicketInput) => ({
   ticket_number: Number(input.ticket_number),
+});
+
+const normalizePickupTicketsInput = (input: PickupTicketsInput) => ({
+  ticket_numbers: [...new Set(input.ticket_numbers.map(Number))].filter(
+    (ticketNumber) => Number.isFinite(ticketNumber) && ticketNumber > 0,
+  ),
 });
 
 const resolveIsOverdue = (dueDate: Date) =>
@@ -373,6 +380,61 @@ export const ticketService = {
         },
         client,
       );
+    });
+  },
+
+  pickupTickets: async (input: PickupTicketsInput): Promise<Ticket[]> => {
+    const normalizedInput = normalizePickupTicketsInput(input);
+
+    if (!normalizedInput.ticket_numbers.length) {
+      throw createFieldError("ticket_number", "Select at least one ticket.");
+    }
+
+    return runInTransaction("pickupTickets", async (client) => {
+      const existingTickets = await Promise.all(
+        normalizedInput.ticket_numbers.map((ticketNumber) =>
+          ticketRepo.loadByTicketNumber(ticketNumber, client),
+        ),
+      );
+      const missingTicketNumber = normalizedInput.ticket_numbers.find(
+        (_ticketNumber, index) => !existingTickets[index],
+      );
+
+      if (missingTicketNumber) {
+        throw createFieldError(
+          "ticket_number",
+          `Ticket #${missingTicketNumber} was not found.`,
+        );
+      }
+
+      const nonPawnedTicket = existingTickets.find(
+        (ticket) => ticket && ticket.status !== "pawned",
+      );
+
+      if (nonPawnedTicket?.ticket_number) {
+        throw createFieldError(
+          "ticket_number",
+          `Ticket #${nonPawnedTicket.ticket_number} is not pawned.`,
+        );
+      }
+
+      const pickupDatetime = calculation.getCurrentDatetime();
+      const pickedUpTickets = await ticketRepo.pickup(
+        {
+          ticket_numbers: normalizedInput.ticket_numbers,
+          pickup_datetime: pickupDatetime,
+        },
+        client,
+      );
+
+      if (pickedUpTickets.length !== normalizedInput.ticket_numbers.length) {
+        throw createFieldError(
+          "ticket_number",
+          "Some selected tickets could not be picked up.",
+        );
+      }
+
+      return pickedUpTickets;
     });
   },
 
