@@ -3,6 +3,7 @@ import type { Item } from "../../../shared/types/Item";
 import type { Ticket } from "../../../shared/types/Ticket";
 import { itemService, type ItemCategoryOption } from "../../services/itemService";
 import { ticketPrintService } from "../../services/ticketPrintService";
+import { calculation } from "../../../shared/utils/calculation";
 import {
   type ConvertTicketInput,
   type ExpireTicketInput,
@@ -384,7 +385,10 @@ export const useTransactionPageController = ({
       return;
     }
 
-    if (!selectedTicket.due_date || selectedTicket.due_date.getTime() >= Date.now()) {
+    if (
+      !selectedTicket.due_date ||
+      !calculation.isBeforeCalendarDate(selectedTicket.due_date)
+    ) {
       setStatusMessage("Only tickets past the due date can be expired.");
       return;
     }

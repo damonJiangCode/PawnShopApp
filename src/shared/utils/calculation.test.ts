@@ -201,4 +201,43 @@ describe("calculation", () => {
     assert.equal(actual, 110);
   });
 
+  it("compares expire eligibility by local calendar date instead of exact time", () => {
+    const dueToday = new Date(2026, 4, 15, 1, 0, 0);
+    const laterToday = new Date(2026, 4, 15, 23, 0, 0);
+    const yesterday = new Date(2026, 4, 14, 23, 0, 0);
+    const dueTodayActual = calculation.isBeforeCalendarDate(
+      dueToday,
+      laterToday,
+    );
+    const yesterdayActual = calculation.isBeforeCalendarDate(
+      yesterday,
+      laterToday,
+    );
+
+    console.log(
+      JSON.stringify(
+        {
+          case: "expire calendar date comparison",
+          input: {
+            dueToday: "2026-05-15 01:00",
+            laterToday: "2026-05-15 23:00",
+            yesterday: "2026-05-14 23:00",
+          },
+          expected: {
+            dueTodayBeforeLaterToday: false,
+            yesterdayBeforeLaterToday: true,
+          },
+          actual: {
+            dueTodayBeforeLaterToday: dueTodayActual,
+            yesterdayBeforeLaterToday: yesterdayActual,
+          },
+        },
+        null,
+        2,
+      ),
+    );
+    assert.equal(dueTodayActual, false);
+    assert.equal(yesterdayActual, true);
+  });
+
 });

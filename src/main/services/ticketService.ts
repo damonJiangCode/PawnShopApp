@@ -67,7 +67,8 @@ const normalizeExpireTicketInput = (input: ExpireTicketInput) => ({
   ticket_number: Number(input.ticket_number),
 });
 
-const resolveIsOverdue = (dueDate: Date) => dueDate.getTime() < Date.now();
+const resolveIsOverdue = (dueDate: Date) =>
+  calculation.isBeforeCalendarDate(dueDate);
 
 export const ticketService = {
   loadTickets: async (clientNumber: number): Promise<Ticket[]> => {

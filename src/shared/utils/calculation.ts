@@ -107,6 +107,10 @@ export const calculation = {
     return getCalendarDate(asOf).getTime() >= earliestPickupDatetime.getTime();
   },
 
+  isBeforeCalendarDate: (date: Date, asOf = new Date()) => {
+    return getCalendarDate(date).getTime() < getCalendarDate(asOf).getTime();
+  },
+
   getCurrentDatetime: () => {
     return new Date();
   },

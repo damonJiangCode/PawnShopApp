@@ -70,12 +70,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
       return "-";
     }
 
-    const parsed = value instanceof Date ? value : new Date(String(value));
-    if (Number.isNaN(parsed.getTime())) {
-      return String(value);
-    }
-
-    return formatShortDate(parsed);
+    return formatShortDate(value as string | Date);
   };
   const displayMeasurement = (value: number | undefined, unit: string) =>
     placeholder || value === undefined ? "-" : `${value} ${unit}`;

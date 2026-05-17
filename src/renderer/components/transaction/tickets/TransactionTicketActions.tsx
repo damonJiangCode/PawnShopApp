@@ -7,6 +7,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import type { Ticket } from "../../../../shared/types/Ticket";
+import { calculation } from "../../../../shared/utils/calculation";
 import TicketActionsLayout from "../../layout/TicketActionsLayout";
 import { destructiveButtonSx } from "../../shared/actionButtonStyles";
 
@@ -38,7 +39,7 @@ const TransactionTicketActions: React.FC<TransactionTicketActionsProps> = (props
   const expireDisabled =
     ticketActionDisabled ||
     !selectedTicket?.due_date ||
-    selectedTicket.due_date.getTime() >= Date.now();
+    !calculation.isBeforeCalendarDate(selectedTicket.due_date);
 
   return (
     <TicketActionsLayout

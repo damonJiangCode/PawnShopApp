@@ -1,17 +1,31 @@
-const resolveDate = (value?: string | Date | null) => {
-  if (!value) {
-    return null;
-  }
+const dateOnlyPattern = /^(\d{4})-(\d{2})-(\d{2})$/;
 
-  const parsed = value instanceof Date ? value : new Date(value);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
-};
-
-const formatLocalIsoDatePart = (date: Date): string => {
+export const formatLocalIsoDatePart = (date: Date): string => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+};
+
+export const resolveDate = (value?: string | Date | null) => {
+  if (!value) {
+    return null;
+  }
+
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+
+  const dateOnlyMatch = value.match(dateOnlyPattern);
+  const parsed = dateOnlyMatch
+    ? new Date(
+        Number(dateOnlyMatch[1]),
+        Number(dateOnlyMatch[2]) - 1,
+        Number(dateOnlyMatch[3]),
+      )
+    : new Date(value);
+
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 
 export const formatDisplayValue = (

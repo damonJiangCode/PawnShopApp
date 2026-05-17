@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Box, TextField, MenuItem } from "@mui/material";
 import { clientService } from "../../../../services/clientService";
+import {
+  formatLocalIsoDatePart,
+  resolveDate,
+} from "../../../../utils/formatters";
 
 interface DobGenderColorProps {
   date_of_birth?: Date | string;
@@ -48,7 +52,7 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
       todayObj.getMonth(),
       todayObj.getDate()
     );
-    setMaxDate(maxDateObj.toISOString().split("T")[0]);
+    setMaxDate(formatLocalIsoDatePart(maxDateObj));
   }, []);
 
   const isValidDate = (d: unknown) =>
@@ -56,8 +60,8 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
 
   const isUnder18 =
     date_of_birth &&
-    isValidDate(new Date(date_of_birth)) &&
-    new Date(date_of_birth).toISOString().split("T")[0] > maxDate;
+    isValidDate(resolveDate(date_of_birth)) &&
+    formatLocalIsoDatePart(resolveDate(date_of_birth) as Date) > maxDate;
 
   return (
     <Box sx={{ display: "flex", gap: 2 }}>
@@ -68,8 +72,8 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
         name="date_of_birth"
         label="Date of Birth"
         value={
-          date_of_birth && isValidDate(new Date(date_of_birth))
-            ? new Date(date_of_birth).toISOString().split("T")[0]
+          date_of_birth && isValidDate(resolveDate(date_of_birth))
+            ? formatLocalIsoDatePart(resolveDate(date_of_birth) as Date)
             : ""
         }
         onChange={onChange}
