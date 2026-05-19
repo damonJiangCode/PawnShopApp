@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import type { Item } from "../../../shared/types/Item";
 import type { Ticket } from "../../../shared/types/Ticket";
-import { itemService, type ItemCategoryOption } from "../../services/itemService";
+import {
+  itemService,
+  type ItemCategoryOption,
+} from "../../services/itemService";
 import { ticketPrintService } from "../../services/ticketPrintService";
 import { calculation } from "../../../shared/utils/calculation";
 import {
@@ -28,6 +31,7 @@ interface UseTransactionPageControllerParams {
   clientNumber?: number;
   focusTicketNumber?: number;
   focusRequestId?: number;
+  refreshKey?: number;
   incomingTicket?: Ticket | null;
   incomingItemLoadRequest?: TransactionItemLoadRequest | null;
   onSelectedTicketChange?: (ticket: Ticket | null) => void;
@@ -38,6 +42,7 @@ export const useTransactionPageController = ({
   clientNumber,
   focusTicketNumber,
   focusRequestId,
+  refreshKey = 0,
   incomingTicket,
   incomingItemLoadRequest,
   onSelectedTicketChange,
@@ -56,11 +61,14 @@ export const useTransactionPageController = ({
   const [openTicketEditDialog, setopenTicketEditDialog] = useState(false);
   const [openTicketConvertDialog, setOpenTicketConvertDialog] = useState(false);
   const [openTicketExpireDialog, setOpenTicketExpireDialog] = useState(false);
-  const [openTicketTransferDialog, setOpenTicketTransferDialog] = useState(false);
+  const [openTicketTransferDialog, setOpenTicketTransferDialog] =
+    useState(false);
   const [openItemDialog, setOpenItemDialog] = useState(false);
   const [itemDialogMode, setItemDialogMode] = useState<"add" | "edit">("add");
   const [removeItemTarget, setRemoveItemTarget] = useState<Item | null>(null);
-  const [itemCategories, setItemCategories] = useState<ItemCategoryOption[]>([]);
+  const [itemCategories, setItemCategories] = useState<ItemCategoryOption[]>(
+    [],
+  );
   const [pendingLoadRequest, setPendingLoadRequest] =
     useState<TransactionItemLoadRequest | null>(null);
   const [statusMessage, setStatusMessage] = useState("");
@@ -141,7 +149,7 @@ export const useTransactionPageController = ({
     return () => {
       active = false;
     };
-  }, [clientNumber]);
+  }, [clientNumber, refreshKey]);
 
   useEffect(() => {
     if (!focusRequestId || !focusTicketNumber) {
@@ -183,7 +191,9 @@ export const useTransactionPageController = ({
       return;
     }
 
-    if (lastItemLoadRequestIdRef.current === incomingItemLoadRequest.requestId) {
+    if (
+      lastItemLoadRequestIdRef.current === incomingItemLoadRequest.requestId
+    ) {
       return;
     }
 
@@ -275,8 +285,9 @@ export const useTransactionPageController = ({
           }
 
           return (
-            fetchedItems.find((item) => item.item_number === prev.item_number) ??
-            fetchedItems[0]
+            fetchedItems.find(
+              (item) => item.item_number === prev.item_number,
+            ) ?? fetchedItems[0]
           );
         });
       } finally {
@@ -587,7 +598,9 @@ export const useTransactionPageController = ({
 
   const handleItemSaved = (savedItem: Item) => {
     setItems((prev) => {
-      const exists = prev.some((item) => item.item_number === savedItem.item_number);
+      const exists = prev.some(
+        (item) => item.item_number === savedItem.item_number,
+      );
       return exists
         ? prev.map((item) =>
             item.item_number === savedItem.item_number ? savedItem : item,
@@ -616,7 +629,9 @@ export const useTransactionPageController = ({
 
     setItems(nextItems);
     setSelectedItem((prev) => {
-      if ((prev?.draft_id ?? prev?.item_number) !== removeItemTarget.item_number) {
+      if (
+        (prev?.draft_id ?? prev?.item_number) !== removeItemTarget.item_number
+      ) {
         return prev ?? null;
       }
 
@@ -644,7 +659,9 @@ export const useTransactionPageController = ({
       );
 
       setItems((prev) => {
-        const existingItemNumbers = new Set(prev.map((item) => item.item_number));
+        const existingItemNumbers = new Set(
+          prev.map((item) => item.item_number),
+        );
         const newItems = linkedItems.filter(
           (item) => !existingItemNumbers.has(item.item_number),
         );

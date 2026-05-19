@@ -45,6 +45,7 @@ const MainLayout: React.FC = () => {
     focusTicketNumber,
     focusRequestId,
     historyRefreshKey,
+    transactionRefreshKey,
   } = state;
 
   return (
@@ -152,6 +153,7 @@ const MainLayout: React.FC = () => {
               clientMiddleName={selectedClient?.middle_name}
               focusTicketNumber={focusTicketNumber}
               focusRequestId={focusRequestId}
+              refreshKey={transactionRefreshKey}
               incomingTicket={incomingTransactionTicket}
               incomingItemLoadRequest={incomingItemLoadRequest}
               onSelectedTicketChange={actions.setSelectedTransactionTicket}

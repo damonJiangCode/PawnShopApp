@@ -10,9 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import type { Ticket } from "../../shared/types/Ticket";
-import type {
-  TransactionItemLoadRequest,
-} from "./controllers/useTransactionPageController";
+import type { TransactionItemLoadRequest } from "./controllers/useTransactionPageController";
 import { useTransactionPageController } from "./controllers/useTransactionPageController";
 import ClientBar from "../components/shared/ClientBar";
 import TransactionTicketsPanel from "../components/transaction/tickets/TransactionTicketsPanel";
@@ -34,6 +32,7 @@ interface TransactionPageProps {
   clientMiddleName?: string;
   focusTicketNumber?: number;
   focusRequestId?: number;
+  refreshKey?: number;
   incomingTicket?: Ticket | null;
   incomingItemLoadRequest?: TransactionItemLoadRequest | null;
   onSelectedTicketChange?: (ticket: Ticket | null) => void;
@@ -47,6 +46,7 @@ const TransactionPage: React.FC<TransactionPageProps> = ({
   clientMiddleName,
   focusTicketNumber,
   focusRequestId,
+  refreshKey,
   incomingTicket,
   incomingItemLoadRequest,
   onSelectedTicketChange,
@@ -56,6 +56,7 @@ const TransactionPage: React.FC<TransactionPageProps> = ({
     clientNumber,
     focusTicketNumber,
     focusRequestId,
+    refreshKey,
     incomingTicket,
     incomingItemLoadRequest,
     onSelectedTicketChange,
@@ -287,7 +288,8 @@ const TransactionPage: React.FC<TransactionPageProps> = ({
         <DialogTitle>Remove Item</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to remove item #{removeItemTarget?.item_number}?
+            Are you sure you want to remove item #
+            {removeItemTarget?.item_number}?
           </Typography>
         </DialogContent>
         <DialogActions>

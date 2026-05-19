@@ -27,6 +27,11 @@ export type PaymentTicketRow = {
 type PaymentRowsByMode = Record<PaymentMode, PaymentTicketRow[]>;
 type PaymentSelectionByMode = Record<PaymentMode, GridRowSelectionModel>;
 
+type PaymentCompletedEvent = {
+  type: "payment-completed";
+  clientNumber: number;
+};
+
 const createEmptyRowsByMode = (): PaymentRowsByMode => ({
   pickup: [],
   extension: [],
@@ -490,10 +495,6 @@ export const usePaymentWindowController = () => {
         },
         new Map<number, number>(),
       );
-      const extensionPaymentCount = extensionRows.reduce(
-        (count, row) => count + row.extensionMonths,
-        0,
-      );
       const [pickedUpTickets, extendedTickets] = await Promise.all([
         pickupRows.length
           ? ticketService.pickupTickets({
@@ -543,19 +544,15 @@ export const usePaymentWindowController = () => {
       }));
       setAvailableSelectionByMode(createEmptySelectionByMode());
       setSelectedSelectionByMode(createEmptySelectionByMode());
-      setStatusSeverity("success");
-      setStatusMessage(
-        [
-          pickedUpTickets.length
-            ? `${pickedUpTickets.length} ticket(s) picked up`
-            : "",
-          extendedTickets.length
-            ? `${extensionPaymentCount} extension payment(s) applied`
-            : "",
-        ]
-          .filter(Boolean)
-          .join("; ") + ".",
-      );
+      if (Number.isFinite(clientNumber) && clientNumber > 0) {
+        const channel = new BroadcastChannel("payment-events");
+        channel.postMessage({
+          type: "payment-completed",
+          clientNumber,
+        } satisfies PaymentCompletedEvent);
+        channel.close();
+      }
+      window.close();
     } catch (err) {
       console.error(err);
       setStatusSeverity("warning");

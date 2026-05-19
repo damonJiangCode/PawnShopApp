@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Client } from "../../../shared/types/Client";
 import type { Item } from "../../../shared/types/Item";
 import type { Ticket } from "../../../shared/types/Ticket";
@@ -31,6 +31,24 @@ export const useMainLayoutController = () => {
   const [focusRequestId, setFocusRequestId] = useState(0);
   const [itemLoadRequestId, setItemLoadRequestId] = useState(0);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
+  const [transactionRefreshKey, setTransactionRefreshKey] = useState(0);
+
+  useEffect(() => {
+    const channel = new BroadcastChannel("payment-events");
+
+    channel.onmessage = (event: MessageEvent) => {
+      if (event.data?.type !== "payment-completed") {
+        return;
+      }
+
+      setTransactionRefreshKey((prev) => prev + 1);
+      setHistoryRefreshKey((prev) => prev + 1);
+    };
+
+    return () => {
+      channel.close();
+    };
+  }, []);
 
   const handleSearch = ({ firstName, lastName }: SearchParams) => {
     setForcedClient(null);
@@ -98,7 +116,10 @@ export const useMainLayoutController = () => {
     sendItemsToTransaction(ticket, sourceTicket, sourceItems, "repawn");
   };
 
-  const handleLoadHistoryItems = (sourceTicket: Ticket, sourceItems: Item[]) => {
+  const handleLoadHistoryItems = (
+    sourceTicket: Ticket,
+    sourceItems: Item[],
+  ) => {
     if (!selectedTransactionTicket) {
       setCurrentTab(1);
       return;
@@ -127,6 +148,7 @@ export const useMainLayoutController = () => {
       focusTicketNumber,
       focusRequestId,
       historyRefreshKey,
+      transactionRefreshKey,
     },
     actions: {
       setCurrentTab,
