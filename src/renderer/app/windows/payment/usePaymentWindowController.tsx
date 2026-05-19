@@ -10,12 +10,16 @@ export type PaymentMode = "pickup" | "extension";
 export type PaymentStatusSeverity = "info" | "success" | "warning";
 
 export type PaymentTicketRow = {
-  id: number;
+  id: number | string;
   ticketNumber: number;
   location: string;
   description: string;
+  dueDate: Date;
+  sourceDueDate: Date;
   pickupAmount?: number;
+  baseExtensionAmount: number;
   extensionAmount: number;
+  extensionMonths: number;
   isPickupAllowed: boolean;
   earliestPickupDate: Date;
 };
@@ -36,6 +40,12 @@ const createEmptySelectionByMode = (): PaymentSelectionByMode => ({
 const getOppositeMode = (mode: PaymentMode): PaymentMode =>
   mode === "pickup" ? "extension" : "pickup";
 
+const addThirtyDayPeriods = (date: Date, periods: number) => {
+  const nextDate = new Date(date);
+  nextDate.setDate(nextDate.getDate() + periods * 30);
+  return nextDate;
+};
+
 const mapTicketToPaymentRow = (
   ticket: Ticket,
   holidayDateKeys: string[],
@@ -46,6 +56,7 @@ const mapTicketToPaymentRow = (
 
   const pawnAmount = Number(ticket.amount ?? 0);
   const oneTimeFee = Number(ticket.onetime_fee ?? 0);
+  const baseExtensionAmount = calculation.getBaseIntAmt(pawnAmount);
   const earliestPickupDate = calculation.getEarliestPickupDatetime(
     ticket.transaction_datetime,
     holidayDateKeys,
@@ -56,6 +67,8 @@ const mapTicketToPaymentRow = (
     ticketNumber: ticket.ticket_number,
     location: ticket.location,
     description: ticket.description,
+    dueDate: ticket.due_date,
+    sourceDueDate: ticket.due_date,
     isPickupAllowed: calculation.isPickupAllowed(
       ticket.transaction_datetime,
       holidayDateKeys,
@@ -67,7 +80,9 @@ const mapTicketToPaymentRow = (
       ticket.transaction_datetime,
       ticket.interest_paid_months,
     ),
-    extensionAmount: calculation.getBaseIntAmt(pawnAmount),
+    baseExtensionAmount,
+    extensionAmount: baseExtensionAmount,
+    extensionMonths: 1,
   };
 };
 
@@ -86,6 +101,7 @@ export const usePaymentWindowController = () => {
   const [loading, setLoading] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
+  const [holidayDateKeys, setHolidayDateKeys] = useState<string[]>([]);
   const [statusSeverity, setStatusSeverity] =
     useState<PaymentStatusSeverity>("info");
   const clientNumber = Number(params.get("clientNumber"));
@@ -126,6 +142,14 @@ export const usePaymentWindowController = () => {
         minWidth: 160,
         renderCell: (params) => <CellTooltip value={params.value} />,
       },
+      {
+        field: "dueDate",
+        headerName: "DUE",
+        width: 104,
+        renderCell: (params) => (
+          <CellTooltip value={formatIsoDate(params.value)} />
+        ),
+      },
       ...(mode === "pickup"
         ? [
             {
@@ -140,7 +164,7 @@ export const usePaymentWindowController = () => {
         : []),
       {
         field: "extensionAmount",
-        headerName: "EXT / 30",
+        headerName: mode === "pickup" ? "EXT / 30" : "EXT",
         width: 112,
         renderCell: (params) => (
           <CellTooltip value={formatCurrency(params.value)} />
@@ -175,11 +199,16 @@ export const usePaymentWindowController = () => {
         ticketService.loadHolidayDates(),
       ]);
       const holidayDateKeys = holidays.map((holiday) => holiday.holiday_date);
-      const oppositeSelectedIds = new Set(
-        selectedRowsByMode[getOppositeMode(mode)].map((row) => row.id),
+      setHolidayDateKeys(holidayDateKeys);
+      const oppositeSelectedTicketNumbers = new Set(
+        selectedRowsByMode[getOppositeMode(mode)].map(
+          (row) => row.ticketNumber,
+        ),
       );
-      const currentSelectedIds = new Set(
-        selectedRowsByMode[mode].map((row) => row.id),
+      const currentSelectedTicketNumbers = new Set(
+        mode === "pickup"
+          ? selectedRowsByMode.pickup.map((row) => row.ticketNumber)
+          : [],
       );
       const rows = tickets
         .filter((ticket) => ticket.status === "pawned")
@@ -187,7 +216,8 @@ export const usePaymentWindowController = () => {
         .filter((row): row is PaymentTicketRow => Boolean(row))
         .filter(
           (row) =>
-            !currentSelectedIds.has(row.id) && !oppositeSelectedIds.has(row.id),
+            !currentSelectedTicketNumbers.has(row.ticketNumber) &&
+            !oppositeSelectedTicketNumbers.has(row.ticketNumber),
         );
 
       setAvailableRowsByMode((prev) => ({ ...prev, [mode]: rows }));
@@ -229,47 +259,185 @@ export const usePaymentWindowController = () => {
   const moveRowsToSelected = (moveAll: boolean) => {
     const selectedIds = new Set(
       moveAll
-        ? availableRows.map((row) => row.id)
-        : availableSelectionModel.map(Number),
+        ? availableRows.map((row) => String(row.id))
+        : availableSelectionModel.map(String),
     );
-    const rowsToMove = availableRows.filter((row) => selectedIds.has(row.id));
+    const rightSelectedIds = new Set(
+      moveAll || mode !== "extension" ? [] : selectedSelectionModel.map(String),
+    );
+    const rowsToMove = availableRows.filter((row) =>
+      selectedIds.has(String(row.id)),
+    );
+    const rowsToExtendAgain = selectedRows.filter((row) =>
+      rightSelectedIds.has(String(row.id)),
+    );
+    const rowsToApply =
+      mode === "extension"
+        ? [
+            ...new Map(
+              [...rowsToMove, ...rowsToExtendAgain].map((row) => [
+                row.ticketNumber,
+                row,
+              ]),
+            ).values(),
+          ]
+        : rowsToMove;
 
-    if (!rowsToMove.length || !confirmBlockedPickupRows(rowsToMove)) {
+    if (!rowsToApply.length || !confirmBlockedPickupRows(rowsToMove)) {
+      return;
+    }
+
+    const oppositeSelectedTicketNumbers = new Set(
+      selectedRowsByMode[getOppositeMode(mode)].map((row) => row.ticketNumber),
+    );
+    const conflictingRows = rowsToApply.filter((row) =>
+      oppositeSelectedTicketNumbers.has(row.ticketNumber),
+    );
+
+    if (conflictingRows.length) {
+      setStatusSeverity("warning");
+      setStatusMessage(
+        `Ticket #${conflictingRows[0].ticketNumber} is already selected for ${getOppositeMode(
+          mode,
+        )}. Move it back before choosing ${mode}.`,
+      );
       return;
     }
 
     setSelectedRowsByMode((prev) => ({
       ...prev,
-      [mode]: [...prev[mode], ...rowsToMove],
+      [mode]:
+        mode === "extension"
+          ? rowsToApply.reduce<PaymentTicketRow[]>((nextRows, row) => {
+              const existingIndex = nextRows.findIndex(
+                (selectedRow) => selectedRow.ticketNumber === row.ticketNumber,
+              );
+
+              if (existingIndex === -1) {
+                return [
+                  ...nextRows,
+                  {
+                    ...row,
+                    id: row.ticketNumber,
+                    dueDate: addThirtyDayPeriods(row.dueDate, 1),
+                    sourceDueDate: row.dueDate,
+                    extensionMonths: 1,
+                    extensionAmount: row.baseExtensionAmount,
+                  },
+                ];
+              }
+
+              return nextRows.map((selectedRow, index) => {
+                if (index !== existingIndex) {
+                  return selectedRow;
+                }
+
+                const extensionMonths = selectedRow.extensionMonths + 1;
+
+                return {
+                  ...selectedRow,
+                  dueDate: addThirtyDayPeriods(
+                    selectedRow.sourceDueDate,
+                    extensionMonths,
+                  ),
+                  extensionMonths,
+                  extensionAmount:
+                    selectedRow.baseExtensionAmount * extensionMonths,
+                };
+              });
+            }, prev.extension)
+          : [...prev.pickup, ...rowsToMove],
     }));
+
+    if (mode === "pickup") {
+      setAvailableRowsByMode((prev) => ({
+        ...prev,
+        pickup: prev.pickup.filter((row) => !selectedIds.has(String(row.id))),
+      }));
+    }
+
+    const movedTicketNumbers = new Set(
+      rowsToApply.map((row) => row.ticketNumber),
+    );
+    const oppositeMode = getOppositeMode(mode);
+
     setAvailableRowsByMode((prev) => ({
       ...prev,
-      [mode]: prev[mode].filter((row) => !selectedIds.has(row.id)),
+      [oppositeMode]: prev[oppositeMode].filter(
+        (row) => !movedTicketNumbers.has(row.ticketNumber),
+      ),
     }));
+
     setAvailableSelectionByMode((prev) => ({ ...prev, [mode]: [] }));
   };
 
   const moveRowsToAvailable = (moveAll: boolean) => {
     const selectedIds = new Set(
       moveAll
-        ? selectedRows.map((row) => row.id)
-        : selectedSelectionModel.map(Number),
+        ? selectedRows.map((row) => String(row.id))
+        : selectedSelectionModel.map(String),
     );
-    const rowsToMove = selectedRows.filter((row) => selectedIds.has(row.id));
+    const rowsToMove = selectedRows.filter((row) =>
+      selectedIds.has(String(row.id)),
+    );
 
     if (!rowsToMove.length) {
       return;
     }
 
-    setAvailableRowsByMode((prev) => ({
-      ...prev,
-      [mode]: [...prev[mode], ...rowsToMove].sort(
-        (a, b) => a.ticketNumber - b.ticketNumber,
-      ),
-    }));
+    const remainingSelectedRows = selectedRows.filter(
+      (row) => !selectedIds.has(String(row.id)),
+    );
+    const stillSelectedTicketNumbers = new Set(
+      remainingSelectedRows.map((row) => row.ticketNumber),
+    );
+    const restorableRowsByTicketNumber = new Map<number, PaymentTicketRow>();
+    rowsToMove
+      .filter((row) => !stillSelectedTicketNumbers.has(row.ticketNumber))
+      .forEach((row) => {
+        restorableRowsByTicketNumber.set(row.ticketNumber, {
+          ...row,
+          id: row.ticketNumber,
+          dueDate: row.sourceDueDate,
+        });
+      });
+    const restorableRows = [...restorableRowsByTicketNumber.values()];
+    const oppositeMode = getOppositeMode(mode);
+
+    if (mode === "pickup") {
+      setAvailableRowsByMode((prev) => ({
+        ...prev,
+        pickup: [...prev.pickup, ...rowsToMove].sort(
+          (a, b) => a.ticketNumber - b.ticketNumber,
+        ),
+      }));
+    }
+
+    if (restorableRows.length) {
+      setAvailableRowsByMode((prev) => {
+        const existingTicketNumbers = new Set(
+          prev[oppositeMode].map((row) => row.ticketNumber),
+        );
+        const rowsToRestore = restorableRows.filter(
+          (row) => !existingTicketNumbers.has(row.ticketNumber),
+        );
+
+        if (!rowsToRestore.length) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          [oppositeMode]: [...prev[oppositeMode], ...rowsToRestore].sort(
+            (a, b) => a.ticketNumber - b.ticketNumber,
+          ),
+        };
+      });
+    }
+
     setSelectedRowsByMode((prev) => ({
       ...prev,
-      [mode]: prev[mode].filter((row) => !selectedIds.has(row.id)),
+      [mode]: remainingSelectedRows,
     }));
     setSelectedSelectionByMode((prev) => ({ ...prev, [mode]: [] }));
   };
@@ -284,10 +452,11 @@ export const usePaymentWindowController = () => {
 
   const handleDone = async () => {
     const pickupRows = selectedRowsByMode.pickup;
+    const extensionRows = selectedRowsByMode.extension;
 
-    if (!pickupRows.length) {
+    if (!pickupRows.length && !extensionRows.length) {
       setStatusSeverity("warning");
-      setStatusMessage("Move pickup ticket(s) to the right table first.");
+      setStatusMessage("Move ticket payment(s) to the right table first.");
       return;
     }
 
@@ -296,9 +465,52 @@ export const usePaymentWindowController = () => {
     setStatusMessage("");
 
     try {
-      const pickedUpTickets = await ticketService.pickupTickets({
-        ticket_numbers: pickupRows.map((row) => row.ticketNumber),
-      });
+      const pickupTicketNumbers = new Set(
+        pickupRows.map((row) => row.ticketNumber),
+      );
+      const conflictingExtensionRow = extensionRows.find((row) =>
+        pickupTicketNumbers.has(row.ticketNumber),
+      );
+
+      if (conflictingExtensionRow) {
+        setStatusSeverity("warning");
+        setStatusMessage(
+          `Ticket #${conflictingExtensionRow.ticketNumber} cannot be picked up and extended at the same time.`,
+        );
+        return;
+      }
+
+      const extensionMonthCounts = extensionRows.reduce<Map<number, number>>(
+        (counts, row) => {
+          counts.set(
+            row.ticketNumber,
+            (counts.get(row.ticketNumber) ?? 0) + row.extensionMonths,
+          );
+          return counts;
+        },
+        new Map<number, number>(),
+      );
+      const extensionPaymentCount = extensionRows.reduce(
+        (count, row) => count + row.extensionMonths,
+        0,
+      );
+      const [pickedUpTickets, extendedTickets] = await Promise.all([
+        pickupRows.length
+          ? ticketService.pickupTickets({
+              ticket_numbers: pickupRows.map((row) => row.ticketNumber),
+            })
+          : Promise.resolve([]),
+        extensionMonthCounts.size
+          ? ticketService.extendTickets({
+              extensions: [...extensionMonthCounts.entries()].map(
+                ([ticketNumber, months]) => ({
+                  ticket_number: ticketNumber,
+                  months,
+                }),
+              ),
+            })
+          : Promise.resolve([]),
+      ]);
       const pickedUpIds = new Set(
         pickedUpTickets
           .map((ticket) => ticket.ticket_number)
@@ -306,32 +518,49 @@ export const usePaymentWindowController = () => {
             Number.isFinite(ticketNumber),
           ),
       );
+      const extendedRowByTicketNumber = new Map(
+        extendedTickets
+          .map((ticket) => mapTicketToPaymentRow(ticket, holidayDateKeys))
+          .filter((row): row is PaymentTicketRow => Boolean(row))
+          .map((row) => [row.ticketNumber, row]),
+      );
+      const replaceExtendedRow = (row: PaymentTicketRow) =>
+        extendedRowByTicketNumber.get(row.ticketNumber) ?? row;
 
       setSelectedRowsByMode((prev) => ({
         ...prev,
         pickup: prev.pickup.filter((row) => !pickedUpIds.has(row.ticketNumber)),
-        extension: prev.extension.filter(
-          (row) => !pickedUpIds.has(row.ticketNumber),
-        ),
+        extension: [],
       }));
       setAvailableRowsByMode((prev) => ({
         ...prev,
-        pickup: prev.pickup.filter((row) => !pickedUpIds.has(row.ticketNumber)),
-        extension: prev.extension.filter(
-          (row) => !pickedUpIds.has(row.ticketNumber),
-        ),
+        pickup: prev.pickup
+          .filter((row) => !pickedUpIds.has(row.ticketNumber))
+          .map(replaceExtendedRow),
+        extension: prev.extension
+          .filter((row) => !pickedUpIds.has(row.ticketNumber))
+          .map(replaceExtendedRow),
       }));
       setAvailableSelectionByMode(createEmptySelectionByMode());
       setSelectedSelectionByMode(createEmptySelectionByMode());
       setStatusSeverity("success");
       setStatusMessage(
-        `${pickedUpTickets.length} ticket(s) picked up successfully.`,
+        [
+          pickedUpTickets.length
+            ? `${pickedUpTickets.length} ticket(s) picked up`
+            : "",
+          extendedTickets.length
+            ? `${extensionPaymentCount} extension payment(s) applied`
+            : "",
+        ]
+          .filter(Boolean)
+          .join("; ") + ".",
       );
     } catch (err) {
       console.error(err);
       setStatusSeverity("warning");
       setStatusMessage(
-        err instanceof Error ? err.message : "Unable to pickup ticket(s).",
+        err instanceof Error ? err.message : "Unable to process payment(s).",
       );
     } finally {
       setProcessing(false);

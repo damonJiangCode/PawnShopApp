@@ -3,6 +3,7 @@ import type { HolidayDate } from "../../shared/types/holidayDate.ts";
 import { calculation } from "../../shared/utils/calculation.ts";
 import type {
   ConvertTicketInput,
+  ExtendTicketsInput,
   ExpireTicketInput,
   PickupTicketsInput,
   CreatePawnTicketInput,
@@ -74,6 +75,21 @@ const normalizePickupTicketsInput = (input: PickupTicketsInput) => ({
   ),
 });
 
+const normalizeExtendTicketsInput = (input: ExtendTicketsInput) => ({
+  extensions: input.extensions
+    .map((extension) => ({
+      ticket_number: Number(extension.ticket_number),
+      months: Math.floor(Number(extension.months)),
+    }))
+    .filter(
+      (extension) =>
+        Number.isFinite(extension.ticket_number) &&
+        extension.ticket_number > 0 &&
+        Number.isFinite(extension.months) &&
+        extension.months > 0,
+    ),
+});
+
 const resolveIsOverdue = (dueDate: Date) =>
   calculation.isBeforeCalendarDate(dueDate);
 
@@ -99,7 +115,10 @@ export const ticketService = {
   ): Promise<TransferTicketPreview | null> => {
     const normalizedTicketNumber = Number(ticketNumber);
 
-    if (!Number.isFinite(normalizedTicketNumber) || normalizedTicketNumber <= 0) {
+    if (
+      !Number.isFinite(normalizedTicketNumber) ||
+      normalizedTicketNumber <= 0
+    ) {
       throw createFieldError("ticket_number", "Enter a valid ticket number.");
     }
 
@@ -112,11 +131,10 @@ export const ticketService = {
     return runInTransaction("createPawnTicket", async (client) => {
       const transactionDatetime = calculation.getCurrentDatetime();
       const dueDate = calculation.getDueDatetime(transactionDatetime);
-      const employeeName =
-        await employeeService.getEmployeeFirstNameByPassword(
-          normalizedInput.employee_password,
-          client,
-        );
+      const employeeName = await employeeService.getEmployeeFirstNameByPassword(
+        normalizedInput.employee_password,
+        client,
+      );
 
       if (!employeeName) {
         throw createFieldError(
@@ -154,11 +172,10 @@ export const ticketService = {
 
     return runInTransaction("createSellTicket", async (client) => {
       const transactionDatetime = calculation.getCurrentDatetime();
-      const employeeName =
-        await employeeService.getEmployeeFirstNameByPassword(
-          normalizedInput.employee_password,
-          client,
-        );
+      const employeeName = await employeeService.getEmployeeFirstNameByPassword(
+        normalizedInput.employee_password,
+        client,
+      );
 
       if (!employeeName) {
         throw createFieldError(
@@ -192,11 +209,10 @@ export const ticketService = {
     const normalizedInput = normalizeUpdateTicketInput(input);
 
     return runInTransaction("updateTicket", async (client) => {
-      const employeeName =
-        await employeeService.getEmployeeFirstNameByPassword(
-          normalizedInput.employee_password,
-          client,
-        );
+      const employeeName = await employeeService.getEmployeeFirstNameByPassword(
+        normalizedInput.employee_password,
+        client,
+      );
 
       if (!employeeName) {
         throw createFieldError(
@@ -258,11 +274,10 @@ export const ticketService = {
         );
       }
 
-      const employeeName =
-        await employeeService.getEmployeeFirstNameByPassword(
-          normalizedInput.employee_password,
-          client,
-        );
+      const employeeName = await employeeService.getEmployeeFirstNameByPassword(
+        normalizedInput.employee_password,
+        client,
+      );
 
       if (!employeeName) {
         throw createFieldError(
@@ -305,15 +320,18 @@ export const ticketService = {
         normalizedInput.target_status === "pawned"
           ? calculation.getDueDatetime(conversionDatetime)
           : calculation.getSellDueDatetime(conversionDatetime);
-      const onetimeFee = normalizedInput.target_status === "pawned"
-        ? normalizedInput.onetime_fee
-        : 0;
-      const interest = normalizedInput.target_status === "pawned"
-        ? calculation.getBaseIntAmt(normalizedInput.amount)
-        : 0;
-      const pickupAmount = normalizedInput.target_status === "pawned"
-        ? calculation.getBasePickupAmt(normalizedInput.amount, onetimeFee)
-        : 0;
+      const onetimeFee =
+        normalizedInput.target_status === "pawned"
+          ? normalizedInput.onetime_fee
+          : 0;
+      const interest =
+        normalizedInput.target_status === "pawned"
+          ? calculation.getBaseIntAmt(normalizedInput.amount)
+          : 0;
+      const pickupAmount =
+        normalizedInput.target_status === "pawned"
+          ? calculation.getBasePickupAmt(normalizedInput.amount, onetimeFee)
+          : 0;
 
       return ticketRepo.convert(
         {
@@ -438,6 +456,61 @@ export const ticketService = {
     });
   },
 
+  extendTickets: async (input: ExtendTicketsInput): Promise<Ticket[]> => {
+    const normalizedInput = normalizeExtendTicketsInput(input);
+
+    if (!normalizedInput.extensions.length) {
+      throw createFieldError("ticket_number", "Select at least one ticket.");
+    }
+
+    return runInTransaction("extendTickets", async (client) => {
+      const existingTickets = await Promise.all(
+        normalizedInput.extensions.map((extension) =>
+          ticketRepo.loadByTicketNumber(extension.ticket_number, client),
+        ),
+      );
+      const missingExtension = normalizedInput.extensions.find(
+        (_extension, index) => !existingTickets[index],
+      );
+
+      if (missingExtension) {
+        throw createFieldError(
+          "ticket_number",
+          `Ticket #${missingExtension.ticket_number} was not found.`,
+        );
+      }
+
+      const nonPawnedTicket = existingTickets.find(
+        (ticket) => ticket && ticket.status !== "pawned",
+      );
+
+      if (nonPawnedTicket?.ticket_number) {
+        throw createFieldError(
+          "ticket_number",
+          `Ticket #${nonPawnedTicket.ticket_number} is not pawned.`,
+        );
+      }
+
+      const interestedDatetime = calculation.getCurrentDatetime();
+      const extendedTickets: Ticket[] = [];
+
+      for (const extension of normalizedInput.extensions) {
+        extendedTickets.push(
+          await ticketRepo.extend(
+            {
+              ticket_number: extension.ticket_number,
+              months: extension.months,
+              interested_datetime: interestedDatetime,
+            },
+            client,
+          ),
+        );
+      }
+
+      return extendedTickets;
+    });
+  },
+
   transferTicket: async (input: TransferTicketInput): Promise<Ticket> => {
     const normalizedInput = normalizeTransferTicketInput(input);
 
@@ -477,7 +550,9 @@ export const ticketService = {
         );
       }
 
-      if (transferPreview.previous_client_number === normalizedInput.client_number) {
+      if (
+        transferPreview.previous_client_number === normalizedInput.client_number
+      ) {
         throw createFieldError(
           "ticket_number",
           "This ticket already belongs to the selected client.",

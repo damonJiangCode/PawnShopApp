@@ -57,6 +57,12 @@ type PickupTicketsPayload = {
   pickup_datetime: Date;
 };
 
+type ExtendTicketPayload = {
+  ticket_number: number;
+  months: number;
+  interested_datetime: Date;
+};
+
 const ticketSelectColumns = `
   ticket_number,
   transaction_datetime,
@@ -225,7 +231,9 @@ export const ticketRepo = {
 
     try {
       const result = await client.query(query, [ticketNumber]);
-      return result.rows[0] ? mapTransferTicketPreviewRow(result.rows[0]) : null;
+      return result.rows[0]
+        ? mapTransferTicketPreviewRow(result.rows[0])
+        : null;
     } finally {
       client.release();
     }
@@ -462,6 +470,47 @@ export const ticketRepo = {
         payload.ticket_numbers,
       ]);
       return result.rows.map(mapTicketRow);
+    } finally {
+      if (!dbClient) {
+        client.release();
+      }
+    }
+  },
+
+  extend: async (
+    payload: ExtendTicketPayload,
+    dbClient?: DbClient,
+  ): Promise<Ticket> => {
+    const client = dbClient ?? (await connect());
+    const query = `
+      UPDATE ticket
+      SET
+        due_date = due_date + ($1 * INTERVAL '30 days'),
+        interest_paid_months = interest_paid_months + $1,
+        interested_datetime = $2,
+        is_overdue = COALESCE(
+          (due_date + ($1 * INTERVAL '30 days'))::date < CURRENT_DATE,
+          FALSE
+        )
+      WHERE ticket_number = $3
+        AND status = 'pawned'
+      RETURNING ${ticketSelectColumns}
+    `;
+
+    try {
+      const result = await client.query(query, [
+        payload.months,
+        payload.interested_datetime,
+        payload.ticket_number,
+      ]);
+
+      if (!result.rows[0]) {
+        throw new Error(
+          `[ticketRepo] extend(): Ticket #${payload.ticket_number} not found`,
+        );
+      }
+
+      return mapTicketRow(result.rows[0]);
     } finally {
       if (!dbClient) {
         client.release();

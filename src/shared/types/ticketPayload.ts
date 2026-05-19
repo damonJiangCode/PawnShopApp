@@ -59,3 +59,12 @@ export type ExpireTicketInput = {
 export type PickupTicketsInput = {
   ticket_numbers: number[];
 };
+
+export type ExtensionTicketPaymentInput = {
+  ticket_number: number;
+  months: number;
+};
+
+export type ExtendTicketsInput = {
+  extensions: ExtensionTicketPaymentInput[];
+};

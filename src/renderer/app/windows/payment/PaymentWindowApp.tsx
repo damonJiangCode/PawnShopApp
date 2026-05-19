@@ -133,7 +133,9 @@ const PaymentWindowApp: React.FC = () => {
         columns={columns}
         getRowId={(row) => row.id}
         rowSelectionModel={
-          side === "available" ? availableSelectionModel : selectedSelectionModel
+          side === "available"
+            ? availableSelectionModel
+            : selectedSelectionModel
         }
         onRowSelectionModelChange={
           side === "available"
@@ -222,7 +224,10 @@ const PaymentWindowApp: React.FC = () => {
             gap: 1,
           }}
         >
-          {renderSummaryField("Pickup Amt", formatCurrency(pickupSummaryAmount))}
+          {renderSummaryField(
+            "Pickup Amt",
+            formatCurrency(pickupSummaryAmount),
+          )}
           {renderSummaryField(
             "Extension Amt",
             formatCurrency(extensionSummaryAmount),

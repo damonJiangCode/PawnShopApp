@@ -33,6 +33,7 @@ const CHANNELS = {
   CONVERT_TICKET: "convert-ticket",
   EXPIRE_TICKET: "expire-ticket",
   PICKUP_TICKETS: "pickup-tickets",
+  EXTEND_TICKETS: "extend-tickets",
   GET_TRANSFER_TICKET_PREVIEW: "get-transfer-ticket-preview",
   TRANSFER_TICKET: "transfer-ticket",
 };
@@ -64,6 +65,7 @@ const ticketApi = {
   convert: (payload) => invoke(CHANNELS.CONVERT_TICKET, payload),
   expire: (payload) => invoke(CHANNELS.EXPIRE_TICKET, payload),
   pickup: (payload) => invoke(CHANNELS.PICKUP_TICKETS, payload),
+  extend: (payload) => invoke(CHANNELS.EXTEND_TICKETS, payload),
   loadTransferPreview: (ticketNumber) =>
     invoke(CHANNELS.GET_TRANSFER_TICKET_PREVIEW, ticketNumber),
   transfer: (payload) => invoke(CHANNELS.TRANSFER_TICKET, payload),
@@ -84,8 +86,7 @@ const itemApi = {
 };
 
 const windowApi = {
-  openPaymentWindow: (payload) =>
-    invoke(CHANNELS.OPEN_PAYMENT_WINDOW, payload),
+  openPaymentWindow: (payload) => invoke(CHANNELS.OPEN_PAYMENT_WINDOW, payload),
   openItemLoadWindow: (payload) =>
     invoke(CHANNELS.OPEN_ITEM_LOAD_WINDOW, payload),
   loadItemLoadWindowPayload: (requestId) =>

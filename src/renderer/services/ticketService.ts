@@ -2,6 +2,7 @@ import type { Ticket } from "../../shared/types/Ticket";
 import type { HolidayDate } from "../../shared/types/holidayDate";
 import type {
   ConvertTicketInput,
+  ExtendTicketsInput,
   ExpireTicketInput,
   PickupTicketsInput,
   CreatePawnTicketInput,
@@ -85,6 +86,13 @@ type NormalizedPickupTicketsInput = {
   ticket_numbers: number[];
 };
 
+type NormalizedExtendTicketsInput = {
+  extensions: Array<{
+    ticket_number: number;
+    months: number;
+  }>;
+};
+
 const normalizeCreatePawnTicketInput = (
   input: CreatePawnTicketInput,
 ): NormalizedCreatePawnTicketInput => ({
@@ -155,6 +163,23 @@ const normalizePickupTicketsInput = (
   ticket_numbers: [...new Set(input.ticket_numbers.map(Number))].filter(
     (ticketNumber) => Number.isFinite(ticketNumber) && ticketNumber > 0,
   ),
+});
+
+const normalizeExtendTicketsInput = (
+  input: ExtendTicketsInput,
+): NormalizedExtendTicketsInput => ({
+  extensions: input.extensions
+    .map((extension) => ({
+      ticket_number: Number(extension.ticket_number),
+      months: Math.floor(Number(extension.months)),
+    }))
+    .filter(
+      (extension) =>
+        Number.isFinite(extension.ticket_number) &&
+        extension.ticket_number > 0 &&
+        Number.isFinite(extension.months) &&
+        extension.months > 0,
+    ),
 });
 
 const mapBackendError = (error: unknown): Error => {
@@ -324,13 +349,38 @@ export const ticketService = {
     }
   },
 
+  extendTickets: async (input: ExtendTicketsInput): Promise<Ticket[]> => {
+    const normalizedInput = normalizeExtendTicketsInput(input);
+    const api = getElectronApi()?.ticket;
+
+    if (!api) {
+      throw new Error(
+        "[ticketService] extendTickets(): Cannot get api from Electron",
+      );
+    }
+
+    if (!normalizedInput.extensions.length) {
+      return [];
+    }
+
+    try {
+      return await api.extend(normalizedInput);
+    } catch (error) {
+      throw mapBackendError(error);
+    }
+  },
+
   loadTransferTicketPreview: async (
     ticketNumber: number,
   ): Promise<TransferTicketPreview | null> => {
     const normalizedTicketNumber = Number(ticketNumber);
     const api = getElectronApi()?.ticket;
 
-    if (!api || !Number.isFinite(normalizedTicketNumber) || normalizedTicketNumber <= 0) {
+    if (
+      !api ||
+      !Number.isFinite(normalizedTicketNumber) ||
+      normalizedTicketNumber <= 0
+    ) {
       return null;
     }
 
@@ -361,6 +411,7 @@ export const ticketService = {
 
 export type {
   ConvertTicketInput,
+  ExtendTicketsInput,
   ExpireTicketInput,
   PickupTicketsInput,
   CreatePawnTicketInput,
