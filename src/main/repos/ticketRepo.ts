@@ -79,6 +79,7 @@ const ticketSelectColumns = `
   interested_datetime,
   employee_name,
   pickup_datetime,
+  expire_date,
   status,
   status_updated_at,
   client_number,
@@ -119,6 +120,9 @@ const mapTicketRow = (row: Record<string, unknown>): Ticket => {
     employee_name: row.employee_name ? String(row.employee_name) : "",
     pickup_datetime: row.pickup_datetime
       ? new Date(String(row.pickup_datetime))
+      : undefined,
+    expire_date: row.expire_date
+      ? new Date(String(row.expire_date))
       : undefined,
     status: row.status as Ticket["status"],
     status_updated_at: row.status_updated_at
@@ -403,6 +407,7 @@ export const ticketRepo = {
       UPDATE ticket
       SET
         status = $1,
+        expire_date = CURRENT_TIMESTAMP,
         status_updated_at = CURRENT_TIMESTAMP
       WHERE ticket_number = $2
       RETURNING ${ticketSelectColumns}

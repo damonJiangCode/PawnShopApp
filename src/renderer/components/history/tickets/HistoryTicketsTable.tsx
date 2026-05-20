@@ -93,11 +93,26 @@ const HistoryTicketsTable: React.FC<HistoryTicketsTableProps> = ({
         ),
       },
       {
+        field: "expire_date",
+        headerName: "EXPDATE",
+        width: 112,
+        renderCell: (params) => (
+          <CellTooltip
+            value={params.value ? formatIsoDate(params.value) : null}
+            title={params.value ? formatIsoDateTime(params.value) : "---"}
+            fallback="---"
+          />
+        ),
+      },
+      {
         field: "employee_name",
         headerName: "EMP",
         width: 120,
         renderCell: (params) => (
-          <CellTooltip value={formatUppercase(params.value, "")} fallback="---" />
+          <CellTooltip
+            value={formatUppercase(params.value, "")}
+            fallback="---"
+          />
         ),
       },
     ],
