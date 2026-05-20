@@ -1,4 +1,5 @@
 import type { Ticket } from "./Ticket.ts";
+import type { Client } from "./Client.ts";
 
 export type CreatePawnTicketInput = {
   description: string;
@@ -35,6 +36,11 @@ export type TransferTicketPreview = {
   amount: number;
   previous_client_number: number;
   previous_client_name: string;
+};
+
+export type PaymentTicketSearchPreview = {
+  ticket: Ticket;
+  client: Client;
 };
 
 export type TransferTicketInput = {

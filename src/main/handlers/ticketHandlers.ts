@@ -28,6 +28,12 @@ export const registerTicketHandlers = () => {
     },
   );
   ipcMain.handle(
+    CHANNELS.SEARCH_PAYMENT_TICKET,
+    async (_event: IpcMainInvokeEvent, ticketNumber: number) => {
+      return ticketService.searchPaymentTicket(ticketNumber);
+    },
+  );
+  ipcMain.handle(
     CHANNELS.ADD_PAWN_TICKET,
     async (_event: IpcMainInvokeEvent, payload: CreatePawnTicketInput) => {
       return ticketService.createPawnTicket(payload);

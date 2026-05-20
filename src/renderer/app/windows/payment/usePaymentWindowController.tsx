@@ -3,7 +3,11 @@ import type { GridColDef, GridRowSelectionModel } from "@mui/x-data-grid";
 import type { Ticket } from "../../../../shared/types/Ticket";
 import { calculation } from "../../../../shared/utils/calculation";
 import CellTooltip from "../../../components/shared/CellTooltip";
-import { ticketService } from "../../../services/ticketService";
+import { clientService } from "../../../services/clientService";
+import {
+  ticketService,
+  type PaymentTicketSearchPreview,
+} from "../../../services/ticketService";
 import { formatCurrency, formatIsoDate } from "../../../utils/formatters";
 
 export type PaymentMode = "pickup" | "extension";
@@ -12,6 +16,7 @@ export type PaymentStatusSeverity = "info" | "success" | "warning";
 export type PaymentTicketRow = {
   id: number | string;
   ticketNumber: number;
+  status: Ticket["status"];
   location: string;
   description: string;
   dueDate: Date;
@@ -70,6 +75,7 @@ const mapTicketToPaymentRow = (
   return {
     id: ticket.ticket_number,
     ticketNumber: ticket.ticket_number,
+    status: ticket.status,
     location: ticket.location,
     description: ticket.description,
     dueDate: ticket.due_date,
@@ -107,6 +113,13 @@ export const usePaymentWindowController = () => {
   const [processing, setProcessing] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const [holidayDateKeys, setHolidayDateKeys] = useState<string[]>([]);
+  const [ticketSearchValue, setTicketSearchValue] = useState("");
+  const [ticketSearchPreview, setTicketSearchPreview] =
+    useState<PaymentTicketSearchPreview | null>(null);
+  const [ticketSearchClientImage, setTicketSearchClientImage] = useState<
+    string | null
+  >(null);
+  const [ticketSearchDialogOpen, setTicketSearchDialogOpen] = useState(false);
   const [statusSeverity, setStatusSeverity] =
     useState<PaymentStatusSeverity>("info");
   const clientNumber = Number(params.get("clientNumber"));
@@ -236,6 +249,136 @@ export const usePaymentWindowController = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleTicketSearch = async () => {
+    const ticketNumber = Number(ticketSearchValue);
+
+    if (!Number.isFinite(ticketNumber) || ticketNumber <= 0) {
+      setStatusSeverity("warning");
+      setStatusMessage("Enter a valid ticket number.");
+      return;
+    }
+
+    setLoading(true);
+    setStatusMessage("");
+    setStatusSeverity("info");
+
+    try {
+      const [preview, holidays] = await Promise.all([
+        ticketService.searchPaymentTicket(ticketNumber),
+        ticketService.loadHolidayDates(),
+      ]);
+
+      if (!preview) {
+        setStatusSeverity("warning");
+        setStatusMessage(`Ticket #${ticketNumber} was not found.`);
+        return;
+      }
+
+      setHolidayDateKeys(holidays.map((holiday) => holiday.holiday_date));
+      setTicketSearchPreview(preview);
+      const clientImageBase64 = await clientService.loadClientImage(
+        preview.client.image_path,
+      );
+      setTicketSearchClientImage(
+        clientImageBase64 ? `data:image/png;base64,${clientImageBase64}` : null,
+      );
+      setTicketSearchDialogOpen(true);
+
+      if (preview.client.pickup_self_only) {
+        window.alert("Only this client can pick up this ticket.");
+      }
+
+      if (preview.ticket.is_lost) {
+        window.alert("This ticket is marked as lost.");
+      }
+    } catch (err) {
+      console.error(err);
+      setStatusSeverity("warning");
+      setStatusMessage(
+        err instanceof Error ? err.message : "Unable to search ticket.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const closeTicketSearchDialog = () => {
+    setTicketSearchDialogOpen(false);
+  };
+
+  const addTicketSearchPreviewToAvailable = () => {
+    if (!ticketSearchPreview) {
+      return;
+    }
+
+    const searchedRow = mapTicketToPaymentRow(
+      ticketSearchPreview.ticket,
+      holidayDateKeys,
+    );
+
+    if (!searchedRow) {
+      setStatusSeverity("warning");
+      setStatusMessage("Unable to load that ticket.");
+      return;
+    }
+
+    if (searchedRow.status !== "pawned") {
+      setStatusSeverity("warning");
+      setStatusMessage(`Ticket #${searchedRow.ticketNumber} is not pawned.`);
+      return;
+    }
+
+    const oppositeSelectedTicketNumbers = new Set(
+      selectedRowsByMode[getOppositeMode(mode)].map((row) => row.ticketNumber),
+    );
+    const currentSelectedTicketNumbers = new Set(
+      selectedRowsByMode[mode].map((row) => row.ticketNumber),
+    );
+
+    if (oppositeSelectedTicketNumbers.has(searchedRow.ticketNumber)) {
+      setStatusSeverity("warning");
+      setStatusMessage(
+        `Ticket #${searchedRow.ticketNumber} is already selected for ${getOppositeMode(
+          mode,
+        )}.`,
+      );
+      return;
+    }
+
+    if (currentSelectedTicketNumbers.has(searchedRow.ticketNumber)) {
+      setStatusSeverity("info");
+      setStatusMessage(
+        `Ticket #${searchedRow.ticketNumber} is already selected.`,
+      );
+      closeTicketSearchDialog();
+      return;
+    }
+
+    setAvailableRowsByMode((prev) => {
+      const alreadyAvailable = prev[mode].some(
+        (row) => row.ticketNumber === searchedRow.ticketNumber,
+      );
+
+      if (alreadyAvailable) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        [mode]: [...prev[mode], searchedRow].sort(
+          (a, b) => a.ticketNumber - b.ticketNumber,
+        ),
+      };
+    });
+    setAvailableSelectionByMode((prev) => ({
+      ...prev,
+      [mode]: [searchedRow.id],
+    }));
+    closeTicketSearchDialog();
+    setStatusSeverity("success");
+    setStatusMessage(`Ticket #${searchedRow.ticketNumber} loaded.`);
   };
 
   const confirmBlockedPickupRows = (rows: PaymentTicketRow[]) => {
@@ -579,13 +722,21 @@ export const usePaymentWindowController = () => {
       clientFirstName,
       columns,
       ticketSearchInputRef,
+      ticketSearchValue,
+      ticketSearchPreview,
+      ticketSearchClientImage,
+      ticketSearchDialogOpen,
       pickupSummaryAmount,
       extensionSummaryAmount,
       totalSummaryAmount,
     },
     actions: {
       setMode,
+      setTicketSearchValue,
       handleLoad,
+      handleTicketSearch,
+      closeTicketSearchDialog,
+      addTicketSearchPreviewToAvailable,
       handleClear,
       handleDone,
       setAvailableSelectionModel: (selectionModel: GridRowSelectionModel) =>

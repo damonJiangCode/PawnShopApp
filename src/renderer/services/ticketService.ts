@@ -4,6 +4,7 @@ import type {
   ConvertTicketInput,
   ExtendTicketsInput,
   ExpireTicketInput,
+  PaymentTicketSearchPreview,
   PickupTicketsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
@@ -243,6 +244,27 @@ export const ticketService = {
     }
   },
 
+  searchPaymentTicket: async (
+    ticketNumber: number,
+  ): Promise<PaymentTicketSearchPreview | null> => {
+    const normalizedTicketNumber = Number(ticketNumber);
+    const api = getElectronApi()?.ticket;
+
+    if (
+      !api ||
+      !Number.isFinite(normalizedTicketNumber) ||
+      normalizedTicketNumber <= 0
+    ) {
+      return null;
+    }
+
+    try {
+      return await api.searchPaymentTicket(normalizedTicketNumber);
+    } catch (error) {
+      throw mapBackendError(error);
+    }
+  },
+
   createPawnTicket: async (input: CreatePawnTicketInput): Promise<Ticket> => {
     const normalizedInput = normalizeCreatePawnTicketInput(input);
     const api = getElectronApi()?.ticket;
@@ -413,6 +435,7 @@ export type {
   ConvertTicketInput,
   ExtendTicketsInput,
   ExpireTicketInput,
+  PaymentTicketSearchPreview,
   PickupTicketsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,

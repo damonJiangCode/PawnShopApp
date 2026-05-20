@@ -5,6 +5,7 @@ import type {
   ConvertTicketInput,
   ExtendTicketsInput,
   ExpireTicketInput,
+  PaymentTicketSearchPreview,
   PickupTicketsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
@@ -12,6 +13,7 @@ import type {
   TransferTicketPreview,
   UpdateTicketInput,
 } from "../../shared/types/ticketPayload.ts";
+import { clientRepo } from "../repos/clientRepo.ts";
 import { ticketRepo } from "../repos/ticketRepo.ts";
 import { employeeService } from "./employeeService.ts";
 import { createFieldError } from "../utils/createFieldError.ts";
@@ -108,6 +110,33 @@ export const ticketService = {
 
   loadLocations: async (): Promise<string[]> => {
     return ticketRepo.loadLocations();
+  },
+
+  searchPaymentTicket: async (
+    ticketNumber: number,
+  ): Promise<PaymentTicketSearchPreview | null> => {
+    const normalizedTicketNumber = Number(ticketNumber);
+
+    if (
+      !Number.isFinite(normalizedTicketNumber) ||
+      normalizedTicketNumber <= 0
+    ) {
+      throw createFieldError("ticket_number", "Enter a valid ticket number.");
+    }
+
+    const ticket = await ticketRepo.loadByTicketNumber(normalizedTicketNumber);
+
+    if (!ticket) {
+      return null;
+    }
+
+    const client = await clientRepo.loadByNumber(ticket.client_number);
+
+    if (!client) {
+      return null;
+    }
+
+    return { ticket, client };
   },
 
   loadTransferTicketPreview: async (

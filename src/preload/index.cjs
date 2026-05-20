@@ -14,6 +14,7 @@ const CHANNELS = {
   GET_CLIENT_IMAGE: "get-client-image",
   GET_TICKETS: "get-tickets",
   GET_HOLIDAY_DATES: "get-holiday-dates",
+  SEARCH_PAYMENT_TICKET: "search-payment-ticket",
   GET_ITEMS: "get-items",
   GET_ITEM_CATEGORIES: "get-item-categories",
   ADD_ITEM: "add-item",
@@ -59,6 +60,8 @@ const ticketApi = {
   loadByClient: (clientNumber) => invoke(CHANNELS.GET_TICKETS, clientNumber),
   loadHolidayDates: () => invoke(CHANNELS.GET_HOLIDAY_DATES),
   loadLocations: () => invoke(CHANNELS.GET_LOCATIONS),
+  searchPaymentTicket: (ticketNumber) =>
+    invoke(CHANNELS.SEARCH_PAYMENT_TICKET, ticketNumber),
   createPawn: (payload) => invoke(CHANNELS.ADD_PAWN_TICKET, payload),
   createSell: (payload) => invoke(CHANNELS.ADD_SELL_TICKET, payload),
   update: (payload) => invoke(CHANNELS.UPDATE_TICKET, payload),

@@ -4,6 +4,7 @@ import type {
   ConvertTicketInput,
   ExtendTicketsInput,
   ExpireTicketInput,
+  PaymentTicketSearchPreview,
   PickupTicketsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
@@ -16,6 +17,9 @@ export type ElectronTicketApi = {
   loadByClient: (clientNumber: number) => Promise<Ticket[]>;
   loadHolidayDates: () => Promise<HolidayDate[]>;
   loadLocations: () => Promise<string[]>;
+  searchPaymentTicket: (
+    ticketNumber: number,
+  ) => Promise<PaymentTicketSearchPreview | null>;
   createPawn: (payload: CreatePawnTicketInput) => Promise<Ticket>;
   createSell: (payload: CreateSellTicketInput) => Promise<Ticket>;
   update: (payload: UpdateTicketInput) => Promise<Ticket>;

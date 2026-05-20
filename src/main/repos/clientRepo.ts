@@ -42,9 +42,47 @@ const mapRowToClient = (row: any): Client => ({
   identifications: row.identifications ?? [],
 });
 
-const getDbClient = async (dbClient?: DbClient) => dbClient ?? (await connect());
+const getDbClient = async (dbClient?: DbClient) =>
+  dbClient ?? (await connect());
 
 export const clientRepo = {
+  loadByNumber: async (
+    clientNumber: number,
+    dbClient?: DbClient,
+  ): Promise<Client | null> => {
+    const client = await getDbClient(dbClient);
+    const query = `
+      SELECT
+        c.*,
+        COALESCE(ci.identifications, '[]') AS identifications
+      FROM client c
+      LEFT JOIN LATERAL (
+        SELECT json_agg(
+          jsonb_build_object(
+            'id', client_id.id,
+            'id_type', client_id.id_type,
+            'id_value', client_id.id_value,
+            'updated_at', client_id.updated_at
+          )
+          ORDER BY client_id.id
+        ) AS identifications
+        FROM client_id
+        WHERE client_id.client_number = c.client_number
+      ) ci ON TRUE
+      WHERE c.client_number = $1
+      LIMIT 1
+    `;
+
+    try {
+      const result = await client.query(query, [clientNumber]);
+      return result.rows[0] ? mapRowToClient(result.rows[0]) : null;
+    } finally {
+      if (!dbClient) {
+        client.release();
+      }
+    }
+  },
+
   searchByName: async (
     firstName: string,
     lastName: string,
@@ -315,7 +353,10 @@ export const clientRepo = {
     }
   },
 
-  deleteIds: async (clientNumber: number, dbClient?: DbClient): Promise<void> => {
+  deleteIds: async (
+    clientNumber: number,
+    dbClient?: DbClient,
+  ): Promise<void> => {
     const client = await getDbClient(dbClient);
 
     try {

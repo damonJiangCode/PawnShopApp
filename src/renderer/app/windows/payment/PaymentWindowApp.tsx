@@ -1,8 +1,13 @@
 import React from "react";
 import {
   Alert,
+  Avatar,
   Box,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Paper,
   Tab,
   Tabs,
@@ -12,7 +17,7 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 import { DataGrid } from "@mui/x-data-grid";
 import ClientBar from "../../../components/shared/ClientBar";
-import { formatCurrency } from "../../../utils/formatters";
+import { formatCurrency, formatIsoDate } from "../../../utils/formatters";
 import {
   type PaymentMode,
   usePaymentWindowController,
@@ -83,6 +88,10 @@ const PaymentWindowApp: React.FC = () => {
     clientFirstName,
     columns,
     ticketSearchInputRef,
+    ticketSearchValue,
+    ticketSearchPreview,
+    ticketSearchClientImage,
+    ticketSearchDialogOpen,
     pickupSummaryAmount,
     extensionSummaryAmount,
     totalSummaryAmount,
@@ -304,9 +313,23 @@ const PaymentWindowApp: React.FC = () => {
               inputRef={ticketSearchInputRef}
               label="Ticket #"
               size="small"
+              value={ticketSearchValue}
+              onChange={(event) =>
+                actions.setTicketSearchValue(event.target.value)
+              }
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  void actions.handleTicketSearch();
+                }
+              }}
               sx={{ width: 160 }}
             />
-            <Button variant="outlined" startIcon={<SearchIcon />}>
+            <Button
+              variant="outlined"
+              startIcon={<SearchIcon />}
+              onClick={() => void actions.handleTicketSearch()}
+              disabled={loading}
+            >
               Search
             </Button>
           </Box>
@@ -371,6 +394,132 @@ const PaymentWindowApp: React.FC = () => {
             {renderTicketTable("selected")}
           </Box>
         </Box>
+
+        <Dialog
+          open={ticketSearchDialogOpen}
+          onClose={actions.closeTicketSearchDialog}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>Ticket Owner Check</DialogTitle>
+          <DialogContent dividers>
+            {ticketSearchPreview && (
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "160px 1fr",
+                  gap: 2,
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Avatar
+                    src={ticketSearchClientImage ?? undefined}
+                    variant="rounded"
+                    sx={{ width: 140, height: 140, border: "1px solid #ccc" }}
+                  />
+                </Box>
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                  {(ticketSearchPreview.client.pickup_self_only ||
+                    ticketSearchPreview.ticket.is_lost) && (
+                    <Alert severity="warning" variant="filled">
+                      {[
+                        ticketSearchPreview.client.pickup_self_only
+                          ? "Only this client can pick up."
+                          : "",
+                        ticketSearchPreview.ticket.is_lost
+                          ? "This ticket is marked as lost."
+                          : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                    </Alert>
+                  )}
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                      gap: 1,
+                    }}
+                  >
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Last Name
+                      </Typography>
+                      <Typography sx={{ fontWeight: 900 }}>
+                        {ticketSearchPreview.client.last_name.toUpperCase()}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        First Name
+                      </Typography>
+                      <Typography sx={{ fontWeight: 900 }}>
+                        {ticketSearchPreview.client.first_name.toUpperCase()}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Middle Name
+                      </Typography>
+                      <Typography sx={{ fontWeight: 900 }}>
+                        {ticketSearchPreview.client.middle_name?.toUpperCase() ||
+                          "---"}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        DOB
+                      </Typography>
+                      <Typography sx={{ fontWeight: 900 }}>
+                        {formatIsoDate(
+                          ticketSearchPreview.client.date_of_birth,
+                        )}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">
+                      Notes
+                    </Typography>
+                    <Box
+                      sx={{
+                        mt: 0.5,
+                        minHeight: 96,
+                        maxHeight: 160,
+                        overflow: "auto",
+                        p: 1,
+                        border: "1px solid #d0d7de",
+                        borderRadius: 1,
+                        whiteSpace: "pre-wrap",
+                        backgroundColor: "#fff",
+                        fontWeight: ticketSearchPreview.client.notes
+                          ? 700
+                          : 400,
+                      }}
+                    >
+                      {ticketSearchPreview.client.notes || "No notes."}
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={actions.closeTicketSearchDialog}>Cancel</Button>
+            <Button
+              variant="contained"
+              onClick={actions.addTicketSearchPreviewToAvailable}
+            >
+              Confirm
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
           <Button
