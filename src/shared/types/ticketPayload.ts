@@ -25,6 +25,7 @@ export type UpdateTicketInput = {
   location: string;
   amount: number;
   onetime_fee: number;
+  partial_payment: number;
   employee_password: string;
 };
 

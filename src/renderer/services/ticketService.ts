@@ -61,6 +61,7 @@ type NormalizedUpdateTicketInput = {
   location: string;
   amount: number;
   onetime_fee: number;
+  partial_payment: number;
   employee_password: string;
 };
 
@@ -127,6 +128,9 @@ const normalizeUpdateTicketInput = (
   amount: Number(input.amount),
   onetime_fee: Number.isFinite(input.onetime_fee)
     ? Math.max(0, input.onetime_fee)
+    : 0,
+  partial_payment: Number.isFinite(input.partial_payment)
+    ? Math.max(0, input.partial_payment)
     : 0,
   employee_password: input.employee_password.trim(),
 });

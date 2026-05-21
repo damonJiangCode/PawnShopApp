@@ -52,6 +52,7 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
   const [location, setLocation] = useState("");
   const [amount, setAmount] = useState<number | "">("");
   const [oneTimeFee, setOneTimeFee] = useState<number | "">("");
+  const [partialPayment, setPartialPayment] = useState<number | "">("");
   const [employeePassword, setEmployeePassword] = useState("");
   const [locationList, setLocationList] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,6 +62,7 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
   const [locationError, setLocationError] = useState("");
   const [amountError, setAmountError] = useState("");
   const [oneTimeFeeError, setOneTimeFeeError] = useState("");
+  const [partialPaymentError, setPartialPaymentError] = useState("");
   const [employeePasswordError, setEmployeePasswordError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -102,11 +104,13 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
     setLocation(ticket.location || "");
     setAmount(ticket.amount ?? "");
     setOneTimeFee(ticket.onetime_fee ?? "");
+    setPartialPayment(ticket.partial_payment ?? "");
     setEmployeePassword("");
     setDescriptionError("");
     setLocationError("");
     setAmountError("");
     setOneTimeFeeError("");
+    setPartialPaymentError("");
     setEmployeePasswordError("");
     setSubmitError("");
     setSaving(false);
@@ -144,6 +148,12 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
       (!Number.isFinite(oneTimeFee) || oneTimeFee < 0)
         ? "One Time Fee cannot be negative."
         : "";
+    const nextPartialPaymentError =
+      !isSellTicket &&
+      partialPayment !== "" &&
+      (!Number.isFinite(partialPayment) || partialPayment < 0)
+        ? "Partial Payment cannot be negative."
+        : "";
     const nextEmployeePasswordError =
       trimmedPassword.length === 0 ? "Enter employee password." : "";
 
@@ -151,6 +161,7 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
     setLocationError(nextLocationError);
     setAmountError(nextAmountError);
     setOneTimeFeeError(nextOneTimeFeeError);
+    setPartialPaymentError(nextPartialPaymentError);
     setEmployeePasswordError(nextEmployeePasswordError);
     setSubmitError("");
 
@@ -159,6 +170,7 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
       nextLocationError ||
       nextAmountError ||
       nextOneTimeFeeError ||
+      nextPartialPaymentError ||
       nextEmployeePasswordError
     ) {
       return;
@@ -178,6 +190,11 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
           : typeof oneTimeFee === "number"
             ? oneTimeFee
             : 0,
+        partial_payment: isSellTicket
+          ? 0
+          : typeof partialPayment === "number"
+            ? partialPayment
+            : 0,
         employee_password: trimmedPassword,
       });
     } catch (err) {
@@ -194,7 +211,9 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
         return;
       }
 
-      setSubmitError("Couldn't update this ticket right now. Please try again.");
+      setSubmitError(
+        "Couldn't update this ticket right now. Please try again.",
+      );
     } finally {
       setSaving(false);
     }
@@ -326,7 +345,29 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
                 }}
                 fullWidth
                 error={Boolean(oneTimeFeeError)}
-                helperText={oneTimeFeeError || "Optional. Leave blank to use 0."}
+                helperText={
+                  oneTimeFeeError || "Optional. Leave blank to use 0."
+                }
+              />
+              <TextField
+                label="Partial Payment"
+                type="number"
+                value={partialPayment}
+                onChange={(e) => {
+                  const nextValue = e.target.value;
+                  setPartialPayment(nextValue === "" ? "" : Number(nextValue));
+                  if (submitError) {
+                    setSubmitError("");
+                  }
+                  if (partialPaymentError) {
+                    setPartialPaymentError("");
+                  }
+                }}
+                fullWidth
+                error={Boolean(partialPaymentError)}
+                helperText={
+                  partialPaymentError || "Optional. Leave blank to use 0."
+                }
               />
               <Box sx={{ display: "flex", gap: 2 }}>
                 <TextField

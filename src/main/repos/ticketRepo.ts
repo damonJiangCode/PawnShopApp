@@ -30,6 +30,7 @@ type UpdateTicketPayload = {
   onetime_fee: number;
   interest: number;
   pickup_amount: number;
+  partial_payment: number;
   employee_name: string;
 };
 
@@ -76,6 +77,8 @@ const ticketSelectColumns = `
   interest,
   interest_paid_months,
   pickup_amount,
+  partial_payment,
+  partial_payment_datetime,
   interested_datetime,
   employee_name,
   pickup_datetime,
@@ -114,6 +117,10 @@ const mapTicketRow = (row: Record<string, unknown>): Ticket => {
     interest: Number(row.interest ?? 0),
     interest_paid_months: Number(row.interest_paid_months ?? 0),
     pickup_amount: Number(row.pickup_amount ?? 0),
+    partial_payment: Number(row.partial_payment ?? 0),
+    partial_payment_datetime: row.partial_payment_datetime
+      ? new Date(String(row.partial_payment_datetime))
+      : undefined,
     interested_datetime: row.interested_datetime
       ? new Date(String(row.interested_datetime))
       : undefined,
@@ -311,8 +318,13 @@ export const ticketRepo = {
         onetime_fee = $5,
         interest = $6,
         pickup_amount = $7,
-        employee_name = $8
-      WHERE ticket_number = $9
+        partial_payment = $8,
+        partial_payment_datetime = CASE
+          WHEN $8 IS DISTINCT FROM partial_payment THEN CURRENT_TIMESTAMP
+          ELSE partial_payment_datetime
+        END,
+        employee_name = $9
+      WHERE ticket_number = $10
       RETURNING ${ticketSelectColumns}
     `;
 
@@ -324,6 +336,7 @@ export const ticketRepo = {
       payload.onetime_fee,
       payload.interest,
       payload.pickup_amount,
+      payload.partial_payment,
       payload.employee_name,
       payload.ticket_number,
     ];

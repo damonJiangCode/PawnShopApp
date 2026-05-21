@@ -47,6 +47,9 @@ const normalizeUpdateTicketInput = (input: UpdateTicketInput) => ({
   onetime_fee: Number.isFinite(input.onetime_fee)
     ? Math.max(0, input.onetime_fee)
     : 0,
+  partial_payment: Number.isFinite(input.partial_payment)
+    ? Math.max(0, input.partial_payment)
+    : 0,
   employee_password: input.employee_password.trim(),
 });
 
@@ -263,6 +266,7 @@ export const ticketService = {
             normalizedInput.amount,
             normalizedInput.onetime_fee,
           ),
+          partial_payment: normalizedInput.partial_payment,
           employee_name: employeeName,
         },
         client,
