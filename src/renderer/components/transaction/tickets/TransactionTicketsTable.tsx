@@ -129,17 +129,6 @@ const TransactionTicketsTable: React.FC<TransactionTicketsTableProps> = ({
       ),
     },
     {
-      field: "pickup_amount",
-      headerName: "PKUP",
-      width: 84,
-      renderCell: (params) =>
-        params.row.status === "sold" ? (
-          <CellTooltip value={null} fallback="---" />
-        ) : (
-          <CellTooltip value={formatCurrency(params.value)} fallback="---" />
-        ),
-    },
-    {
       field: "partial_payment",
       headerName: "PART",
       width: 84,
