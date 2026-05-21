@@ -11,6 +11,7 @@ import {
   formatIsoDateTime,
   formatUppercase,
 } from "../../../utils/formatters";
+import { calculation } from "../../../../shared/utils/calculation";
 
 interface TransactionTicketsTableProps {
   tickets: Ticket[];
@@ -76,7 +77,9 @@ const TransactionTicketsTable: React.FC<TransactionTicketsTableProps> = ({
       renderCell: (params) => {
         const dueDate = params.value;
         const showOverdueIcon =
-          params.row.status !== "sold" && params.row.is_overdue;
+          params.row.status !== "sold" &&
+          params.row.due_date &&
+          calculation.isBeforeCalendarDate(params.row.due_date);
 
         return (
           <Box
@@ -106,9 +109,11 @@ const TransactionTicketsTable: React.FC<TransactionTicketsTableProps> = ({
       ),
     },
     {
-      field: "interest",
+      field: "interest_display",
       headerName: "INT",
       width: 84,
+      valueGetter: (_value, row: Ticket) =>
+        row.status === "sold" ? null : calculation.getBaseIntAmt(row.amount),
       renderCell: (params) =>
         params.row.status === "sold" ? (
           <CellTooltip value={null} fallback="---" />

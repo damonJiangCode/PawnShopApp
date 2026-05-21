@@ -5,12 +5,9 @@ export interface Ticket {
   location: string;
   description: string;
   due_date: Date;
-  is_overdue: boolean;
   amount: number;
   onetime_fee: number;
-  interest: number;
   interest_paid_months: number;
-  pickup_amount: number;
   partial_payment: number;
   partial_payment_datetime?: Date;
   interested_datetime?: Date;
@@ -20,5 +17,4 @@ export interface Ticket {
   status: "pawned" | "pawn_expired" | "picked_up" | "sold" | "sell_expired";
   status_updated_at: Date;
   client_number: number;
-  items?: number[];
 }

@@ -95,9 +95,6 @@ const normalizeExtendTicketsInput = (input: ExtendTicketsInput) => ({
     ),
 });
 
-const resolveIsOverdue = (dueDate: Date) =>
-  calculation.isBeforeCalendarDate(dueDate);
-
 export const ticketService = {
   loadTickets: async (clientNumber: number): Promise<Ticket[]> => {
     if (!clientNumber) {
@@ -182,14 +179,8 @@ export const ticketService = {
           location: normalizedInput.location,
           description: normalizedInput.description,
           due_date: dueDate,
-          is_overdue: resolveIsOverdue(dueDate),
           amount: normalizedInput.amount,
           onetime_fee: normalizedInput.onetime_fee,
-          interest: calculation.getBaseIntAmt(normalizedInput.amount),
-          pickup_amount: calculation.getBasePickupAmt(
-            normalizedInput.amount,
-            normalizedInput.onetime_fee,
-          ),
           employee_name: employeeName,
           status: "pawned",
           client_number: normalizedInput.client_number,
@@ -223,11 +214,8 @@ export const ticketService = {
           location: normalizedInput.location,
           description: normalizedInput.description,
           due_date: calculation.getSellDueDatetime(transactionDatetime),
-          is_overdue: false,
           amount: normalizedInput.amount,
           onetime_fee: 0,
-          interest: 0,
-          pickup_amount: 0,
           employee_name: employeeName,
           status: "sold",
           client_number: normalizedInput.client_number,
@@ -261,11 +249,6 @@ export const ticketService = {
           location: normalizedInput.location,
           amount: normalizedInput.amount,
           onetime_fee: normalizedInput.onetime_fee,
-          interest: calculation.getBaseIntAmt(normalizedInput.amount),
-          pickup_amount: calculation.getBasePickupAmt(
-            normalizedInput.amount,
-            normalizedInput.onetime_fee,
-          ),
           partial_payment: normalizedInput.partial_payment,
           employee_name: employeeName,
         },
@@ -357,14 +340,6 @@ export const ticketService = {
         normalizedInput.target_status === "pawned"
           ? normalizedInput.onetime_fee
           : 0;
-      const interest =
-        normalizedInput.target_status === "pawned"
-          ? calculation.getBaseIntAmt(normalizedInput.amount)
-          : 0;
-      const pickupAmount =
-        normalizedInput.target_status === "pawned"
-          ? calculation.getBasePickupAmt(normalizedInput.amount, onetimeFee)
-          : 0;
 
       return ticketRepo.convert(
         {
@@ -374,13 +349,7 @@ export const ticketService = {
           location: normalizedInput.location,
           amount: normalizedInput.amount,
           due_date: dueDate,
-          is_overdue:
-            normalizedInput.target_status === "pawned"
-              ? resolveIsOverdue(dueDate)
-              : false,
           onetime_fee: onetimeFee,
-          interest,
-          pickup_amount: pickupAmount,
           employee_name: employeeName,
         },
         client,

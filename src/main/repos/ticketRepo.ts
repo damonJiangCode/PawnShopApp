@@ -11,11 +11,8 @@ type AddTicketPayload = {
   location: string;
   description: string;
   due_date: Date;
-  is_overdue: boolean;
   amount: number;
   onetime_fee: number;
-  interest: number;
-  pickup_amount: number;
   employee_name: string;
   status: Ticket["status"];
   client_number: number;
@@ -28,8 +25,6 @@ type UpdateTicketPayload = {
   description: string;
   amount: number;
   onetime_fee: number;
-  interest: number;
-  pickup_amount: number;
   partial_payment: number;
   employee_name: string;
 };
@@ -41,10 +36,7 @@ type ConvertTicketPayload = {
   location: string;
   amount: number;
   due_date: Date;
-  is_overdue: boolean;
   onetime_fee: number;
-  interest: number;
-  pickup_amount: number;
   employee_name: string;
 };
 
@@ -71,12 +63,9 @@ const ticketSelectColumns = `
   location,
   description,
   due_date,
-  is_overdue,
   amount,
   onetime_fee,
-  interest,
   interest_paid_months,
-  pickup_amount,
   partial_payment,
   partial_payment_datetime,
   interested_datetime,
@@ -85,8 +74,7 @@ const ticketSelectColumns = `
   expire_date,
   status,
   status_updated_at,
-  client_number,
-  items
+  client_number
 `;
 
 const mapTransferTicketPreviewRow = (
@@ -111,12 +99,9 @@ const mapTicketRow = (row: Record<string, unknown>): Ticket => {
     location: row.location ? String(row.location) : "",
     description: row.description ? String(row.description) : "",
     due_date: new Date(String(row.due_date)),
-    is_overdue: Boolean(row.is_overdue),
     amount: Number(row.amount ?? 0),
     onetime_fee: Number(row.onetime_fee ?? 0),
-    interest: Number(row.interest ?? 0),
     interest_paid_months: Number(row.interest_paid_months ?? 0),
-    pickup_amount: Number(row.pickup_amount ?? 0),
     partial_payment: Number(row.partial_payment ?? 0),
     partial_payment_datetime: row.partial_payment_datetime
       ? new Date(String(row.partial_payment_datetime))
@@ -136,7 +121,6 @@ const mapTicketRow = (row: Record<string, unknown>): Ticket => {
       ? new Date(String(row.status_updated_at))
       : new Date(String(row.transaction_datetime)),
     client_number: Number(row.client_number),
-    items: Array.isArray(row.items) ? row.items.map(Number) : [],
   };
 };
 
@@ -262,16 +246,13 @@ export const ticketRepo = {
         location,
         description,
         due_date,
-        is_overdue,
         amount,
         onetime_fee,
-        interest,
-        pickup_amount,
         employee_name,
         status,
         client_number
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10
       )
       RETURNING ${ticketSelectColumns}
     `;
@@ -282,11 +263,8 @@ export const ticketRepo = {
       payload.location,
       payload.description,
       payload.due_date,
-      payload.is_overdue,
       payload.amount,
       payload.onetime_fee,
-      payload.interest,
-      payload.pickup_amount,
       payload.employee_name,
       payload.status,
       payload.client_number,
@@ -313,18 +291,15 @@ export const ticketRepo = {
         is_lost = $1,
         location = $2,
         description = $3,
-        is_overdue = COALESCE(due_date::date < CURRENT_DATE, FALSE),
         amount = $4,
         onetime_fee = $5,
-        interest = $6,
-        pickup_amount = $7,
-        partial_payment = $8,
+        partial_payment = $6,
         partial_payment_datetime = CASE
-          WHEN $8 IS DISTINCT FROM partial_payment THEN CURRENT_TIMESTAMP
+          WHEN $6 IS DISTINCT FROM partial_payment THEN CURRENT_TIMESTAMP
           ELSE partial_payment_datetime
         END,
-        employee_name = $9
-      WHERE ticket_number = $10
+        employee_name = $7
+      WHERE ticket_number = $8
       RETURNING ${ticketSelectColumns}
     `;
 
@@ -334,8 +309,6 @@ export const ticketRepo = {
       payload.description,
       payload.amount,
       payload.onetime_fee,
-      payload.interest,
-      payload.pickup_amount,
       payload.partial_payment,
       payload.employee_name,
       payload.ticket_number,
@@ -371,12 +344,9 @@ export const ticketRepo = {
         location = $3,
         amount = $4,
         due_date = $5,
-        is_overdue = $6,
-        onetime_fee = $7,
-        interest = $8,
-        pickup_amount = $9,
-        employee_name = $10
-      WHERE ticket_number = $11
+        onetime_fee = $6,
+        employee_name = $7
+      WHERE ticket_number = $8
       RETURNING ${ticketSelectColumns}
     `;
 
@@ -386,10 +356,7 @@ export const ticketRepo = {
       payload.location,
       payload.amount,
       payload.due_date,
-      payload.is_overdue,
       payload.onetime_fee,
-      payload.interest,
-      payload.pickup_amount,
       payload.employee_name,
       payload.ticket_number,
     ];
@@ -457,8 +424,7 @@ export const ticketRepo = {
         SET
           status = 'picked_up',
           pickup_datetime = $1,
-          status_updated_at = $1,
-          is_overdue = FALSE
+          status_updated_at = $1
         WHERE ticket_number = ANY($2::int[])
           AND status = 'pawned'
         RETURNING ${ticketSelectColumns}
@@ -505,11 +471,7 @@ export const ticketRepo = {
       SET
         due_date = due_date + ($1 * INTERVAL '30 days'),
         interest_paid_months = interest_paid_months + $1,
-        interested_datetime = $2,
-        is_overdue = COALESCE(
-          (due_date + ($1 * INTERVAL '30 days'))::date < CURRENT_DATE,
-          FALSE
-        )
+        interested_datetime = $2
       WHERE ticket_number = $3
         AND status = 'pawned'
       RETURNING ${ticketSelectColumns}

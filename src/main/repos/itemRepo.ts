@@ -80,19 +80,16 @@ export const itemRepo = {
         latest_ticket.status AS latest_ticket_status,
         i.image_path
       FROM item i
-      LEFT JOIN ticket_item ti
+      INNER JOIN ticket_item ti
         ON ti.item_number = i.item_number
        AND ti.ticket_number = $1
-      LEFT JOIN ticket source_ticket
-        ON source_ticket.ticket_number = $1
       LEFT JOIN ticket latest_ticket
         ON latest_ticket.ticket_number = i.latest_ticket_number
       LEFT JOIN item_subcategory s
         ON s.id = i.subcategory_id
       LEFT JOIN item_category c
         ON c.id = s.category_id
-      WHERE ti.ticket_number IS NOT NULL
-         OR i.item_number = ANY(COALESCE(source_ticket.items, '{}'))
+      WHERE ti.ticket_number = $1
       ORDER BY i.item_number DESC
     `;
 
@@ -199,18 +196,6 @@ export const itemRepo = {
 
     await dbClient.query(
       `
-        UPDATE ticket
-        SET items = CASE
-          WHEN $2 = ANY(items) THEN items
-          ELSE array_append(items, $2)
-        END
-        WHERE ticket_number = $1
-      `,
-      [ticketNumber, itemNumber],
-    );
-
-    await dbClient.query(
-      `
         UPDATE item
         SET latest_ticket_number = $1
         WHERE item_number = $2
@@ -227,10 +212,7 @@ export const itemRepo = {
     return item;
   },
 
-  create: async (
-    payload: SaveItemInput,
-    dbClient: DbClient,
-  ): Promise<Item> => {
+  create: async (payload: SaveItemInput, dbClient: DbClient): Promise<Item> => {
     const query = `
       INSERT INTO item (
         quantity,
@@ -279,25 +261,10 @@ export const itemRepo = {
       [payload.ticket_number, item.item_number],
     );
 
-    await dbClient.query(
-      `
-        UPDATE ticket
-        SET items = CASE
-          WHEN $2 = ANY(items) THEN items
-          ELSE array_append(items, $2)
-        END
-        WHERE ticket_number = $1
-      `,
-      [payload.ticket_number, item.item_number],
-    );
-
     return item;
   },
 
-  update: async (
-    payload: SaveItemInput,
-    dbClient: DbClient,
-  ): Promise<Item> => {
+  update: async (payload: SaveItemInput, dbClient: DbClient): Promise<Item> => {
     const query = `
       UPDATE item
       SET
@@ -338,7 +305,9 @@ export const itemRepo = {
     ]);
 
     if (!result.rows[0]) {
-      throw new Error(`[itemRepo] update(): Item #${payload.item_number} not found`);
+      throw new Error(
+        `[itemRepo] update(): Item #${payload.item_number} not found`,
+      );
     }
 
     return mapItemRow(result.rows[0]);
@@ -364,15 +333,6 @@ export const itemRepo = {
     itemNumber: number,
     dbClient: DbClient,
   ): Promise<void> => {
-    await dbClient.query(
-      `
-        UPDATE ticket
-        SET items = array_remove(items, $2)
-        WHERE ticket_number = $1
-      `,
-      [ticketNumber, itemNumber],
-    );
-
     await dbClient.query(
       `
         DELETE FROM ticket_item

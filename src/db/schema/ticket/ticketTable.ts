@@ -7,12 +7,9 @@ export const createTicketTable = `
     location TEXT,
     description TEXT,
     due_date TIMESTAMPTZ NOT NULL,
-    is_overdue BOOLEAN NOT NULL DEFAULT FALSE,
     amount NUMERIC(10, 1),
     onetime_fee NUMERIC(10, 1),
-    interest NUMERIC(5, 1),
     interest_paid_months INTEGER NOT NULL DEFAULT 0,
-    pickup_amount NUMERIC(10, 1),
     partial_payment NUMERIC(10, 2) NOT NULL DEFAULT 0,
     partial_payment_datetime TIMESTAMPTZ DEFAULT NULL,
     interested_datetime TIMESTAMPTZ DEFAULT NULL,
@@ -21,16 +18,12 @@ export const createTicketTable = `
     expire_date TIMESTAMPTZ DEFAULT NULL,
     status TEXT NOT NULL CHECK (status IN ('pawned', 'pawn_expired', 'picked_up', 'sold', 'sell_expired')),
     status_updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    client_number INTEGER REFERENCES client(client_number) ON DELETE SET NULL,
-    items INTEGER[] NOT NULL DEFAULT '{}'
+    client_number INTEGER REFERENCES client(client_number) ON DELETE SET NULL
   );
 `;
 
 export const createTicketIndexes = `
-  CREATE INDEX IF NOT EXISTS idx_ticket_pawned_overdue_location_due_date
+  CREATE INDEX IF NOT EXISTS idx_ticket_pawned_location_due_date
   ON ticket(location, due_date)
-  WHERE status = 'pawned' AND is_overdue = TRUE;
-
-  CREATE INDEX IF NOT EXISTS idx_ticket_items
-  ON ticket USING GIN(items);
+  WHERE status = 'pawned';
 `;
