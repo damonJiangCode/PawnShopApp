@@ -37,6 +37,7 @@ interface TransactionPageProps {
   incomingItemLoadRequest?: TransactionItemLoadRequest | null;
   onSelectedTicketChange?: (ticket: Ticket | null) => void;
   onHistoryRefreshRequest?: () => void;
+  onClientSoldTicket?: () => void;
 }
 
 const TransactionPage: React.FC<TransactionPageProps> = ({
@@ -51,6 +52,7 @@ const TransactionPage: React.FC<TransactionPageProps> = ({
   incomingItemLoadRequest,
   onSelectedTicketChange,
   onHistoryRefreshRequest,
+  onClientSoldTicket,
 }) => {
   const { state, actions } = useTransactionPageController({
     clientNumber,
@@ -61,6 +63,7 @@ const TransactionPage: React.FC<TransactionPageProps> = ({
     incomingItemLoadRequest,
     onSelectedTicketChange,
     onHistoryRefreshRequest,
+    onClientSoldTicket,
   });
   const {
     tickets,

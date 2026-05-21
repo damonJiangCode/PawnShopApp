@@ -82,6 +82,18 @@ export const useMainLayoutController = () => {
     });
   };
 
+  const handleClientSoldTicket = () => {
+    setSelectedClient((prev) =>
+      prev
+        ? {
+            ...prev,
+            sold_count: Number(prev.sold_count ?? 0) + 1,
+            updated_at: new Date(),
+          }
+        : prev,
+    );
+  };
+
   const sendItemsToTransaction = (
     targetTicket: Ticket,
     sourceTicket: Ticket,
@@ -157,6 +169,7 @@ export const useMainLayoutController = () => {
       handleSearch,
       handleClear,
       handlePayment,
+      handleClientSoldTicket,
       requestHistoryRefresh,
       handleRepawnCreated,
       handleLoadHistoryItems,

@@ -36,6 +36,7 @@ interface UseTransactionPageControllerParams {
   incomingItemLoadRequest?: TransactionItemLoadRequest | null;
   onSelectedTicketChange?: (ticket: Ticket | null) => void;
   onHistoryRefreshRequest?: () => void;
+  onClientSoldTicket?: () => void;
 }
 
 export const useTransactionPageController = ({
@@ -47,6 +48,7 @@ export const useTransactionPageController = ({
   incomingItemLoadRequest,
   onSelectedTicketChange,
   onHistoryRefreshRequest,
+  onClientSoldTicket,
 }: UseTransactionPageControllerParams) => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [items, setItems] = useState<Item[]>([]);
@@ -446,6 +448,7 @@ export const useTransactionPageController = ({
     setItems([]);
     setSelectedItem(null);
     setopenTicketSellDialog(false);
+    onClientSoldTicket?.();
     ticketPrintService.printEnvelopeTicket(newTicket);
     setStatusMessage(`Ticket #${newTicket.ticket_number} sold.`);
   };

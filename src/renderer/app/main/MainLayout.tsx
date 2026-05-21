@@ -158,6 +158,7 @@ const MainLayout: React.FC = () => {
               incomingItemLoadRequest={incomingItemLoadRequest}
               onSelectedTicketChange={actions.setSelectedTransactionTicket}
               onHistoryRefreshRequest={actions.requestHistoryRefresh}
+              onClientSoldTicket={actions.handleClientSoldTicket}
             />
           </MainTabPanel>
 

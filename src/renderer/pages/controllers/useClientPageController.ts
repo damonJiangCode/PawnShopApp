@@ -42,10 +42,12 @@ export const useClientPageController = ({
   const { results, loading, hasCompletedSearch, completedQueryKey } =
     useClientSearch(searchFirstName, searchLastName, searchRequestKey);
   const [displayResults, setDisplayResults] = useState<Client[]>([]);
-  const [clientOverrides, setClientOverrides] = useState<Record<number, Client>>(
-    {},
+  const [clientOverrides, setClientOverrides] = useState<
+    Record<number, Client>
+  >({});
+  const [deletedClientNumbers, setDeletedClientNumbers] = useState<number[]>(
+    [],
   );
-  const [deletedClientNumbers, setDeletedClientNumbers] = useState<number[]>([]);
   const [createdClient, setCreatedClient] = useState<Client | null>(null);
   const lastNoResultPromptKeyRef = useRef<string>("");
 
@@ -56,7 +58,11 @@ export const useClientPageController = ({
     }
 
     if (activeClient) {
-      setSelectedClient((prev) => prev ?? activeClient);
+      setSelectedClient((prev) =>
+        !prev || prev.client_number === activeClient.client_number
+          ? activeClient
+          : prev,
+      );
     }
   }, [forcedClient, activeClient]);
 
@@ -94,7 +100,9 @@ export const useClientPageController = ({
     const mergedClientNumbers = new Set(
       mergedResults
         .map((client) => client.client_number)
-        .filter((clientNumber): clientNumber is number => Boolean(clientNumber)),
+        .filter((clientNumber): clientNumber is number =>
+          Boolean(clientNumber),
+        ),
     );
     const overrideResults = hasQuery
       ? Object.values(clientOverrides).filter((client) => {
@@ -125,7 +133,9 @@ export const useClientPageController = ({
       setSelectedClient(
         mergedWithForced.find(
           (client) => client.client_number === forcedClientNumber,
-        ) ?? (clientOverrides[forcedClientNumber] ?? forcedClient),
+        ) ??
+          clientOverrides[forcedClientNumber] ??
+          forcedClient,
       );
       lastNoResultPromptKeyRef.current = "";
       return;
@@ -212,7 +222,9 @@ export const useClientPageController = ({
   const handleClientUpdated = (updatedClient: Client) => {
     if (updatedClient.client_number) {
       setDeletedClientNumbers((prev) =>
-        prev.filter((clientNumber) => clientNumber !== updatedClient.client_number),
+        prev.filter(
+          (clientNumber) => clientNumber !== updatedClient.client_number,
+        ),
       );
       setClientOverrides((prev) => ({
         ...prev,

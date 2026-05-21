@@ -172,7 +172,7 @@ export const ticketService = {
         );
       }
 
-      return ticketRepo.create(
+      const newTicket = await ticketRepo.create(
         {
           transaction_datetime: transactionDatetime,
           is_lost: false,
@@ -187,6 +187,13 @@ export const ticketService = {
         },
         client,
       );
+
+      await clientRepo.incrementSoldCount(
+        normalizedInput.client_number,
+        client,
+      );
+
+      return newTicket;
     });
   },
 
