@@ -21,6 +21,7 @@ import ContactNotesFields from "./fields/ContactNotesFields";
 import IDFields from "./fields/IDFields";
 import type { IDFieldsRef } from "./fields/IDFields";
 import defaultClient from "../../../utils/defaultClient";
+import { formatLocalIsoDatePart, resolveDate } from "../../../utils/formatters";
 import {
   clientService,
   type ClientFormError,
@@ -76,6 +77,46 @@ const emptyValidationErrors = (): ClientValidationErrors => ({
   identifications: "",
 });
 
+const getAdultCutoffDate = () => {
+  const today = new Date();
+  return new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+};
+
+const getDateOfBirthError = (dateOfBirth?: Date | string) => {
+  if (!dateOfBirth) {
+    return "Date of birth is required.";
+  }
+
+  if (
+    typeof dateOfBirth === "string" &&
+    !/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth)
+  ) {
+    return "Enter a complete date of birth.";
+  }
+
+  const parsedDate = resolveDate(dateOfBirth);
+
+  if (!parsedDate) {
+    return "Enter a valid date of birth.";
+  }
+
+  if (
+    typeof dateOfBirth === "string" &&
+    formatLocalIsoDatePart(parsedDate) !== dateOfBirth
+  ) {
+    return "Enter a valid date of birth.";
+  }
+
+  if (
+    formatLocalIsoDatePart(parsedDate) >
+    formatLocalIsoDatePart(getAdultCutoffDate())
+  ) {
+    return "Age under 18 is not allowed.";
+  }
+
+  return "";
+};
+
 const ClientAddEditDialog: React.FC<ClientAddEditDialogProps> = (props) => {
   const { clientExisted, open, onSave, onClose } = props;
   const isEditMode = Boolean(clientExisted?.client_number);
@@ -92,9 +133,8 @@ const ClientAddEditDialog: React.FC<ClientAddEditDialogProps> = (props) => {
   const [employeePasswordError, setEmployeePasswordError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const lastNameInputRef = useRef<HTMLInputElement>(null);
-  const [validationErrors, setValidationErrors] = useState<ClientValidationErrors>(
-    emptyValidationErrors(),
-  );
+  const [validationErrors, setValidationErrors] =
+    useState<ClientValidationErrors>(emptyValidationErrors());
 
   useEffect(() => {
     if (!open) {
@@ -156,6 +196,13 @@ const ClientAddEditDialog: React.FC<ClientAddEditDialogProps> = (props) => {
     setClient((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleDateOfBirthBlur = () => {
+    setValidationErrors((prev) => ({
+      ...prev,
+      date_of_birth: getDateOfBirthError(client.date_of_birth),
+    }));
+  };
+
   async function handleCapture(
     fileName: string,
     base64: string,
@@ -187,9 +234,7 @@ const ClientAddEditDialog: React.FC<ClientAddEditDialogProps> = (props) => {
       nextErrors.first_name = "First name is required.";
     }
 
-    if (!client.date_of_birth) {
-      nextErrors.date_of_birth = "Date of birth is required.";
-    }
+    nextErrors.date_of_birth = getDateOfBirthError(client.date_of_birth);
 
     if (!client.gender?.trim()) {
       nextErrors.gender = "Gender is required.";
@@ -407,6 +452,7 @@ const ClientAddEditDialog: React.FC<ClientAddEditDialogProps> = (props) => {
                   hairColorError={validationErrors.hair_color}
                   eyeColorError={validationErrors.eye_color}
                   onChange={handleInputChange}
+                  onDateOfBirthBlur={handleDateOfBirthBlur}
                 />
 
                 <HeightWeightFields

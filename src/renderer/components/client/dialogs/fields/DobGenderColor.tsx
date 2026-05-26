@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, TextField, MenuItem } from "@mui/material";
+import { Box, MenuItem, TextField } from "@mui/material";
 import { clientService } from "../../../../services/clientService";
 import {
   formatLocalIsoDatePart,
@@ -16,8 +16,9 @@ interface DobGenderColorProps {
   hairColorError?: string;
   eyeColorError?: string;
   onChange: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => void;
+  onDateOfBirthBlur?: () => void;
 }
 
 const DobGenderColor: React.FC<DobGenderColorProps> = ({
@@ -30,10 +31,10 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
   hairColorError,
   eyeColorError,
   onChange,
+  onDateOfBirthBlur,
 }) => {
   const [hairColors, setHairColors] = useState<string[]>([]);
   const [eyeColors, setEyeColors] = useState<string[]>([]);
-  const [maxDate, setMaxDate] = useState("");
 
   useEffect(() => {
     const fetchColors = async () => {
@@ -45,23 +46,10 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
     };
 
     fetchColors();
-
-    const todayObj = new Date();
-    const maxDateObj = new Date(
-      todayObj.getFullYear() - 18,
-      todayObj.getMonth(),
-      todayObj.getDate()
-    );
-    setMaxDate(formatLocalIsoDatePart(maxDateObj));
   }, []);
 
   const isValidDate = (d: unknown) =>
     d instanceof Date && !Number.isNaN(d.getTime());
-
-  const isUnder18 =
-    date_of_birth &&
-    isValidDate(resolveDate(date_of_birth)) &&
-    formatLocalIsoDatePart(resolveDate(date_of_birth) as Date) > maxDate;
 
   return (
     <Box sx={{ display: "flex", gap: 2 }}>
@@ -72,18 +60,18 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
         name="date_of_birth"
         label="Date of Birth"
         value={
-          date_of_birth && isValidDate(resolveDate(date_of_birth))
-            ? formatLocalIsoDatePart(resolveDate(date_of_birth) as Date)
-            : ""
+          typeof date_of_birth === "string"
+            ? date_of_birth
+            : date_of_birth && isValidDate(resolveDate(date_of_birth))
+              ? formatLocalIsoDatePart(resolveDate(date_of_birth) as Date)
+              : ""
         }
         onChange={onChange}
+        onBlur={onDateOfBirthBlur}
         size="small"
         InputLabelProps={{ shrink: true }}
-        inputProps={{ max: maxDate }}
-        error={Boolean(dateOfBirthError || isUnder18)}
-        helperText={
-          dateOfBirthError || (isUnder18 ? "Age under 18 is not allowed" : " ")
-        }
+        error={Boolean(dateOfBirthError)}
+        helperText={dateOfBirthError || " "}
       />
 
       <TextField
@@ -113,7 +101,8 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
         value={
           hairColors.some(
             (c) =>
-              c.trim().toLowerCase() === (hair_color || "").trim().toLowerCase()
+              c.trim().toLowerCase() ===
+              (hair_color || "").trim().toLowerCase(),
           )
             ? hair_color
             : ""
@@ -139,7 +128,7 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
         value={
           eyeColors.some(
             (c) =>
-              c.trim().toLowerCase() === (eye_color || "").trim().toLowerCase()
+              c.trim().toLowerCase() === (eye_color || "").trim().toLowerCase(),
           )
             ? eye_color
             : ""
