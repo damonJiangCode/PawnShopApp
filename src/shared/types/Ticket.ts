@@ -2,6 +2,7 @@ export interface Ticket {
   ticket_number?: number;
   transaction_datetime: Date;
   is_lost: boolean;
+  is_stolen: boolean;
   location: string;
   description: string;
   due_date: Date;
