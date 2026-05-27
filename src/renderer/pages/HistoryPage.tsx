@@ -14,6 +14,8 @@ interface HistoryPageProps {
   clientLastName?: string;
   clientFirstName?: string;
   clientMiddleName?: string;
+  focusTicketNumber?: number;
+  focusRequestId?: number;
   refreshKey?: number;
   transactionTargetTicket?: Ticket | null;
   onRepawnCreated?: (
@@ -21,7 +23,10 @@ interface HistoryPageProps {
     sourceTicket: Ticket,
     sourceItems: Item[],
   ) => void;
-  onLoadItemsToTransaction?: (sourceTicket: Ticket, sourceItems: Item[]) => void;
+  onLoadItemsToTransaction?: (
+    sourceTicket: Ticket,
+    sourceItems: Item[],
+  ) => void;
 }
 
 const HistoryPage: React.FC<HistoryPageProps> = ({
@@ -29,6 +34,8 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
   clientLastName,
   clientFirstName,
   clientMiddleName,
+  focusTicketNumber,
+  focusRequestId,
   refreshKey = 0,
   transactionTargetTicket,
   onRepawnCreated,
@@ -36,6 +43,8 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
 }) => {
   const { state, actions } = useHistoryPageController({
     clientNumber,
+    focusTicketNumber,
+    focusRequestId,
     refreshKey,
     transactionTargetTicket,
     onRepawnCreated,

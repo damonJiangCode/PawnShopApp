@@ -168,6 +168,8 @@ const MainLayout: React.FC = () => {
               clientLastName={selectedClient?.last_name}
               clientFirstName={selectedClient?.first_name}
               clientMiddleName={selectedClient?.middle_name}
+              focusTicketNumber={focusTicketNumber}
+              focusRequestId={focusRequestId}
               refreshKey={historyRefreshKey}
               transactionTargetTicket={selectedTransactionTicket}
               onRepawnCreated={actions.handleRepawnCreated}

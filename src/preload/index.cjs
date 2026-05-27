@@ -14,6 +14,7 @@ const CHANNELS = {
   GET_CLIENT_IMAGE: "get-client-image",
   GET_TICKETS: "get-tickets",
   GET_HOLIDAY_DATES: "get-holiday-dates",
+  SEARCH_TICKET: "search-ticket",
   SEARCH_PAYMENT_TICKET: "search-payment-ticket",
   GET_ITEMS: "get-items",
   GET_ITEM_CATEGORIES: "get-item-categories",
@@ -33,6 +34,7 @@ const CHANNELS = {
   UPDATE_TICKET: "update-ticket",
   CONVERT_TICKET: "convert-ticket",
   EXPIRE_TICKET: "expire-ticket",
+  MARK_TICKET_STOLEN: "mark-ticket-stolen",
   PICKUP_TICKETS: "pickup-tickets",
   EXTEND_TICKETS: "extend-tickets",
   GET_TRANSFER_TICKET_PREVIEW: "get-transfer-ticket-preview",
@@ -60,6 +62,7 @@ const ticketApi = {
   loadByClient: (clientNumber) => invoke(CHANNELS.GET_TICKETS, clientNumber),
   loadHolidayDates: () => invoke(CHANNELS.GET_HOLIDAY_DATES),
   loadLocations: () => invoke(CHANNELS.GET_LOCATIONS),
+  searchTicket: (ticketNumber) => invoke(CHANNELS.SEARCH_TICKET, ticketNumber),
   searchPaymentTicket: (ticketNumber) =>
     invoke(CHANNELS.SEARCH_PAYMENT_TICKET, ticketNumber),
   createPawn: (payload) => invoke(CHANNELS.ADD_PAWN_TICKET, payload),
@@ -67,6 +70,7 @@ const ticketApi = {
   update: (payload) => invoke(CHANNELS.UPDATE_TICKET, payload),
   convert: (payload) => invoke(CHANNELS.CONVERT_TICKET, payload),
   expire: (payload) => invoke(CHANNELS.EXPIRE_TICKET, payload),
+  markStolen: (payload) => invoke(CHANNELS.MARK_TICKET_STOLEN, payload),
   pickup: (payload) => invoke(CHANNELS.PICKUP_TICKETS, payload),
   extend: (payload) => invoke(CHANNELS.EXTEND_TICKETS, payload),
   loadTransferPreview: (ticketNumber) =>

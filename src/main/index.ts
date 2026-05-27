@@ -77,6 +77,8 @@ const createAppMenu = () => {
               id: "ticket-expire",
               title: "Expire Ticket",
               description: "Enter a ticket number and expire it.",
+              width: 860,
+              height: 680,
             }),
         },
         {

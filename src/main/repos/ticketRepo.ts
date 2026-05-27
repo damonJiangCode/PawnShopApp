@@ -42,7 +42,13 @@ type ConvertTicketPayload = {
 
 type ExpireTicketPayload = {
   ticket_number: number;
+  current_status: Ticket["status"];
+  current_due_date: Date;
   status: Ticket["status"];
+};
+
+type MarkTicketStolenPayload = {
+  ticket_number: number;
 };
 
 type PickupTicketsPayload = {
@@ -60,6 +66,7 @@ const ticketSelectColumns = `
   ticket_number,
   transaction_datetime,
   is_lost,
+  is_stolen,
   location,
   description,
   due_date,
@@ -96,6 +103,7 @@ const mapTicketRow = (row: Record<string, unknown>): Ticket => {
     ticket_number: Number(row.ticket_number),
     transaction_datetime: new Date(String(row.transaction_datetime)),
     is_lost: Boolean(row.is_lost),
+    is_stolen: Boolean(row.is_stolen),
     location: row.location ? String(row.location) : "",
     description: row.description ? String(row.description) : "",
     due_date: new Date(String(row.due_date)),
@@ -390,6 +398,8 @@ export const ticketRepo = {
         expire_date = CURRENT_TIMESTAMP,
         status_updated_at = CURRENT_TIMESTAMP
       WHERE ticket_number = $2
+        AND status = $3
+        AND due_date = $4
       RETURNING ${ticketSelectColumns}
     `;
 
@@ -397,11 +407,13 @@ export const ticketRepo = {
       const result = await client.query(query, [
         payload.status,
         payload.ticket_number,
+        payload.current_status,
+        payload.current_due_date,
       ]);
 
       if (!result.rows[0]) {
         throw new Error(
-          `[ticketRepo] expire(): Ticket #${payload.ticket_number} not found`,
+          `[ticketRepo] expire(): Ticket #${payload.ticket_number} was changed before it could be expired`,
         );
       }
 
@@ -487,6 +499,35 @@ export const ticketRepo = {
       if (!result.rows[0]) {
         throw new Error(
           `[ticketRepo] extend(): Ticket #${payload.ticket_number} not found`,
+        );
+      }
+
+      return mapTicketRow(result.rows[0]);
+    } finally {
+      if (!dbClient) {
+        client.release();
+      }
+    }
+  },
+
+  markStolen: async (
+    payload: MarkTicketStolenPayload,
+    dbClient?: DbClient,
+  ): Promise<Ticket> => {
+    const client = dbClient ?? (await connect());
+    const query = `
+      UPDATE ticket
+      SET is_stolen = TRUE
+      WHERE ticket_number = $1
+      RETURNING ${ticketSelectColumns}
+    `;
+
+    try {
+      const result = await client.query(query, [payload.ticket_number]);
+
+      if (!result.rows[0]) {
+        throw new Error(
+          `[ticketRepo] markStolen(): Ticket #${payload.ticket_number} not found`,
         );
       }
 

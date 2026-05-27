@@ -39,10 +39,12 @@ export type TransferTicketPreview = {
   previous_client_name: string;
 };
 
-export type PaymentTicketSearchPreview = {
+export type TicketSearchResult = {
   ticket: Ticket;
   client: Client;
 };
+
+export type PaymentTicketSearchPreview = TicketSearchResult;
 
 export type TransferTicketInput = {
   ticket_number: number;
@@ -61,6 +63,12 @@ export type ConvertTicketInput = {
 
 export type ExpireTicketInput = {
   ticket_number: number;
+  employee_password?: string;
+};
+
+export type MarkTicketStolenInput = {
+  ticket_number: number;
+  employee_password: string;
 };
 
 export type PickupTicketsInput = {

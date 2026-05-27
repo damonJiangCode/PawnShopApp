@@ -12,6 +12,51 @@ type SearchParams = {
 
 type ItemLoadMode = "repawn" | "load";
 
+type TicketSearchSelectedEvent = {
+  type: "ticket-search-selected";
+  ticket: Ticket;
+  client: Client;
+  targetTab: "transaction" | "history";
+};
+
+type TicketExpiredEvent = {
+  type: "ticket-expired";
+  ticket: Ticket;
+  client: Client;
+};
+
+type TicketStolenEvent = {
+  type: "ticket-stolen";
+  ticket: Ticket;
+  client: Client;
+};
+
+const isTicketSearchSelectedEvent = (
+  value: unknown,
+): value is TicketSearchSelectedEvent => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  return (value as { type?: string }).type === "ticket-search-selected";
+};
+
+const isTicketExpiredEvent = (value: unknown): value is TicketExpiredEvent => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  return (value as { type?: string }).type === "ticket-expired";
+};
+
+const isTicketStolenEvent = (value: unknown): value is TicketStolenEvent => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  return (value as { type?: string }).type === "ticket-stolen";
+};
+
 export const useMainLayoutController = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const [searchFirstName, setSearchFirstName] = useState("");
@@ -43,6 +88,40 @@ export const useMainLayoutController = () => {
 
       setTransactionRefreshKey((prev) => prev + 1);
       setHistoryRefreshKey((prev) => prev + 1);
+    };
+
+    return () => {
+      channel.close();
+    };
+  }, []);
+
+  useEffect(() => {
+    const channel = new BroadcastChannel("menu-events");
+
+    channel.onmessage = (event: MessageEvent) => {
+      if (isTicketExpiredEvent(event.data) || isTicketStolenEvent(event.data)) {
+        setTransactionRefreshKey((prev) => prev + 1);
+        setHistoryRefreshKey((prev) => prev + 1);
+        return;
+      }
+
+      if (!isTicketSearchSelectedEvent(event.data)) {
+        return;
+      }
+
+      const { client, targetTab, ticket } = event.data;
+
+      setSelectedClient(client);
+      setForcedClient(client);
+      setCurrentTab(targetTab === "history" ? 2 : 1);
+      setFocusTicketNumber(ticket.ticket_number);
+      setFocusRequestId((prev) => prev + 1);
+
+      if (targetTab === "history") {
+        setHistoryRefreshKey((prev) => prev + 1);
+      } else {
+        setTransactionRefreshKey((prev) => prev + 1);
+      }
     };
 
     return () => {

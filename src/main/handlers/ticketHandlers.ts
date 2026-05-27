@@ -3,6 +3,7 @@ import type {
   ConvertTicketInput,
   ExtendTicketsInput,
   ExpireTicketInput,
+  MarkTicketStolenInput,
   PickupTicketsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
@@ -34,6 +35,12 @@ export const registerTicketHandlers = () => {
     },
   );
   ipcMain.handle(
+    CHANNELS.SEARCH_TICKET,
+    async (_event: IpcMainInvokeEvent, ticketNumber: number) => {
+      return ticketService.searchTicket(ticketNumber);
+    },
+  );
+  ipcMain.handle(
     CHANNELS.ADD_PAWN_TICKET,
     async (_event: IpcMainInvokeEvent, payload: CreatePawnTicketInput) => {
       return ticketService.createPawnTicket(payload);
@@ -61,6 +68,12 @@ export const registerTicketHandlers = () => {
     CHANNELS.EXPIRE_TICKET,
     async (_event: IpcMainInvokeEvent, payload: ExpireTicketInput) => {
       return ticketService.expireTicket(payload);
+    },
+  );
+  ipcMain.handle(
+    CHANNELS.MARK_TICKET_STOLEN,
+    async (_event: IpcMainInvokeEvent, payload: MarkTicketStolenInput) => {
+      return ticketService.markTicketStolen(payload);
     },
   );
   ipcMain.handle(

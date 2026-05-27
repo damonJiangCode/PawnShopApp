@@ -25,6 +25,7 @@ const MenuActionPlaceholder: React.FC<MenuActionPlaceholderProps> = ({
         gap: 2,
         borderRadius: 2,
         boxSizing: "border-box",
+        overflow: "hidden",
       }}
     >
       <Box>
@@ -36,12 +37,16 @@ const MenuActionPlaceholder: React.FC<MenuActionPlaceholderProps> = ({
         </Typography>
       </Box>
 
-      <Alert severity="info">
-        Placeholder ready for implementation. Action ID:{" "}
-        <strong>{actionId}</strong>
-      </Alert>
+      {!children && (
+        <Alert severity="info">
+          Placeholder ready for implementation. Action ID:{" "}
+          <strong>{actionId}</strong>
+        </Alert>
+      )}
 
-      <Box sx={{ flex: 1, minHeight: 0 }}>{children}</Box>
+      <Box sx={{ flex: 1, minHeight: 0, overflow: "auto", pt: 1 }}>
+        {children}
+      </Box>
 
       <Stack direction="row" spacing={1} justifyContent="flex-end">
         <Button variant="outlined" onClick={() => window.close()}>

@@ -399,6 +399,14 @@ export const useTransactionPageController = ({
     }
 
     if (
+      selectedTicket.status !== "pawned" &&
+      selectedTicket.status !== "sold"
+    ) {
+      setStatusMessage("Only pawned or sold tickets can be expired.");
+      return;
+    }
+
+    if (
       !selectedTicket.due_date ||
       !calculation.isBeforeCalendarDate(selectedTicket.due_date)
     ) {

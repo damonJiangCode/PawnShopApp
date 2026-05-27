@@ -4,10 +4,12 @@ import type {
   ConvertTicketInput,
   ExtendTicketsInput,
   ExpireTicketInput,
+  MarkTicketStolenInput,
   PaymentTicketSearchPreview,
   PickupTicketsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
+  TicketSearchResult,
   TransferTicketInput,
   TransferTicketPreview,
   UpdateTicketInput,
@@ -17,6 +19,7 @@ export type ElectronTicketApi = {
   loadByClient: (clientNumber: number) => Promise<Ticket[]>;
   loadHolidayDates: () => Promise<HolidayDate[]>;
   loadLocations: () => Promise<string[]>;
+  searchTicket: (ticketNumber: number) => Promise<TicketSearchResult | null>;
   searchPaymentTicket: (
     ticketNumber: number,
   ) => Promise<PaymentTicketSearchPreview | null>;
@@ -25,6 +28,7 @@ export type ElectronTicketApi = {
   update: (payload: UpdateTicketInput) => Promise<Ticket>;
   convert: (payload: ConvertTicketInput) => Promise<Ticket>;
   expire: (payload: ExpireTicketInput) => Promise<Ticket>;
+  markStolen: (payload: MarkTicketStolenInput) => Promise<Ticket>;
   pickup: (payload: PickupTicketsInput) => Promise<Ticket[]>;
   extend: (payload: ExtendTicketsInput) => Promise<Ticket[]>;
   loadTransferPreview: (

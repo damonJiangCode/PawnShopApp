@@ -5,10 +5,12 @@ import type {
   ConvertTicketInput,
   ExtendTicketsInput,
   ExpireTicketInput,
+  MarkTicketStolenInput,
   PaymentTicketSearchPreview,
   PickupTicketsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
+  TicketSearchResult,
   TransferTicketInput,
   TransferTicketPreview,
   UpdateTicketInput,
@@ -72,6 +74,12 @@ const normalizeConvertTicketInput = (input: ConvertTicketInput) => ({
 
 const normalizeExpireTicketInput = (input: ExpireTicketInput) => ({
   ticket_number: Number(input.ticket_number),
+  employee_password: input.employee_password?.trim(),
+});
+
+const normalizeMarkTicketStolenInput = (input: MarkTicketStolenInput) => ({
+  ticket_number: Number(input.ticket_number),
+  employee_password: input.employee_password.trim(),
 });
 
 const normalizePickupTicketsInput = (input: PickupTicketsInput) => ({
@@ -112,9 +120,9 @@ export const ticketService = {
     return ticketRepo.loadLocations();
   },
 
-  searchPaymentTicket: async (
+  searchTicket: async (
     ticketNumber: number,
-  ): Promise<PaymentTicketSearchPreview | null> => {
+  ): Promise<TicketSearchResult | null> => {
     const normalizedTicketNumber = Number(ticketNumber);
 
     if (
@@ -137,6 +145,12 @@ export const ticketService = {
     }
 
     return { ticket, client };
+  },
+
+  searchPaymentTicket: async (
+    ticketNumber: number,
+  ): Promise<PaymentTicketSearchPreview | null> => {
+    return ticketService.searchTicket(ticketNumber);
   },
 
   loadTransferTicketPreview: async (
@@ -397,13 +411,85 @@ export const ticketService = {
         );
       }
 
+      if (!calculation.isBeforeCalendarDate(existingTicket.due_date)) {
+        throw createFieldError(
+          "ticket_number",
+          "Only tickets past the due date can be expired.",
+        );
+      }
+
+      if (normalizedInput.employee_password !== undefined) {
+        const employeeName =
+          await employeeService.getEmployeeFirstNameByPassword(
+            normalizedInput.employee_password,
+            client,
+          );
+
+        if (!employeeName) {
+          throw createFieldError(
+            "employee_password",
+            "Employee password is incorrect.",
+          );
+        }
+      }
+
       const expiredStatus =
         existingTicket.status === "sold" ? "sell_expired" : "pawn_expired";
 
       return ticketRepo.expire(
         {
           ticket_number: normalizedInput.ticket_number,
+          current_status: existingTicket.status,
+          current_due_date: existingTicket.due_date,
           status: expiredStatus,
+        },
+        client,
+      );
+    });
+  },
+
+  markTicketStolen: async (input: MarkTicketStolenInput): Promise<Ticket> => {
+    const normalizedInput = normalizeMarkTicketStolenInput(input);
+
+    return runInTransaction("markTicketStolen", async (client) => {
+      if (
+        !Number.isFinite(normalizedInput.ticket_number) ||
+        normalizedInput.ticket_number <= 0
+      ) {
+        throw createFieldError("ticket_number", "Enter a valid ticket number.");
+      }
+
+      if (!normalizedInput.employee_password) {
+        throw createFieldError("employee_password", "Enter employee password.");
+      }
+
+      const employeeName = await employeeService.getEmployeeFirstNameByPassword(
+        normalizedInput.employee_password,
+        client,
+      );
+
+      if (!employeeName) {
+        throw createFieldError(
+          "employee_password",
+          "Employee password is incorrect.",
+        );
+      }
+
+      const existingTicket = await ticketRepo.loadByTicketNumber(
+        normalizedInput.ticket_number,
+        client,
+      );
+
+      if (!existingTicket) {
+        throw createFieldError(
+          "ticket_number",
+          "No ticket was found for that ticket number.",
+        );
+      }
+
+      return ticketRepo.markStolen(
+        {
+          ticket_number: normalizedInput.ticket_number,
         },
         client,
       );

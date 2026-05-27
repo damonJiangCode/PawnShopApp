@@ -23,7 +23,11 @@ interface TransactionTicketActionsProps {
   onExpire: () => void;
 }
 
-const TransactionTicketActions: React.FC<TransactionTicketActionsProps> = (props) => {
+const expirableStatuses = new Set<Ticket["status"]>(["pawned", "sold"]);
+
+const TransactionTicketActions: React.FC<TransactionTicketActionsProps> = (
+  props,
+) => {
   const {
     selectedTicket,
     transferDisabled = false,
@@ -33,11 +37,12 @@ const TransactionTicketActions: React.FC<TransactionTicketActionsProps> = (props
     onPrint,
     onConvert,
     onTransfer,
-  onExpire,
-} = props;
+    onExpire,
+  } = props;
   const ticketActionDisabled = !selectedTicket;
   const expireDisabled =
     ticketActionDisabled ||
+    !expirableStatuses.has(selectedTicket.status) ||
     !selectedTicket?.due_date ||
     !calculation.isBeforeCalendarDate(selectedTicket.due_date);
 

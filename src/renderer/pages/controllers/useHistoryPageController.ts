@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import type { Item } from "../../../shared/types/Item";
 import type { Ticket } from "../../../shared/types/Ticket";
-import { itemService, type ItemCategoryOption } from "../../services/itemService";
+import {
+  itemService,
+  type ItemCategoryOption,
+} from "../../services/itemService";
 import {
   ticketService,
   type CreatePawnTicketInput,
@@ -10,6 +13,8 @@ import { windowService } from "../../services/windowService";
 
 interface UseHistoryPageControllerParams {
   clientNumber?: number;
+  focusTicketNumber?: number;
+  focusRequestId?: number;
   refreshKey?: number;
   transactionTargetTicket?: Ticket | null;
   onRepawnCreated?: (
@@ -17,7 +22,10 @@ interface UseHistoryPageControllerParams {
     sourceTicket: Ticket,
     sourceItems: Item[],
   ) => void;
-  onLoadItemsToTransaction?: (sourceTicket: Ticket, sourceItems: Item[]) => void;
+  onLoadItemsToTransaction?: (
+    sourceTicket: Ticket,
+    sourceItems: Item[],
+  ) => void;
 }
 
 const historyTicketStatuses = new Set<Ticket["status"]>([
@@ -40,6 +48,8 @@ const sortHistoryTickets = (tickets: Ticket[]) =>
 
 export const useHistoryPageController = ({
   clientNumber,
+  focusTicketNumber,
+  focusRequestId,
   refreshKey = 0,
   transactionTargetTicket,
   onRepawnCreated,
@@ -54,7 +64,9 @@ export const useHistoryPageController = ({
   const [statusMessage, setStatusMessage] = useState("");
   const [openRepawnDialog, setOpenRepawnDialog] = useState(false);
   const [openItemEditDialog, setOpenItemEditDialog] = useState(false);
-  const [itemCategories, setItemCategories] = useState<ItemCategoryOption[]>([]);
+  const [itemCategories, setItemCategories] = useState<ItemCategoryOption[]>(
+    [],
+  );
   const transactionTargetTicketRef = useRef<Ticket | null>(
     transactionTargetTicket ?? null,
   );
@@ -98,7 +110,9 @@ export const useHistoryPageController = ({
       setTicketsLoading(true);
       const fetchedTickets = await ticketService.loadTickets(clientNumber);
       const historyTickets = sortHistoryTickets(
-        fetchedTickets.filter((ticket) => historyTicketStatuses.has(ticket.status)),
+        fetchedTickets.filter((ticket) =>
+          historyTicketStatuses.has(ticket.status),
+        ),
       );
 
       if (!active) return;
@@ -123,6 +137,21 @@ export const useHistoryPageController = ({
   }, [clientNumber, refreshKey]);
 
   useEffect(() => {
+    if (!focusRequestId || !focusTicketNumber) {
+      return;
+    }
+
+    const matchedTicket =
+      tickets.find((ticket) => ticket.ticket_number === focusTicketNumber) ??
+      null;
+
+    if (matchedTicket) {
+      setSelectedTicket(matchedTicket);
+      setStatusMessage("");
+    }
+  }, [focusRequestId, focusTicketNumber, tickets]);
+
+  useEffect(() => {
     let active = true;
 
     const loadItems = async () => {
@@ -133,7 +162,9 @@ export const useHistoryPageController = ({
       }
 
       setItemsLoading(true);
-      const fetchedItems = await itemService.loadItems(selectedTicket.ticket_number);
+      const fetchedItems = await itemService.loadItems(
+        selectedTicket.ticket_number,
+      );
 
       if (!active) return;
 
@@ -220,7 +251,9 @@ export const useHistoryPageController = ({
     }
 
     if (!transactionTargetTicketRef.current?.ticket_number) {
-      setStatusMessage("Select or create a transaction ticket before loading items.");
+      setStatusMessage(
+        "Select or create a transaction ticket before loading items.",
+      );
       return;
     }
 

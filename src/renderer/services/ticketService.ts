@@ -4,10 +4,12 @@ import type {
   ConvertTicketInput,
   ExtendTicketsInput,
   ExpireTicketInput,
+  MarkTicketStolenInput,
   PaymentTicketSearchPreview,
   PickupTicketsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
+  TicketSearchResult,
   TransferTicketInput,
   TransferTicketPreview,
   UpdateTicketInput,
@@ -82,6 +84,12 @@ type NormalizedConvertTicketInput = {
 
 type NormalizedExpireTicketInput = {
   ticket_number: number;
+  employee_password?: string;
+};
+
+type NormalizedMarkTicketStolenInput = {
+  ticket_number: number;
+  employee_password: string;
 };
 
 type NormalizedPickupTicketsInput = {
@@ -160,6 +168,14 @@ const normalizeExpireTicketInput = (
   input: ExpireTicketInput,
 ): NormalizedExpireTicketInput => ({
   ticket_number: Number(input.ticket_number),
+  employee_password: input.employee_password?.trim(),
+});
+
+const normalizeMarkTicketStolenInput = (
+  input: MarkTicketStolenInput,
+): NormalizedMarkTicketStolenInput => ({
+  ticket_number: Number(input.ticket_number),
+  employee_password: input.employee_password.trim(),
 });
 
 const normalizePickupTicketsInput = (
@@ -269,6 +285,27 @@ export const ticketService = {
     }
   },
 
+  searchTicket: async (
+    ticketNumber: number,
+  ): Promise<TicketSearchResult | null> => {
+    const normalizedTicketNumber = Number(ticketNumber);
+    const api = getElectronApi()?.ticket;
+
+    if (
+      !api ||
+      !Number.isFinite(normalizedTicketNumber) ||
+      normalizedTicketNumber <= 0
+    ) {
+      return null;
+    }
+
+    try {
+      return await api.searchTicket(normalizedTicketNumber);
+    } catch (error) {
+      throw mapBackendError(error);
+    }
+  },
+
   createPawnTicket: async (input: CreatePawnTicketInput): Promise<Ticket> => {
     const normalizedInput = normalizeCreatePawnTicketInput(input);
     const api = getElectronApi()?.ticket;
@@ -349,6 +386,23 @@ export const ticketService = {
 
     try {
       return await api.expire(normalizedInput);
+    } catch (error) {
+      throw mapBackendError(error);
+    }
+  },
+
+  markTicketStolen: async (input: MarkTicketStolenInput): Promise<Ticket> => {
+    const normalizedInput = normalizeMarkTicketStolenInput(input);
+    const api = getElectronApi()?.ticket;
+
+    if (!api) {
+      throw new Error(
+        "[ticketService] markTicketStolen(): Cannot get api from Electron",
+      );
+    }
+
+    try {
+      return await api.markStolen(normalizedInput);
     } catch (error) {
       throw mapBackendError(error);
     }
@@ -439,6 +493,7 @@ export type {
   ConvertTicketInput,
   ExtendTicketsInput,
   ExpireTicketInput,
+  MarkTicketStolenInput,
   PaymentTicketSearchPreview,
   PickupTicketsInput,
   CreatePawnTicketInput,
