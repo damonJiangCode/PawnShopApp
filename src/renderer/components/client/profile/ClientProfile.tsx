@@ -252,9 +252,10 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
               flex: 1,
               minHeight: 0,
               display: "grid",
-              gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+              gridTemplateColumns: "1fr",
               gap: 0.65,
               alignContent: "center",
+              justifyItems: "center",
             }}
           >
             {[
@@ -264,19 +265,14 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
                 color: statColors.redeem,
               },
               {
-                label: "Sold",
-                value: client.sold_count,
-                color: statColors.sold,
-              },
-              {
                 label: "Expire",
                 value: client.expire_count,
                 color: statColors.expire,
               },
               {
-                label: "Overdue",
-                value: client.overdue_count,
-                color: statColors.overdue,
+                label: "Sold",
+                value: client.sold_count,
+                color: statColors.sold,
               },
             ].map((stat) => (
               <Box
@@ -289,6 +285,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
                   color: "#fff",
                   boxShadow: 1,
                   textAlign: "center",
+                  width: 92,
                   minWidth: 0,
                 }}
               >
