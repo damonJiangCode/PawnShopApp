@@ -88,6 +88,8 @@ const createAppMenu = () => {
               id: "ticket-stolen",
               title: "Mark Ticket Stolen",
               description: "Mark a ticket as stolen for police/risk tracking.",
+              width: 860,
+              height: 680,
             }),
         },
       ],

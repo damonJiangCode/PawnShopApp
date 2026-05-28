@@ -43,15 +43,35 @@ const TicketExpireWindow: React.FC<MenuActionComponentProps> = ({
   const [searching, setSearching] = React.useState(false);
   const [expiring, setExpiring] = React.useState(false);
 
+  const focusTicketField = React.useCallback(() => {
+    window.setTimeout(() => {
+      ticketInputRef.current?.focus();
+      ticketInputRef.current?.select();
+    }, 0);
+  }, []);
+
   React.useEffect(() => {
     window.resizeTo(860, 680);
 
     const frame = requestAnimationFrame(() => {
       ticketInputRef.current?.focus();
+      ticketInputRef.current?.select();
     });
 
     return () => cancelAnimationFrame(frame);
   }, []);
+
+  React.useEffect(() => {
+    if (!detailsOpen) {
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => {
+      passwordInputRef.current?.focus();
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [detailsOpen]);
 
   const handleSearch = async () => {
     const normalizedTicketNumber = Number(ticketNumber);
@@ -148,9 +168,7 @@ const TicketExpireWindow: React.FC<MenuActionComponentProps> = ({
       });
       channel.close();
 
-      requestAnimationFrame(() => {
-        ticketInputRef.current?.focus();
-      });
+      focusTicketField();
     } catch (err) {
       console.error(err);
       const formError = err as TicketFormError;
@@ -209,21 +227,18 @@ const TicketExpireWindow: React.FC<MenuActionComponentProps> = ({
           <Table size="small" stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell>Name</TableCell>
+                <TableCell>Ticket #</TableCell>
+                <TableCell>Location</TableCell>
                 <TableCell>Description</TableCell>
-                <TableCell>Due Date</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {expiredTickets.length ? (
-                expiredTickets.map(({ client, ticket }) => (
+                expiredTickets.map(({ ticket }) => (
                   <TableRow key={ticket.ticket_number}>
-                    <TableCell>
-                      {formatUppercase(client.last_name)},{" "}
-                      {formatUppercase(client.first_name)}
-                    </TableCell>
+                    <TableCell>{ticket.ticket_number}</TableCell>
+                    <TableCell>{ticket.location}</TableCell>
                     <TableCell>{ticket.description}</TableCell>
-                    <TableCell>{formatIsoDate(ticket.due_date)}</TableCell>
                   </TableRow>
                 ))
               ) : (
@@ -241,6 +256,7 @@ const TicketExpireWindow: React.FC<MenuActionComponentProps> = ({
 
         <Dialog
           open={detailsOpen && Boolean(searchResult)}
+          disableRestoreFocus
           onClose={() => {
             if (!expiring) {
               setDetailsOpen(false);
@@ -295,9 +311,6 @@ const TicketExpireWindow: React.FC<MenuActionComponentProps> = ({
             </Stack>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setDetailsOpen(false)} disabled={expiring}>
-              Cancel
-            </Button>
             <Button
               variant="contained"
               color="error"
@@ -305,6 +318,9 @@ const TicketExpireWindow: React.FC<MenuActionComponentProps> = ({
               onClick={() => void handleExpire()}
             >
               {expiring ? "Expiring..." : "Expire"}
+            </Button>
+            <Button onClick={() => setDetailsOpen(false)} disabled={expiring}>
+              Cancel
             </Button>
           </DialogActions>
         </Dialog>

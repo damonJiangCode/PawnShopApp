@@ -3,7 +3,10 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Paper,
   Stack,
   Table,
@@ -19,11 +22,7 @@ import type { MenuActionComponentProps } from "../menuActionTypes";
 import type { TicketSearchResult } from "../../../../../shared/types/ticketPayload";
 import type { TicketFormError } from "../../../../services/ticketService";
 import { ticketService } from "../../../../services/ticketService";
-import {
-  formatCurrency,
-  formatIsoDate,
-  formatUppercase,
-} from "../../../../utils/formatters";
+import { formatIsoDate, formatUppercase } from "../../../../utils/formatters";
 
 const TicketStolenWindow: React.FC<MenuActionComponentProps> = ({
   actionId,
@@ -34,6 +33,7 @@ const TicketStolenWindow: React.FC<MenuActionComponentProps> = ({
   const [employeePassword, setEmployeePassword] = React.useState("");
   const [searchResult, setSearchResult] =
     React.useState<TicketSearchResult | null>(null);
+  const [detailsOpen, setDetailsOpen] = React.useState(false);
   const [stolenTickets, setStolenTickets] = React.useState<
     TicketSearchResult[]
   >([]);
@@ -42,13 +42,35 @@ const TicketStolenWindow: React.FC<MenuActionComponentProps> = ({
   const [searching, setSearching] = React.useState(false);
   const [marking, setMarking] = React.useState(false);
 
+  const focusTicketField = React.useCallback(() => {
+    window.setTimeout(() => {
+      ticketInputRef.current?.focus();
+      ticketInputRef.current?.select();
+    }, 0);
+  }, []);
+
   React.useEffect(() => {
+    window.resizeTo(860, 680);
+
     const frame = requestAnimationFrame(() => {
       ticketInputRef.current?.focus();
+      ticketInputRef.current?.select();
     });
 
     return () => cancelAnimationFrame(frame);
   }, []);
+
+  React.useEffect(() => {
+    if (!detailsOpen) {
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => {
+      passwordInputRef.current?.focus();
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [detailsOpen]);
 
   const handleSearch = async () => {
     const normalizedTicketNumber = Number(ticketNumber);
@@ -75,6 +97,7 @@ const TicketStolenWindow: React.FC<MenuActionComponentProps> = ({
       }
 
       setSearchResult(result);
+      setDetailsOpen(true);
       setEmployeePassword("");
       requestAnimationFrame(() => {
         passwordInputRef.current?.focus();
@@ -115,6 +138,7 @@ const TicketStolenWindow: React.FC<MenuActionComponentProps> = ({
 
       setStolenTickets((prev) => [stolenResult, ...prev]);
       setSearchResult(null);
+      setDetailsOpen(false);
       setTicketNumber("");
       setEmployeePassword("");
       setMessage(`Ticket #${stolenTicket.ticket_number} marked stolen.`);
@@ -127,9 +151,7 @@ const TicketStolenWindow: React.FC<MenuActionComponentProps> = ({
       });
       channel.close();
 
-      requestAnimationFrame(() => {
-        ticketInputRef.current?.focus();
-      });
+      focusTicketField();
     } catch (err) {
       console.error(err);
       const formError = err as TicketFormError;
@@ -145,7 +167,7 @@ const TicketStolenWindow: React.FC<MenuActionComponentProps> = ({
       title="Mark Ticket Stolen"
       description="Search a ticket, confirm the details, then mark it stolen."
     >
-      <Stack spacing={1.5} sx={{ height: "100%" }}>
+      <Stack spacing={1} sx={{ height: "100%", minHeight: 0 }}>
         <Box
           component="form"
           onSubmit={(event) => {
@@ -181,87 +203,6 @@ const TicketStolenWindow: React.FC<MenuActionComponentProps> = ({
         {error && <Alert severity="error">{error}</Alert>}
         {message && <Alert severity="success">{message}</Alert>}
 
-        {searchResult && (
-          <Paper variant="outlined" sx={{ p: 1.25 }}>
-            <Stack spacing={1}>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <Typography fontWeight={800}>
-                  Ticket #{searchResult.ticket.ticket_number}
-                </Typography>
-                <Chip
-                  size="small"
-                  color={searchResult.ticket.is_stolen ? "error" : "default"}
-                  label={
-                    searchResult.ticket.is_stolen ? "STOLEN" : "NOT STOLEN"
-                  }
-                />
-              </Stack>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                  gap: 1,
-                }}
-              >
-                <TextField
-                  size="small"
-                  label="Client"
-                  value={`${formatUppercase(searchResult.client.last_name)}, ${formatUppercase(searchResult.client.first_name)}`}
-                  disabled
-                />
-                <TextField
-                  size="small"
-                  label="Status"
-                  value={formatUppercase(searchResult.ticket.status)}
-                  disabled
-                />
-                <TextField
-                  size="small"
-                  label="Due Date"
-                  value={formatIsoDate(searchResult.ticket.due_date)}
-                  disabled
-                />
-                <TextField
-                  size="small"
-                  label="Amount"
-                  value={formatCurrency(searchResult.ticket.amount)}
-                  disabled
-                />
-              </Box>
-              <TextField
-                size="small"
-                label="Description"
-                value={searchResult.ticket.description}
-                disabled
-                fullWidth
-              />
-              <Stack direction="row" spacing={1} alignItems="flex-start">
-                <TextField
-                  inputRef={passwordInputRef}
-                  size="small"
-                  type="password"
-                  label="Employee Password"
-                  value={employeePassword}
-                  onChange={(event) => {
-                    setEmployeePassword(event.target.value);
-                    setError("");
-                  }}
-                  sx={{ width: 240 }}
-                />
-                <Button
-                  variant="contained"
-                  color="error"
-                  disabled={marking}
-                  onClick={() => void handleMarkStolen()}
-                  sx={{ minWidth: 128 }}
-                >
-                  Mark Stolen
-                </Button>
-              </Stack>
-            </Stack>
-          </Paper>
-        )}
-
         <Paper
           variant="outlined"
           sx={{ flex: 1, minHeight: 0, overflow: "auto" }}
@@ -269,30 +210,23 @@ const TicketStolenWindow: React.FC<MenuActionComponentProps> = ({
           <Table size="small" stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell>Ticket</TableCell>
-                <TableCell>Client</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Due</TableCell>
-                <TableCell>Amount</TableCell>
+                <TableCell>Ticket #</TableCell>
+                <TableCell>Location</TableCell>
+                <TableCell>Description</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {stolenTickets.length ? (
-                stolenTickets.map(({ client, ticket }) => (
+                stolenTickets.map(({ ticket }) => (
                   <TableRow key={ticket.ticket_number}>
                     <TableCell>{ticket.ticket_number}</TableCell>
-                    <TableCell>
-                      {formatUppercase(client.last_name)},{" "}
-                      {formatUppercase(client.first_name)}
-                    </TableCell>
-                    <TableCell>{formatUppercase(ticket.status)}</TableCell>
-                    <TableCell>{formatIsoDate(ticket.due_date)}</TableCell>
-                    <TableCell>{formatCurrency(ticket.amount)}</TableCell>
+                    <TableCell>{ticket.location}</TableCell>
+                    <TableCell>{ticket.description}</TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5}>
+                  <TableCell colSpan={3}>
                     <Typography color="text.secondary" variant="body2">
                       Stolen tickets will appear here.
                     </Typography>
@@ -302,6 +236,77 @@ const TicketStolenWindow: React.FC<MenuActionComponentProps> = ({
             </TableBody>
           </Table>
         </Paper>
+
+        <Dialog
+          open={detailsOpen && Boolean(searchResult)}
+          disableRestoreFocus
+          onClose={() => {
+            if (!marking) {
+              setDetailsOpen(false);
+            }
+          }}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>
+            Ticket #{searchResult?.ticket.ticket_number ?? ""}
+          </DialogTitle>
+          <DialogContent>
+            <Stack spacing={1.25} sx={{ pt: 1 }}>
+              {error && <Alert severity="error">{error}</Alert>}
+              <TextField
+                size="small"
+                label="Name"
+                value={
+                  searchResult
+                    ? `${formatUppercase(searchResult.client.last_name)}, ${formatUppercase(searchResult.client.first_name)}`
+                    : ""
+                }
+                disabled
+                fullWidth
+              />
+              <TextField
+                size="small"
+                label="Description"
+                value={searchResult?.ticket.description ?? ""}
+                disabled
+                fullWidth
+              />
+              <TextField
+                size="small"
+                label="Due Date"
+                value={formatIsoDate(searchResult?.ticket.due_date)}
+                disabled
+                fullWidth
+              />
+              <TextField
+                inputRef={passwordInputRef}
+                size="small"
+                type="password"
+                label="Employee Password"
+                value={employeePassword}
+                onChange={(event) => {
+                  setEmployeePassword(event.target.value);
+                  setError("");
+                }}
+                fullWidth
+              />
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              variant="contained"
+              color="error"
+              disabled={marking}
+              onClick={() => void handleMarkStolen()}
+            >
+              {marking ? "Saving..." : "Mark Stolen"}
+            </Button>
+            <Button onClick={() => setDetailsOpen(false)} disabled={marking}>
+              Cancel
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Stack>
     </MenuActionPlaceholder>
   );
