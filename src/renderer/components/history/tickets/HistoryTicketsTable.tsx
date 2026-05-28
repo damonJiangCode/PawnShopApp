@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { DataGrid } from "@mui/x-data-grid";
+import { DataGrid, useGridApiRef } from "@mui/x-data-grid";
 import type { GridColDef } from "@mui/x-data-grid";
 import type { Ticket } from "../../../../shared/types/Ticket";
 import CellTooltip from "../../shared/CellTooltip";
@@ -17,12 +17,25 @@ interface HistoryTicketsTableProps {
   onSelectTicket: (ticket: Ticket | null) => void;
 }
 
+const getHistoryStatusLabel = (status: Ticket["status"]) => {
+  if (status === "picked_up") {
+    return "P";
+  }
+
+  if (status === "pawn_expired") {
+    return "E";
+  }
+
+  return "---";
+};
+
 const HistoryTicketsTable: React.FC<HistoryTicketsTableProps> = ({
   tickets,
   selectedTicket,
   loading = false,
   onSelectTicket,
 }) => {
+  const apiRef = useGridApiRef();
   const columns = useMemo<GridColDef[]>(
     () => [
       {
@@ -31,6 +44,17 @@ const HistoryTicketsTable: React.FC<HistoryTicketsTableProps> = ({
         width: 80,
         renderCell: (params) => (
           <CellTooltip value={params.value} fallback="---" />
+        ),
+      },
+      {
+        field: "status",
+        headerName: "STATUS",
+        width: 72,
+        renderCell: (params) => (
+          <CellTooltip
+            value={getHistoryStatusLabel(params.row.status)}
+            fallback="---"
+          />
         ),
       },
       {
@@ -119,8 +143,28 @@ const HistoryTicketsTable: React.FC<HistoryTicketsTableProps> = ({
     [],
   );
 
+  React.useEffect(() => {
+    if (!tickets.length) {
+      return;
+    }
+
+    const selectedIndex = selectedTicket?.ticket_number
+      ? tickets.findIndex(
+          (ticket) => ticket.ticket_number === selectedTicket.ticket_number,
+        )
+      : -1;
+    const targetIndex = selectedIndex >= 0 ? selectedIndex : tickets.length - 1;
+
+    const timeoutId = window.setTimeout(() => {
+      apiRef.current.scrollToIndexes({ rowIndex: targetIndex });
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [apiRef, selectedTicket?.ticket_number, tickets]);
+
   return (
     <DataGrid
+      apiRef={apiRef}
       columnHeaderHeight={34}
       rowHeight={30}
       rows={tickets}
