@@ -336,6 +336,29 @@ export const clientRepo = {
     }
   },
 
+  incrementExpireCount: async (
+    clientNumber: number,
+    dbClient?: DbClient,
+  ): Promise<void> => {
+    const client = await getDbClient(dbClient);
+
+    try {
+      await client.query(
+        `
+          UPDATE client
+          SET expire_count = COALESCE(expire_count, 0) + 1,
+              updated_at = CURRENT_TIMESTAMP
+          WHERE client_number = $1
+        `,
+        [clientNumber],
+      );
+    } finally {
+      if (!dbClient) {
+        client.release();
+      }
+    }
+  },
+
   insertIds: async (
     clientNumber: number,
     ids: ID[],
