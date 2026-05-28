@@ -84,13 +84,29 @@ export const useClientPageController = ({
       return;
     }
 
+    const getClientOverride = (clientNumber?: number) => {
+      if (!clientNumber) {
+        return null;
+      }
+
+      if (forcedClient?.client_number === clientNumber) {
+        return forcedClient;
+      }
+
+      if (activeClient?.client_number === clientNumber) {
+        return activeClient;
+      }
+
+      return clientOverrides[clientNumber] ?? null;
+    };
+
     const mergedResults = results
       .map((client) => {
         const clientNumber = client.client_number;
         if (!clientNumber) {
           return client;
         }
-        return clientOverrides[clientNumber] ?? client;
+        return getClientOverride(clientNumber) ?? client;
       })
       .filter(
         (client) =>
@@ -105,13 +121,23 @@ export const useClientPageController = ({
         ),
     );
     const overrideResults = hasQuery
-      ? Object.values(clientOverrides).filter((client) => {
+      ? [
+          ...Object.values(clientOverrides),
+          ...[forcedClient, activeClient].filter((client): client is Client =>
+            Boolean(client?.client_number),
+          ),
+        ].filter((client, index, clients) => {
           const clientNumber = client.client_number;
           if (!clientNumber || deletedClientNumbers.includes(clientNumber)) {
             return false;
           }
 
-          if (mergedClientNumbers.has(clientNumber)) {
+          if (
+            mergedClientNumbers.has(clientNumber) ||
+            clients.findIndex(
+              (current) => current.client_number === clientNumber,
+            ) !== index
+          ) {
             return false;
           }
 
@@ -126,7 +152,7 @@ export const useClientPageController = ({
       )
         ? combinedResults
         : [
-            clientOverrides[forcedClientNumber] ?? forcedClient,
+            getClientOverride(forcedClientNumber) ?? forcedClient,
             ...combinedResults,
           ];
       setDisplayResults(mergedWithForced);

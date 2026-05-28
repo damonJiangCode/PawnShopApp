@@ -31,6 +31,12 @@ type TicketStolenEvent = {
   client: Client;
 };
 
+type PaymentCompletedEvent = {
+  type: "payment-completed";
+  clientNumber: number;
+  pickedUpCount?: number;
+};
+
 const isTicketSearchSelectedEvent = (
   value: unknown,
 ): value is TicketSearchSelectedEvent => {
@@ -57,6 +63,16 @@ const isTicketStolenEvent = (value: unknown): value is TicketStolenEvent => {
   return (value as { type?: string }).type === "ticket-stolen";
 };
 
+const isPaymentCompletedEvent = (
+  value: unknown,
+): value is PaymentCompletedEvent => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  return (value as { type?: string }).type === "payment-completed";
+};
+
 export const useMainLayoutController = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const [searchFirstName, setSearchFirstName] = useState("");
@@ -78,16 +94,39 @@ export const useMainLayoutController = () => {
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [transactionRefreshKey, setTransactionRefreshKey] = useState(0);
 
+  const updateCurrentClient = (
+    clientNumber: number | undefined,
+    updater: (client: Client) => Client,
+  ) => {
+    if (!clientNumber) {
+      return;
+    }
+
+    const updateMatchingClient = (client: Client | null) =>
+      client?.client_number === clientNumber ? updater(client) : client;
+
+    setSelectedClient(updateMatchingClient);
+    setForcedClient(updateMatchingClient);
+  };
+
   useEffect(() => {
     const channel = new BroadcastChannel("payment-events");
 
     channel.onmessage = (event: MessageEvent) => {
-      if (event.data?.type !== "payment-completed") {
+      if (!isPaymentCompletedEvent(event.data)) {
         return;
       }
 
       setTransactionRefreshKey((prev) => prev + 1);
       setHistoryRefreshKey((prev) => prev + 1);
+      if (event.data.pickedUpCount) {
+        updateCurrentClient(event.data.clientNumber, (client) => ({
+          ...client,
+          redeem_count:
+            Number(client.redeem_count ?? 0) + (event.data.pickedUpCount ?? 0),
+          updated_at: new Date(),
+        }));
+      }
     };
 
     return () => {
@@ -102,6 +141,15 @@ export const useMainLayoutController = () => {
       if (isTicketExpiredEvent(event.data) || isTicketStolenEvent(event.data)) {
         setTransactionRefreshKey((prev) => prev + 1);
         setHistoryRefreshKey((prev) => prev + 1);
+
+        if (isTicketExpiredEvent(event.data)) {
+          updateCurrentClient(event.data.client.client_number, (client) => ({
+            ...client,
+            expire_count: Number(client.expire_count ?? 0) + 1,
+            updated_at: new Date(),
+          }));
+        }
+
         return;
       }
 
@@ -162,15 +210,11 @@ export const useMainLayoutController = () => {
   };
 
   const handleClientSoldTicket = () => {
-    setSelectedClient((prev) =>
-      prev
-        ? {
-            ...prev,
-            sold_count: Number(prev.sold_count ?? 0) + 1,
-            updated_at: new Date(),
-          }
-        : prev,
-    );
+    updateCurrentClient(selectedClient?.client_number, (client) => ({
+      ...client,
+      sold_count: Number(client.sold_count ?? 0) + 1,
+      updated_at: new Date(),
+    }));
   };
 
   const sendItemsToTransaction = (

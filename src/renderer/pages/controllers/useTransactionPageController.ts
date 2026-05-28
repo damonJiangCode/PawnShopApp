@@ -6,10 +6,8 @@ import {
   type ItemCategoryOption,
 } from "../../services/itemService";
 import { ticketPrintService } from "../../services/ticketPrintService";
-import { calculation } from "../../../shared/utils/calculation";
 import {
   type ConvertTicketInput,
-  type ExpireTicketInput,
   ticketService,
   type CreatePawnTicketInput,
   type CreateSellTicketInput,
@@ -35,7 +33,6 @@ interface UseTransactionPageControllerParams {
   incomingTicket?: Ticket | null;
   incomingItemLoadRequest?: TransactionItemLoadRequest | null;
   onSelectedTicketChange?: (ticket: Ticket | null) => void;
-  onHistoryRefreshRequest?: () => void;
   onClientSoldTicket?: () => void;
 }
 
@@ -47,7 +44,6 @@ export const useTransactionPageController = ({
   incomingTicket,
   incomingItemLoadRequest,
   onSelectedTicketChange,
-  onHistoryRefreshRequest,
   onClientSoldTicket,
 }: UseTransactionPageControllerParams) => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -62,7 +58,6 @@ export const useTransactionPageController = ({
   const [openTicketSellDialog, setopenTicketSellDialog] = useState(false);
   const [openTicketEditDialog, setopenTicketEditDialog] = useState(false);
   const [openTicketConvertDialog, setOpenTicketConvertDialog] = useState(false);
-  const [openTicketExpireDialog, setOpenTicketExpireDialog] = useState(false);
   const [openTicketTransferDialog, setOpenTicketTransferDialog] =
     useState(false);
   const [openItemDialog, setOpenItemDialog] = useState(false);
@@ -78,7 +73,9 @@ export const useTransactionPageController = ({
 
   const filterVisibleTickets = (nextTickets: Ticket[]) =>
     nextTickets.filter(
-      (ticket) => ticket.status === "pawned" || ticket.status === "sold",
+      (ticket) =>
+        !ticket.is_stolen &&
+        (ticket.status === "pawned" || ticket.status === "sold"),
     );
   const sortTickets = (nextTickets: Ticket[]) =>
     [...nextTickets].sort((a, b) => {
@@ -393,31 +390,6 @@ export const useTransactionPageController = ({
     setStatusMessage("");
   };
 
-  const handleTicketExpire = () => {
-    if (!selectedTicket) {
-      return;
-    }
-
-    if (
-      selectedTicket.status !== "pawned" &&
-      selectedTicket.status !== "sold"
-    ) {
-      setStatusMessage("Only pawned or sold tickets can be expired.");
-      return;
-    }
-
-    if (
-      !selectedTicket.due_date ||
-      !calculation.isBeforeCalendarDate(selectedTicket.due_date)
-    ) {
-      setStatusMessage("Only tickets past the due date can be expired.");
-      return;
-    }
-
-    setOpenTicketExpireDialog(true);
-    setStatusMessage("");
-  };
-
   const handlePawnTicket = async (
     ticketData: Omit<CreatePawnTicketInput, "client_number">,
   ): Promise<void> => {
@@ -522,28 +494,6 @@ export const useTransactionPageController = ({
     setStatusMessage(
       `Ticket #${convertedTicket.ticket_number} converted from ${fromStatus} to ${convertedTicket.status}.`,
     );
-  };
-
-  const handleExpireTicketConfirmed = async (
-    data: ExpireTicketInput,
-  ): Promise<void> => {
-    if (!selectedTicket) {
-      throw new Error("Please select a ticket first.");
-    }
-
-    const expiredTicket = await ticketService.expireTicket(data);
-
-    setTickets((prev) =>
-      prev.filter(
-        (ticket) => ticket.ticket_number !== expiredTicket.ticket_number,
-      ),
-    );
-    setSelectedTicket(null);
-    setItems([]);
-    setSelectedItem(null);
-    setOpenTicketExpireDialog(false);
-    setStatusMessage(`Ticket #${expiredTicket.ticket_number} expired.`);
-    onHistoryRefreshRequest?.();
   };
 
   const handleTransferTicketConfirmed = async (
@@ -712,7 +662,6 @@ export const useTransactionPageController = ({
       openTicketSellDialog,
       openTicketEditDialog,
       openTicketConvertDialog,
-      openTicketExpireDialog,
       openTicketTransferDialog,
       openItemDialog,
       itemDialogMode,
@@ -724,7 +673,6 @@ export const useTransactionPageController = ({
       setopenTicketSellDialog,
       setopenTicketEditDialog,
       setOpenTicketConvertDialog,
-      setOpenTicketExpireDialog,
       setOpenTicketTransferDialog,
       setOpenItemDialog,
       setRemoveItemTarget,
@@ -735,13 +683,11 @@ export const useTransactionPageController = ({
       handleTicketPrint,
       handleConvertTicket,
       handleTransferTicket,
-      handleTicketExpire,
       handlePawnTicket,
       handleSellTicket,
       handleEditTicket,
       handleLoadTransferTicketPreview,
       handleConvertTicketConfirmed,
-      handleExpireTicketConfirmed,
       handleTransferTicketConfirmed,
       handleItemClick,
       handleAddItem,

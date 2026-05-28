@@ -202,11 +202,6 @@ export const ticketService = {
         client,
       );
 
-      await clientRepo.incrementSoldCount(
-        normalizedInput.client_number,
-        client,
-      );
-
       return newTicket;
     });
   },
@@ -228,7 +223,7 @@ export const ticketService = {
         );
       }
 
-      return ticketRepo.create(
+      const newTicket = await ticketRepo.create(
         {
           transaction_datetime: transactionDatetime,
           is_lost: false,
@@ -243,6 +238,13 @@ export const ticketService = {
         },
         client,
       );
+
+      await clientRepo.incrementSoldCount(
+        normalizedInput.client_number,
+        client,
+      );
+
+      return newTicket;
     });
   },
 
@@ -436,7 +438,7 @@ export const ticketService = {
       const expiredStatus =
         existingTicket.status === "sold" ? "sell_expired" : "pawn_expired";
 
-      return ticketRepo.expire(
+      const expiredTicket = await ticketRepo.expire(
         {
           ticket_number: normalizedInput.ticket_number,
           current_status: existingTicket.status,
@@ -445,6 +447,13 @@ export const ticketService = {
         },
         client,
       );
+
+      await clientRepo.incrementExpireCount(
+        expiredTicket.client_number,
+        client,
+      );
+
+      return expiredTicket;
     });
   },
 
@@ -531,6 +540,15 @@ export const ticketService = {
         );
       }
 
+      const stolenTicket = existingTickets.find((ticket) => ticket?.is_stolen);
+
+      if (stolenTicket?.ticket_number) {
+        throw createFieldError(
+          "ticket_number",
+          `Ticket #${stolenTicket.ticket_number} is marked stolen.`,
+        );
+      }
+
       const pickupDatetime = calculation.getCurrentDatetime();
       const pickedUpTickets = await ticketRepo.pickup(
         {
@@ -583,6 +601,15 @@ export const ticketService = {
         throw createFieldError(
           "ticket_number",
           `Ticket #${nonPawnedTicket.ticket_number} is not pawned.`,
+        );
+      }
+
+      const stolenTicket = existingTickets.find((ticket) => ticket?.is_stolen);
+
+      if (stolenTicket?.ticket_number) {
+        throw createFieldError(
+          "ticket_number",
+          `Ticket #${stolenTicket.ticket_number} is marked stolen.`,
         );
       }
 

@@ -3,13 +3,10 @@ import AddIcon from "@mui/icons-material/Add";
 import SellIcon from "@mui/icons-material/Sell";
 import EditIcon from "@mui/icons-material/Edit";
 import PrintIcon from "@mui/icons-material/Print";
-import DeleteIcon from "@mui/icons-material/Delete";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import type { Ticket } from "../../../../shared/types/Ticket";
-import { calculation } from "../../../../shared/utils/calculation";
 import TicketActionsLayout from "../../layout/TicketActionsLayout";
-import { destructiveButtonSx } from "../../shared/actionButtonStyles";
 
 interface TransactionTicketActionsProps {
   selectedTicket: Ticket | null;
@@ -20,10 +17,7 @@ interface TransactionTicketActionsProps {
   onPrint: () => void;
   onConvert: () => void;
   onTransfer: () => void;
-  onExpire: () => void;
 }
-
-const expirableStatuses = new Set<Ticket["status"]>(["pawned", "sold"]);
 
 const TransactionTicketActions: React.FC<TransactionTicketActionsProps> = (
   props,
@@ -37,14 +31,8 @@ const TransactionTicketActions: React.FC<TransactionTicketActionsProps> = (
     onPrint,
     onConvert,
     onTransfer,
-    onExpire,
   } = props;
   const ticketActionDisabled = !selectedTicket;
-  const expireDisabled =
-    ticketActionDisabled ||
-    !expirableStatuses.has(selectedTicket.status) ||
-    !selectedTicket?.due_date ||
-    !calculation.isBeforeCalendarDate(selectedTicket.due_date);
 
   return (
     <TicketActionsLayout
@@ -83,13 +71,6 @@ const TransactionTicketActions: React.FC<TransactionTicketActionsProps> = (
           icon: <SwapHorizIcon fontSize="small" />,
           disabled: transferDisabled,
           onClick: onTransfer,
-        },
-        {
-          label: "Expr",
-          icon: <DeleteIcon fontSize="small" />,
-          disabled: expireDisabled,
-          onClick: onExpire,
-          sx: destructiveButtonSx,
         },
       ]}
     />

@@ -20,7 +20,6 @@ import TicketSellDialog from "../components/transaction/dialogs/TicketSellDialog
 import TicketEditDialog from "../components/transaction/dialogs/TicketEditDialog";
 import TicketTransferDialog from "../components/transaction/dialogs/TicketTransferDialog";
 import TicketConvertDialog from "../components/transaction/dialogs/TicketConvertDialog";
-import TicketExpireDialog from "../components/transaction/dialogs/TicketExpireDialog";
 import ItemEditDialog from "../components/transaction/dialogs/ItemEditDialog";
 
 export type { TransactionItemLoadRequest };
@@ -36,7 +35,6 @@ interface TransactionPageProps {
   incomingTicket?: Ticket | null;
   incomingItemLoadRequest?: TransactionItemLoadRequest | null;
   onSelectedTicketChange?: (ticket: Ticket | null) => void;
-  onHistoryRefreshRequest?: () => void;
   onClientSoldTicket?: () => void;
 }
 
@@ -51,7 +49,6 @@ const TransactionPage: React.FC<TransactionPageProps> = ({
   incomingTicket,
   incomingItemLoadRequest,
   onSelectedTicketChange,
-  onHistoryRefreshRequest,
   onClientSoldTicket,
 }) => {
   const { state, actions } = useTransactionPageController({
@@ -62,7 +59,6 @@ const TransactionPage: React.FC<TransactionPageProps> = ({
     incomingTicket,
     incomingItemLoadRequest,
     onSelectedTicketChange,
-    onHistoryRefreshRequest,
     onClientSoldTicket,
   });
   const {
@@ -79,7 +75,6 @@ const TransactionPage: React.FC<TransactionPageProps> = ({
     openTicketSellDialog,
     openTicketEditDialog,
     openTicketConvertDialog,
-    openTicketExpireDialog,
     openTicketTransferDialog,
     openItemDialog,
     itemDialogMode,
@@ -143,7 +138,6 @@ const TransactionPage: React.FC<TransactionPageProps> = ({
           onPrint={actions.handleTicketPrint}
           onConvert={actions.handleConvertTicket}
           onTransfer={actions.handleTransferTicket}
-          onExpire={actions.handleTicketExpire}
         />
 
         {(ticketsError || statusMessage) && (
@@ -243,18 +237,6 @@ const TransactionPage: React.FC<TransactionPageProps> = ({
           onClose={() => actions.setOpenTicketTransferDialog(false)}
           onLoadPreview={actions.handleLoadTransferTicketPreview}
           onTransfer={actions.handleTransferTicketConfirmed}
-        />
-      )}
-
-      {openTicketExpireDialog && (
-        <TicketExpireDialog
-          open={openTicketExpireDialog}
-          ticket={selectedTicket}
-          clientFirstName={clientFirstName || ""}
-          clientLastName={clientLastName || ""}
-          clientMiddleName={clientMiddleName}
-          onClose={() => actions.setOpenTicketExpireDialog(false)}
-          onSave={actions.handleExpireTicketConfirmed}
         />
       )}
 

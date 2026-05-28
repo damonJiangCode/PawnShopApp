@@ -35,6 +35,7 @@ type PaymentSelectionByMode = Record<PaymentMode, GridRowSelectionModel>;
 type PaymentCompletedEvent = {
   type: "payment-completed";
   clientNumber: number;
+  pickedUpCount: number;
 };
 
 const createEmptyRowsByMode = (): PaymentRowsByMode => ({
@@ -232,7 +233,7 @@ export const usePaymentWindowController = () => {
           : [],
       );
       const rows = tickets
-        .filter((ticket) => ticket.status === "pawned")
+        .filter((ticket) => ticket.status === "pawned" && !ticket.is_stolen)
         .map((ticket) => mapTicketToPaymentRow(ticket, holidayDateKeys))
         .filter((row): row is PaymentTicketRow => Boolean(row))
         .filter(
@@ -330,6 +331,14 @@ export const usePaymentWindowController = () => {
     if (searchedRow.status !== "pawned") {
       setStatusSeverity("warning");
       setStatusMessage(`Ticket #${searchedRow.ticketNumber} is not pawned.`);
+      return;
+    }
+
+    if (ticketSearchPreview.ticket.is_stolen) {
+      setStatusSeverity("warning");
+      setStatusMessage(
+        `Ticket #${searchedRow.ticketNumber} is marked stolen and cannot be paid here.`,
+      );
       return;
     }
 
@@ -695,6 +704,7 @@ export const usePaymentWindowController = () => {
         channel.postMessage({
           type: "payment-completed",
           clientNumber,
+          pickedUpCount: pickedUpTickets.length,
         } satisfies PaymentCompletedEvent);
         channel.close();
       }

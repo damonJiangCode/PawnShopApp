@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Box,
@@ -35,6 +35,9 @@ const TicketExpireDialog: React.FC<TicketExpireDialogProps> = ({
   onClose,
   onSave,
 }) => {
+  const passwordInputRef = useRef<HTMLInputElement>(null);
+  const [employeePassword, setEmployeePassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -47,29 +50,68 @@ const TicketExpireDialog: React.FC<TicketExpireDialogProps> = ({
     [clientFirstName, clientMiddleName],
   );
 
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    setEmployeePassword("");
+    setPasswordError("");
+    setSubmitError("");
+
+    const frame = requestAnimationFrame(() => {
+      passwordInputRef.current?.focus();
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [open]);
+
   const handleSave = async () => {
     if (!ticket?.ticket_number) {
       return;
     }
 
+    if (!employeePassword.trim()) {
+      setPasswordError("Employee password is required.");
+      passwordInputRef.current?.focus();
+      return;
+    }
+
     setSaving(true);
     setSubmitError("");
+    setPasswordError("");
 
     try {
       await onSave({
         ticket_number: ticket.ticket_number,
+        employee_password: employeePassword,
       });
     } catch (err) {
       console.error(err);
       const formError = err as TicketFormError;
-      const ticketNumberError = resolveFormFieldError("ticket_number", formError);
+      const ticketNumberError = resolveFormFieldError(
+        "ticket_number",
+        formError,
+      );
+      const employeePasswordError = resolveFormFieldError(
+        "employee_password",
+        formError,
+      );
 
       if (ticketNumberError) {
         setSubmitError(ticketNumberError);
         return;
       }
 
-      setSubmitError("Couldn't expire this ticket right now. Please try again.");
+      if (employeePasswordError) {
+        setPasswordError(employeePasswordError);
+        passwordInputRef.current?.focus();
+        return;
+      }
+
+      setSubmitError(
+        "Couldn't expire this ticket right now. Please try again.",
+      );
     } finally {
       setSaving(false);
     }
@@ -107,6 +149,20 @@ const TicketExpireDialog: React.FC<TicketExpireDialogProps> = ({
             label="Amount"
             value={ticket?.amount?.toFixed(2) ?? ""}
             disabled
+            fullWidth
+          />
+
+          <TextField
+            inputRef={passwordInputRef}
+            label="Employee Password"
+            type="password"
+            value={employeePassword}
+            onChange={(event) => {
+              setEmployeePassword(event.target.value);
+              setPasswordError("");
+            }}
+            error={Boolean(passwordError)}
+            helperText={passwordError || " "}
             fullWidth
           />
         </Box>

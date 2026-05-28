@@ -34,10 +34,20 @@ const historyTicketStatuses = new Set<Ticket["status"]>([
   "sell_expired",
 ]);
 
+const getHistoryUpdatedTime = (ticket: Ticket) => {
+  const updatedAt = ticket.status_updated_at?.getTime();
+
+  if (Number.isFinite(updatedAt)) {
+    return updatedAt;
+  }
+
+  return ticket.transaction_datetime.getTime();
+};
+
 const sortHistoryTickets = (tickets: Ticket[]) =>
   [...tickets].sort((a, b) => {
-    const aTime = a.status_updated_at.getTime();
-    const bTime = b.status_updated_at.getTime();
+    const aTime = getHistoryUpdatedTime(a);
+    const bTime = getHistoryUpdatedTime(b);
 
     if (aTime !== bTime) {
       return aTime - bTime;
@@ -110,8 +120,9 @@ export const useHistoryPageController = ({
       setTicketsLoading(true);
       const fetchedTickets = await ticketService.loadTickets(clientNumber);
       const historyTickets = sortHistoryTickets(
-        fetchedTickets.filter((ticket) =>
-          historyTicketStatuses.has(ticket.status),
+        fetchedTickets.filter(
+          (ticket) =>
+            ticket.is_stolen || historyTicketStatuses.has(ticket.status),
         ),
       );
 

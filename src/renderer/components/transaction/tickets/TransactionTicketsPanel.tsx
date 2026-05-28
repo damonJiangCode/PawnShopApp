@@ -16,7 +16,6 @@ interface TransactionTicketsPanelProps {
   onPrint: () => void;
   onConvert: () => void;
   onTransfer: () => void;
-  onExpire: () => void;
 }
 
 const TransactionTicketsPanel: React.FC<TransactionTicketsPanelProps> = ({
@@ -30,7 +29,6 @@ const TransactionTicketsPanel: React.FC<TransactionTicketsPanelProps> = ({
   onPrint,
   onConvert,
   onTransfer,
-  onExpire,
 }) => {
   return (
     <Paper
@@ -95,7 +93,6 @@ const TransactionTicketsPanel: React.FC<TransactionTicketsPanelProps> = ({
           onPrint={onPrint}
           onConvert={onConvert}
           onTransfer={onTransfer}
-          onExpire={onExpire}
         />
       </Paper>
     </Paper>

@@ -17,12 +17,16 @@ interface HistoryTicketsTableProps {
   onSelectTicket: (ticket: Ticket | null) => void;
 }
 
-const getHistoryStatusLabel = (status: Ticket["status"]) => {
-  if (status === "picked_up") {
+const getHistoryStatusLabel = (ticket: Ticket) => {
+  if (ticket.is_stolen) {
+    return "S";
+  }
+
+  if (ticket.status === "picked_up") {
     return "P";
   }
 
-  if (status === "pawn_expired") {
+  if (ticket.status === "pawn_expired") {
     return "E";
   }
 
@@ -52,7 +56,7 @@ const HistoryTicketsTable: React.FC<HistoryTicketsTableProps> = ({
         width: 72,
         renderCell: (params) => (
           <CellTooltip
-            value={getHistoryStatusLabel(params.row.status)}
+            value={getHistoryStatusLabel(params.row)}
             fallback="---"
           />
         ),
