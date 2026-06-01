@@ -105,7 +105,8 @@ const createAppMenu = () => {
               title: "Search Item",
               description:
                 "Search by item number, brand name, model number, or serial number.",
-              width: 820,
+              width: 1100,
+              height: 640,
             }),
         },
       ],

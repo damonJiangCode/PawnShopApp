@@ -2,6 +2,7 @@ import { connect } from "../../db/connection.ts";
 import type { DbClient } from "../../db/connection.ts";
 import type {
   ItemCategoryOption,
+  ItemSearchInput,
   SaveItemInput,
 } from "../../shared/types/itemPayload.ts";
 import type { Item } from "../../shared/types/Item.ts";
@@ -133,6 +134,75 @@ export const itemRepo = {
 
     const result = await dbClient.query(query, [itemNumber]);
     return result.rows[0] ? mapItemRow(result.rows[0]) : null;
+  },
+
+  search: async (payload: ItemSearchInput): Promise<Item[]> => {
+    const client = await connect();
+    const conditions: string[] = [];
+    const values: Array<number | string> = [];
+
+    if (payload.item_number) {
+      values.push(payload.item_number);
+      conditions.push(`i.item_number = $${values.length}`);
+    } else {
+      const brandName = payload.brand_name?.trim();
+      const modelNumber = payload.model_number?.trim();
+      const serialNumber = payload.serial_number?.trim();
+
+      if (brandName) {
+        values.push(`%${brandName}%`);
+        conditions.push(`i.brand_name ILIKE $${values.length}`);
+      }
+
+      if (modelNumber) {
+        values.push(`%${modelNumber}%`);
+        conditions.push(`i.model_number ILIKE $${values.length}`);
+      }
+
+      if (serialNumber) {
+        values.push(`%${serialNumber}%`);
+        conditions.push(`i.serial_number ILIKE $${values.length}`);
+      }
+    }
+
+    if (!conditions.length) {
+      client.release();
+      return [];
+    }
+
+    const query = `
+      SELECT
+        i.item_number,
+        i.quantity,
+        i.subcategory_id,
+        c.name AS category_name,
+        s.name AS subcategory_name,
+        i.description,
+        i.brand_name,
+        i.model_number,
+        i.serial_number,
+        i.amount,
+        i.latest_ticket_number,
+        latest_ticket.status AS latest_ticket_status,
+        i.image_path
+      FROM item i
+      LEFT JOIN ticket latest_ticket
+        ON latest_ticket.ticket_number = i.latest_ticket_number
+      LEFT JOIN item_subcategory s
+        ON s.id = i.subcategory_id
+      LEFT JOIN item_category c
+        ON c.id = s.category_id
+      WHERE ${conditions.join(" AND ")}
+      ORDER BY i.item_number DESC
+      LIMIT 100
+    `;
+
+    try {
+      const result = await client.query(query, values);
+      return result.rows.map(mapItemRow);
+    } finally {
+      client.release();
+    }
   },
 
   assertItemCanBeLoaded: async (

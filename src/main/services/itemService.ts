@@ -1,5 +1,6 @@
 import type { Item } from "../../shared/types/Item.ts";
 import type {
+  ItemSearchInput,
   ItemCategoryOption,
   SaveItemInput,
 } from "../../shared/types/itemPayload.ts";
@@ -42,6 +43,13 @@ const validateItem = (item: SaveItemInput) => {
   }
 };
 
+const normalizeItemSearchInput = (input: ItemSearchInput): ItemSearchInput => ({
+  item_number: input.item_number ? Number(input.item_number) : undefined,
+  brand_name: input.brand_name?.trim().toUpperCase() ?? "",
+  model_number: input.model_number?.trim().toUpperCase() ?? "",
+  serial_number: input.serial_number?.trim().toUpperCase() ?? "",
+});
+
 export const itemService = {
   loadItems: async (ticketNumber: number): Promise<Item[]> => {
     if (!ticketNumber) {
@@ -55,6 +63,20 @@ export const itemService = {
     return itemRepo.loadCategories();
   },
 
+  searchItems: async (input: ItemSearchInput): Promise<Item[]> => {
+    const normalizedInput = normalizeItemSearchInput(input);
+
+    if (
+      normalizedInput.item_number &&
+      (!Number.isFinite(normalizedInput.item_number) ||
+        normalizedInput.item_number <= 0)
+    ) {
+      throw new Error("Enter a valid item number.");
+    }
+
+    return itemRepo.search(normalizedInput);
+  },
+
   createItem: async (input: SaveItemInput): Promise<Item> => {
     const normalizedInput = normalizeSaveItemInput(input);
     validateItem(normalizedInput);
@@ -62,7 +84,10 @@ export const itemService = {
     return runInTransaction("createItem", async (client) => {
       const item = await itemRepo.create(normalizedInput, client);
       const imagePath = item.image_path
-        ? await imageStorage.finalizeItemImage(item.item_number, item.image_path)
+        ? await imageStorage.finalizeItemImage(
+            item.item_number,
+            item.image_path,
+          )
         : "";
 
       if (imagePath && imagePath !== item.image_path) {

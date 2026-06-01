@@ -15,6 +15,7 @@ const CHANNELS = {
   SEARCH_PAYMENT_TICKET: "search-payment-ticket",
   GET_ITEMS: "get-items",
   GET_ITEM_CATEGORIES: "get-item-categories",
+  SEARCH_ITEMS: "search-items",
   ADD_ITEM: "add-item",
   UPDATE_ITEM: "update-item",
   DELETE_ITEM: "delete-item",

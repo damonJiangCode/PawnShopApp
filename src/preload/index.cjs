@@ -18,6 +18,7 @@ const CHANNELS = {
   SEARCH_PAYMENT_TICKET: "search-payment-ticket",
   GET_ITEMS: "get-items",
   GET_ITEM_CATEGORIES: "get-item-categories",
+  SEARCH_ITEMS: "search-items",
   ADD_ITEM: "add-item",
   UPDATE_ITEM: "update-item",
   DELETE_ITEM: "delete-item",
@@ -81,6 +82,7 @@ const ticketApi = {
 const itemApi = {
   loadByTicket: (ticketNumber) => invoke(CHANNELS.GET_ITEMS, ticketNumber),
   loadCategories: () => invoke(CHANNELS.GET_ITEM_CATEGORIES),
+  search: (payload) => invoke(CHANNELS.SEARCH_ITEMS, payload),
   create: (payload) => invoke(CHANNELS.ADD_ITEM, payload),
   update: (payload) => invoke(CHANNELS.UPDATE_ITEM, payload),
   delete: (ticketNumber, itemNumber) =>

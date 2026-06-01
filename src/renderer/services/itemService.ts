@@ -1,5 +1,6 @@
 import type { Item } from "../../shared/types/Item";
 import type {
+  ItemSearchInput,
   ItemCategoryOption,
   SaveItemInput,
 } from "../../shared/types/itemPayload";
@@ -50,6 +51,20 @@ export const itemService = {
     return categoryPromise;
   },
 
+  searchItems: async (input: ItemSearchInput): Promise<Item[]> => {
+    const api = getElectronApi()?.item;
+    if (!api) {
+      return [];
+    }
+
+    return api.search({
+      item_number: input.item_number ? Number(input.item_number) : undefined,
+      brand_name: input.brand_name?.trim() ?? "",
+      model_number: input.model_number?.trim() ?? "",
+      serial_number: input.serial_number?.trim() ?? "",
+    });
+  },
+
   createItem: async (payload: SaveItemInput): Promise<Item> => {
     const api = getElectronApi()?.item;
     if (!api) {
@@ -68,7 +83,10 @@ export const itemService = {
     return api.update(payload);
   },
 
-  deleteItem: async (ticketNumber: number, itemNumber: number): Promise<void> => {
+  deleteItem: async (
+    ticketNumber: number,
+    itemNumber: number,
+  ): Promise<void> => {
     const api = getElectronApi()?.item;
     if (!api) {
       throw new Error("Item API is unavailable.");
@@ -108,4 +126,4 @@ export const itemService = {
   },
 };
 
-export type { ItemCategoryOption, SaveItemInput };
+export type { ItemCategoryOption, ItemSearchInput, SaveItemInput };

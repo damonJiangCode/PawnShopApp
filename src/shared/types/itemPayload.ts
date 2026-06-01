@@ -17,3 +17,10 @@ export type SaveItemInput = {
   amount: number;
   image_path?: string;
 };
+
+export type ItemSearchInput = {
+  item_number?: number;
+  brand_name?: string;
+  model_number?: string;
+  serial_number?: string;
+};
