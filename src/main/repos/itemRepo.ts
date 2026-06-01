@@ -414,10 +414,20 @@ export const itemRepo = {
 
     await dbClient.query(
       `
-        DELETE FROM item
+        UPDATE item
+        SET latest_ticket_number = (
+          SELECT ti.ticket_number
+          FROM ticket_item ti
+          INNER JOIN ticket t
+            ON t.ticket_number = ti.ticket_number
+          WHERE ti.item_number = $1
+          ORDER BY t.transaction_datetime DESC, ti.ticket_number DESC
+          LIMIT 1
+        )
         WHERE item_number = $1
+          AND latest_ticket_number = $2
       `,
-      [itemNumber],
+      [itemNumber, ticketNumber],
     );
   },
 };
