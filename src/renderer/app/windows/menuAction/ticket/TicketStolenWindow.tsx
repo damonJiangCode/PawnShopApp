@@ -93,6 +93,13 @@ const TicketStolenWindow: React.FC<MenuActionComponentProps> = ({
 
       if (!result) {
         setError("No ticket was found for that number.");
+        focusTicketField();
+        return;
+      }
+
+      if (result.ticket.is_stolen) {
+        setError(`Ticket #${result.ticket.ticket_number} is already marked stolen.`);
+        focusTicketField();
         return;
       }
 

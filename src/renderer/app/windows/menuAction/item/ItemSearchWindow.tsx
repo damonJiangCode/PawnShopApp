@@ -3,25 +3,125 @@ import {
   Alert,
   Box,
   Button,
-  Paper,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
-  Typography,
 } from "@mui/material";
+import { DataGrid } from "@mui/x-data-grid";
+import type { GridColDef } from "@mui/x-data-grid";
 import MenuActionPlaceholder from "../MenuActionPlaceholder";
 import type { MenuActionComponentProps } from "../menuActionTypes";
 import type { Item } from "../../../../../shared/types/Item";
+import CellTooltip from "../../../../components/shared/CellTooltip";
 import { itemService } from "../../../../services/itemService";
+import { ticketService } from "../../../../services/ticketService";
 import { formatCurrency, formatUppercase } from "../../../../utils/formatters";
 
 type ItemSearchMode = "item-number" | "details";
+
+const ticketSearchHistoryStatuses = new Set([
+  "pawn_expired",
+  "picked_up",
+  "sell_expired",
+]);
+
+const formatTicketStatus = (status?: string) =>
+  status ? status.replaceAll("_", " ").toUpperCase() : "---";
+
+const itemSearchColumns: GridColDef<Item>[] = [
+  {
+    field: "item_number",
+    headerName: "ITEM #",
+    width: 90,
+    renderCell: (params) => <CellTooltip value={params.value} fallback="---" />,
+  },
+  {
+    field: "latest_ticket_number",
+    headerName: "TICKET #",
+    width: 100,
+    renderCell: (params) => <CellTooltip value={params.value} fallback="---" />,
+  },
+  {
+    field: "latest_ticket_status",
+    headerName: "TICKET STATUS",
+    width: 140,
+    renderCell: (params) => (
+      <CellTooltip value={formatTicketStatus(params.value)} fallback="---" />
+    ),
+  },
+  {
+    field: "quantity",
+    headerName: "QTY",
+    width: 70,
+    renderCell: (params) => <CellTooltip value={params.value} fallback="---" />,
+  },
+  {
+    field: "brand_name",
+    headerName: "BRAND",
+    width: 130,
+    renderCell: (params) => (
+      <CellTooltip
+        value={formatUppercase(params.value, "---")}
+        fallback="---"
+      />
+    ),
+  },
+  {
+    field: "model_number",
+    headerName: "MODEL",
+    width: 130,
+    renderCell: (params) => (
+      <CellTooltip
+        value={formatUppercase(params.value, "---")}
+        fallback="---"
+      />
+    ),
+  },
+  {
+    field: "serial_number",
+    headerName: "SERIAL",
+    width: 150,
+    renderCell: (params) => (
+      <CellTooltip
+        value={formatUppercase(params.value, "---")}
+        fallback="---"
+      />
+    ),
+  },
+  {
+    field: "description",
+    headerName: "DESCRIPTION",
+    width: 240,
+    renderCell: (params) => <CellTooltip value={params.value} fallback="---" />,
+  },
+  {
+    field: "subcategory_name",
+    headerName: "SUBCATEGORY",
+    width: 150,
+    renderCell: (params) => <CellTooltip value={params.value} fallback="---" />,
+  },
+  {
+    field: "category_name",
+    headerName: "CATEGORY",
+    width: 130,
+    renderCell: (params) => <CellTooltip value={params.value} fallback="---" />,
+  },
+  {
+    field: "amount",
+    headerName: "PRICE",
+    width: 100,
+    renderCell: (params) => (
+      <CellTooltip value={formatCurrency(params.value)} fallback="---" />
+    ),
+  },
+  {
+    field: "image_path",
+    headerName: "IMAGE PATH",
+    width: 240,
+    renderCell: (params) => <CellTooltip value={params.value} fallback="---" />,
+  },
+];
 
 const ItemSearchWindow: React.FC<MenuActionComponentProps> = ({ actionId }) => {
   const itemNumberInputRef = React.useRef<HTMLInputElement>(null);
@@ -32,9 +132,11 @@ const ItemSearchWindow: React.FC<MenuActionComponentProps> = ({ actionId }) => {
   const [modelNumber, setModelNumber] = React.useState("");
   const [serialNumber, setSerialNumber] = React.useState("");
   const [items, setItems] = React.useState<Item[]>([]);
+  const [selectedItem, setSelectedItem] = React.useState<Item | null>(null);
   const [message, setMessage] = React.useState("");
   const [error, setError] = React.useState("");
   const [searching, setSearching] = React.useState(false);
+  const [openingTicket, setOpeningTicket] = React.useState(false);
 
   React.useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -91,6 +193,7 @@ const ItemSearchWindow: React.FC<MenuActionComponentProps> = ({ actionId }) => {
       );
 
       setItems(results);
+      setSelectedItem(null);
       setMessage(
         results.length
           ? `${results.length} item(s) found.`
@@ -104,6 +207,47 @@ const ItemSearchWindow: React.FC<MenuActionComponentProps> = ({ actionId }) => {
     }
   };
 
+  const handleGoToTicket = async () => {
+    if (!selectedItem?.latest_ticket_number) {
+      return;
+    }
+
+    setOpeningTicket(true);
+    setError("");
+
+    try {
+      const result = await ticketService.searchTicket(
+        selectedItem.latest_ticket_number,
+      );
+
+      if (!result) {
+        setError("The selected item's ticket was not found.");
+        return;
+      }
+
+      const targetTab =
+        result.ticket.is_stolen ||
+        ticketSearchHistoryStatuses.has(result.ticket.status)
+          ? "history"
+          : "transaction";
+      const channel = new BroadcastChannel("menu-events");
+
+      channel.postMessage({
+        type: "ticket-search-selected",
+        ticket: result.ticket,
+        client: result.client,
+        targetTab,
+      });
+      channel.close();
+      window.close();
+    } catch (err) {
+      console.error(err);
+      setError("Unable to open the selected item's ticket right now.");
+    } finally {
+      setOpeningTicket(false);
+    }
+  };
+
   return (
     <MenuActionPlaceholder
       actionId={actionId}
@@ -111,23 +255,32 @@ const ItemSearchWindow: React.FC<MenuActionComponentProps> = ({ actionId }) => {
       description="Search by item number, or by brand/model/serial."
     >
       <Stack spacing={1.25} sx={{ height: "100%", minHeight: 0 }}>
-        <ToggleButtonGroup
-          exclusive
-          size="small"
-          value={mode}
-          onChange={(_event, nextMode: ItemSearchMode | null) => {
-            if (!nextMode) {
-              return;
-            }
+        <Stack direction="row" justifyContent="space-between">
+          <ToggleButtonGroup
+            exclusive
+            size="small"
+            value={mode}
+            onChange={(_event, nextMode: ItemSearchMode | null) => {
+              if (!nextMode) {
+                return;
+              }
 
-            setMode(nextMode);
-            setError("");
-            setMessage("");
-          }}
-        >
-          <ToggleButton value="item-number">Item #</ToggleButton>
-          <ToggleButton value="details">Brand / Model / Serial</ToggleButton>
-        </ToggleButtonGroup>
+              setMode(nextMode);
+              setError("");
+              setMessage("");
+            }}
+          >
+            <ToggleButton value="item-number">Item #</ToggleButton>
+            <ToggleButton value="details">Brand / Model / Serial</ToggleButton>
+          </ToggleButtonGroup>
+          <Button
+            variant="contained"
+            disabled={!selectedItem?.latest_ticket_number || openingTicket}
+            onClick={() => void handleGoToTicket()}
+          >
+            {openingTicket ? "Opening..." : "Go to Ticket"}
+          </Button>
+        </Stack>
 
         <Box
           component="form"
@@ -210,57 +363,58 @@ const ItemSearchWindow: React.FC<MenuActionComponentProps> = ({ actionId }) => {
           <Alert severity={items.length ? "success" : "info"}>{message}</Alert>
         )}
 
-        <Paper
-          variant="outlined"
-          sx={{ flex: 1, minHeight: 0, overflow: "auto" }}
-        >
-          <Table size="small" stickyHeader>
-            <TableHead>
-              <TableRow>
-                <TableCell>Item #</TableCell>
-                <TableCell>Ticket #</TableCell>
-                <TableCell>Brand</TableCell>
-                <TableCell>Model</TableCell>
-                <TableCell>Serial</TableCell>
-                <TableCell>Description</TableCell>
-                <TableCell>Sub</TableCell>
-                <TableCell>Cat</TableCell>
-                <TableCell>Price</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {items.length ? (
-                items.map((item) => (
-                  <TableRow key={item.item_number}>
-                    <TableCell>{item.item_number}</TableCell>
-                    <TableCell>{item.latest_ticket_number ?? "---"}</TableCell>
-                    <TableCell>
-                      {formatUppercase(item.brand_name, "---")}
-                    </TableCell>
-                    <TableCell>
-                      {formatUppercase(item.model_number, "---")}
-                    </TableCell>
-                    <TableCell>
-                      {formatUppercase(item.serial_number, "---")}
-                    </TableCell>
-                    <TableCell>{item.description || "---"}</TableCell>
-                    <TableCell>{item.subcategory_name || "---"}</TableCell>
-                    <TableCell>{item.category_name || "---"}</TableCell>
-                    <TableCell>{formatCurrency(item.amount)}</TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={9}>
-                    <Typography color="text.secondary" variant="body2">
-                      Search results will appear here.
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </Paper>
+        <Box sx={{ flex: 1, minHeight: 0 }}>
+          <DataGrid
+            columnHeaderHeight={34}
+            rowHeight={30}
+            rows={items}
+            columns={itemSearchColumns}
+            getRowId={(row) => row.item_number}
+            rowSelectionModel={
+              selectedItem?.item_number ? [selectedItem.item_number] : []
+            }
+            onRowClick={(params) => setSelectedItem(params.row)}
+            loading={searching}
+            disableColumnMenu
+            disableColumnSorting
+            disableColumnFilter
+            disableColumnSelector
+            disableDensitySelector
+            hideFooter
+            localeText={{ noRowsLabel: "No items" }}
+            sx={{
+              border: "1px solid #ccc",
+              "& .MuiDataGrid-cell": {
+                borderRight: "1px solid #ddd",
+                borderBottom: "1px solid #ddd",
+              },
+              "& .MuiDataGrid-columnHeaders": {
+                borderBottom: "2px solid #bbb",
+              },
+              "& .MuiDataGrid-columnHeader": {
+                borderRight: "1px solid #ddd",
+                backgroundColor: "#fafafa",
+                py: 0,
+              },
+              "& .MuiDataGrid-columnHeaderTitle": {
+                fontWeight: 600,
+              },
+              "& .MuiDataGrid-row:hover": {
+                backgroundColor: "#f5f5f5",
+              },
+              "& .MuiDataGrid-row.Mui-selected": {
+                backgroundColor: "#d0d7de",
+              },
+              "& .MuiDataGrid-row.Mui-selected:hover": {
+                backgroundColor: "#c6d0d9",
+              },
+              "& .MuiDataGrid-row.Mui-selected .MuiDataGrid-cell": {
+                borderRight: "1px solid #9aa4af",
+                borderBottom: "1px solid #9aa4af",
+              },
+            }}
+          />
+        </Box>
       </Stack>
     </MenuActionPlaceholder>
   );
