@@ -14,11 +14,20 @@ import MenuActionPlaceholder from "../MenuActionPlaceholder";
 import type { MenuActionComponentProps } from "../menuActionTypes";
 import type { Item } from "../../../../../shared/types/Item";
 import CellTooltip from "../../../../components/shared/CellTooltip";
+import TransactionItemImage from "../../../../components/transaction/items/TransactionItemImage";
 import { itemService } from "../../../../services/itemService";
 import { ticketService } from "../../../../services/ticketService";
 import { formatCurrency, formatUppercase } from "../../../../utils/formatters";
 
 type ItemSearchMode = "item-number" | "details";
+
+type ItemSearchAddToTicketResultEvent = {
+  type: "item-search-add-to-ticket-result";
+  requestId: string;
+  item?: Item;
+  message?: string;
+  error?: string;
+};
 
 const ticketSearchHistoryStatuses = new Set([
   "pawn_expired",
@@ -29,17 +38,23 @@ const ticketSearchHistoryStatuses = new Set([
 const formatTicketStatus = (status?: string) =>
   status ? status.replaceAll("_", " ").toUpperCase() : "---";
 
+const isItemSearchAddToTicketResultEvent = (
+  value: unknown,
+): value is ItemSearchAddToTicketResultEvent => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  return (
+    (value as { type?: string }).type === "item-search-add-to-ticket-result"
+  );
+};
+
 const itemSearchColumns: GridColDef<Item>[] = [
   {
     field: "item_number",
     headerName: "ITEM #",
     width: 90,
-    renderCell: (params) => <CellTooltip value={params.value} fallback="---" />,
-  },
-  {
-    field: "latest_ticket_number",
-    headerName: "TICKET #",
-    width: 100,
     renderCell: (params) => <CellTooltip value={params.value} fallback="---" />,
   },
   {
@@ -51,15 +66,23 @@ const itemSearchColumns: GridColDef<Item>[] = [
     ),
   },
   {
-    field: "quantity",
-    headerName: "QTY",
-    width: 70,
+    field: "description",
+    headerName: "DESCRIPTION",
+    width: 240,
     renderCell: (params) => <CellTooltip value={params.value} fallback="---" />,
   },
   {
-    field: "brand_name",
-    headerName: "BRAND",
-    width: 130,
+    field: "amount",
+    headerName: "PRICE",
+    width: 100,
+    renderCell: (params) => (
+      <CellTooltip value={formatCurrency(params.value)} fallback="---" />
+    ),
+  },
+  {
+    field: "serial_number",
+    headerName: "SERIAL",
+    width: 150,
     renderCell: (params) => (
       <CellTooltip
         value={formatUppercase(params.value, "---")}
@@ -79,21 +102,15 @@ const itemSearchColumns: GridColDef<Item>[] = [
     ),
   },
   {
-    field: "serial_number",
-    headerName: "SERIAL",
-    width: 150,
+    field: "brand_name",
+    headerName: "BRAND",
+    width: 130,
     renderCell: (params) => (
       <CellTooltip
         value={formatUppercase(params.value, "---")}
         fallback="---"
       />
     ),
-  },
-  {
-    field: "description",
-    headerName: "DESCRIPTION",
-    width: 240,
-    renderCell: (params) => <CellTooltip value={params.value} fallback="---" />,
   },
   {
     field: "subcategory_name",
@@ -107,25 +124,13 @@ const itemSearchColumns: GridColDef<Item>[] = [
     width: 130,
     renderCell: (params) => <CellTooltip value={params.value} fallback="---" />,
   },
-  {
-    field: "amount",
-    headerName: "PRICE",
-    width: 100,
-    renderCell: (params) => (
-      <CellTooltip value={formatCurrency(params.value)} fallback="---" />
-    ),
-  },
-  {
-    field: "image_path",
-    headerName: "IMAGE PATH",
-    width: 240,
-    renderCell: (params) => <CellTooltip value={params.value} fallback="---" />,
-  },
 ];
 
 const ItemSearchWindow: React.FC<MenuActionComponentProps> = ({ actionId }) => {
   const itemNumberInputRef = React.useRef<HTMLInputElement>(null);
   const brandInputRef = React.useRef<HTMLInputElement>(null);
+  const menuEventsChannelRef = React.useRef<BroadcastChannel | null>(null);
+  const addToTicketRequestIdRef = React.useRef("");
   const [mode, setMode] = React.useState<ItemSearchMode>("item-number");
   const [itemNumber, setItemNumber] = React.useState("");
   const [brandName, setBrandName] = React.useState("");
@@ -137,6 +142,7 @@ const ItemSearchWindow: React.FC<MenuActionComponentProps> = ({ actionId }) => {
   const [error, setError] = React.useState("");
   const [searching, setSearching] = React.useState(false);
   const [openingTicket, setOpeningTicket] = React.useState(false);
+  const [addingToTicket, setAddingToTicket] = React.useState(false);
 
   React.useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -151,6 +157,45 @@ const ItemSearchWindow: React.FC<MenuActionComponentProps> = ({ actionId }) => {
 
     return () => cancelAnimationFrame(frame);
   }, [mode]);
+
+  React.useEffect(() => {
+    const channel = new BroadcastChannel("menu-events");
+    menuEventsChannelRef.current = channel;
+
+    channel.onmessage = (event: MessageEvent) => {
+      if (
+        !isItemSearchAddToTicketResultEvent(event.data) ||
+        event.data.requestId !== addToTicketRequestIdRef.current
+      ) {
+        return;
+      }
+
+      setAddingToTicket(false);
+
+      if (event.data.error) {
+        setError(event.data.error);
+        return;
+      }
+
+      if (event.data.item) {
+        setItems((prev) =>
+          prev.map((item) =>
+            item.item_number === event.data.item?.item_number
+              ? event.data.item
+              : item,
+          ),
+        );
+        setSelectedItem(event.data.item);
+      }
+
+      setMessage(event.data.message ?? "Item added to ticket.");
+    };
+
+    return () => {
+      menuEventsChannelRef.current = null;
+      channel.close();
+    };
+  }, []);
 
   const handleSearch = async () => {
     setError("");
@@ -237,7 +282,6 @@ const ItemSearchWindow: React.FC<MenuActionComponentProps> = ({ actionId }) => {
         targetTab,
       });
       channel.close();
-      window.close();
     } catch (err) {
       console.error(err);
       setError("Unable to open the selected item's ticket right now.");
@@ -246,114 +290,150 @@ const ItemSearchWindow: React.FC<MenuActionComponentProps> = ({ actionId }) => {
     }
   };
 
+  const handleAddToTicket = () => {
+    if (!selectedItem || selectedItem.latest_ticket_status === "pawned") {
+      return;
+    }
+
+    const requestId = crypto.randomUUID();
+    addToTicketRequestIdRef.current = requestId;
+    setAddingToTicket(true);
+    setError("");
+    setMessage("");
+    menuEventsChannelRef.current?.postMessage({
+      type: "item-search-add-to-ticket",
+      requestId,
+      itemNumber: selectedItem.item_number,
+    });
+  };
+
   return (
     <MenuActionPlaceholder
       actionId={actionId}
       title="Search Item"
       description="Search by item number, or by brand/model/serial."
     >
-      <Stack spacing={1.25} sx={{ height: "100%", minHeight: 0 }}>
-        <Stack direction="row" justifyContent="space-between">
-          <ToggleButtonGroup
-            exclusive
-            size="small"
-            value={mode}
-            onChange={(_event, nextMode: ItemSearchMode | null) => {
-              if (!nextMode) {
-                return;
-              }
+      <Stack spacing={0.75} sx={{ height: "100%", minHeight: 0 }}>
+        <ToggleButtonGroup
+          exclusive
+          size="small"
+          value={mode}
+          onChange={(_event, nextMode: ItemSearchMode | null) => {
+            if (!nextMode) {
+              return;
+            }
 
-              setMode(nextMode);
-              setError("");
-              setMessage("");
-            }}
-          >
-            <ToggleButton value="item-number">Item #</ToggleButton>
-            <ToggleButton value="details">Brand / Model / Serial</ToggleButton>
-          </ToggleButtonGroup>
-          <Button
-            variant="contained"
-            disabled={!selectedItem?.latest_ticket_number || openingTicket}
-            onClick={() => void handleGoToTicket()}
-          >
-            {openingTicket ? "Opening..." : "Go to Ticket"}
-          </Button>
-        </Stack>
-
-        <Box
-          component="form"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void handleSearch();
+            setMode(nextMode);
+            setError("");
+            setMessage("");
           }}
-          sx={{ pt: 0.5 }}
         >
-          {mode === "item-number" ? (
-            <Stack direction="row" spacing={1} alignItems="flex-start">
-              <TextField
-                inputRef={itemNumberInputRef}
-                size="small"
-                label="Item Number"
-                value={itemNumber}
-                onChange={(event) => {
-                  setItemNumber(event.target.value.replace(/\D/g, ""));
-                  setError("");
-                }}
-                inputProps={{ inputMode: "numeric" }}
-                sx={{ width: 220 }}
-              />
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={searching}
-                sx={{ minWidth: 96 }}
-              >
-                Search
-              </Button>
-            </Stack>
-          ) : (
-            <Stack direction="row" spacing={1} alignItems="flex-start">
-              <TextField
-                inputRef={brandInputRef}
-                size="small"
-                label="Brand Name"
-                value={brandName}
-                onChange={(event) => {
-                  setBrandName(event.target.value);
-                  setError("");
-                }}
-                sx={{ width: 180 }}
-              />
-              <TextField
-                size="small"
-                label="Model Number"
-                value={modelNumber}
-                onChange={(event) => {
-                  setModelNumber(event.target.value);
-                  setError("");
-                }}
-                sx={{ width: 180 }}
-              />
-              <TextField
-                size="small"
-                label="Serial Number"
-                value={serialNumber}
-                onChange={(event) => {
-                  setSerialNumber(event.target.value);
-                  setError("");
-                }}
-                sx={{ width: 180 }}
-              />
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={searching}
-                sx={{ minWidth: 96 }}
-              >
-                Search
-              </Button>
-            </Stack>
-          )}
+          <ToggleButton value="item-number">Item #</ToggleButton>
+          <ToggleButton value="details">Brand / Model / Serial</ToggleButton>
+        </ToggleButtonGroup>
+
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+          <Box
+            component="form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void handleSearch();
+            }}
+            sx={{ pt: 0.25 }}
+          >
+            {mode === "item-number" ? (
+              <Stack direction="row" spacing={1} alignItems="flex-start">
+                <TextField
+                  inputRef={itemNumberInputRef}
+                  size="small"
+                  label="Item Number"
+                  value={itemNumber}
+                  onChange={(event) => {
+                    setItemNumber(event.target.value.replace(/\D/g, ""));
+                    setError("");
+                  }}
+                  inputProps={{ inputMode: "numeric" }}
+                  sx={{ width: 220 }}
+                />
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={searching}
+                  sx={{ minWidth: 96 }}
+                >
+                  Search
+                </Button>
+              </Stack>
+            ) : (
+              <Stack direction="row" spacing={1} alignItems="flex-start">
+                <TextField
+                  inputRef={brandInputRef}
+                  size="small"
+                  label="Brand Name"
+                  value={brandName}
+                  onChange={(event) => {
+                    setBrandName(event.target.value);
+                    setError("");
+                  }}
+                  sx={{ width: 180 }}
+                />
+                <TextField
+                  size="small"
+                  label="Model Number"
+                  value={modelNumber}
+                  onChange={(event) => {
+                    setModelNumber(event.target.value);
+                    setError("");
+                  }}
+                  sx={{ width: 180 }}
+                />
+                <TextField
+                  size="small"
+                  label="Serial Number"
+                  value={serialNumber}
+                  onChange={(event) => {
+                    setSerialNumber(event.target.value);
+                    setError("");
+                  }}
+                  sx={{ width: 180 }}
+                />
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={searching}
+                  sx={{ minWidth: 96 }}
+                >
+                  Search
+                </Button>
+              </Stack>
+            )}
+          </Box>
+
+          <Box sx={{ width: 160, height: 112, flexShrink: 0, ml: "auto" }}>
+            <TransactionItemImage selectedItem={selectedItem ?? undefined} />
+          </Box>
+
+          <Stack spacing={0.75} sx={{ minWidth: 132 }}>
+            <Button
+              variant="contained"
+              disabled={!selectedItem?.latest_ticket_number || openingTicket}
+              onClick={() => void handleGoToTicket()}
+            >
+              {openingTicket ? "Opening..." : "Go to Ticket"}
+            </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              disabled={
+                !selectedItem ||
+                selectedItem.latest_ticket_status === "pawned" ||
+                addingToTicket
+              }
+              onClick={handleAddToTicket}
+            >
+              {addingToTicket ? "Adding..." : "Add to Ticket"}
+            </Button>
+          </Stack>
         </Box>
 
         {error && <Alert severity="error">{error}</Alert>}
@@ -372,6 +452,11 @@ const ItemSearchWindow: React.FC<MenuActionComponentProps> = ({ actionId }) => {
               selectedItem?.item_number ? [selectedItem.item_number] : []
             }
             onRowClick={(params) => setSelectedItem(params.row)}
+            getRowClassName={(params) =>
+              params.row.latest_ticket_status === "pawned"
+                ? "pawned-item-row"
+                : ""
+            }
             loading={searching}
             disableColumnMenu
             disableColumnSorting
@@ -400,11 +485,23 @@ const ItemSearchWindow: React.FC<MenuActionComponentProps> = ({ actionId }) => {
               "& .MuiDataGrid-row:hover": {
                 backgroundColor: "#f5f5f5",
               },
+              "& .MuiDataGrid-row.pawned-item-row": {
+                backgroundColor: "#ffcdd2",
+              },
+              "& .MuiDataGrid-row.pawned-item-row:hover": {
+                backgroundColor: "#ef9a9a",
+              },
               "& .MuiDataGrid-row.Mui-selected": {
                 backgroundColor: "#d0d7de",
               },
               "& .MuiDataGrid-row.Mui-selected:hover": {
                 backgroundColor: "#c6d0d9",
+              },
+              "& .MuiDataGrid-row.pawned-item-row.Mui-selected": {
+                backgroundColor: "#ef9a9a",
+              },
+              "& .MuiDataGrid-row.pawned-item-row.Mui-selected:hover": {
+                backgroundColor: "#e57373",
               },
               "& .MuiDataGrid-row.Mui-selected .MuiDataGrid-cell": {
                 borderRight: "1px solid #9aa4af",

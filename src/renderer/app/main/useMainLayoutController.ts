@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Client } from "../../../shared/types/Client";
 import type { Item } from "../../../shared/types/Item";
 import type { Ticket } from "../../../shared/types/Ticket";
 import type { TransactionItemLoadRequest } from "../../pages/TransactionPage";
+import { itemService } from "../../services/itemService";
 import { windowService } from "../../services/windowService";
 
 type SearchParams = {
@@ -29,6 +30,12 @@ type TicketStolenEvent = {
   type: "ticket-stolen";
   ticket: Ticket;
   client: Client;
+};
+
+type ItemSearchAddToTicketEvent = {
+  type: "item-search-add-to-ticket";
+  requestId: string;
+  itemNumber: number;
 };
 
 type PaymentCompletedEvent = {
@@ -63,6 +70,16 @@ const isTicketStolenEvent = (value: unknown): value is TicketStolenEvent => {
   return (value as { type?: string }).type === "ticket-stolen";
 };
 
+const isItemSearchAddToTicketEvent = (
+  value: unknown,
+): value is ItemSearchAddToTicketEvent => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  return (value as { type?: string }).type === "item-search-add-to-ticket";
+};
+
 const isPaymentCompletedEvent = (
   value: unknown,
 ): value is PaymentCompletedEvent => {
@@ -93,6 +110,16 @@ export const useMainLayoutController = () => {
   const [itemLoadRequestId, setItemLoadRequestId] = useState(0);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [transactionRefreshKey, setTransactionRefreshKey] = useState(0);
+  const currentTabRef = useRef(currentTab);
+  const selectedTransactionTicketRef = useRef<Ticket | null>(null);
+
+  useEffect(() => {
+    currentTabRef.current = currentTab;
+  }, [currentTab]);
+
+  useEffect(() => {
+    selectedTransactionTicketRef.current = selectedTransactionTicket;
+  }, [selectedTransactionTicket]);
 
   const updateCurrentClient = (
     clientNumber: number | undefined,
@@ -138,6 +165,44 @@ export const useMainLayoutController = () => {
     const channel = new BroadcastChannel("menu-events");
 
     channel.onmessage = (event: MessageEvent) => {
+      if (isItemSearchAddToTicketEvent(event.data)) {
+        const { itemNumber, requestId } = event.data;
+        const targetTicket = selectedTransactionTicketRef.current;
+
+        if (currentTabRef.current !== 1 || !targetTicket?.ticket_number) {
+          channel.postMessage({
+            type: "item-search-add-to-ticket-result",
+            requestId,
+            error: "Select a ticket on the Transaction page first.",
+          });
+          return;
+        }
+
+        void itemService
+          .linkItemsToTicket(targetTicket.ticket_number, [itemNumber])
+          .then(([linkedItem]) => {
+            setTransactionRefreshKey((prev) => prev + 1);
+            channel.postMessage({
+              type: "item-search-add-to-ticket-result",
+              requestId,
+              item: linkedItem,
+              message: `Item #${itemNumber} added to ticket #${targetTicket.ticket_number}.`,
+            });
+          })
+          .catch((err) => {
+            console.error(err);
+            channel.postMessage({
+              type: "item-search-add-to-ticket-result",
+              requestId,
+              error:
+                err instanceof Error
+                  ? err.message
+                  : "Unable to add the selected item to the ticket.",
+            });
+          });
+        return;
+      }
+
       if (isTicketExpiredEvent(event.data) || isTicketStolenEvent(event.data)) {
         setTransactionRefreshKey((prev) => prev + 1);
         setHistoryRefreshKey((prev) => prev + 1);
