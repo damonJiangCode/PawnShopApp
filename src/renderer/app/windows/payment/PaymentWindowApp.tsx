@@ -511,13 +511,13 @@ const PaymentWindowApp: React.FC = () => {
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={actions.closeTicketSearchDialog}>Cancel</Button>
             <Button
               variant="contained"
               onClick={actions.addTicketSearchPreviewToAvailable}
             >
               Confirm
             </Button>
+            <Button onClick={actions.closeTicketSearchDialog}>Cancel</Button>
           </DialogActions>
         </Dialog>
 

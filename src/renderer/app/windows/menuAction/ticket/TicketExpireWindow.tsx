@@ -94,6 +94,7 @@ const TicketExpireWindow: React.FC<MenuActionComponentProps> = ({
 
       if (!result) {
         setError("No ticket was found for that number.");
+        focusTicketField();
         return;
       }
 
@@ -102,6 +103,7 @@ const TicketExpireWindow: React.FC<MenuActionComponentProps> = ({
         result.ticket.status !== "sold"
       ) {
         setError("Only pawned or sold tickets can be expired.");
+        focusTicketField();
         return;
       }
 
@@ -110,6 +112,7 @@ const TicketExpireWindow: React.FC<MenuActionComponentProps> = ({
         !calculation.isBeforeCalendarDate(result.ticket.due_date)
       ) {
         setError("This ticket is not past the due date yet.");
+        focusTicketField();
         return;
       }
 
