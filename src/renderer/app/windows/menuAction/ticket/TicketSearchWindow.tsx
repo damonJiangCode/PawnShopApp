@@ -48,11 +48,9 @@ const TicketSearchWindow: React.FC<MenuActionComponentProps> = ({
         return;
       }
 
-      const targetTab =
-        result.ticket.is_stolen ||
-        ticketSearchHistoryStatuses.has(result.ticket.status)
-          ? "history"
-          : "transaction";
+      const targetTab = ticketSearchHistoryStatuses.has(result.ticket.status)
+        ? "history"
+        : "transaction";
       const channel = new BroadcastChannel("menu-events");
 
       channel.postMessage({

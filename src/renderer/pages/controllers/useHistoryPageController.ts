@@ -120,9 +120,8 @@ export const useHistoryPageController = ({
       setTicketsLoading(true);
       const fetchedTickets = await ticketService.loadTickets(clientNumber);
       const historyTickets = sortHistoryTickets(
-        fetchedTickets.filter(
-          (ticket) =>
-            ticket.is_stolen || historyTicketStatuses.has(ticket.status),
+        fetchedTickets.filter((ticket) =>
+          historyTicketStatuses.has(ticket.status),
         ),
       );
 

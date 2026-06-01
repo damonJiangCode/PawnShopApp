@@ -73,9 +73,7 @@ export const useTransactionPageController = ({
 
   const filterVisibleTickets = (nextTickets: Ticket[]) =>
     nextTickets.filter(
-      (ticket) =>
-        !ticket.is_stolen &&
-        (ticket.status === "pawned" || ticket.status === "sold"),
+      (ticket) => ticket.status === "pawned" || ticket.status === "sold",
     );
   const sortTickets = (nextTickets: Ticket[]) =>
     [...nextTickets].sort((a, b) => {
