@@ -1,4 +1,4 @@
-import React, { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -31,8 +31,9 @@ const findItemCategory = (
   categories: ItemCategoryOption[],
   item?: Item | null,
 ) =>
-  categories.find((category) => category.subcategory_id === item?.subcategory_id) ??
-  null;
+  categories.find(
+    (category) => category.subcategory_id === item?.subcategory_id,
+  ) ?? null;
 
 const ItemEditDialog: React.FC<ItemEditDialogProps> = ({
   open,
@@ -113,9 +114,7 @@ const ItemEditDialog: React.FC<ItemEditDialogProps> = ({
     return () => cancelAnimationFrame(id);
   };
 
-  const handleSave = async (event?: FormEvent) => {
-    event?.preventDefault();
-
+  const handleSave = async () => {
     const nextCategoryError = !category ? "Select a category." : "";
     const nextQuantityError =
       typeof quantity !== "number" || quantity <= 0
@@ -152,7 +151,11 @@ const ItemEditDialog: React.FC<ItemEditDialogProps> = ({
     const normalizedQuantity = quantity;
     const normalizedAmount = amount;
 
-    if (!selectedCategory || normalizedQuantity === "" || normalizedAmount === "") {
+    if (
+      !selectedCategory ||
+      normalizedQuantity === "" ||
+      normalizedAmount === ""
+    ) {
       return;
     }
 
@@ -186,7 +189,9 @@ const ItemEditDialog: React.FC<ItemEditDialogProps> = ({
     } catch (err) {
       console.error(err);
       setSubmitError(
-        err instanceof Error ? err.message : "Couldn't save this item right now.",
+        err instanceof Error
+          ? err.message
+          : "Couldn't save this item right now.",
       );
     } finally {
       setSaving(false);
@@ -199,9 +204,6 @@ const ItemEditDialog: React.FC<ItemEditDialogProps> = ({
         <DialogTitle>{title}</DialogTitle>
         <DialogContent sx={{ pb: 1.5 }}>
           <Box
-            component="form"
-            noValidate
-            onSubmit={handleSave}
             sx={{
               display: "flex",
               flexDirection: "column",
@@ -224,7 +226,13 @@ const ItemEditDialog: React.FC<ItemEditDialogProps> = ({
                   gap: 0.5,
                 }}
               >
-                <Box sx={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 1 }}>
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr auto",
+                    gap: 1,
+                  }}
+                >
                   <TextField
                     label="Category"
                     value={categoryLabel}
@@ -253,6 +261,8 @@ const ItemEditDialog: React.FC<ItemEditDialogProps> = ({
                     if (descriptionError) setDescriptionError("");
                     if (submitError) setSubmitError("");
                   }}
+                  multiline
+                  rows={3}
                   fullWidth
                   required
                   error={Boolean(descriptionError)}
@@ -266,7 +276,9 @@ const ItemEditDialog: React.FC<ItemEditDialogProps> = ({
                   value={quantity}
                   onChange={(event) => {
                     setQuantity(
-                      event.target.value === "" ? "" : Number(event.target.value),
+                      event.target.value === ""
+                        ? ""
+                        : Number(event.target.value),
                     );
                     if (quantityError) setQuantityError("");
                     if (submitError) setSubmitError("");
@@ -280,7 +292,9 @@ const ItemEditDialog: React.FC<ItemEditDialogProps> = ({
                 <TextField
                   label="Brand"
                   value={brandName}
-                  onChange={(event) => setBrandName(event.target.value.toUpperCase())}
+                  onChange={(event) =>
+                    setBrandName(event.target.value.toUpperCase())
+                  }
                   helperText=" "
                   sx={compactFieldSx}
                 />
@@ -288,7 +302,9 @@ const ItemEditDialog: React.FC<ItemEditDialogProps> = ({
                 <TextField
                   label="Model"
                   value={modelNumber}
-                  onChange={(event) => setModelNumber(event.target.value.toUpperCase())}
+                  onChange={(event) =>
+                    setModelNumber(event.target.value.toUpperCase())
+                  }
                   helperText=" "
                   sx={compactFieldSx}
                 />
@@ -296,7 +312,9 @@ const ItemEditDialog: React.FC<ItemEditDialogProps> = ({
                 <TextField
                   label="Serial"
                   value={serialNumber}
-                  onChange={(event) => setSerialNumber(event.target.value.toUpperCase())}
+                  onChange={(event) =>
+                    setSerialNumber(event.target.value.toUpperCase())
+                  }
                   helperText=" "
                   sx={compactFieldSx}
                 />
@@ -307,7 +325,9 @@ const ItemEditDialog: React.FC<ItemEditDialogProps> = ({
                   value={amount}
                   onChange={(event) => {
                     setAmount(
-                      event.target.value === "" ? "" : Number(event.target.value),
+                      event.target.value === ""
+                        ? ""
+                        : Number(event.target.value),
                     );
                     if (amountError) setAmountError("");
                     if (submitError) setSubmitError("");
@@ -343,7 +363,8 @@ const ItemEditDialog: React.FC<ItemEditDialogProps> = ({
                   sx={{
                     width: "100%",
                     minHeight: 24,
-                    visibility: photoError || submitError ? "visible" : "hidden",
+                    visibility:
+                      photoError || submitError ? "visible" : "hidden",
                   }}
                 >
                   {photoError || submitError || " "}
@@ -359,10 +380,20 @@ const ItemEditDialog: React.FC<ItemEditDialogProps> = ({
                 mt: 0.25,
               }}
             >
-              <Button type="button" onClick={onClose} disabled={saving} sx={{ mr: 1 }}>
+              <Button
+                type="button"
+                onClick={onClose}
+                disabled={saving}
+                sx={{ mr: 1 }}
+              >
                 Cancel
               </Button>
-              <Button type="submit" variant="contained" disabled={saving}>
+              <Button
+                type="button"
+                variant="contained"
+                disabled={saving}
+                onClick={handleSave}
+              >
                 {mode === "add" ? "Add" : "Save"}
               </Button>
             </Box>

@@ -7,6 +7,7 @@ import {
   TextField,
   ToggleButton,
   ToggleButtonGroup,
+  Typography,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import type { GridColDef } from "@mui/x-data-grid";
@@ -441,7 +442,21 @@ const ItemSearchWindow: React.FC<MenuActionComponentProps> = ({ actionId }) => {
           <Alert severity={items.length ? "success" : "info"}>{message}</Alert>
         )}
 
-        <Box sx={{ flex: 1, minHeight: 0 }}>
+        <Box
+          sx={{
+            flex: 1,
+            minHeight: 0,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ alignSelf: "flex-end", fontWeight: 1000, mb: 0.25, mr: 1 }}
+          >
+            Results: {items.length}
+          </Typography>
           <DataGrid
             columnHeaderHeight={34}
             rowHeight={30}
