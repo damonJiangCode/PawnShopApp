@@ -174,10 +174,11 @@ export const ticketService = {
     return runInTransaction("createPawnTicket", async (client) => {
       const transactionDatetime = calculation.getCurrentDatetime();
       const dueDate = calculation.getDueDatetime(transactionDatetime);
-      const employeeName = await employeeService.getEmployeeFirstNameByPassword(
-        normalizedInput.employee_password,
-        client,
-      );
+      const employeeName =
+        await employeeService.getEmployeeDisplayNameByPassword(
+          normalizedInput.employee_password,
+          client,
+        );
 
       if (!employeeName) {
         throw createFieldError(
@@ -211,10 +212,11 @@ export const ticketService = {
 
     return runInTransaction("createSellTicket", async (client) => {
       const transactionDatetime = calculation.getCurrentDatetime();
-      const employeeName = await employeeService.getEmployeeFirstNameByPassword(
-        normalizedInput.employee_password,
-        client,
-      );
+      const employeeName =
+        await employeeService.getEmployeeDisplayNameByPassword(
+          normalizedInput.employee_password,
+          client,
+        );
 
       if (!employeeName) {
         throw createFieldError(
@@ -252,10 +254,11 @@ export const ticketService = {
     const normalizedInput = normalizeUpdateTicketInput(input);
 
     return runInTransaction("updateTicket", async (client) => {
-      const employeeName = await employeeService.getEmployeeFirstNameByPassword(
-        normalizedInput.employee_password,
-        client,
-      );
+      const employeeName =
+        await employeeService.getEmployeeDisplayNameByPassword(
+          normalizedInput.employee_password,
+          client,
+        );
 
       if (!employeeName) {
         throw createFieldError(
@@ -313,10 +316,11 @@ export const ticketService = {
         );
       }
 
-      const employeeName = await employeeService.getEmployeeFirstNameByPassword(
-        normalizedInput.employee_password,
-        client,
-      );
+      const employeeName =
+        await employeeService.getEmployeeDisplayNameByPassword(
+          normalizedInput.employee_password,
+          client,
+        );
 
       if (!employeeName) {
         throw createFieldError(
@@ -422,7 +426,7 @@ export const ticketService = {
 
       if (normalizedInput.employee_password !== undefined) {
         const employeeName =
-          await employeeService.getEmployeeFirstNameByPassword(
+          await employeeService.getEmployeeDisplayNameByPassword(
             normalizedInput.employee_password,
             client,
           );
@@ -472,10 +476,11 @@ export const ticketService = {
         throw createFieldError("employee_password", "Enter employee password.");
       }
 
-      const employeeName = await employeeService.getEmployeeFirstNameByPassword(
-        normalizedInput.employee_password,
-        client,
-      );
+      const employeeName =
+        await employeeService.getEmployeeDisplayNameByPassword(
+          normalizedInput.employee_password,
+          client,
+        );
 
       if (!employeeName) {
         throw createFieldError(

@@ -7,6 +7,7 @@ const CHANNELS = {
   ADD_CLIENT: "add-client",
   UPDATE_CLIENT: "update-client",
   DELETE_CLIENT: "delete-client",
+  ADD_EMPLOYEE: "add-employee",
   SAVE_CLIENT_IMAGE: "save-client-image",
   GET_CLIENT_IMAGE: "get-client-image",
   GET_TICKETS: "get-tickets",

@@ -27,10 +27,7 @@ import {
   createItemSubcategoryTable,
   insertItemSubcategory,
 } from "./schema/item/itemSubcategoryTable.ts";
-import {
-  createItemIndexes,
-  createItemTable,
-} from "./schema/item/itemTable.ts";
+import { createItemIndexes, createItemTable } from "./schema/item/itemTable.ts";
 import {
   createLocationTable,
   insertLocation,

@@ -10,6 +10,7 @@ const CHANNELS = {
   ADD_CLIENT: "add-client",
   UPDATE_CLIENT: "update-client",
   DELETE_CLIENT: "delete-client",
+  ADD_EMPLOYEE: "add-employee",
   SAVE_CLIENT_IMAGE: "save-client-image",
   GET_CLIENT_IMAGE: "get-client-image",
   GET_TICKETS: "get-tickets",
@@ -79,6 +80,10 @@ const ticketApi = {
   transfer: (payload) => invoke(CHANNELS.TRANSFER_TICKET, payload),
 };
 
+const employeeApi = {
+  create: (payload) => invoke(CHANNELS.ADD_EMPLOYEE, payload),
+};
+
 const itemApi = {
   loadByTicket: (ticketNumber) => invoke(CHANNELS.GET_ITEMS, ticketNumber),
   loadCategories: () => invoke(CHANNELS.GET_ITEM_CATEGORIES),
@@ -108,6 +113,7 @@ const windowApi = {
 
 contextBridge.exposeInMainWorld("electronAPI", {
   client: clientApi,
+  employee: employeeApi,
   ticket: ticketApi,
   item: itemApi,
   window: windowApi,
