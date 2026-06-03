@@ -1,16 +1,12 @@
 import type { ComponentType } from "react";
-import EmployeeAddWindow from "./employee/EmployeeAddWindow";
-import EmployeeDeactivateWindow from "./employee/EmployeeDeactivateWindow";
-import EmployeeEditWindow from "./employee/EmployeeEditWindow";
-import HolidayAddWindow from "./holiday/HolidayAddWindow";
-import HolidayRemoveWindow from "./holiday/HolidayRemoveWindow";
+import EmployeeAdminWindow from "./admin/employee/EmployeeAdminWindow";
+import HolidayAdminWindow from "./admin/holiday/HolidayAdminWindow";
+import LocationAdminWindow from "./admin/location/LocationAdminWindow";
 import ItemSearchWindow from "./item/ItemSearchWindow";
 import LayawayAddWindow from "./layaway/LayawayAddWindow";
 import LayawayCancelWindow from "./layaway/LayawayCancelWindow";
 import LayawayEditWindow from "./layaway/LayawayEditWindow";
 import LayawaySearchWindow from "./layaway/LayawaySearchWindow";
-import LocationAddWindow from "./location/LocationAddWindow";
-import LocationDeactivateWindow from "./location/LocationDeactivateWindow";
 import BuybackReportWindow from "./report/BuybackReportWindow";
 import DailyReportWindow from "./report/DailyReportWindow";
 import InterestReportWindow from "./report/InterestReportWindow";
@@ -39,11 +35,7 @@ export const menuActionRegistry: Record<
   "report-buyback": BuybackReportWindow,
   "report-interest": InterestReportWindow,
   "report-police-xml": PoliceXmlWindow,
-  "location-add": LocationAddWindow,
-  "location-deactivate": LocationDeactivateWindow,
-  "holiday-add": HolidayAddWindow,
-  "holiday-remove": HolidayRemoveWindow,
-  "employee-add": EmployeeAddWindow,
-  "employee-edit": EmployeeEditWindow,
-  "employee-deactivate": EmployeeDeactivateWindow,
+  "admin-employee": EmployeeAdminWindow,
+  "admin-holiday": HolidayAdminWindow,
+  "admin-location": LocationAdminWindow,
 };

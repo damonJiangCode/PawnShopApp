@@ -194,79 +194,35 @@ const createAppMenu = () => {
       ],
     },
     {
-      label: "Location",
+      label: "Admin",
       submenu: [
         {
-          label: "Add",
+          label: "Employee",
           click: () =>
             openMenuActionWindow({
-              id: "location-add",
-              title: "Add Location",
-              description: "Add a new pawn location.",
+              id: "admin-employee",
+              title: "Employee",
+              description: "Manage employee information.",
+              width: 1120,
+              height: 820,
             }),
         },
         {
-          label: "Deactivate",
+          label: "Holiday",
           click: () =>
             openMenuActionWindow({
-              id: "location-deactivate",
-              title: "Deactivate Location",
-              description: "Hide an old location from future tickets.",
-            }),
-        },
-      ],
-    },
-    {
-      label: "Holiday",
-      submenu: [
-        {
-          label: "Add",
-          click: () =>
-            openMenuActionWindow({
-              id: "holiday-add",
-              title: "Add Holiday",
-              description: "Add a holiday for business-day hold calculations.",
+              id: "admin-holiday",
+              title: "Holiday",
+              description: "Manage business-day holidays.",
             }),
         },
         {
-          label: "Remove",
+          label: "Location",
           click: () =>
             openMenuActionWindow({
-              id: "holiday-remove",
-              title: "Remove Holiday",
-              description: "Remove a holiday from business-day calculations.",
-            }),
-        },
-      ],
-    },
-    {
-      label: "Employee",
-      submenu: [
-        {
-          label: "Add",
-          click: () =>
-            openMenuActionWindow({
-              id: "employee-add",
-              title: "Add Employee",
-              description: "Create a new employee account.",
-            }),
-        },
-        {
-          label: "Edit",
-          click: () =>
-            openMenuActionWindow({
-              id: "employee-edit",
-              title: "Edit Employee",
-              description: "Update employee information.",
-            }),
-        },
-        {
-          label: "Deactivate",
-          click: () =>
-            openMenuActionWindow({
-              id: "employee-deactivate",
-              title: "Deactivate Employee",
-              description: "Disable an employee without removing history.",
+              id: "admin-location",
+              title: "Location",
+              description: "Manage pawn locations.",
             }),
         },
       ],

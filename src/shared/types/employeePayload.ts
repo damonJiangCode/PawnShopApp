@@ -6,3 +6,8 @@ export type SaveEmployeeInput = {
   gender: string;
   password: string;
 };
+
+export type EmployeeSearchInput = {
+  first_name?: string;
+  last_name?: string;
+};

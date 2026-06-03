@@ -1,5 +1,8 @@
 import type { Employee } from "../../shared/types/Employee";
-import type { SaveEmployeeInput } from "../../shared/types/employeePayload";
+import type {
+  EmployeeSearchInput,
+  SaveEmployeeInput,
+} from "../../shared/types/employeePayload";
 import { getElectronApi } from "./electronApi";
 
 const normalizeEmployeeInput = (
@@ -13,6 +16,13 @@ const normalizeEmployeeInput = (
   password: input.password?.trim() ?? "",
 });
 
+const normalizeEmployeeSearchInput = (
+  input: EmployeeSearchInput,
+): EmployeeSearchInput => ({
+  first_name: input.first_name?.trim() ?? "",
+  last_name: input.last_name?.trim() ?? "",
+});
+
 export const employeeService = {
   createEmployee: async (input: SaveEmployeeInput): Promise<Employee> => {
     const api = getElectronApi()?.employee;
@@ -23,6 +33,29 @@ export const employeeService = {
 
     return api.create(normalizeEmployeeInput(input));
   },
+
+  searchEmployees: async (input: EmployeeSearchInput): Promise<Employee[]> => {
+    const api = getElectronApi()?.employee;
+
+    if (!api) {
+      throw new Error("Employee API is unavailable.");
+    }
+
+    return api.search(normalizeEmployeeSearchInput(input));
+  },
+
+  updateEmployee: async (
+    employeeNumber: number,
+    input: SaveEmployeeInput,
+  ): Promise<Employee> => {
+    const api = getElectronApi()?.employee;
+
+    if (!api) {
+      throw new Error("Employee API is unavailable.");
+    }
+
+    return api.update(employeeNumber, normalizeEmployeeInput(input));
+  },
 };
 
-export type { Employee, SaveEmployeeInput };
+export type { Employee, EmployeeSearchInput, SaveEmployeeInput };

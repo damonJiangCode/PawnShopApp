@@ -5,6 +5,7 @@ export interface Employee {
   nickname: string;
   date_of_birth?: string;
   gender: string;
+  password?: string;
   created_at?: Date;
   updated_at?: Date;
 }

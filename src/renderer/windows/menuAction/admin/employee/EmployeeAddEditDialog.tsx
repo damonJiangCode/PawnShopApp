@@ -10,16 +10,18 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-import type { Employee } from "../../../../shared/types/Employee";
+import type { Employee } from "../../../../../shared/types/Employee";
 import {
   employeeService,
   type SaveEmployeeInput,
-} from "../../../services/employeeService";
+} from "../../../../services/employeeService";
 
 type EmployeeFormErrors = Record<keyof SaveEmployeeInput, string>;
 
 type EmployeeAddEditDialogProps = {
   open: boolean;
+  mode?: "add" | "edit";
+  initialEmployee?: Employee | null;
   onClose: () => void;
   onSave?: (employee: Employee) => void;
 };
@@ -40,6 +42,15 @@ const emptyErrors = (): EmployeeFormErrors => ({
   date_of_birth: "",
   gender: "",
   password: "",
+});
+
+const employeeToInput = (employee: Employee): SaveEmployeeInput => ({
+  first_name: employee.first_name,
+  last_name: employee.last_name,
+  nickname: employee.nickname,
+  date_of_birth: employee.date_of_birth ?? "",
+  gender: employee.gender,
+  password: employee.password ?? "",
 });
 
 const getDateOfBirthError = (dateOfBirth?: string) => {
@@ -68,6 +79,8 @@ const getDateOfBirthError = (dateOfBirth?: string) => {
 
 const EmployeeAddEditDialog: React.FC<EmployeeAddEditDialogProps> = ({
   open,
+  mode = "add",
+  initialEmployee,
   onClose,
   onSave,
 }) => {
@@ -84,7 +97,11 @@ const EmployeeAddEditDialog: React.FC<EmployeeAddEditDialogProps> = ({
       return;
     }
 
-    setEmployee(emptyEmployeeInput());
+    setEmployee(
+      mode === "edit" && initialEmployee
+        ? employeeToInput(initialEmployee)
+        : emptyEmployeeInput(),
+    );
     setErrors(emptyErrors());
     setMessage("");
     setSubmitError("");
@@ -95,7 +112,7 @@ const EmployeeAddEditDialog: React.FC<EmployeeAddEditDialogProps> = ({
     });
 
     return () => cancelAnimationFrame(frame);
-  }, [open]);
+  }, [initialEmployee, mode, open]);
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -142,11 +159,23 @@ const EmployeeAddEditDialog: React.FC<EmployeeAddEditDialogProps> = ({
     setMessage("");
 
     try {
-      const savedEmployee = await employeeService.createEmployee(employee);
-      setEmployee(emptyEmployeeInput());
+      const savedEmployee =
+        mode === "edit" && initialEmployee
+          ? await employeeService.updateEmployee(
+              initialEmployee.employee_number,
+              employee,
+            )
+          : await employeeService.createEmployee(employee);
+
+      if (mode === "add") {
+        setEmployee(emptyEmployeeInput());
+      }
+
       setErrors(emptyErrors());
       setMessage(
-        `Employee #${savedEmployee.employee_number} ${savedEmployee.first_name} ${savedEmployee.last_name} saved.`,
+        `Employee #${savedEmployee.employee_number} ${savedEmployee.first_name} ${savedEmployee.last_name} ${
+          mode === "edit" ? "updated" : "saved"
+        }.`,
       );
       onSave?.(savedEmployee);
       requestAnimationFrame(() => {
@@ -162,9 +191,12 @@ const EmployeeAddEditDialog: React.FC<EmployeeAddEditDialogProps> = ({
     }
   };
 
+  const title = mode === "edit" ? "Edit Employee" : "Add Employee";
+  const saveLabel = mode === "edit" ? "Update" : "Add";
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Add Employee</DialogTitle>
+      <DialogTitle>{title}</DialogTitle>
       <DialogContent dividers>
         <Stack spacing={1.25} sx={{ pt: 0.5 }}>
           {message && <Alert severity="success">{message}</Alert>}
@@ -262,7 +294,7 @@ const EmployeeAddEditDialog: React.FC<EmployeeAddEditDialogProps> = ({
           onClick={() => void handleSave()}
           disabled={saving}
         >
-          {saving ? "Saving..." : "Add"}
+          {saving ? "Saving..." : saveLabel}
         </Button>
       </DialogActions>
     </Dialog>
