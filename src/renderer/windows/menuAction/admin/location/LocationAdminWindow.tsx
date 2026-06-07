@@ -35,8 +35,6 @@ const LocationAdminWindow: React.FC<MenuActionComponentProps> = () => {
   const [message, setMessage] = React.useState("");
 
   React.useEffect(() => {
-    window.resizeTo(960, 760);
-
     const frame = requestAnimationFrame(() => {
       searchInputRef.current?.focus();
     });

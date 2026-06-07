@@ -214,6 +214,8 @@ const createAppMenu = () => {
               id: "admin-holiday",
               title: "Holiday",
               description: "Manage business-day holidays.",
+              width: 960,
+              height: 760,
             }),
         },
         {
@@ -223,6 +225,8 @@ const createAppMenu = () => {
               id: "admin-location",
               title: "Location",
               description: "Manage pawn locations.",
+              width: 960,
+              height: 760,
             }),
         },
       ],
