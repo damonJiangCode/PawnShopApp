@@ -1,5 +1,7 @@
 import type { Client, ID } from "../../shared/types/Client.ts";
 import type { CitiesResponse } from "../../shared/types/clientPayload.ts";
+import type { HairColor } from "../../shared/types/hairColor.ts";
+import type { EyeColor } from "../../shared/types/eyeColor.ts";
 import { connect } from "../../db/connection.ts";
 
 type DbClient = Awaited<ReturnType<typeof connect>>;
@@ -20,8 +22,8 @@ const mapRowToClient = (row: any): Client => ({
   middle_name: row.middle_name ?? "",
   date_of_birth: row.date_of_birth,
   gender: row.gender ?? "",
-  hair_color: row.hair_color ?? "",
-  eye_color: row.eye_color ?? "",
+  hair_color: row.hair_color ? String(row.hair_color).toUpperCase() : "",
+  eye_color: row.eye_color ? String(row.eye_color).toUpperCase() : "",
   height_cm: row.height_cm,
   weight_kg: row.weight_kg,
   address: row.address ?? "",
@@ -465,7 +467,12 @@ export const clientRepo = {
 
   loadHairColors: async (): Promise<string[]> => {
     const client = await connect();
-    const query = "SELECT color FROM hair_color ORDER BY color ASC";
+    const query = `
+      SELECT UPPER(color) AS color
+      FROM hair_color
+      WHERE is_active = TRUE
+      ORDER BY color ASC
+    `;
 
     try {
       const result = await client.query(query);
@@ -475,13 +482,186 @@ export const clientRepo = {
     }
   },
 
+  loadAdminHairColors: async (): Promise<HairColor[]> => {
+    const client = await connect();
+    const query = `
+      SELECT UPPER(color) AS color, is_active
+      FROM hair_color
+      ORDER BY is_active DESC, color ASC
+    `;
+
+    try {
+      const result = await client.query(query);
+      return result.rows.map((row) => ({
+        color: String(row.color),
+        is_active: Boolean(row.is_active),
+      }));
+    } finally {
+      client.release();
+    }
+  },
+
+  addHairColor: async (color: string): Promise<string | null> => {
+    const client = await connect();
+    const query = `
+      INSERT INTO hair_color (color, is_active)
+      SELECT $1, TRUE
+      WHERE NOT EXISTS (
+        SELECT 1 FROM hair_color WHERE LOWER(color) = LOWER($1)
+      )
+      RETURNING color
+    `;
+
+    try {
+      const result = await client.query(query, [color]);
+      return result.rows[0] ? String(result.rows[0].color) : null;
+    } finally {
+      client.release();
+    }
+  },
+
+  deactivateHairColor: async (color: string): Promise<HairColor | null> => {
+    const client = await connect();
+    const query = `
+      UPDATE hair_color
+      SET is_active = FALSE
+      WHERE UPPER(color) = $1 AND is_active = TRUE
+      RETURNING UPPER(color) AS color, is_active
+    `;
+
+    try {
+      const result = await client.query(query, [color]);
+      const row = result.rows[0];
+      return row
+        ? {
+            color: String(row.color),
+            is_active: Boolean(row.is_active),
+          }
+        : null;
+    } finally {
+      client.release();
+    }
+  },
+
+  activateHairColor: async (color: string): Promise<HairColor | null> => {
+    const client = await connect();
+    const query = `
+      UPDATE hair_color
+      SET is_active = TRUE
+      WHERE UPPER(color) = $1 AND is_active = FALSE
+      RETURNING UPPER(color) AS color, is_active
+    `;
+
+    try {
+      const result = await client.query(query, [color]);
+      const row = result.rows[0];
+      return row
+        ? {
+            color: String(row.color),
+            is_active: Boolean(row.is_active),
+          }
+        : null;
+    } finally {
+      client.release();
+    }
+  },
+
   loadEyeColors: async (): Promise<string[]> => {
     const client = await connect();
-    const query = "SELECT color FROM eye_color ORDER BY color ASC";
+    const query = `
+      SELECT UPPER(color) AS color
+      FROM eye_color
+      WHERE is_active = TRUE
+      ORDER BY color ASC
+    `;
 
     try {
       const result = await client.query(query);
       return result.rows.map((row) => row.color);
+    } finally {
+      client.release();
+    }
+  },
+
+  loadAdminEyeColors: async (): Promise<EyeColor[]> => {
+    const client = await connect();
+    const query = `
+      SELECT UPPER(color) AS color, is_active
+      FROM eye_color
+      ORDER BY is_active DESC, color ASC
+    `;
+
+    try {
+      const result = await client.query(query);
+      return result.rows.map((row) => ({
+        color: String(row.color),
+        is_active: Boolean(row.is_active),
+      }));
+    } finally {
+      client.release();
+    }
+  },
+
+  addEyeColor: async (color: string): Promise<string | null> => {
+    const client = await connect();
+    const query = `
+      INSERT INTO eye_color (color, is_active)
+      SELECT $1, TRUE
+      WHERE NOT EXISTS (
+        SELECT 1 FROM eye_color WHERE LOWER(color) = LOWER($1)
+      )
+      RETURNING color
+    `;
+
+    try {
+      const result = await client.query(query, [color]);
+      return result.rows[0] ? String(result.rows[0].color) : null;
+    } finally {
+      client.release();
+    }
+  },
+
+  deactivateEyeColor: async (color: string): Promise<EyeColor | null> => {
+    const client = await connect();
+    const query = `
+      UPDATE eye_color
+      SET is_active = FALSE
+      WHERE UPPER(color) = $1 AND is_active = TRUE
+      RETURNING UPPER(color) AS color, is_active
+    `;
+
+    try {
+      const result = await client.query(query, [color]);
+      const row = result.rows[0];
+      return row
+        ? {
+            color: String(row.color),
+            is_active: Boolean(row.is_active),
+          }
+        : null;
+    } finally {
+      client.release();
+    }
+  },
+
+  activateEyeColor: async (color: string): Promise<EyeColor | null> => {
+    const client = await connect();
+    const query = `
+      UPDATE eye_color
+      SET is_active = TRUE
+      WHERE UPPER(color) = $1 AND is_active = FALSE
+      RETURNING UPPER(color) AS color, is_active
+    `;
+
+    try {
+      const result = await client.query(query, [color]);
+      const row = result.rows[0];
+      return row
+        ? {
+            color: String(row.color),
+            is_active: Boolean(row.is_active),
+          }
+        : null;
     } finally {
       client.release();
     }

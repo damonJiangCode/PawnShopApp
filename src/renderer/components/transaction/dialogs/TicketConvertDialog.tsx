@@ -152,8 +152,7 @@ const TicketConvertDialog: React.FC<TicketConvertDialogProps> = ({
     const trimmedDescription = description.trim();
     const trimmedLocation = location.trim();
     const trimmedPassword = employeePassword.trim();
-    const isValidLocation =
-      locationList.length === 0 || locationList.includes(trimmedLocation);
+    const isValidLocation = locationList.includes(trimmedLocation);
     const nextDescriptionError =
       trimmedDescription.length === 0 ? "Description is required." : "";
     const nextLocationError =

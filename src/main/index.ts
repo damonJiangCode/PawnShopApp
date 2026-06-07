@@ -178,6 +178,28 @@ const createAppMenu = () => {
             }),
         },
         {
+          label: "Hair Color",
+          click: () =>
+            openMenuActionWindow({
+              id: "admin-hair-color",
+              title: "Hair Color",
+              description: "Manage hair color options.",
+              width: 960,
+              height: 760,
+            }),
+        },
+        {
+          label: "Eye Color",
+          click: () =>
+            openMenuActionWindow({
+              id: "admin-eye-color",
+              title: "Eye Color",
+              description: "Manage eye color options.",
+              width: 960,
+              height: 760,
+            }),
+        },
+        {
           label: "Location",
           click: () =>
             openMenuActionWindow({

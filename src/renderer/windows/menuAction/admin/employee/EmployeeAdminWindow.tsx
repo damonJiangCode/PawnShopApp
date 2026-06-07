@@ -149,7 +149,7 @@ const EmployeeAdminWindow: React.FC<MenuActionComponentProps> = () => {
             <Box
               sx={{
                 display: "grid",
-                gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr) auto",
+                gridTemplateColumns: "220px 220px auto minmax(0, 1fr) auto",
                 gap: 1,
                 alignItems: "start",
               }}
@@ -192,16 +192,18 @@ const EmployeeAdminWindow: React.FC<MenuActionComponentProps> = () => {
                 >
                   Clear
                 </Button>
-                <Button
-                  type="button"
-                  variant="contained"
-                  color="success"
-                  disabled={searching || loadingEmployees}
-                  onClick={handleAddEmployee}
-                >
-                  Add Employee
-                </Button>
               </Stack>
+              <Box />
+              <Button
+                type="button"
+                variant="contained"
+                color="success"
+                disabled={searching || loadingEmployees}
+                onClick={handleAddEmployee}
+                sx={{ mt: 0.25, justifySelf: "end" }}
+              >
+                Add Employee
+              </Button>
             </Box>
           </Box>
 

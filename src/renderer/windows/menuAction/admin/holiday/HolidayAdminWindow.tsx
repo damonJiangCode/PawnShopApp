@@ -154,7 +154,7 @@ const HolidayAdminWindow: React.FC<MenuActionComponentProps> = () => {
             <Box
               sx={{
                 display: "grid",
-                gridTemplateColumns: "180px auto",
+                gridTemplateColumns: "180px auto minmax(0, 1fr) auto",
                 gap: 1,
                 alignItems: "start",
               }}
@@ -190,16 +190,18 @@ const HolidayAdminWindow: React.FC<MenuActionComponentProps> = () => {
                 >
                   Clear
                 </Button>
-                <Button
-                  type="button"
-                  variant="contained"
-                  color="success"
-                  disabled={busy}
-                  onClick={() => setAddDialogOpen(true)}
-                >
-                  Add Holiday
-                </Button>
               </Stack>
+              <Box />
+              <Button
+                type="button"
+                variant="contained"
+                color="success"
+                disabled={busy}
+                onClick={() => setAddDialogOpen(true)}
+                sx={{ mt: 0.25, justifySelf: "end" }}
+              >
+                Add Holiday
+              </Button>
             </Box>
           </Box>
 

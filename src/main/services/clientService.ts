@@ -9,6 +9,8 @@ import { createFieldError } from "../utils/createFieldError.ts";
 import { imageStorage } from "../utils/imageStorage.ts";
 import { runInTransaction } from "../utils/runInTransaction.ts";
 import type { DbClient } from "../../db/connection.ts";
+import type { HairColor } from "../../shared/types/hairColor.ts";
+import type { EyeColor } from "../../shared/types/eyeColor.ts";
 
 const normalizeClient = (client: Client): Client => ({
   ...client,
@@ -16,8 +18,8 @@ const normalizeClient = (client: Client): Client => ({
   last_name: client.last_name?.trim() ?? "",
   middle_name: client.middle_name?.trim() ?? "",
   gender: client.gender?.trim() ?? "",
-  hair_color: client.hair_color?.trim() ?? "",
-  eye_color: client.eye_color?.trim() ?? "",
+  hair_color: client.hair_color?.trim().toUpperCase() ?? "",
+  eye_color: client.eye_color?.trim().toUpperCase() ?? "",
   address: client.address?.trim() ?? "",
   postal_code: client.postal_code?.trim() ?? "",
   city: client.city?.trim() ?? "",
@@ -77,7 +79,10 @@ const resolveNotes = async (
   }
 
   if (!employeePassword) {
-    throw createFieldError("employee_password", "Employee password is required.");
+    throw createFieldError(
+      "employee_password",
+      "Employee password is required.",
+    );
   }
 
   const employee = await employeeService.findByPassword(
@@ -107,6 +112,8 @@ const normalizeSaveClientInput = (input: SaveClientInput) => ({
   notes_action: input.notes_action ?? "keep",
 });
 
+const normalizeColor = (color: string) => color?.trim() ?? "";
+
 export const clientService = {
   searchClients: async (
     firstName: string,
@@ -130,15 +137,106 @@ export const clientService = {
     return clientRepo.loadHairColors();
   },
 
+  loadAdminHairColors: async (): Promise<HairColor[]> => {
+    return clientRepo.loadAdminHairColors();
+  },
+
+  addHairColor: async (color: string): Promise<string> => {
+    const normalizedColor = normalizeColor(color).toUpperCase();
+
+    if (!normalizedColor) {
+      throw new Error("Hair color is required.");
+    }
+
+    const savedColor = await clientRepo.addHairColor(normalizedColor);
+
+    if (!savedColor) {
+      throw new Error("That hair color already exists.");
+    }
+
+    return savedColor;
+  },
+
+  deactivateHairColor: async (color: string): Promise<HairColor> => {
+    const deactivatedColor = await clientRepo.deactivateHairColor(
+      normalizeColor(color).toUpperCase(),
+    );
+
+    if (!deactivatedColor) {
+      throw new Error("That active hair color was not found.");
+    }
+
+    return deactivatedColor;
+  },
+
+  activateHairColor: async (color: string): Promise<HairColor> => {
+    const activatedColor = await clientRepo.activateHairColor(
+      normalizeColor(color).toUpperCase(),
+    );
+
+    if (!activatedColor) {
+      throw new Error("That inactive hair color was not found.");
+    }
+
+    return activatedColor;
+  },
+
   loadEyeColors: async () => {
     return clientRepo.loadEyeColors();
+  },
+
+  loadAdminEyeColors: async (): Promise<EyeColor[]> => {
+    return clientRepo.loadAdminEyeColors();
+  },
+
+  addEyeColor: async (color: string): Promise<string> => {
+    const normalizedColor = normalizeColor(color).toUpperCase();
+
+    if (!normalizedColor) {
+      throw new Error("Eye color is required.");
+    }
+
+    const savedColor = await clientRepo.addEyeColor(normalizedColor);
+
+    if (!savedColor) {
+      throw new Error("That eye color already exists.");
+    }
+
+    return savedColor;
+  },
+
+  deactivateEyeColor: async (color: string): Promise<EyeColor> => {
+    const deactivatedColor = await clientRepo.deactivateEyeColor(
+      normalizeColor(color).toUpperCase(),
+    );
+
+    if (!deactivatedColor) {
+      throw new Error("That active eye color was not found.");
+    }
+
+    return deactivatedColor;
+  },
+
+  activateEyeColor: async (color: string): Promise<EyeColor> => {
+    const activatedColor = await clientRepo.activateEyeColor(
+      normalizeColor(color).toUpperCase(),
+    );
+
+    if (!activatedColor) {
+      throw new Error("That inactive eye color was not found.");
+    }
+
+    return activatedColor;
   },
 
   loadIdTypes: async () => {
     return clientRepo.loadIdTypes();
   },
 
-  saveClientImage: async (fileName: string, base64: string): Promise<string> => {
+  saveClientImage: async (
+    fileName: string,
+    base64: string,
+  ): Promise<string> => {
     return imageStorage.saveClientImage(fileName, base64);
   },
 
@@ -234,8 +332,14 @@ export const clientService = {
         image_path: imagePath || preparedClient.image_path,
       };
 
-      const updatedClient = await clientRepo.update(preparedClientWithImage, client);
-      await clientRepo.deleteIds(preparedClientWithImage.client_number as number, client);
+      const updatedClient = await clientRepo.update(
+        preparedClientWithImage,
+        client,
+      );
+      await clientRepo.deleteIds(
+        preparedClientWithImage.client_number as number,
+        client,
+      );
       const insertedIds = await clientRepo.insertIds(
         preparedClientWithImage.client_number as number,
         normalizedInput.identifications,

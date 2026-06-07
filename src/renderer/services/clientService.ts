@@ -1,4 +1,6 @@
 import type { Client } from "../../shared/types/Client";
+import type { HairColor } from "../../shared/types/hairColor";
+import type { EyeColor } from "../../shared/types/eyeColor";
 import type {
   CitiesResponse,
   ClientNotesAction,
@@ -53,8 +55,8 @@ const normalizeSaveClientInput = (input: SaveClientInput): SaveClientInput => ({
     last_name: input.client.last_name?.trim() ?? "",
     middle_name: input.client.middle_name?.trim() ?? "",
     gender: input.client.gender?.trim() ?? "",
-    hair_color: input.client.hair_color?.trim() ?? "",
-    eye_color: input.client.eye_color?.trim() ?? "",
+    hair_color: input.client.hair_color?.trim().toUpperCase() ?? "",
+    eye_color: input.client.eye_color?.trim().toUpperCase() ?? "",
     address: input.client.address?.trim() ?? "",
     postal_code: input.client.postal_code?.trim() ?? "",
     city: input.client.city?.trim() ?? "",
@@ -124,6 +126,46 @@ export const clientService = {
     }
   },
 
+  loadAdminHairColors: async (): Promise<HairColor[]> => {
+    const api = getElectronApi()?.client;
+
+    if (!api) {
+      throw new Error("Hair color API is unavailable.");
+    }
+
+    return api.loadAdminHairColors();
+  },
+
+  addHairColor: async (color: string): Promise<string> => {
+    const api = getElectronApi()?.client;
+
+    if (!api) {
+      throw new Error("Hair color API is unavailable.");
+    }
+
+    return api.addHairColor(color.trim().toUpperCase());
+  },
+
+  deactivateHairColor: async (color: string): Promise<HairColor> => {
+    const api = getElectronApi()?.client;
+
+    if (!api) {
+      throw new Error("Hair color API is unavailable.");
+    }
+
+    return api.deactivateHairColor(color.trim().toUpperCase());
+  },
+
+  activateHairColor: async (color: string): Promise<HairColor> => {
+    const api = getElectronApi()?.client;
+
+    if (!api) {
+      throw new Error("Hair color API is unavailable.");
+    }
+
+    return api.activateHairColor(color.trim().toUpperCase());
+  },
+
   loadEyeColors: async (): Promise<string[]> => {
     const api = getElectronApi()?.client;
     if (!api) {
@@ -135,6 +177,46 @@ export const clientService = {
     } catch {
       return [];
     }
+  },
+
+  loadAdminEyeColors: async (): Promise<EyeColor[]> => {
+    const api = getElectronApi()?.client;
+
+    if (!api) {
+      throw new Error("Eye color API is unavailable.");
+    }
+
+    return api.loadAdminEyeColors();
+  },
+
+  addEyeColor: async (color: string): Promise<string> => {
+    const api = getElectronApi()?.client;
+
+    if (!api) {
+      throw new Error("Eye color API is unavailable.");
+    }
+
+    return api.addEyeColor(color.trim().toUpperCase());
+  },
+
+  deactivateEyeColor: async (color: string): Promise<EyeColor> => {
+    const api = getElectronApi()?.client;
+
+    if (!api) {
+      throw new Error("Eye color API is unavailable.");
+    }
+
+    return api.deactivateEyeColor(color.trim().toUpperCase());
+  },
+
+  activateEyeColor: async (color: string): Promise<EyeColor> => {
+    const api = getElectronApi()?.client;
+
+    if (!api) {
+      throw new Error("Eye color API is unavailable.");
+    }
+
+    return api.activateEyeColor(color.trim().toUpperCase());
   },
 
   loadIdTypes: async (): Promise<string[]> => {

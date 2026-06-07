@@ -1,11 +1,24 @@
 import type { Client } from "../types/Client.ts";
-import type { CitiesResponse, SaveClientInput } from "../types/clientPayload.ts";
+import type { HairColor } from "../types/hairColor.ts";
+import type { EyeColor } from "../types/eyeColor.ts";
+import type {
+  CitiesResponse,
+  SaveClientInput,
+} from "../types/clientPayload.ts";
 
 export type ElectronClientApi = {
   search: (firstName: string, lastName: string) => Promise<Client[]>;
   loadCities: () => Promise<CitiesResponse>;
   loadHairColors: () => Promise<string[]>;
+  loadAdminHairColors: () => Promise<HairColor[]>;
   loadEyeColors: () => Promise<string[]>;
+  loadAdminEyeColors: () => Promise<EyeColor[]>;
+  addHairColor: (color: string) => Promise<string>;
+  activateHairColor: (color: string) => Promise<HairColor>;
+  deactivateHairColor: (color: string) => Promise<HairColor>;
+  addEyeColor: (color: string) => Promise<string>;
+  activateEyeColor: (color: string) => Promise<EyeColor>;
+  deactivateEyeColor: (color: string) => Promise<EyeColor>;
   loadIdTypes: () => Promise<string[]>;
   create: (payload: SaveClientInput) => Promise<Client>;
   update: (payload: SaveClientInput) => Promise<Client>;

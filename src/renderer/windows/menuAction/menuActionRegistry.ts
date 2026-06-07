@@ -1,5 +1,7 @@
 import type { ComponentType } from "react";
 import EmployeeAdminWindow from "./admin/employee/EmployeeAdminWindow";
+import EyeColorAdminWindow from "./admin/eyeColor/EyeColorAdminWindow";
+import HairColorAdminWindow from "./admin/hairColor/HairColorAdminWindow";
 import HolidayAdminWindow from "./admin/holiday/HolidayAdminWindow";
 import LocationAdminWindow from "./admin/location/LocationAdminWindow";
 import ItemSearchWindow from "./item/ItemSearchWindow";
@@ -28,6 +30,8 @@ export const menuActionRegistry: Record<
   "report-interest": InterestReportWindow,
   "report-police-xml": PoliceXmlWindow,
   "admin-employee": EmployeeAdminWindow,
+  "admin-hair-color": HairColorAdminWindow,
+  "admin-eye-color": EyeColorAdminWindow,
   "admin-holiday": HolidayAdminWindow,
   "admin-location": LocationAdminWindow,
 };
