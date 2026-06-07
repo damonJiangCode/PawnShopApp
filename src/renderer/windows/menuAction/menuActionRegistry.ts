@@ -3,10 +3,6 @@ import EmployeeAdminWindow from "./admin/employee/EmployeeAdminWindow";
 import HolidayAdminWindow from "./admin/holiday/HolidayAdminWindow";
 import LocationAdminWindow from "./admin/location/LocationAdminWindow";
 import ItemSearchWindow from "./item/ItemSearchWindow";
-import LayawayAddWindow from "./layaway/LayawayAddWindow";
-import LayawayCancelWindow from "./layaway/LayawayCancelWindow";
-import LayawayEditWindow from "./layaway/LayawayEditWindow";
-import LayawaySearchWindow from "./layaway/LayawaySearchWindow";
 import BuybackReportWindow from "./report/BuybackReportWindow";
 import DailyReportWindow from "./report/DailyReportWindow";
 import InterestReportWindow from "./report/InterestReportWindow";
@@ -27,10 +23,6 @@ export const menuActionRegistry: Record<
   "ticket-expire": TicketExpireWindow,
   "ticket-stolen": TicketStolenWindow,
   "item-search": ItemSearchWindow,
-  "layaway-search": LayawaySearchWindow,
-  "layaway-add": LayawayAddWindow,
-  "layaway-edit": LayawayEditWindow,
-  "layaway-cancel": LayawayCancelWindow,
   "report-daily": DailyReportWindow,
   "report-buyback": BuybackReportWindow,
   "report-interest": InterestReportWindow,

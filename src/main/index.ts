@@ -112,47 +112,6 @@ const createAppMenu = () => {
       ],
     },
     {
-      label: "Layaway",
-      submenu: [
-        {
-          label: "Search",
-          click: () =>
-            openMenuActionWindow({
-              id: "layaway-search",
-              title: "Search Layaway",
-              description: "Search layaway records by customer name.",
-            }),
-        },
-        {
-          label: "Add",
-          click: () =>
-            openMenuActionWindow({
-              id: "layaway-add",
-              title: "Add Layaway",
-              description: "Create a new layaway record.",
-            }),
-        },
-        {
-          label: "Edit",
-          click: () =>
-            openMenuActionWindow({
-              id: "layaway-edit",
-              title: "Edit Layaway",
-              description: "Update layaway item or payment information.",
-            }),
-        },
-        {
-          label: "Cancel",
-          click: () =>
-            openMenuActionWindow({
-              id: "layaway-cancel",
-              title: "Cancel Layaway",
-              description: "Cancel an existing layaway record.",
-            }),
-        },
-      ],
-    },
-    {
       label: "Report",
       submenu: [
         {
