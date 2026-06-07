@@ -1,5 +1,8 @@
 import type { Ticket } from "../../shared/types/Ticket.ts";
-import type { HolidayDate } from "../../shared/types/holidayDate.ts";
+import type {
+  HolidayDate,
+  SaveHolidayInput,
+} from "../../shared/types/holidayDate.ts";
 import { calculation } from "../../shared/utils/calculation.ts";
 import type {
   ConvertTicketInput,
@@ -103,6 +106,25 @@ const normalizeExtendTicketsInput = (input: ExtendTicketsInput) => ({
     ),
 });
 
+const isValidDateKey = (value: string) => {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+
+  if (!match) {
+    return false;
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(Date.UTC(year, month - 1, day));
+
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
+  );
+};
+
 export const ticketService = {
   loadTickets: async (clientNumber: number): Promise<Ticket[]> => {
     if (!clientNumber) {
@@ -114,6 +136,45 @@ export const ticketService = {
 
   loadHolidayDates: async (): Promise<HolidayDate[]> => {
     return ticketRepo.loadHolidayDates();
+  },
+
+  addHolidayDate: async (input: SaveHolidayInput): Promise<HolidayDate> => {
+    const normalizedInput = {
+      holiday_date: input?.holiday_date?.trim() ?? "",
+      name: input?.name?.trim() ?? "",
+    };
+
+    if (!isValidDateKey(normalizedInput.holiday_date)) {
+      throw new Error("Enter a valid holiday date.");
+    }
+
+    if (!normalizedInput.name) {
+      throw new Error("Holiday name is required.");
+    }
+
+    const holiday = await ticketRepo.addHolidayDate(normalizedInput);
+
+    if (!holiday) {
+      throw new Error("That holiday date has already been added.");
+    }
+
+    return holiday;
+  },
+
+  deleteHolidayDate: async (holidayDate: string): Promise<HolidayDate> => {
+    const normalizedDate = holidayDate?.trim() ?? "";
+
+    if (!isValidDateKey(normalizedDate)) {
+      throw new Error("Enter a valid holiday date.");
+    }
+
+    const holiday = await ticketRepo.deleteHolidayDate(normalizedDate);
+
+    if (!holiday) {
+      throw new Error("That holiday date was not found.");
+    }
+
+    return holiday;
   },
 
   loadLocations: async (): Promise<string[]> => {

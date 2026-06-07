@@ -17,6 +17,8 @@ const CHANNELS = {
   GET_CLIENT_IMAGE: "get-client-image",
   GET_TICKETS: "get-tickets",
   GET_HOLIDAY_DATES: "get-holiday-dates",
+  ADD_HOLIDAY_DATE: "add-holiday-date",
+  DELETE_HOLIDAY_DATE: "delete-holiday-date",
   SEARCH_TICKET: "search-ticket",
   SEARCH_PAYMENT_TICKET: "search-payment-ticket",
   GET_ITEMS: "get-items",
@@ -65,6 +67,9 @@ const clientApi = {
 const ticketApi = {
   loadByClient: (clientNumber) => invoke(CHANNELS.GET_TICKETS, clientNumber),
   loadHolidayDates: () => invoke(CHANNELS.GET_HOLIDAY_DATES),
+  addHolidayDate: (input) => invoke(CHANNELS.ADD_HOLIDAY_DATE, input),
+  deleteHolidayDate: (holidayDate) =>
+    invoke(CHANNELS.DELETE_HOLIDAY_DATE, holidayDate),
   loadLocations: () => invoke(CHANNELS.GET_LOCATIONS),
   searchTicket: (ticketNumber) => invoke(CHANNELS.SEARCH_TICKET, ticketNumber),
   searchPaymentTicket: (ticketNumber) =>

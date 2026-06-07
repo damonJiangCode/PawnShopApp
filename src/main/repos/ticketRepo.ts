@@ -1,5 +1,8 @@
 import { connect } from "../../db/connection.ts";
-import type { HolidayDate } from "../../shared/types/holidayDate.ts";
+import type {
+  HolidayDate,
+  SaveHolidayInput,
+} from "../../shared/types/holidayDate.ts";
 import type { TransferTicketPreview } from "../../shared/types/ticketPayload.ts";
 import type { Ticket } from "../../shared/types/Ticket.ts";
 
@@ -200,6 +203,60 @@ export const ticketRepo = {
         holiday_date: String(row.holiday_date),
         name: String(row.name),
       }));
+    } finally {
+      client.release();
+    }
+  },
+
+  addHolidayDate: async (
+    input: SaveHolidayInput,
+  ): Promise<HolidayDate | null> => {
+    const client = await connect();
+    const query = `
+      INSERT INTO holiday_date (holiday_date, name)
+      VALUES ($1, $2)
+      ON CONFLICT (holiday_date) DO NOTHING
+      RETURNING holiday_date::text AS holiday_date, name
+    `;
+
+    try {
+      const result = await client.query(query, [
+        input.holiday_date,
+        input.name,
+      ]);
+      const row = result.rows[0];
+
+      return row
+        ? {
+            holiday_date: String(row.holiday_date),
+            name: String(row.name),
+          }
+        : null;
+    } finally {
+      client.release();
+    }
+  },
+
+  deleteHolidayDate: async (
+    holidayDate: string,
+  ): Promise<HolidayDate | null> => {
+    const client = await connect();
+    const query = `
+      DELETE FROM holiday_date
+      WHERE holiday_date = $1
+      RETURNING holiday_date::text AS holiday_date, name
+    `;
+
+    try {
+      const result = await client.query(query, [holidayDate]);
+      const row = result.rows[0];
+
+      return row
+        ? {
+            holiday_date: String(row.holiday_date),
+            name: String(row.name),
+          }
+        : null;
     } finally {
       client.release();
     }

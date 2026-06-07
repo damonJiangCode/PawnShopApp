@@ -14,6 +14,8 @@ const CHANNELS = {
   GET_CLIENT_IMAGE: "get-client-image",
   GET_TICKETS: "get-tickets",
   GET_HOLIDAY_DATES: "get-holiday-dates",
+  ADD_HOLIDAY_DATE: "add-holiday-date",
+  DELETE_HOLIDAY_DATE: "delete-holiday-date",
   SEARCH_TICKET: "search-ticket",
   SEARCH_PAYMENT_TICKET: "search-payment-ticket",
   GET_ITEMS: "get-items",

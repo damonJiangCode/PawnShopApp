@@ -1,5 +1,5 @@
 import type { Ticket } from "../types/Ticket.ts";
-import type { HolidayDate } from "../types/holidayDate.ts";
+import type { HolidayDate, SaveHolidayInput } from "../types/holidayDate.ts";
 import type {
   ConvertTicketInput,
   ExtendTicketsInput,
@@ -18,6 +18,8 @@ import type {
 export type ElectronTicketApi = {
   loadByClient: (clientNumber: number) => Promise<Ticket[]>;
   loadHolidayDates: () => Promise<HolidayDate[]>;
+  addHolidayDate: (input: SaveHolidayInput) => Promise<HolidayDate>;
+  deleteHolidayDate: (holidayDate: string) => Promise<HolidayDate>;
   loadLocations: () => Promise<string[]>;
   searchTicket: (ticketNumber: number) => Promise<TicketSearchResult | null>;
   searchPaymentTicket: (

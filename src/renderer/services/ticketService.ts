@@ -1,5 +1,8 @@
 import type { Ticket } from "../../shared/types/Ticket";
-import type { HolidayDate } from "../../shared/types/holidayDate";
+import type {
+  HolidayDate,
+  SaveHolidayInput,
+} from "../../shared/types/holidayDate";
 import type {
   ConvertTicketInput,
   ExtendTicketsInput,
@@ -249,6 +252,29 @@ export const ticketService = {
     } catch {
       return [];
     }
+  },
+
+  addHolidayDate: async (input: SaveHolidayInput): Promise<HolidayDate> => {
+    const api = getElectronApi()?.ticket;
+
+    if (!api) {
+      throw new Error("Holiday API is unavailable.");
+    }
+
+    return api.addHolidayDate({
+      holiday_date: input.holiday_date.trim(),
+      name: input.name.trim(),
+    });
+  },
+
+  deleteHolidayDate: async (holidayDate: string): Promise<HolidayDate> => {
+    const api = getElectronApi()?.ticket;
+
+    if (!api) {
+      throw new Error("Holiday API is unavailable.");
+    }
+
+    return api.deleteHolidayDate(holidayDate.trim());
   },
 
   loadLocations: async (): Promise<string[]> => {

@@ -10,6 +10,7 @@ import type {
   TransferTicketInput,
   UpdateTicketInput,
 } from "../../shared/types/ticketPayload.ts";
+import type { SaveHolidayInput } from "../../shared/types/holidayDate.ts";
 import { ticketService } from "../services/ticketService.ts";
 import { CHANNELS } from "./channels.ts";
 
@@ -21,6 +22,16 @@ export const registerTicketHandlers = () => {
   );
   ipcMain.handle(CHANNELS.GET_HOLIDAY_DATES, async () =>
     ticketService.loadHolidayDates(),
+  );
+  ipcMain.handle(
+    CHANNELS.ADD_HOLIDAY_DATE,
+    async (_event: IpcMainInvokeEvent, input: SaveHolidayInput) =>
+      ticketService.addHolidayDate(input),
+  );
+  ipcMain.handle(
+    CHANNELS.DELETE_HOLIDAY_DATE,
+    async (_event: IpcMainInvokeEvent, holidayDate: string) =>
+      ticketService.deleteHolidayDate(holidayDate),
   );
   ipcMain.handle(
     CHANNELS.GET_TICKETS,
