@@ -258,6 +258,10 @@ export const usePaymentWindowController = () => {
   const handleTicketSearch = async () => {
     const ticketNumber = Number(ticketSearchValue);
 
+    setTicketSearchDialogOpen(false);
+    setTicketSearchPreview(null);
+    setTicketSearchClientImage(null);
+
     if (!Number.isFinite(ticketNumber) || ticketNumber <= 0) {
       setStatusSeverity("warning");
       setStatusMessage("Enter a valid ticket number.");
@@ -277,6 +281,11 @@ export const usePaymentWindowController = () => {
       if (!preview) {
         setStatusSeverity("warning");
         setStatusMessage(`Ticket #${ticketNumber} was not found.`);
+        return;
+      }
+
+      if (preview.ticket.status !== "pawned") {
+        window.alert(`Ticket #${ticketNumber} is not pawned.`);
         return;
       }
 
@@ -329,12 +338,14 @@ export const usePaymentWindowController = () => {
     }
 
     if (searchedRow.status !== "pawned") {
+      closeTicketSearchDialog();
       setStatusSeverity("warning");
       setStatusMessage(`Ticket #${searchedRow.ticketNumber} is not pawned.`);
       return;
     }
 
     if (ticketSearchPreview.ticket.is_stolen) {
+      closeTicketSearchDialog();
       setStatusSeverity("warning");
       setStatusMessage(
         `Ticket #${searchedRow.ticketNumber} is marked stolen and cannot be paid here.`,
