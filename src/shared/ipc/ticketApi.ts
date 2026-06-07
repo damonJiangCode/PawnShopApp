@@ -1,5 +1,6 @@
 import type { Ticket } from "../types/Ticket.ts";
 import type { HolidayDate, SaveHolidayInput } from "../types/holidayDate.ts";
+import type { Location, SaveLocationInput } from "../types/location.ts";
 import type {
   ConvertTicketInput,
   ExtendTicketsInput,
@@ -21,6 +22,9 @@ export type ElectronTicketApi = {
   addHolidayDate: (input: SaveHolidayInput) => Promise<HolidayDate>;
   deleteHolidayDate: (holidayDate: string) => Promise<HolidayDate>;
   loadLocations: () => Promise<string[]>;
+  loadAdminLocations: () => Promise<Location[]>;
+  addLocation: (input: SaveLocationInput) => Promise<Location>;
+  deactivateLocation: (location: string) => Promise<Location>;
   searchTicket: (ticketNumber: number) => Promise<TicketSearchResult | null>;
   searchPaymentTicket: (
     ticketNumber: number,

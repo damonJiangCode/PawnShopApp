@@ -119,7 +119,11 @@ const TicketConvertDialog: React.FC<TicketConvertDialogProps> = ({
 
     setDescription(ticket.description || "");
     setLocation(
-      targetStatus === "sold" ? DEFAULT_SELL_LOCATION : ticket.location || "",
+      targetStatus === "sold"
+        ? locationList.includes(DEFAULT_SELL_LOCATION)
+          ? DEFAULT_SELL_LOCATION
+          : ""
+        : ticket.location || "",
     );
     setAmount(ticket.amount ?? "");
     setOneTimeFee(targetStatus === "pawned" ? (ticket.onetime_fee ?? "") : 0);
@@ -131,7 +135,7 @@ const TicketConvertDialog: React.FC<TicketConvertDialogProps> = ({
     setEmployeePasswordError("");
     setSubmitError("");
     setSaving(false);
-  }, [open, targetStatus, ticket]);
+  }, [locationList, open, targetStatus, ticket]);
 
   useEffect(() => {
     const nextAmount = typeof amount === "number" ? amount : 0;

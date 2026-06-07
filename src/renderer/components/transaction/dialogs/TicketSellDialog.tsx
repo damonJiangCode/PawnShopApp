@@ -103,7 +103,9 @@ const TicketSellDialog: React.FC<TicketSellDialogProps> = (props) => {
     }
 
     setDescription("");
-    setLocation(DEFAULT_SELL_LOCATION);
+    setLocation(
+      locationList.includes(DEFAULT_SELL_LOCATION) ? DEFAULT_SELL_LOCATION : "",
+    );
     setAmount("");
     setEmployeePassword("");
     setDescriptionError("");
@@ -112,7 +114,7 @@ const TicketSellDialog: React.FC<TicketSellDialogProps> = (props) => {
     setEmployeePasswordError("");
     setSubmitError("");
     setSaving(false);
-  }, [open]);
+  }, [locationList, open]);
 
   const handleSave = async () => {
     const trimmedDescription = description.trim();

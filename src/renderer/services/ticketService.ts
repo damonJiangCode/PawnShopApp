@@ -3,6 +3,7 @@ import type {
   HolidayDate,
   SaveHolidayInput,
 } from "../../shared/types/holidayDate";
+import type { Location, SaveLocationInput } from "../../shared/types/location";
 import type {
   ConvertTicketInput,
   ExtendTicketsInput,
@@ -288,6 +289,39 @@ export const ticketService = {
     } catch {
       return [];
     }
+  },
+
+  loadAdminLocations: async (): Promise<Location[]> => {
+    const api = getElectronApi()?.ticket;
+
+    if (!api) {
+      throw new Error("Location API is unavailable.");
+    }
+
+    return api.loadAdminLocations();
+  },
+
+  addLocation: async (input: SaveLocationInput): Promise<Location> => {
+    const api = getElectronApi()?.ticket;
+
+    if (!api) {
+      throw new Error("Location API is unavailable.");
+    }
+
+    return api.addLocation({
+      location: input.location.trim().toUpperCase(),
+      description: input.description.trim(),
+    });
+  },
+
+  deactivateLocation: async (location: string): Promise<Location> => {
+    const api = getElectronApi()?.ticket;
+
+    if (!api) {
+      throw new Error("Location API is unavailable.");
+    }
+
+    return api.deactivateLocation(location.trim().toUpperCase());
   },
 
   searchPaymentTicket: async (

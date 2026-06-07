@@ -1,8 +1,16 @@
 export const createLocationTable = `
   CREATE TABLE IF NOT EXISTS location (
     id SERIAL PRIMARY KEY,
-    location TEXT NOT NULL UNIQUE
+    location TEXT NOT NULL UNIQUE,
+    description TEXT NOT NULL DEFAULT '',
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
   );
+
+  ALTER TABLE location
+    ADD COLUMN IF NOT EXISTS description TEXT NOT NULL DEFAULT '';
+
+  ALTER TABLE location
+    ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE;
 `;
 
 export const insertLocation = async (client: any) => {

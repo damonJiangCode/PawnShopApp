@@ -11,6 +11,7 @@ import type {
   UpdateTicketInput,
 } from "../../shared/types/ticketPayload.ts";
 import type { SaveHolidayInput } from "../../shared/types/holidayDate.ts";
+import type { SaveLocationInput } from "../../shared/types/location.ts";
 import { ticketService } from "../services/ticketService.ts";
 import { CHANNELS } from "./channels.ts";
 
@@ -19,6 +20,19 @@ const { ipcMain } = require("electron/main") as typeof import("electron");
 export const registerTicketHandlers = () => {
   ipcMain.handle(CHANNELS.GET_LOCATIONS, async () =>
     ticketService.loadLocations(),
+  );
+  ipcMain.handle(CHANNELS.GET_ADMIN_LOCATIONS, async () =>
+    ticketService.loadAdminLocations(),
+  );
+  ipcMain.handle(
+    CHANNELS.ADD_LOCATION,
+    async (_event: IpcMainInvokeEvent, input: SaveLocationInput) =>
+      ticketService.addLocation(input),
+  );
+  ipcMain.handle(
+    CHANNELS.DEACTIVATE_LOCATION,
+    async (_event: IpcMainInvokeEvent, location: string) =>
+      ticketService.deactivateLocation(location),
   );
   ipcMain.handle(CHANNELS.GET_HOLIDAY_DATES, async () =>
     ticketService.loadHolidayDates(),

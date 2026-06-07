@@ -3,6 +3,10 @@ import type {
   HolidayDate,
   SaveHolidayInput,
 } from "../../shared/types/holidayDate.ts";
+import type {
+  Location,
+  SaveLocationInput,
+} from "../../shared/types/location.ts";
 import { calculation } from "../../shared/utils/calculation.ts";
 import type {
   ConvertTicketInput,
@@ -179,6 +183,51 @@ export const ticketService = {
 
   loadLocations: async (): Promise<string[]> => {
     return ticketRepo.loadLocations();
+  },
+
+  loadAdminLocations: async (): Promise<Location[]> => {
+    return ticketRepo.loadAdminLocations();
+  },
+
+  addLocation: async (input: SaveLocationInput): Promise<Location> => {
+    const normalizedInput = {
+      location: input?.location?.trim().toUpperCase() ?? "",
+      description: input?.description?.trim() ?? "",
+    };
+
+    if (!/^[A-Z]{2}\d{2}$/.test(normalizedInput.location)) {
+      throw new Error(
+        "Location code must contain two uppercase letters followed by two digits.",
+      );
+    }
+
+    if (normalizedInput.description.length > 1000) {
+      throw new Error("Location description cannot exceed 1000 characters.");
+    }
+
+    const location = await ticketRepo.addLocation(normalizedInput);
+
+    if (!location) {
+      throw new Error("That location code already exists.");
+    }
+
+    return location;
+  },
+
+  deactivateLocation: async (locationCode: string): Promise<Location> => {
+    const normalizedCode = locationCode?.trim().toUpperCase() ?? "";
+
+    if (!normalizedCode) {
+      throw new Error("Enter a valid location code.");
+    }
+
+    const location = await ticketRepo.deactivateLocation(normalizedCode);
+
+    if (!location) {
+      throw new Error("That active location was not found.");
+    }
+
+    return location;
   },
 
   searchTicket: async (

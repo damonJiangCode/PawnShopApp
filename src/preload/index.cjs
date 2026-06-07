@@ -7,6 +7,9 @@ const CHANNELS = {
   GET_EYE_COLORS: "get-eye-colors",
   GET_ID_TYPES: "get-id-types",
   GET_LOCATIONS: "get-locations",
+  GET_ADMIN_LOCATIONS: "get-admin-locations",
+  ADD_LOCATION: "add-location",
+  DEACTIVATE_LOCATION: "deactivate-location",
   ADD_CLIENT: "add-client",
   UPDATE_CLIENT: "update-client",
   DELETE_CLIENT: "delete-client",
@@ -71,6 +74,10 @@ const ticketApi = {
   deleteHolidayDate: (holidayDate) =>
     invoke(CHANNELS.DELETE_HOLIDAY_DATE, holidayDate),
   loadLocations: () => invoke(CHANNELS.GET_LOCATIONS),
+  loadAdminLocations: () => invoke(CHANNELS.GET_ADMIN_LOCATIONS),
+  addLocation: (input) => invoke(CHANNELS.ADD_LOCATION, input),
+  deactivateLocation: (location) =>
+    invoke(CHANNELS.DEACTIVATE_LOCATION, location),
   searchTicket: (ticketNumber) => invoke(CHANNELS.SEARCH_TICKET, ticketNumber),
   searchPaymentTicket: (ticketNumber) =>
     invoke(CHANNELS.SEARCH_PAYMENT_TICKET, ticketNumber),
