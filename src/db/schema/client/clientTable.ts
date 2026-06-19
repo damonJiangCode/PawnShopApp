@@ -6,8 +6,8 @@ export const createClientTable = `
     middle_name TEXT,
     date_of_birth DATE,
     gender TEXT,
-    hair_color TEXT,
-    eye_color TEXT,
+    hair_color TEXT NOT NULL REFERENCES hair_color(color),
+    eye_color TEXT NOT NULL REFERENCES eye_color(color),
     height_cm NUMERIC(5,1),
     weight_kg NUMERIC(5,1),
     address TEXT,
@@ -20,10 +20,10 @@ export const createClientTable = `
     notes TEXT,
     image_path TEXT,
     pickup_self_only BOOLEAN NOT NULL DEFAULT FALSE,
-    redeem_count INTEGER,      
-    sold_count INTEGER,
-    expire_count INTEGER,      
-    overdue_count INTEGER,    
+    redeem_count INTEGER NOT NULL DEFAULT 0 CHECK (redeem_count >= 0),
+    sold_count INTEGER NOT NULL DEFAULT 0 CHECK (sold_count >= 0),
+    expire_count INTEGER NOT NULL DEFAULT 0 CHECK (expire_count >= 0),
+    overdue_count INTEGER NOT NULL DEFAULT 0 CHECK (overdue_count >= 0),
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
   );
 `;

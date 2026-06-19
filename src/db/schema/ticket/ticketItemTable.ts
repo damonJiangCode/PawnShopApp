@@ -10,9 +10,6 @@ export const createTicketItemTable = `
 export const createTicketItemIndexes = `
   CREATE INDEX IF NOT EXISTS idx_ticket_item_item_number
   ON ticket_item(item_number);
-
-  CREATE INDEX IF NOT EXISTS idx_ticket_item_ticket_number
-  ON ticket_item(ticket_number);
 `;
 
 export const createItemWithStatusView = `
