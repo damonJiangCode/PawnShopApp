@@ -11,6 +11,10 @@ type SearchParams = {
   lastName: string;
 };
 
+type BirthdaySearchParams = {
+  dateOfBirth: string;
+};
+
 type ItemLoadMode = "repawn" | "load";
 
 type TicketSearchSelectedEvent = {
@@ -94,6 +98,7 @@ export const useMainLayoutController = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const [searchFirstName, setSearchFirstName] = useState("");
   const [searchLastName, setSearchLastName] = useState("");
+  const [searchDateOfBirth, setSearchDateOfBirth] = useState("");
   const [searchRequestKey, setSearchRequestKey] = useState(0);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [forcedClient, setForcedClient] = useState<Client | null>(null);
@@ -246,6 +251,17 @@ export const useMainLayoutController = () => {
     setForcedClient(null);
     setSearchFirstName(firstName);
     setSearchLastName(lastName);
+    setSearchDateOfBirth("");
+    setCurrentTab(0);
+    setSearchRequestKey((prev) => prev + 1);
+  };
+
+  const handleBirthdaySearch = ({ dateOfBirth }: BirthdaySearchParams) => {
+    setForcedClient(null);
+    setSearchFirstName("");
+    setSearchLastName("");
+    setSearchDateOfBirth(dateOfBirth);
+    setCurrentTab(0);
     setSearchRequestKey((prev) => prev + 1);
   };
 
@@ -253,6 +269,7 @@ export const useMainLayoutController = () => {
     setForcedClient(null);
     setSearchFirstName("");
     setSearchLastName("");
+    setSearchDateOfBirth("");
     setSearchRequestKey((prev) => prev + 1);
     setSelectedClient(null);
     setSelectedTransactionTicket(null);
@@ -339,6 +356,7 @@ export const useMainLayoutController = () => {
       currentTab,
       searchFirstName,
       searchLastName,
+      searchDateOfBirth,
       searchRequestKey,
       selectedClient,
       forcedClient,
@@ -355,6 +373,7 @@ export const useMainLayoutController = () => {
       setSelectedClient,
       setSelectedTransactionTicket,
       handleSearch,
+      handleBirthdaySearch,
       handleClear,
       handlePayment,
       handleClientSoldTicket,

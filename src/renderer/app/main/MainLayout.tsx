@@ -36,6 +36,7 @@ const MainLayout: React.FC = () => {
     currentTab,
     searchFirstName,
     searchLastName,
+    searchDateOfBirth,
     searchRequestKey,
     selectedClient,
     forcedClient,
@@ -52,6 +53,7 @@ const MainLayout: React.FC = () => {
     <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       <TopBar
         onSearch={actions.handleSearch}
+        onBirthdaySearch={actions.handleBirthdaySearch}
         onClear={actions.handleClear}
         onPayment={actions.handlePayment}
       />
@@ -138,6 +140,7 @@ const MainLayout: React.FC = () => {
             <ClientPage
               searchFirstName={searchFirstName}
               searchLastName={searchLastName}
+              searchDateOfBirth={searchDateOfBirth}
               searchRequestKey={searchRequestKey}
               forcedClient={forcedClient}
               activeClient={selectedClient}

@@ -5,6 +5,7 @@ import { clientService } from "../services/clientService";
 export const useClientSearch = (
   firstName: string,
   lastName: string,
+  dateOfBirth = "",
   searchRequestKey = 0,
 ) => {
   const [results, setResults] = useState<Client[]>([]);
@@ -16,8 +17,9 @@ export const useClientSearch = (
   useEffect(() => {
     const normalizedFirst = firstName.trim().toLowerCase();
     const normalizedLast = lastName.trim().toLowerCase();
-    const queryKey = `${normalizedFirst}|${normalizedLast}`;
-    const hasQuery = Boolean(normalizedFirst || normalizedLast);
+    const normalizedDob = dateOfBirth.trim();
+    const queryKey = `${normalizedFirst}|${normalizedLast}|${normalizedDob}`;
+    const hasQuery = Boolean(normalizedFirst || normalizedLast || normalizedDob);
 
     if (!hasQuery) {
       setResults([]);
@@ -35,10 +37,9 @@ export const useClientSearch = (
       setHasCompletedSearch(false);
       setLoading(true);
       try {
-        const data = await clientService.searchClients(
-          normalizedFirst,
-          normalizedLast,
-        );
+        const data = normalizedDob
+          ? await clientService.searchClientsByDob(normalizedDob)
+          : await clientService.searchClients(normalizedFirst, normalizedLast);
         if (latestRequestIdRef.current !== requestId) return;
         setResults(data);
         setCompletedQueryKey(queryKey);
@@ -49,7 +50,7 @@ export const useClientSearch = (
       }
     };
     run();
-  }, [firstName, lastName, searchRequestKey]);
+  }, [firstName, lastName, dateOfBirth, searchRequestKey]);
 
   return { results, loading, hasCompletedSearch, completedQueryKey };
 };

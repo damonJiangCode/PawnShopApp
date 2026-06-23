@@ -130,6 +130,43 @@ export const clientRepo = {
     }
   },
 
+  searchByDob: async (
+    dateOfBirth: string,
+    dbClient?: DbClient,
+  ): Promise<Client[]> => {
+    const client = await getDbClient(dbClient);
+    const query = `
+      SELECT
+        c.*,
+        COALESCE(ci.identifications, '[]') AS identifications
+      FROM client c
+      LEFT JOIN LATERAL (
+        SELECT json_agg(
+          jsonb_build_object(
+            'id', client_id.id,
+            'id_type', client_id.id_type,
+            'id_value', client_id.id_value,
+            'updated_at', client_id.updated_at
+          )
+          ORDER BY client_id.id
+        ) AS identifications
+        FROM client_id
+        WHERE client_id.client_number = c.client_number
+      ) ci ON TRUE
+      WHERE c.date_of_birth = $1::date
+      ORDER BY c.last_name, c.first_name, c.client_number
+    `;
+
+    try {
+      const result = await client.query(query, [dateOfBirth]);
+      return result.rows.map(mapRowToClient);
+    } finally {
+      if (!dbClient) {
+        client.release();
+      }
+    }
+  },
+
   create: async (
     clientData: Client,
     dbClient?: DbClient,

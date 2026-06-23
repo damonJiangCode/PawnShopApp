@@ -100,6 +100,25 @@ export const clientService = {
     }
   },
 
+  searchClientsByDob: async (dateOfBirth: string): Promise<Client[]> => {
+    const normalizedDob = normalizeSearchInput(dateOfBirth);
+
+    if (!normalizedDob) {
+      return [];
+    }
+
+    const api = getElectronApi()?.client;
+    if (!api) {
+      return [];
+    }
+
+    try {
+      return await api.searchByDob(normalizedDob);
+    } catch {
+      return [];
+    }
+  },
+
   loadCities: async (): Promise<CitiesResponse> => {
     const api = getElectronApi()?.client;
     if (!api) {

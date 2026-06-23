@@ -129,6 +129,16 @@ export const clientService = {
     return clientRepo.searchByName(safeFirst, safeLast);
   },
 
+  searchClientsByDob: async (dateOfBirth: string): Promise<Client[]> => {
+    const safeDob = dateOfBirth?.trim() ?? "";
+
+    if (!safeDob) {
+      return [];
+    }
+
+    return clientRepo.searchByDob(safeDob);
+  },
+
   loadCities: async () => {
     return clientRepo.loadCities();
   },

@@ -10,6 +10,7 @@ import { useClientPageController } from "./controllers/useClientPageController";
 interface ClientPageProps {
   searchFirstName: string;
   searchLastName: string;
+  searchDateOfBirth?: string;
   searchRequestKey?: number;
   forcedClient?: Client | null;
   activeClient?: Client | null;
@@ -19,6 +20,7 @@ interface ClientPageProps {
 const ClientPage: React.FC<ClientPageProps> = ({
   searchFirstName,
   searchLastName,
+  searchDateOfBirth = "",
   searchRequestKey = 0,
   forcedClient,
   activeClient,
@@ -27,6 +29,7 @@ const ClientPage: React.FC<ClientPageProps> = ({
   const { state, actions } = useClientPageController({
     searchFirstName,
     searchLastName,
+    searchDateOfBirth,
     searchRequestKey,
     forcedClient,
     activeClient,

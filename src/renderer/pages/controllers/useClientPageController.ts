@@ -3,10 +3,12 @@ import type { ClientNotesAction } from "../../../shared/types/clientPayload";
 import type { Client, ID } from "../../../shared/types/Client";
 import { useClientSearch } from "../../hooks/useClientSearch";
 import { clientService } from "../../services/clientService";
+import { formatIsoDate } from "../../utils/formatters";
 
 interface UseClientPageControllerParams {
   searchFirstName: string;
   searchLastName: string;
+  searchDateOfBirth?: string;
   searchRequestKey?: number;
   forcedClient?: Client | null;
   activeClient?: Client | null;
@@ -17,20 +19,24 @@ const matchesSearch = (
   client: Client,
   normalizedFirst: string,
   normalizedLast: string,
+  normalizedDob: string,
 ) => {
   const clientFirst = client.first_name?.trim().toLowerCase() ?? "";
   const clientLast = client.last_name?.trim().toLowerCase() ?? "";
+  const clientDob = formatIsoDate(client.date_of_birth);
 
   const firstMatches =
     !normalizedFirst || clientFirst.startsWith(normalizedFirst);
   const lastMatches = !normalizedLast || clientLast.startsWith(normalizedLast);
+  const dobMatches = !normalizedDob || clientDob === normalizedDob;
 
-  return firstMatches && lastMatches;
+  return firstMatches && lastMatches && dobMatches;
 };
 
 export const useClientPageController = ({
   searchFirstName,
   searchLastName,
+  searchDateOfBirth = "",
   searchRequestKey = 0,
   forcedClient,
   activeClient,
@@ -40,7 +46,12 @@ export const useClientPageController = ({
     forcedClient ?? activeClient ?? null,
   );
   const { results, loading, hasCompletedSearch, completedQueryKey } =
-    useClientSearch(searchFirstName, searchLastName, searchRequestKey);
+    useClientSearch(
+      searchFirstName,
+      searchLastName,
+      searchDateOfBirth,
+      searchRequestKey,
+    );
   const [displayResults, setDisplayResults] = useState<Client[]>([]);
   const [clientOverrides, setClientOverrides] = useState<
     Record<number, Client>
@@ -68,13 +79,20 @@ export const useClientPageController = ({
 
   useEffect(() => {
     setCreatedClient(null);
-  }, [searchFirstName, searchLastName, searchRequestKey, forcedClient]);
+  }, [
+    searchFirstName,
+    searchLastName,
+    searchDateOfBirth,
+    searchRequestKey,
+    forcedClient,
+  ]);
 
   useEffect(() => {
     const normalizedFirst = searchFirstName.trim().toLowerCase();
     const normalizedLast = searchLastName.trim().toLowerCase();
-    const queryKey = `${normalizedFirst}|${normalizedLast}`;
-    const hasQuery = Boolean(normalizedFirst || normalizedLast);
+    const normalizedDob = searchDateOfBirth.trim();
+    const queryKey = `${normalizedFirst}|${normalizedLast}|${normalizedDob}`;
+    const hasQuery = Boolean(normalizedFirst || normalizedLast || normalizedDob);
     const forcedClientNumber = forcedClient?.client_number;
 
     if (createdClient?.client_number) {
@@ -141,7 +159,12 @@ export const useClientPageController = ({
             return false;
           }
 
-          return matchesSearch(client, normalizedFirst, normalizedLast);
+          return matchesSearch(
+            client,
+            normalizedFirst,
+            normalizedLast,
+            normalizedDob,
+          );
         })
       : [];
     const combinedResults = [...overrideResults, ...mergedResults];
@@ -219,6 +242,7 @@ export const useClientPageController = ({
     deletedClientNumbers,
     searchFirstName,
     searchLastName,
+    searchDateOfBirth,
     loading,
     hasCompletedSearch,
     completedQueryKey,

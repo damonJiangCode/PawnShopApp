@@ -8,6 +8,7 @@ import type {
 
 export type ElectronClientApi = {
   search: (firstName: string, lastName: string) => Promise<Client[]>;
+  searchByDob: (dateOfBirth: string) => Promise<Client[]>;
   loadCities: () => Promise<CitiesResponse>;
   loadHairColors: () => Promise<string[]>;
   loadAdminHairColors: () => Promise<HairColor[]>;

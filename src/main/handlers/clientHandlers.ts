@@ -12,6 +12,12 @@ export const registerClientHandlers = () => {
       return clientService.searchClients(firstName, lastName);
     },
   );
+  ipcMain.handle(
+    CHANNELS.SEARCH_CLIENTS_BY_DOB,
+    async (_event: IpcMainInvokeEvent, dateOfBirth: string) => {
+      return clientService.searchClientsByDob(dateOfBirth);
+    },
+  );
 
   ipcMain.handle(CHANNELS.GET_CITIES, async () => clientService.loadCities());
   ipcMain.handle(CHANNELS.GET_HAIR_COLORS, async () =>

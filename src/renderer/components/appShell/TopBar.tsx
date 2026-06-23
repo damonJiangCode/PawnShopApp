@@ -5,11 +5,17 @@ import SideButtons from "./SideButtons";
 
 interface TopBarProps {
   onSearch?: (params: { firstName: string; lastName: string }) => void;
+  onBirthdaySearch?: (params: { dateOfBirth: string }) => void;
   onClear?: () => void;
   onPayment?: () => void;
 }
 
-const TopBar: React.FC<TopBarProps> = ({ onSearch, onClear, onPayment }) => {
+const TopBar: React.FC<TopBarProps> = ({
+  onSearch,
+  onBirthdaySearch,
+  onClear,
+  onPayment,
+}) => {
   return (
     <Box
       sx={{
@@ -20,7 +26,11 @@ const TopBar: React.FC<TopBarProps> = ({ onSearch, onClear, onPayment }) => {
         py: 1,
       }}
     >
-      <SearchBar onSearch={onSearch} onClear={onClear} />
+      <SearchBar
+        onSearch={onSearch}
+        onBirthdaySearch={onBirthdaySearch}
+        onClear={onClear}
+      />
       <SideButtons onPayment={onPayment} />
     </Box>
   );
