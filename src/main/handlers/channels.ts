@@ -27,6 +27,7 @@ const CHANNELS = {
   DELETE_HOLIDAY_DATE: "delete-holiday-date",
   SEARCH_TICKET: "search-ticket",
   SEARCH_PAYMENT_TICKET: "search-payment-ticket",
+  LOAD_BUYBACK_REPORT: "load-buyback-report",
   GET_ITEMS: "get-items",
   GET_ITEM_CATEGORIES: "get-item-categories",
   SEARCH_ITEMS: "search-items",

@@ -33,6 +33,7 @@ const CHANNELS = {
   DELETE_HOLIDAY_DATE: "delete-holiday-date",
   SEARCH_TICKET: "search-ticket",
   SEARCH_PAYMENT_TICKET: "search-payment-ticket",
+  LOAD_BUYBACK_REPORT: "load-buyback-report",
   GET_ITEMS: "get-items",
   GET_ITEM_CATEGORIES: "get-item-categories",
   SEARCH_ITEMS: "search-items",
@@ -100,6 +101,7 @@ const ticketApi = {
   searchTicket: (ticketNumber) => invoke(CHANNELS.SEARCH_TICKET, ticketNumber),
   searchPaymentTicket: (ticketNumber) =>
     invoke(CHANNELS.SEARCH_PAYMENT_TICKET, ticketNumber),
+  loadBuybackReport: (input) => invoke(CHANNELS.LOAD_BUYBACK_REPORT, input),
   createPawn: (payload) => invoke(CHANNELS.ADD_PAWN_TICKET, payload),
   createSell: (payload) => invoke(CHANNELS.ADD_SELL_TICKET, payload),
   update: (payload) => invoke(CHANNELS.UPDATE_TICKET, payload),

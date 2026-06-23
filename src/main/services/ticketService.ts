@@ -10,6 +10,8 @@ import type {
 import { calculation } from "../../shared/utils/calculation.ts";
 import type {
   ConvertTicketInput,
+  BuybackReportInput,
+  BuybackReportResult,
   ExtendTicketsInput,
   ExpireTicketInput,
   MarkTicketStolenInput,
@@ -108,6 +110,10 @@ const normalizeExtendTicketsInput = (input: ExtendTicketsInput) => ({
         Number.isFinite(extension.months) &&
         extension.months > 0,
     ),
+});
+
+const normalizeBuybackReportInput = (input: BuybackReportInput) => ({
+  date: input.date?.trim() ?? "",
 });
 
 const isValidDateKey = (value: string) => {
@@ -276,6 +282,49 @@ export const ticketService = {
     }
 
     return ticketRepo.loadTransferTicketPreview(normalizedTicketNumber);
+  },
+
+  loadBuybackReport: async (
+    input: BuybackReportInput,
+  ): Promise<BuybackReportResult> => {
+    const normalizedInput = normalizeBuybackReportInput(input);
+
+    if (!isValidDateKey(normalizedInput.date)) {
+      throw createFieldError("date", "Enter a valid report date.");
+    }
+
+    const sourceRows = await ticketRepo.loadBuybackReportRows(
+      normalizedInput.date,
+    );
+
+    const rows = sourceRows.map((row) => {
+      const pickupAmount = Math.max(
+        0,
+        calculation.getPaymentPickupAmt(
+          row.amount,
+          row.onetime_fee,
+          row.transaction_datetime,
+          row.interest_paid_months,
+          row.pickup_datetime,
+        ) - Number(row.partial_payment ?? 0),
+      );
+
+      return {
+        ticket_number: row.ticket_number,
+        pickup_datetime: row.pickup_datetime,
+        amount: Number(pickupAmount.toFixed(2)),
+        description: row.description,
+        client_name: row.client_name,
+      };
+    });
+
+    const total = rows.reduce((sum, row) => sum + row.amount, 0);
+
+    return {
+      date: normalizedInput.date,
+      rows,
+      total_buyback_price: Number(total.toFixed(2)),
+    };
   },
 
   createPawnTicket: async (input: CreatePawnTicketInput): Promise<Ticket> => {

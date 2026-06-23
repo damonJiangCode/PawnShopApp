@@ -130,6 +130,8 @@ const createAppMenu = () => {
               id: "report-buyback",
               title: "Buyback Report",
               description: "Generate daily pickup/buyback reconciliation.",
+              width: 1000,
+              height: 720,
             }),
         },
         {

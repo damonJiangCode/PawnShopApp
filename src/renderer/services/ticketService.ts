@@ -6,6 +6,8 @@ import type {
 import type { Location, SaveLocationInput } from "../../shared/types/location";
 import type {
   ConvertTicketInput,
+  BuybackReportInput,
+  BuybackReportResult,
   ExtendTicketsInput,
   ExpireTicketInput,
   MarkTicketStolenInput,
@@ -107,6 +109,10 @@ type NormalizedExtendTicketsInput = {
   }>;
 };
 
+type NormalizedBuybackReportInput = {
+  date: string;
+};
+
 const normalizeCreatePawnTicketInput = (
   input: CreatePawnTicketInput,
 ): NormalizedCreatePawnTicketInput => ({
@@ -205,6 +211,12 @@ const normalizeExtendTicketsInput = (
         Number.isFinite(extension.months) &&
         extension.months > 0,
     ),
+});
+
+const normalizeBuybackReportInput = (
+  input: BuybackReportInput,
+): NormalizedBuybackReportInput => ({
+  date: input.date.trim(),
 });
 
 const mapBackendError = (error: unknown): Error => {
@@ -510,6 +522,25 @@ export const ticketService = {
     }
   },
 
+  loadBuybackReport: async (
+    input: BuybackReportInput,
+  ): Promise<BuybackReportResult> => {
+    const normalizedInput = normalizeBuybackReportInput(input);
+    const api = getElectronApi()?.ticket;
+
+    if (!api) {
+      throw new Error(
+        "[ticketService] loadBuybackReport(): Cannot get api from Electron",
+      );
+    }
+
+    try {
+      return await api.loadBuybackReport(normalizedInput);
+    } catch (error) {
+      throw mapBackendError(error);
+    }
+  },
+
   loadTransferTicketPreview: async (
     ticketNumber: number,
   ): Promise<TransferTicketPreview | null> => {
@@ -551,6 +582,8 @@ export const ticketService = {
 
 export type {
   ConvertTicketInput,
+  BuybackReportInput,
+  BuybackReportResult,
   ExtendTicketsInput,
   ExpireTicketInput,
   MarkTicketStolenInput,

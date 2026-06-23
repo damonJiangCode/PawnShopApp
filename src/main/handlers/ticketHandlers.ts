@@ -1,6 +1,7 @@
 import type { IpcMainInvokeEvent } from "electron";
 import type {
   ConvertTicketInput,
+  BuybackReportInput,
   ExtendTicketsInput,
   ExpireTicketInput,
   MarkTicketStolenInput,
@@ -57,6 +58,12 @@ export const registerTicketHandlers = () => {
     CHANNELS.SEARCH_PAYMENT_TICKET,
     async (_event: IpcMainInvokeEvent, ticketNumber: number) => {
       return ticketService.searchPaymentTicket(ticketNumber);
+    },
+  );
+  ipcMain.handle(
+    CHANNELS.LOAD_BUYBACK_REPORT,
+    async (_event: IpcMainInvokeEvent, input: BuybackReportInput) => {
+      return ticketService.loadBuybackReport(input);
     },
   );
   ipcMain.handle(

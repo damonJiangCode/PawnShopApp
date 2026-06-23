@@ -46,6 +46,24 @@ export type TicketSearchResult = {
 
 export type PaymentTicketSearchPreview = TicketSearchResult;
 
+export type BuybackReportRow = {
+  ticket_number: number;
+  pickup_datetime: Date;
+  amount: number;
+  description: string;
+  client_name: string;
+};
+
+export type BuybackReportInput = {
+  date: string;
+};
+
+export type BuybackReportResult = {
+  date: string;
+  rows: BuybackReportRow[];
+  total_buyback_price: number;
+};
+
 export type TransferTicketInput = {
   ticket_number: number;
   client_number: number;

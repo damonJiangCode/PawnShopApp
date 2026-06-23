@@ -26,7 +26,7 @@ const MenuActionLayout: React.FC<MenuActionLayoutProps> = ({
         overflow: "hidden",
       }}
     >
-      <Box>
+      <Box className="no-print" sx={{ displayPrint: "none" }}>
         <Typography variant="h6" fontWeight={800}>
           {title}
         </Typography>
@@ -39,7 +39,13 @@ const MenuActionLayout: React.FC<MenuActionLayoutProps> = ({
         {children}
       </Box>
 
-      <Stack direction="row" spacing={1} justifyContent="flex-end">
+      <Stack
+        direction="row"
+        spacing={1}
+        justifyContent="flex-end"
+        className="no-print"
+        sx={{ displayPrint: "none" }}
+      >
         <Button variant="outlined" onClick={() => window.close()}>
           Close
         </Button>

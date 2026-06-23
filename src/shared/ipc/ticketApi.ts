@@ -3,6 +3,8 @@ import type { HolidayDate, SaveHolidayInput } from "../types/holidayDate.ts";
 import type { Location, SaveLocationInput } from "../types/location.ts";
 import type {
   ConvertTicketInput,
+  BuybackReportInput,
+  BuybackReportResult,
   ExtendTicketsInput,
   ExpireTicketInput,
   MarkTicketStolenInput,
@@ -29,6 +31,9 @@ export type ElectronTicketApi = {
   searchPaymentTicket: (
     ticketNumber: number,
   ) => Promise<PaymentTicketSearchPreview | null>;
+  loadBuybackReport: (
+    input: BuybackReportInput,
+  ) => Promise<BuybackReportResult>;
   createPawn: (payload: CreatePawnTicketInput) => Promise<Ticket>;
   createSell: (payload: CreateSellTicketInput) => Promise<Ticket>;
   update: (payload: UpdateTicketInput) => Promise<Ticket>;

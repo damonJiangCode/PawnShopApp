@@ -69,6 +69,18 @@ type ExtendTicketPayload = {
   interested_datetime: Date;
 };
 
+type BuybackReportSourceRow = {
+  ticket_number: number;
+  pickup_datetime: Date;
+  transaction_datetime: Date;
+  amount: number;
+  onetime_fee: number;
+  interest_paid_months: number;
+  partial_payment: number;
+  description: string;
+  client_name: string;
+};
+
 const ticketSelectColumns = `
   ticket_number,
   transaction_datetime,
@@ -103,6 +115,20 @@ const mapTransferTicketPreviewRow = (
   previous_client_name: row.previous_client_name
     ? String(row.previous_client_name)
     : "",
+});
+
+const mapBuybackReportRow = (
+  row: Record<string, unknown>,
+): BuybackReportSourceRow => ({
+  ticket_number: Number(row.ticket_number),
+  pickup_datetime: new Date(String(row.pickup_datetime)),
+  transaction_datetime: new Date(String(row.transaction_datetime)),
+  amount: Number(row.amount ?? 0),
+  onetime_fee: Number(row.onetime_fee ?? 0),
+  interest_paid_months: Number(row.interest_paid_months ?? 0),
+  partial_payment: Number(row.partial_payment ?? 0),
+  description: row.description ? String(row.description) : "",
+  client_name: row.client_name ? String(row.client_name) : "",
 });
 
 const mapTicketRow = (row: Record<string, unknown>): Ticket => {
@@ -176,6 +202,45 @@ export const ticketRepo = {
       if (!dbClient) {
         client.release();
       }
+    }
+  },
+
+  loadBuybackReportRows: async (
+    dateKey: string,
+  ): Promise<BuybackReportSourceRow[]> => {
+    const client = await connect();
+    const query = `
+      SELECT
+        t.ticket_number,
+        t.pickup_datetime,
+        t.amount,
+        t.onetime_fee,
+        t.transaction_datetime,
+        t.interest_paid_months,
+        t.partial_payment,
+        t.description,
+        CONCAT(
+          UPPER(c.last_name),
+          ', ',
+          UPPER(c.first_name),
+          CASE
+            WHEN COALESCE(TRIM(c.middle_name), '') = '' THEN ''
+            ELSE CONCAT(' ', UPPER(c.middle_name))
+          END
+        ) AS client_name
+      FROM ticket t
+      LEFT JOIN client c ON c.client_number = t.client_number
+      WHERE t.status = 'picked_up'
+        AND t.pickup_datetime >= $1::date
+        AND t.pickup_datetime < ($1::date + INTERVAL '1 day')
+      ORDER BY t.ticket_number ASC
+    `;
+
+    try {
+      const result = await client.query(query, [dateKey]);
+      return result.rows.map(mapBuybackReportRow);
+    } finally {
+      client.release();
     }
   },
 
