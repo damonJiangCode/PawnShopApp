@@ -10,6 +10,8 @@ import type {
   BuybackReportResult,
   ExtendTicketsInput,
   ExpireTicketInput,
+  InterestReportInput,
+  InterestReportResult,
   MarkTicketStolenInput,
   PaymentTicketSearchPreview,
   PickupTicketsInput,
@@ -110,6 +112,10 @@ type NormalizedExtendTicketsInput = {
 };
 
 type NormalizedBuybackReportInput = {
+  date: string;
+};
+
+type NormalizedInterestReportInput = {
   date: string;
 };
 
@@ -216,6 +222,12 @@ const normalizeExtendTicketsInput = (
 const normalizeBuybackReportInput = (
   input: BuybackReportInput,
 ): NormalizedBuybackReportInput => ({
+  date: input.date.trim(),
+});
+
+const normalizeInterestReportInput = (
+  input: InterestReportInput,
+): NormalizedInterestReportInput => ({
   date: input.date.trim(),
 });
 
@@ -541,6 +553,25 @@ export const ticketService = {
     }
   },
 
+  loadInterestReport: async (
+    input: InterestReportInput,
+  ): Promise<InterestReportResult> => {
+    const normalizedInput = normalizeInterestReportInput(input);
+    const api = getElectronApi()?.ticket;
+
+    if (!api) {
+      throw new Error(
+        "[ticketService] loadInterestReport(): Cannot get api from Electron",
+      );
+    }
+
+    try {
+      return await api.loadInterestReport(normalizedInput);
+    } catch (error) {
+      throw mapBackendError(error);
+    }
+  },
+
   loadTransferTicketPreview: async (
     ticketNumber: number,
   ): Promise<TransferTicketPreview | null> => {
@@ -586,6 +617,8 @@ export type {
   BuybackReportResult,
   ExtendTicketsInput,
   ExpireTicketInput,
+  InterestReportInput,
+  InterestReportResult,
   MarkTicketStolenInput,
   PaymentTicketSearchPreview,
   PickupTicketsInput,

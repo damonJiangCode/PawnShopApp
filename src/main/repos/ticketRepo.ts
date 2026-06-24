@@ -1,4 +1,8 @@
 import { connect } from "../../db/connection.ts";
+import {
+  createInterestPaymentIndexes,
+  createInterestPaymentTable,
+} from "../../db/schema/ticket/interestPaymentTable.ts";
 import type {
   HolidayDate,
   SaveHolidayInput,
@@ -69,6 +73,13 @@ type ExtendTicketPayload = {
   interested_datetime: Date;
 };
 
+type AddInterestPaymentPayload = {
+  ticket_number: number;
+  months_paid: number;
+  amount_paid: number;
+  payment_datetime: Date;
+};
+
 type BuybackReportSourceRow = {
   ticket_number: number;
   pickup_datetime: Date;
@@ -79,6 +90,15 @@ type BuybackReportSourceRow = {
   partial_payment: number;
   description: string;
   client_name: string;
+};
+
+type InterestReportRow = {
+  ticket_number: number;
+  months_paid: number;
+  amount_paid: number;
+  description: string;
+  client_name: string;
+  payment_datetime: Date;
 };
 
 const ticketSelectColumns = `
@@ -129,6 +149,17 @@ const mapBuybackReportRow = (
   partial_payment: Number(row.partial_payment ?? 0),
   description: row.description ? String(row.description) : "",
   client_name: row.client_name ? String(row.client_name) : "",
+});
+
+const mapInterestReportRow = (
+  row: Record<string, unknown>,
+): InterestReportRow => ({
+  ticket_number: Number(row.ticket_number),
+  months_paid: Number(row.months_paid ?? 0),
+  amount_paid: Number(row.amount_paid ?? 0),
+  description: row.description ? String(row.description) : "",
+  client_name: row.client_name ? String(row.client_name) : "",
+  payment_datetime: new Date(String(row.payment_datetime)),
 });
 
 const mapTicketRow = (row: Record<string, unknown>): Ticket => {
@@ -239,6 +270,42 @@ export const ticketRepo = {
     try {
       const result = await client.query(query, [dateKey]);
       return result.rows.map(mapBuybackReportRow);
+    } finally {
+      client.release();
+    }
+  },
+
+  loadInterestReportRows: async (
+    dateKey: string,
+  ): Promise<InterestReportRow[]> => {
+    const client = await connect();
+    const query = `
+      SELECT
+        ip.ticket_number,
+        ip.months_paid,
+        ip.amount_paid,
+        ip.payment_datetime,
+        t.description,
+        CONCAT(
+          UPPER(c.last_name),
+          ', ',
+          UPPER(c.first_name),
+          CASE
+            WHEN COALESCE(TRIM(c.middle_name), '') = '' THEN ''
+            ELSE CONCAT(' ', UPPER(c.middle_name))
+          END
+        ) AS client_name
+      FROM interest_payment ip
+      INNER JOIN ticket t ON t.ticket_number = ip.ticket_number
+      LEFT JOIN client c ON c.client_number = t.client_number
+      WHERE ip.payment_datetime >= $1::date
+        AND ip.payment_datetime < ($1::date + INTERVAL '1 day')
+      ORDER BY ip.payment_datetime ASC, ip.ticket_number ASC
+    `;
+
+    try {
+      const result = await client.query(query, [dateKey]);
+      return result.rows.map(mapInterestReportRow);
     } finally {
       client.release();
     }
@@ -707,6 +774,35 @@ export const ticketRepo = {
       }
 
       return mapTicketRow(result.rows[0]);
+    } finally {
+      if (!dbClient) {
+        client.release();
+      }
+    }
+  },
+
+  addInterestPayment: async (
+    payload: AddInterestPaymentPayload,
+    dbClient?: DbClient,
+  ): Promise<void> => {
+    const client = dbClient ?? (await connect());
+    const query = `
+      INSERT INTO interest_payment (
+        ticket_number,
+        months_paid,
+        amount_paid,
+        payment_datetime
+      ) VALUES ($1, $2, $3, $4)
+    `;
+
+    try {
+      await ensureInterestPaymentTable(client);
+      await client.query(query, [
+        payload.ticket_number,
+        payload.months_paid,
+        payload.amount_paid,
+        payload.payment_datetime,
+      ]);
     } finally {
       if (!dbClient) {
         client.release();

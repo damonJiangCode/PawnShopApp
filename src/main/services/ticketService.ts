@@ -14,6 +14,8 @@ import type {
   BuybackReportResult,
   ExtendTicketsInput,
   ExpireTicketInput,
+  InterestReportInput,
+  InterestReportResult,
   MarkTicketStolenInput,
   PaymentTicketSearchPreview,
   PickupTicketsInput,
@@ -113,6 +115,10 @@ const normalizeExtendTicketsInput = (input: ExtendTicketsInput) => ({
 });
 
 const normalizeBuybackReportInput = (input: BuybackReportInput) => ({
+  date: input.date?.trim() ?? "",
+});
+
+const normalizeInterestReportInput = (input: InterestReportInput) => ({
   date: input.date?.trim() ?? "",
 });
 
@@ -324,6 +330,25 @@ export const ticketService = {
       date: normalizedInput.date,
       rows,
       total_buyback_price: Number(total.toFixed(2)),
+    };
+  },
+
+  loadInterestReport: async (
+    input: InterestReportInput,
+  ): Promise<InterestReportResult> => {
+    const normalizedInput = normalizeInterestReportInput(input);
+
+    if (!isValidDateKey(normalizedInput.date)) {
+      throw createFieldError("date", "Enter a valid report date.");
+    }
+
+    const rows = await ticketRepo.loadInterestReportRows(normalizedInput.date);
+    const total = rows.reduce((sum, row) => sum + row.amount_paid, 0);
+
+    return {
+      date: normalizedInput.date,
+      rows,
+      total_interest_paid: Number(total.toFixed(2)),
     };
   },
 
@@ -779,18 +804,37 @@ export const ticketService = {
 
       const interestedDatetime = calculation.getCurrentDatetime();
       const extendedTickets: Ticket[] = [];
+      const ticketByNumber = new Map(
+        existingTickets
+          .filter((ticket): ticket is Ticket => Boolean(ticket))
+          .map((ticket) => [ticket.ticket_number, ticket]),
+      );
 
       for (const extension of normalizedInput.extensions) {
-        extendedTickets.push(
-          await ticketRepo.extend(
-            {
-              ticket_number: extension.ticket_number,
-              months: extension.months,
-              interested_datetime: interestedDatetime,
-            },
-            client,
-          ),
+        const extendedTicket = await ticketRepo.extend(
+          {
+            ticket_number: extension.ticket_number,
+            months: extension.months,
+            interested_datetime: interestedDatetime,
+          },
+          client,
         );
+        const originalTicket = ticketByNumber.get(extension.ticket_number);
+        const amountPaid =
+          calculation.getBaseIntAmt(Number(originalTicket?.amount ?? 0)) *
+          extension.months;
+
+        await ticketRepo.addInterestPayment(
+          {
+            ticket_number: extension.ticket_number,
+            months_paid: extension.months,
+            amount_paid: Number(amountPaid.toFixed(2)),
+            payment_datetime: interestedDatetime,
+          },
+          client,
+        );
+
+        extendedTickets.push(extendedTicket);
       }
 
       return extendedTickets;

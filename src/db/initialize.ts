@@ -7,6 +7,10 @@ import { createHairColorTable } from "./schema/client/hairColorTable.ts";
 import { createIDTypeTable } from "./schema/client/idTypeTable.ts";
 import { createEmployeeTable } from "./schema/employee/employeeTable.ts";
 import { createHolidayDateTable } from "./schema/ticket/holidayDateTable.ts";
+import {
+  createInterestPaymentIndexes,
+  createInterestPaymentTable,
+} from "./schema/ticket/interestPaymentTable.ts";
 import { createItemCategoryTable } from "./schema/item/itemCategoryTable.ts";
 import { createItemSubcategoryTable } from "./schema/item/itemSubcategoryTable.ts";
 import { createItemIndexes, createItemTable } from "./schema/item/itemTable.ts";
@@ -66,6 +70,12 @@ export const initializeDatabase = async () => {
 
     await client.query(createHolidayDateTable);
     console.log("holiday_date table created successfully");
+
+    await client.query(createInterestPaymentTable);
+    console.log("interest_payment table created successfully");
+
+    await client.query(createInterestPaymentIndexes);
+    console.log("interest_payment indexes created successfully");
 
     await client.query(createItemCategoryTable);
     console.log("item_category table created successfully");

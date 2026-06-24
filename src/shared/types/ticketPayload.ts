@@ -64,6 +64,25 @@ export type BuybackReportResult = {
   total_buyback_price: number;
 };
 
+export type InterestReportRow = {
+  ticket_number: number;
+  months_paid: number;
+  amount_paid: number;
+  description: string;
+  client_name: string;
+  payment_datetime: Date;
+};
+
+export type InterestReportInput = {
+  date: string;
+};
+
+export type InterestReportResult = {
+  date: string;
+  rows: InterestReportRow[];
+  total_interest_paid: number;
+};
+
 export type TransferTicketInput = {
   ticket_number: number;
   client_number: number;

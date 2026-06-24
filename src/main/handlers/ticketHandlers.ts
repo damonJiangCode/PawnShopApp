@@ -4,6 +4,7 @@ import type {
   BuybackReportInput,
   ExtendTicketsInput,
   ExpireTicketInput,
+  InterestReportInput,
   MarkTicketStolenInput,
   PickupTicketsInput,
   CreatePawnTicketInput,
@@ -64,6 +65,12 @@ export const registerTicketHandlers = () => {
     CHANNELS.LOAD_BUYBACK_REPORT,
     async (_event: IpcMainInvokeEvent, input: BuybackReportInput) => {
       return ticketService.loadBuybackReport(input);
+    },
+  );
+  ipcMain.handle(
+    CHANNELS.LOAD_INTEREST_REPORT,
+    async (_event: IpcMainInvokeEvent, input: InterestReportInput) => {
+      return ticketService.loadInterestReport(input);
     },
   );
   ipcMain.handle(

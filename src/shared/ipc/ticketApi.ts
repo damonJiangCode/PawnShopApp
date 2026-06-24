@@ -7,6 +7,8 @@ import type {
   BuybackReportResult,
   ExtendTicketsInput,
   ExpireTicketInput,
+  InterestReportInput,
+  InterestReportResult,
   MarkTicketStolenInput,
   PaymentTicketSearchPreview,
   PickupTicketsInput,
@@ -34,6 +36,9 @@ export type ElectronTicketApi = {
   loadBuybackReport: (
     input: BuybackReportInput,
   ) => Promise<BuybackReportResult>;
+  loadInterestReport: (
+    input: InterestReportInput,
+  ) => Promise<InterestReportResult>;
   createPawn: (payload: CreatePawnTicketInput) => Promise<Ticket>;
   createSell: (payload: CreateSellTicketInput) => Promise<Ticket>;
   update: (payload: UpdateTicketInput) => Promise<Ticket>;

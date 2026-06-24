@@ -141,6 +141,8 @@ const createAppMenu = () => {
               id: "report-interest",
               title: "Interest Report",
               description: "Generate interest payment records.",
+              width: 1000,
+              height: 720,
             }),
         },
         {
