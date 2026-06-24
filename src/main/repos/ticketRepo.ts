@@ -123,6 +123,11 @@ const ticketSelectColumns = `
   client_number
 `;
 
+const ensureInterestPaymentTable = async (client: DbClient) => {
+  await client.query(createInterestPaymentTable);
+  await client.query(createInterestPaymentIndexes);
+};
+
 const mapTransferTicketPreviewRow = (
   row: Record<string, unknown>,
 ): TransferTicketPreview => ({

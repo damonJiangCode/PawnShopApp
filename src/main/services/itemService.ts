@@ -7,48 +7,7 @@ import type {
 import { itemRepo } from "../repos/itemRepo.ts";
 import { runInTransaction } from "../utils/runInTransaction.ts";
 import { imageStorage } from "../utils/imageStorage.ts";
-
-const normalizeSaveItemInput = (input: SaveItemInput): SaveItemInput => ({
-  item_number: input.item_number ? Number(input.item_number) : undefined,
-  ticket_number: Number(input.ticket_number),
-  quantity: Number(input.quantity),
-  subcategory_id: Number(input.subcategory_id),
-  description: input.description?.trim().toUpperCase() ?? "",
-  brand_name: input.brand_name?.trim().toUpperCase() ?? "",
-  model_number: input.model_number?.trim().toUpperCase() ?? "",
-  serial_number: input.serial_number?.trim().toUpperCase() ?? "",
-  amount: Number(input.amount),
-  image_path: input.image_path?.trim() ?? "",
-});
-
-const validateItem = (item: SaveItemInput) => {
-  if (!Number.isFinite(item.ticket_number) || item.ticket_number <= 0) {
-    throw new Error("A ticket is required.");
-  }
-
-  if (!Number.isFinite(item.subcategory_id) || item.subcategory_id <= 0) {
-    throw new Error("Select a category.");
-  }
-
-  if (!Number.isFinite(item.quantity) || item.quantity <= 0) {
-    throw new Error("Quantity must be greater than 0.");
-  }
-
-  if (!item.description) {
-    throw new Error("Description is required.");
-  }
-
-  if (!Number.isFinite(item.amount) || item.amount < 0) {
-    throw new Error("Price must be greater than 0.");
-  }
-};
-
-const normalizeItemSearchInput = (input: ItemSearchInput): ItemSearchInput => ({
-  item_number: input.item_number ? Number(input.item_number) : undefined,
-  brand_name: input.brand_name?.trim().toUpperCase() ?? "",
-  model_number: input.model_number?.trim().toUpperCase() ?? "",
-  serial_number: input.serial_number?.trim().toUpperCase() ?? "",
-});
+import { itemInput } from "./inputs/itemInput.ts";
 
 export const itemService = {
   loadItems: async (ticketNumber: number): Promise<Item[]> => {
@@ -64,7 +23,7 @@ export const itemService = {
   },
 
   searchItems: async (input: ItemSearchInput): Promise<Item[]> => {
-    const normalizedInput = normalizeItemSearchInput(input);
+    const normalizedInput = itemInput.normalizeItemSearch(input);
 
     if (
       normalizedInput.item_number &&
@@ -78,8 +37,8 @@ export const itemService = {
   },
 
   createItem: async (input: SaveItemInput): Promise<Item> => {
-    const normalizedInput = normalizeSaveItemInput(input);
-    validateItem(normalizedInput);
+    const normalizedInput = itemInput.normalizeSaveItem(input);
+    itemInput.validateItem(normalizedInput);
 
     return runInTransaction("createItem", async (client) => {
       const item = await itemRepo.create(normalizedInput, client);
@@ -102,8 +61,8 @@ export const itemService = {
   },
 
   updateItem: async (input: SaveItemInput): Promise<Item> => {
-    const normalizedInput = normalizeSaveItemInput(input);
-    validateItem(normalizedInput);
+    const normalizedInput = itemInput.normalizeSaveItem(input);
+    itemInput.validateItem(normalizedInput);
 
     if (!normalizedInput.item_number) {
       throw new Error("An item is required.");
@@ -142,28 +101,28 @@ export const itemService = {
     ticketNumber: number,
     itemNumbers: number[],
   ): Promise<Item[]> => {
-    const normalizedTicketNumber = Number(ticketNumber);
-    const normalizedItemNumbers = [...new Set(itemNumbers.map(Number))].filter(
-      (itemNumber) => Number.isFinite(itemNumber) && itemNumber > 0,
+    const normalizedInput = itemInput.normalizeTicketItemNumbers(
+      ticketNumber,
+      itemNumbers,
     );
 
     if (
-      !Number.isFinite(normalizedTicketNumber) ||
-      normalizedTicketNumber <= 0
+      !Number.isFinite(normalizedInput.ticketNumber) ||
+      normalizedInput.ticketNumber <= 0
     ) {
       throw new Error("A ticket is required.");
     }
 
-    if (!normalizedItemNumbers.length) {
+    if (!normalizedInput.itemNumbers.length) {
       return [];
     }
 
     return runInTransaction("linkItemsToTicket", async (client) => {
       const linkedItems: Item[] = [];
 
-      for (const itemNumber of normalizedItemNumbers) {
+      for (const itemNumber of normalizedInput.itemNumbers) {
         const linkedItem = await itemRepo.linkItemToTicket(
-          normalizedTicketNumber,
+          normalizedInput.ticketNumber,
           itemNumber,
           client,
         );

@@ -1,33 +1,34 @@
 import type { Ticket } from "./Ticket.ts";
 import type { Client } from "./Client.ts";
 
-export type CreatePawnTicketInput = {
+type TicketDescriptionInput = {
   description: string;
   location: string;
   amount: number;
-  onetime_fee: number;
-  employee_password: string;
-  client_number: number;
 };
 
-export type CreateSellTicketInput = {
-  description: string;
-  location: string;
-  amount: number;
+type EmployeeAuthorizedInput = {
   employee_password: string;
-  client_number: number;
 };
 
-export type UpdateTicketInput = {
-  ticket_number: number;
-  is_lost: boolean;
-  description: string;
-  location: string;
-  amount: number;
-  onetime_fee: number;
-  partial_payment: number;
-  employee_password: string;
-};
+export type CreatePawnTicketInput = TicketDescriptionInput &
+  EmployeeAuthorizedInput & {
+    onetime_fee: number;
+    client_number: number;
+  };
+
+export type CreateSellTicketInput = TicketDescriptionInput &
+  EmployeeAuthorizedInput & {
+    client_number: number;
+  };
+
+export type UpdateTicketInput = TicketDescriptionInput &
+  EmployeeAuthorizedInput & {
+    ticket_number: number;
+    is_lost: boolean;
+    onetime_fee: number;
+    partial_payment: number;
+  };
 
 export type TransferTicketPreview = {
   ticket_number: number;
@@ -44,7 +45,9 @@ export type TicketSearchResult = {
   client: Client;
 };
 
-export type PaymentTicketSearchPreview = TicketSearchResult;
+export type ReportDateInput = {
+  date: string;
+};
 
 export type BuybackReportRow = {
   ticket_number: number;
@@ -52,10 +55,6 @@ export type BuybackReportRow = {
   amount: number;
   description: string;
   client_name: string;
-};
-
-export type BuybackReportInput = {
-  date: string;
 };
 
 export type BuybackReportResult = {
@@ -73,10 +72,6 @@ export type InterestReportRow = {
   payment_datetime: Date;
 };
 
-export type InterestReportInput = {
-  date: string;
-};
-
 export type InterestReportResult = {
   date: string;
   rows: InterestReportRow[];
@@ -88,24 +83,20 @@ export type TransferTicketInput = {
   client_number: number;
 };
 
-export type ConvertTicketInput = {
-  ticket_number: number;
-  target_status: "pawned" | "sold";
-  description: string;
-  location: string;
-  amount: number;
-  onetime_fee: number;
-  employee_password: string;
-};
+export type ConvertTicketInput = TicketDescriptionInput &
+  EmployeeAuthorizedInput & {
+    ticket_number: number;
+    target_status: "pawned" | "sold";
+    onetime_fee: number;
+  };
 
 export type ExpireTicketInput = {
   ticket_number: number;
   employee_password?: string;
 };
 
-export type MarkTicketStolenInput = {
+export type MarkTicketStolenInput = EmployeeAuthorizedInput & {
   ticket_number: number;
-  employee_password: string;
 };
 
 export type PickupTicketsInput = {

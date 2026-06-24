@@ -6,17 +6,15 @@ import type {
 import type { Location, SaveLocationInput } from "../../shared/types/location";
 import type {
   ConvertTicketInput,
-  BuybackReportInput,
   BuybackReportResult,
   ExtendTicketsInput,
   ExpireTicketInput,
-  InterestReportInput,
   InterestReportResult,
   MarkTicketStolenInput,
-  PaymentTicketSearchPreview,
   PickupTicketsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
+  ReportDateInput,
   TicketSearchResult,
   TransferTicketInput,
   TransferTicketPreview,
@@ -47,156 +45,88 @@ const createFieldError = (
   return error;
 };
 
-type NormalizedCreatePawnTicketInput = {
-  description: string;
-  location: string;
-  amount: number;
-  onetime_fee: number;
-  employee_password: string;
-  client_number: number;
-};
+const trimText = (value?: string) => value?.trim() ?? "";
 
-type NormalizedCreateSellTicketInput = {
-  description: string;
-  location: string;
-  amount: number;
-  employee_password: string;
-  client_number: number;
-};
+const toNumber = (value: unknown) => Number(value);
 
-type NormalizedUpdateTicketInput = {
-  ticket_number: number;
-  is_lost: boolean;
-  description: string;
-  location: string;
-  amount: number;
-  onetime_fee: number;
-  partial_payment: number;
-  employee_password: string;
-};
-
-type NormalizedTransferTicketInput = {
-  ticket_number: number;
-  client_number: number;
-};
-
-type NormalizedConvertTicketInput = {
-  ticket_number: number;
-  target_status: "pawned" | "sold";
-  description: string;
-  location: string;
-  amount: number;
-  onetime_fee: number;
-  employee_password: string;
-};
-
-type NormalizedExpireTicketInput = {
-  ticket_number: number;
-  employee_password?: string;
-};
-
-type NormalizedMarkTicketStolenInput = {
-  ticket_number: number;
-  employee_password: string;
-};
-
-type NormalizedPickupTicketsInput = {
-  ticket_numbers: number[];
-};
-
-type NormalizedExtendTicketsInput = {
-  extensions: Array<{
-    ticket_number: number;
-    months: number;
-  }>;
-};
-
-type NormalizedBuybackReportInput = {
-  date: string;
-};
-
-type NormalizedInterestReportInput = {
-  date: string;
+const toNonNegativeNumber = (value: unknown, fallback = 0) => {
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? Math.max(0, numberValue) : fallback;
 };
 
 const normalizeCreatePawnTicketInput = (
   input: CreatePawnTicketInput,
-): NormalizedCreatePawnTicketInput => ({
+): CreatePawnTicketInput => ({
   ...input,
-  description: input.description.trim(),
-  location: input.location.trim(),
-  amount: Number(input.amount),
-  onetime_fee: Number.isFinite(input.onetime_fee)
-    ? Math.max(0, input.onetime_fee)
-    : 0,
-  employee_password: input.employee_password.trim(),
+  description: trimText(input.description),
+  location: trimText(input.location),
+  amount: toNumber(input.amount),
+  onetime_fee: toNonNegativeNumber(input.onetime_fee),
+  employee_password: trimText(input.employee_password),
 });
 
 const normalizeCreateSellTicketInput = (
   input: CreateSellTicketInput,
-): NormalizedCreateSellTicketInput => ({
+): CreateSellTicketInput => ({
   ...input,
-  description: input.description.trim(),
-  location: input.location.trim(),
-  amount: Number(input.amount),
-  employee_password: input.employee_password.trim(),
+  description: trimText(input.description),
+  location: trimText(input.location),
+  amount: toNumber(input.amount),
+  employee_password: trimText(input.employee_password),
 });
 
 const normalizeUpdateTicketInput = (
   input: UpdateTicketInput,
-): NormalizedUpdateTicketInput => ({
+): UpdateTicketInput => ({
   ticket_number: input.ticket_number,
   is_lost: Boolean(input.is_lost),
-  description: input.description.trim(),
-  location: input.location.trim(),
-  amount: Number(input.amount),
-  onetime_fee: Number.isFinite(input.onetime_fee)
-    ? Math.max(0, input.onetime_fee)
-    : 0,
-  partial_payment: Number.isFinite(input.partial_payment)
-    ? Math.max(0, input.partial_payment)
-    : 0,
-  employee_password: input.employee_password.trim(),
+  description: trimText(input.description),
+  location: trimText(input.location),
+  amount: toNumber(input.amount),
+  onetime_fee: toNonNegativeNumber(input.onetime_fee),
+  partial_payment: toNonNegativeNumber(input.partial_payment),
+  employee_password: trimText(input.employee_password),
 });
 
 const normalizeTransferTicketInput = (
   input: TransferTicketInput,
-): NormalizedTransferTicketInput => ({
-  ticket_number: Number(input.ticket_number),
-  client_number: Number(input.client_number),
+): TransferTicketInput => ({
+  ticket_number: toNumber(input.ticket_number),
+  client_number: toNumber(input.client_number),
 });
 
 const normalizeConvertTicketInput = (
   input: ConvertTicketInput,
-): NormalizedConvertTicketInput => ({
-  ticket_number: Number(input.ticket_number),
+): ConvertTicketInput => ({
+  ticket_number: toNumber(input.ticket_number),
   target_status: input.target_status,
-  description: input.description.trim(),
-  location: input.location.trim(),
-  amount: Number(input.amount),
-  onetime_fee: Number.isFinite(input.onetime_fee)
-    ? Math.max(0, input.onetime_fee)
-    : 0,
-  employee_password: input.employee_password.trim(),
+  description: trimText(input.description),
+  location: trimText(input.location),
+  amount: toNumber(input.amount),
+  onetime_fee: toNonNegativeNumber(input.onetime_fee),
+  employee_password: trimText(input.employee_password),
 });
 
 const normalizeExpireTicketInput = (
   input: ExpireTicketInput,
-): NormalizedExpireTicketInput => ({
-  ticket_number: Number(input.ticket_number),
-  employee_password: input.employee_password?.trim(),
+): ExpireTicketInput => ({
+  ticket_number: toNumber(input.ticket_number),
+  employee_password:
+    input.employee_password === undefined
+      ? undefined
+      : trimText(input.employee_password),
 });
 
 const normalizeMarkTicketStolenInput = (
   input: MarkTicketStolenInput,
-): NormalizedMarkTicketStolenInput => ({
-  ticket_number: Number(input.ticket_number),
-  employee_password: input.employee_password.trim(),
+): MarkTicketStolenInput => ({
+  ticket_number: toNumber(input.ticket_number),
+  employee_password: trimText(input.employee_password),
 });
 
 const normalizePickupTicketsInput = (
   input: PickupTicketsInput,
-): NormalizedPickupTicketsInput => ({
+): PickupTicketsInput => ({
   ticket_numbers: [...new Set(input.ticket_numbers.map(Number))].filter(
     (ticketNumber) => Number.isFinite(ticketNumber) && ticketNumber > 0,
   ),
@@ -204,11 +134,11 @@ const normalizePickupTicketsInput = (
 
 const normalizeExtendTicketsInput = (
   input: ExtendTicketsInput,
-): NormalizedExtendTicketsInput => ({
+): ExtendTicketsInput => ({
   extensions: input.extensions
     .map((extension) => ({
-      ticket_number: Number(extension.ticket_number),
-      months: Math.floor(Number(extension.months)),
+      ticket_number: toNumber(extension.ticket_number),
+      months: Math.floor(toNumber(extension.months)),
     }))
     .filter(
       (extension) =>
@@ -219,16 +149,8 @@ const normalizeExtendTicketsInput = (
     ),
 });
 
-const normalizeBuybackReportInput = (
-  input: BuybackReportInput,
-): NormalizedBuybackReportInput => ({
-  date: input.date.trim(),
-});
-
-const normalizeInterestReportInput = (
-  input: InterestReportInput,
-): NormalizedInterestReportInput => ({
-  date: input.date.trim(),
+const normalizeReportDateInput = (input: ReportDateInput): ReportDateInput => ({
+  date: trimText(input.date),
 });
 
 const mapBackendError = (error: unknown): Error => {
@@ -350,7 +272,7 @@ export const ticketService = {
 
   searchPaymentTicket: async (
     ticketNumber: number,
-  ): Promise<PaymentTicketSearchPreview | null> => {
+  ): Promise<TicketSearchResult | null> => {
     const normalizedTicketNumber = Number(ticketNumber);
     const api = getElectronApi()?.ticket;
 
@@ -535,9 +457,9 @@ export const ticketService = {
   },
 
   loadBuybackReport: async (
-    input: BuybackReportInput,
+    input: ReportDateInput,
   ): Promise<BuybackReportResult> => {
-    const normalizedInput = normalizeBuybackReportInput(input);
+    const normalizedInput = normalizeReportDateInput(input);
     const api = getElectronApi()?.ticket;
 
     if (!api) {
@@ -554,9 +476,9 @@ export const ticketService = {
   },
 
   loadInterestReport: async (
-    input: InterestReportInput,
+    input: ReportDateInput,
   ): Promise<InterestReportResult> => {
-    const normalizedInput = normalizeInterestReportInput(input);
+    const normalizedInput = normalizeReportDateInput(input);
     const api = getElectronApi()?.ticket;
 
     if (!api) {
@@ -613,17 +535,15 @@ export const ticketService = {
 
 export type {
   ConvertTicketInput,
-  BuybackReportInput,
   BuybackReportResult,
   ExtendTicketsInput,
   ExpireTicketInput,
-  InterestReportInput,
   InterestReportResult,
   MarkTicketStolenInput,
-  PaymentTicketSearchPreview,
   PickupTicketsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
+  ReportDateInput,
   TransferTicketInput,
   TransferTicketPreview,
   UpdateTicketInput,

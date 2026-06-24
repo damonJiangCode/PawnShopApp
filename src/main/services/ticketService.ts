@@ -10,17 +10,15 @@ import type {
 import { calculation } from "../../shared/utils/calculation.ts";
 import type {
   ConvertTicketInput,
-  BuybackReportInput,
   BuybackReportResult,
   ExtendTicketsInput,
   ExpireTicketInput,
-  InterestReportInput,
   InterestReportResult,
   MarkTicketStolenInput,
-  PaymentTicketSearchPreview,
   PickupTicketsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
+  ReportDateInput,
   TicketSearchResult,
   TransferTicketInput,
   TransferTicketPreview,
@@ -29,117 +27,9 @@ import type {
 import { clientRepo } from "../repos/clientRepo.ts";
 import { ticketRepo } from "../repos/ticketRepo.ts";
 import { employeeService } from "./employeeService.ts";
+import { ticketInput } from "./inputs/ticketInput.ts";
 import { createFieldError } from "../utils/createFieldError.ts";
 import { runInTransaction } from "../utils/runInTransaction.ts";
-
-const normalizeCreatePawnTicketInput = (input: CreatePawnTicketInput) => ({
-  description: input.description.trim(),
-  location: input.location.trim(),
-  amount: Number(input.amount),
-  onetime_fee: Number.isFinite(input.onetime_fee)
-    ? Math.max(0, input.onetime_fee)
-    : 0,
-  employee_password: input.employee_password.trim(),
-  client_number: input.client_number,
-});
-
-const normalizeCreateSellTicketInput = (input: CreateSellTicketInput) => ({
-  description: input.description.trim(),
-  location: input.location.trim(),
-  amount: Number(input.amount),
-  employee_password: input.employee_password.trim(),
-  client_number: input.client_number,
-});
-
-const normalizeUpdateTicketInput = (input: UpdateTicketInput) => ({
-  ticket_number: input.ticket_number,
-  is_lost: Boolean(input.is_lost),
-  description: input.description.trim(),
-  location: input.location.trim(),
-  amount: Number(input.amount),
-  onetime_fee: Number.isFinite(input.onetime_fee)
-    ? Math.max(0, input.onetime_fee)
-    : 0,
-  partial_payment: Number.isFinite(input.partial_payment)
-    ? Math.max(0, input.partial_payment)
-    : 0,
-  employee_password: input.employee_password.trim(),
-});
-
-const normalizeTransferTicketInput = (input: TransferTicketInput) => ({
-  ticket_number: Number(input.ticket_number),
-  client_number: Number(input.client_number),
-});
-
-const normalizeConvertTicketInput = (input: ConvertTicketInput) => ({
-  ticket_number: Number(input.ticket_number),
-  target_status: input.target_status,
-  description: input.description.trim(),
-  location: input.location.trim(),
-  amount: Number(input.amount),
-  onetime_fee: Number.isFinite(input.onetime_fee)
-    ? Math.max(0, input.onetime_fee)
-    : 0,
-  employee_password: input.employee_password.trim(),
-});
-
-const normalizeExpireTicketInput = (input: ExpireTicketInput) => ({
-  ticket_number: Number(input.ticket_number),
-  employee_password: input.employee_password?.trim(),
-});
-
-const normalizeMarkTicketStolenInput = (input: MarkTicketStolenInput) => ({
-  ticket_number: Number(input.ticket_number),
-  employee_password: input.employee_password.trim(),
-});
-
-const normalizePickupTicketsInput = (input: PickupTicketsInput) => ({
-  ticket_numbers: [...new Set(input.ticket_numbers.map(Number))].filter(
-    (ticketNumber) => Number.isFinite(ticketNumber) && ticketNumber > 0,
-  ),
-});
-
-const normalizeExtendTicketsInput = (input: ExtendTicketsInput) => ({
-  extensions: input.extensions
-    .map((extension) => ({
-      ticket_number: Number(extension.ticket_number),
-      months: Math.floor(Number(extension.months)),
-    }))
-    .filter(
-      (extension) =>
-        Number.isFinite(extension.ticket_number) &&
-        extension.ticket_number > 0 &&
-        Number.isFinite(extension.months) &&
-        extension.months > 0,
-    ),
-});
-
-const normalizeBuybackReportInput = (input: BuybackReportInput) => ({
-  date: input.date?.trim() ?? "",
-});
-
-const normalizeInterestReportInput = (input: InterestReportInput) => ({
-  date: input.date?.trim() ?? "",
-});
-
-const isValidDateKey = (value: string) => {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-
-  if (!match) {
-    return false;
-  }
-
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-  const date = new Date(Date.UTC(year, month - 1, day));
-
-  return (
-    date.getUTCFullYear() === year &&
-    date.getUTCMonth() === month - 1 &&
-    date.getUTCDate() === day
-  );
-};
 
 export const ticketService = {
   loadTickets: async (clientNumber: number): Promise<Ticket[]> => {
@@ -160,7 +50,7 @@ export const ticketService = {
       name: input?.name?.trim() ?? "",
     };
 
-    if (!isValidDateKey(normalizedInput.holiday_date)) {
+    if (!ticketInput.isValidDateKey(normalizedInput.holiday_date)) {
       throw new Error("Enter a valid holiday date.");
     }
 
@@ -180,7 +70,7 @@ export const ticketService = {
   deleteHolidayDate: async (holidayDate: string): Promise<HolidayDate> => {
     const normalizedDate = holidayDate?.trim() ?? "";
 
-    if (!isValidDateKey(normalizedDate)) {
+    if (!ticketInput.isValidDateKey(normalizedDate)) {
       throw new Error("Enter a valid holiday date.");
     }
 
@@ -271,7 +161,7 @@ export const ticketService = {
 
   searchPaymentTicket: async (
     ticketNumber: number,
-  ): Promise<PaymentTicketSearchPreview | null> => {
+  ): Promise<TicketSearchResult | null> => {
     return ticketService.searchTicket(ticketNumber);
   },
 
@@ -291,11 +181,11 @@ export const ticketService = {
   },
 
   loadBuybackReport: async (
-    input: BuybackReportInput,
+    input: ReportDateInput,
   ): Promise<BuybackReportResult> => {
-    const normalizedInput = normalizeBuybackReportInput(input);
+    const normalizedInput = ticketInput.normalizeReportDate(input);
 
-    if (!isValidDateKey(normalizedInput.date)) {
+    if (!ticketInput.isValidDateKey(normalizedInput.date)) {
       throw createFieldError("date", "Enter a valid report date.");
     }
 
@@ -334,11 +224,11 @@ export const ticketService = {
   },
 
   loadInterestReport: async (
-    input: InterestReportInput,
+    input: ReportDateInput,
   ): Promise<InterestReportResult> => {
-    const normalizedInput = normalizeInterestReportInput(input);
+    const normalizedInput = ticketInput.normalizeReportDate(input);
 
-    if (!isValidDateKey(normalizedInput.date)) {
+    if (!ticketInput.isValidDateKey(normalizedInput.date)) {
       throw createFieldError("date", "Enter a valid report date.");
     }
 
@@ -353,7 +243,7 @@ export const ticketService = {
   },
 
   createPawnTicket: async (input: CreatePawnTicketInput): Promise<Ticket> => {
-    const normalizedInput = normalizeCreatePawnTicketInput(input);
+    const normalizedInput = ticketInput.normalizeCreatePawnTicket(input);
 
     return runInTransaction("createPawnTicket", async (client) => {
       const transactionDatetime = calculation.getCurrentDatetime();
@@ -392,7 +282,7 @@ export const ticketService = {
   },
 
   createSellTicket: async (input: CreateSellTicketInput): Promise<Ticket> => {
-    const normalizedInput = normalizeCreateSellTicketInput(input);
+    const normalizedInput = ticketInput.normalizeCreateSellTicket(input);
 
     return runInTransaction("createSellTicket", async (client) => {
       const transactionDatetime = calculation.getCurrentDatetime();
@@ -435,7 +325,7 @@ export const ticketService = {
   },
 
   updateTicket: async (input: UpdateTicketInput): Promise<Ticket> => {
-    const normalizedInput = normalizeUpdateTicketInput(input);
+    const normalizedInput = ticketInput.normalizeUpdateTicket(input);
 
     return runInTransaction("updateTicket", async (client) => {
       const employeeName =
@@ -468,7 +358,7 @@ export const ticketService = {
   },
 
   convertTicket: async (input: ConvertTicketInput): Promise<Ticket> => {
-    const normalizedInput = normalizeConvertTicketInput(input);
+    const normalizedInput = ticketInput.normalizeConvertTicket(input);
 
     return runInTransaction("convertTicket", async (client) => {
       if (
@@ -569,7 +459,7 @@ export const ticketService = {
   },
 
   expireTicket: async (input: ExpireTicketInput): Promise<Ticket> => {
-    const normalizedInput = normalizeExpireTicketInput(input);
+    const normalizedInput = ticketInput.normalizeExpireTicket(input);
 
     return runInTransaction("expireTicket", async (client) => {
       if (
@@ -646,7 +536,7 @@ export const ticketService = {
   },
 
   markTicketStolen: async (input: MarkTicketStolenInput): Promise<Ticket> => {
-    const normalizedInput = normalizeMarkTicketStolenInput(input);
+    const normalizedInput = ticketInput.normalizeMarkTicketStolen(input);
 
     return runInTransaction("markTicketStolen", async (client) => {
       if (
@@ -695,7 +585,7 @@ export const ticketService = {
   },
 
   pickupTickets: async (input: PickupTicketsInput): Promise<Ticket[]> => {
-    const normalizedInput = normalizePickupTicketsInput(input);
+    const normalizedInput = ticketInput.normalizePickupTickets(input);
 
     if (!normalizedInput.ticket_numbers.length) {
       throw createFieldError("ticket_number", "Select at least one ticket.");
@@ -759,7 +649,7 @@ export const ticketService = {
   },
 
   extendTickets: async (input: ExtendTicketsInput): Promise<Ticket[]> => {
-    const normalizedInput = normalizeExtendTicketsInput(input);
+    const normalizedInput = ticketInput.normalizeExtendTickets(input);
 
     if (!normalizedInput.extensions.length) {
       throw createFieldError("ticket_number", "Select at least one ticket.");
@@ -842,7 +732,7 @@ export const ticketService = {
   },
 
   transferTicket: async (input: TransferTicketInput): Promise<Ticket> => {
-    const normalizedInput = normalizeTransferTicketInput(input);
+    const normalizedInput = ticketInput.normalizeTransferTicket(input);
 
     return runInTransaction("transferTicket", async (client) => {
       if (

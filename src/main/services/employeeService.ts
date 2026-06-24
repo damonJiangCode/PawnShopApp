@@ -5,46 +5,7 @@ import type {
   EmployeeSearchInput,
   SaveEmployeeInput,
 } from "../../shared/types/employeePayload.ts";
-
-const normalizeEmployeeInput = (
-  input: SaveEmployeeInput,
-): SaveEmployeeInput => ({
-  first_name: input.first_name?.trim() ?? "",
-  last_name: input.last_name?.trim() ?? "",
-  nickname: input.nickname?.trim() ?? "",
-  date_of_birth: input.date_of_birth?.trim() ?? "",
-  gender: input.gender?.trim() ?? "",
-  password: input.password?.trim() ?? "",
-});
-
-const normalizeEmployeeSearchInput = (
-  input: EmployeeSearchInput,
-): EmployeeSearchInput => ({
-  first_name: input.first_name?.trim() ?? "",
-  last_name: input.last_name?.trim() ?? "",
-});
-
-const validateEmployeeInput = (input: SaveEmployeeInput) => {
-  if (!input.last_name) {
-    throw new Error("Last name is required.");
-  }
-
-  if (!input.first_name) {
-    throw new Error("First name is required.");
-  }
-
-  if (!input.date_of_birth) {
-    throw new Error("Date of birth is required.");
-  }
-
-  if (!input.gender) {
-    throw new Error("Gender is required.");
-  }
-
-  if (!input.password) {
-    throw new Error("Password is required.");
-  }
-};
+import { employeeInput } from "./inputs/employeeInput.ts";
 
 export const employeeService = {
   findByPassword: async (password: string, dbClient?: DbClient) => {
@@ -71,15 +32,15 @@ export const employeeService = {
   },
 
   searchEmployees: async (input: EmployeeSearchInput): Promise<Employee[]> => {
-    const normalizedInput = normalizeEmployeeSearchInput(input);
+    const normalizedInput = employeeInput.normalizeEmployeeSearch(input);
 
     return employeeRepo.search(normalizedInput);
   },
 
   createEmployee: async (input: SaveEmployeeInput): Promise<Employee> => {
-    const normalizedInput = normalizeEmployeeInput(input);
+    const normalizedInput = employeeInput.normalizeEmployee(input);
 
-    validateEmployeeInput(normalizedInput);
+    employeeInput.validateEmployee(normalizedInput);
 
     const existingEmployee = await employeeRepo.findByPassword(
       normalizedInput.password,
@@ -100,8 +61,8 @@ export const employeeService = {
       throw new Error("Enter a valid employee number.");
     }
 
-    const normalizedInput = normalizeEmployeeInput(input);
-    validateEmployeeInput(normalizedInput);
+    const normalizedInput = employeeInput.normalizeEmployee(input);
+    employeeInput.validateEmployee(normalizedInput);
 
     const existingEmployee =
       await employeeRepo.findByEmployeeNumber(employeeNumber);

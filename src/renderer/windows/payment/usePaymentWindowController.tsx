@@ -1,13 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { GridColDef, GridRowSelectionModel } from "@mui/x-data-grid";
 import type { Ticket } from "../../../shared/types/Ticket";
+import type { TicketSearchResult } from "../../../shared/types/ticketPayload";
 import { calculation } from "../../../shared/utils/calculation";
 import CellTooltip from "../../components/shared/CellTooltip";
 import { clientService } from "../../services/clientService";
-import {
-  ticketService,
-  type PaymentTicketSearchPreview,
-} from "../../services/ticketService";
+import { ticketService } from "../../services/ticketService";
 import { formatCurrency, formatIsoDate } from "../../utils/formatters";
 
 export type PaymentMode = "pickup" | "extension";
@@ -119,7 +117,7 @@ export const usePaymentWindowController = () => {
   const [holidayDateKeys, setHolidayDateKeys] = useState<string[]>([]);
   const [ticketSearchValue, setTicketSearchValue] = useState("");
   const [ticketSearchPreview, setTicketSearchPreview] =
-    useState<PaymentTicketSearchPreview | null>(null);
+    useState<TicketSearchResult | null>(null);
   const [ticketSearchClientImage, setTicketSearchClientImage] = useState<
     string | null
   >(null);

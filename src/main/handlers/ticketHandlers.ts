@@ -1,14 +1,13 @@
 import type { IpcMainInvokeEvent } from "electron";
 import type {
   ConvertTicketInput,
-  BuybackReportInput,
   ExtendTicketsInput,
   ExpireTicketInput,
-  InterestReportInput,
   MarkTicketStolenInput,
   PickupTicketsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
+  ReportDateInput,
   TransferTicketInput,
   UpdateTicketInput,
 } from "../../shared/types/ticketPayload.ts";
@@ -63,13 +62,13 @@ export const registerTicketHandlers = () => {
   );
   ipcMain.handle(
     CHANNELS.LOAD_BUYBACK_REPORT,
-    async (_event: IpcMainInvokeEvent, input: BuybackReportInput) => {
+    async (_event: IpcMainInvokeEvent, input: ReportDateInput) => {
       return ticketService.loadBuybackReport(input);
     },
   );
   ipcMain.handle(
     CHANNELS.LOAD_INTEREST_REPORT,
-    async (_event: IpcMainInvokeEvent, input: InterestReportInput) => {
+    async (_event: IpcMainInvokeEvent, input: ReportDateInput) => {
       return ticketService.loadInterestReport(input);
     },
   );

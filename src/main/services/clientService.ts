@@ -1,68 +1,17 @@
-import type { Client, ID } from "../../shared/types/Client.ts";
+import type { Client } from "../../shared/types/Client.ts";
 import type {
   ClientNotesAction,
   SaveClientInput,
 } from "../../shared/types/clientPayload.ts";
 import { clientRepo } from "../repos/clientRepo.ts";
 import { employeeService } from "./employeeService.ts";
+import { clientInput } from "./inputs/clientInput.ts";
 import { createFieldError } from "../utils/createFieldError.ts";
 import { imageStorage } from "../utils/imageStorage.ts";
 import { runInTransaction } from "../utils/runInTransaction.ts";
 import type { DbClient } from "../../db/connection.ts";
 import type { HairColor } from "../../shared/types/hairColor.ts";
 import type { EyeColor } from "../../shared/types/eyeColor.ts";
-
-const normalizeClient = (client: Client): Client => ({
-  ...client,
-  first_name: client.first_name?.trim() ?? "",
-  last_name: client.last_name?.trim() ?? "",
-  middle_name: client.middle_name?.trim() ?? "",
-  gender: client.gender?.trim() ?? "",
-  hair_color: client.hair_color?.trim().toUpperCase() ?? "",
-  eye_color: client.eye_color?.trim().toUpperCase() ?? "",
-  address: client.address?.trim() ?? "",
-  postal_code: client.postal_code?.trim() ?? "",
-  city: client.city?.trim() ?? "",
-  province: client.province?.trim() ?? "",
-  country: client.country?.trim() ?? "",
-  email: client.email?.trim() ?? "",
-  phone: client.phone?.trim() ?? "",
-  notes: client.notes?.trim() ?? "",
-  image_path: client.image_path?.trim() ?? "",
-});
-
-const normalizeIdentifications = (ids: ID[]): ID[] =>
-  (ids ?? [])
-    .map((id) => ({
-      ...id,
-      id_type: id.id_type?.trim() ?? "",
-      id_value: id.id_value?.trim() ?? "",
-    }))
-    .filter((id) => id.id_type && id.id_value);
-
-const validateClient = (client: Client, identifications: ID[]) => {
-  const requiredMissing =
-    !client.first_name ||
-    !client.last_name ||
-    !client.date_of_birth ||
-    !client.gender ||
-    !client.hair_color ||
-    !client.eye_color ||
-    !client.height_cm ||
-    !client.weight_kg ||
-    !client.address ||
-    !client.city ||
-    !client.province ||
-    !client.country;
-
-  if (requiredMissing) {
-    throw new Error("Please fill all required client fields before saving.");
-  }
-
-  if (identifications.length < 2) {
-    throw new Error("Please provide at least two valid ID entries.");
-  }
-};
 
 const resolveNotes = async (
   client: Client,
@@ -105,22 +54,13 @@ const resolveNotes = async (
   return `${client.notes} (${employee.first_name}, ${formattedDate})`;
 };
 
-const normalizeSaveClientInput = (input: SaveClientInput) => ({
-  client: normalizeClient(input.client),
-  identifications: normalizeIdentifications(input.identifications ?? []),
-  employee_password: input.employee_password?.trim() ?? "",
-  notes_action: input.notes_action ?? "keep",
-});
-
-const normalizeColor = (color: string) => color?.trim() ?? "";
-
 export const clientService = {
   searchClients: async (
     firstName: string,
     lastName: string,
   ): Promise<Client[]> => {
-    const safeFirst = firstName?.trim() ?? "";
-    const safeLast = lastName?.trim() ?? "";
+    const { firstName: safeFirst, lastName: safeLast } =
+      clientInput.normalizeNameSearch(firstName, lastName);
 
     if (!safeFirst && !safeLast) {
       return [];
@@ -130,7 +70,7 @@ export const clientService = {
   },
 
   searchClientsByDob: async (dateOfBirth: string): Promise<Client[]> => {
-    const safeDob = dateOfBirth?.trim() ?? "";
+    const safeDob = clientInput.normalizeDobSearch(dateOfBirth);
 
     if (!safeDob) {
       return [];
@@ -152,7 +92,7 @@ export const clientService = {
   },
 
   addHairColor: async (color: string): Promise<string> => {
-    const normalizedColor = normalizeColor(color).toUpperCase();
+    const normalizedColor = clientInput.normalizeColor(color).toUpperCase();
 
     if (!normalizedColor) {
       throw new Error("Hair color is required.");
@@ -169,7 +109,7 @@ export const clientService = {
 
   deactivateHairColor: async (color: string): Promise<HairColor> => {
     const deactivatedColor = await clientRepo.deactivateHairColor(
-      normalizeColor(color).toUpperCase(),
+      clientInput.normalizeColor(color).toUpperCase(),
     );
 
     if (!deactivatedColor) {
@@ -181,7 +121,7 @@ export const clientService = {
 
   activateHairColor: async (color: string): Promise<HairColor> => {
     const activatedColor = await clientRepo.activateHairColor(
-      normalizeColor(color).toUpperCase(),
+      clientInput.normalizeColor(color).toUpperCase(),
     );
 
     if (!activatedColor) {
@@ -200,7 +140,7 @@ export const clientService = {
   },
 
   addEyeColor: async (color: string): Promise<string> => {
-    const normalizedColor = normalizeColor(color).toUpperCase();
+    const normalizedColor = clientInput.normalizeColor(color).toUpperCase();
 
     if (!normalizedColor) {
       throw new Error("Eye color is required.");
@@ -217,7 +157,7 @@ export const clientService = {
 
   deactivateEyeColor: async (color: string): Promise<EyeColor> => {
     const deactivatedColor = await clientRepo.deactivateEyeColor(
-      normalizeColor(color).toUpperCase(),
+      clientInput.normalizeColor(color).toUpperCase(),
     );
 
     if (!deactivatedColor) {
@@ -229,7 +169,7 @@ export const clientService = {
 
   activateEyeColor: async (color: string): Promise<EyeColor> => {
     const activatedColor = await clientRepo.activateEyeColor(
-      normalizeColor(color).toUpperCase(),
+      clientInput.normalizeColor(color).toUpperCase(),
     );
 
     if (!activatedColor) {
@@ -255,8 +195,11 @@ export const clientService = {
   },
 
   createClient: async (input: SaveClientInput): Promise<Client> => {
-    const normalizedInput = normalizeSaveClientInput(input);
-    validateClient(normalizedInput.client, normalizedInput.identifications);
+    const normalizedInput = clientInput.normalizeSaveClient(input);
+    clientInput.validateClient(
+      normalizedInput.client,
+      normalizedInput.identifications,
+    );
 
     if (
       normalizedInput.client.notes &&
@@ -311,8 +254,11 @@ export const clientService = {
   },
 
   updateClient: async (input: SaveClientInput): Promise<Client> => {
-    const normalizedInput = normalizeSaveClientInput(input);
-    validateClient(normalizedInput.client, normalizedInput.identifications);
+    const normalizedInput = clientInput.normalizeSaveClient(input);
+    clientInput.validateClient(
+      normalizedInput.client,
+      normalizedInput.identifications,
+    );
 
     if (!normalizedInput.client.client_number) {
       throw new Error("Missing client number for update.");
