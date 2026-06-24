@@ -182,6 +182,9 @@ const TransactionTicketsTable: React.FC<TransactionTicketsTableProps> = ({
             tickets.find((t) => t.ticket_number === params.id) ?? null;
           onSelectTicket(clickedTicket);
         }}
+        getRowClassName={(params) =>
+          params.row.is_stolen ? "transaction-ticket-row-stolen" : ""
+        }
         disableColumnMenu
         disableColumnSorting
         disableColumnFilter
@@ -225,6 +228,24 @@ const TransactionTicketsTable: React.FC<TransactionTicketsTableProps> = ({
             borderRight: "1px solid #9aa4af",
             borderBottom: "1px solid #9aa4af",
           },
+          "& .MuiDataGrid-row.transaction-ticket-row-stolen": {
+            backgroundColor: "rgba(211, 47, 47, 0.18)",
+          },
+          "& .MuiDataGrid-row.transaction-ticket-row-stolen:hover": {
+            backgroundColor: "rgba(211, 47, 47, 0.26)",
+          },
+          "& .MuiDataGrid-row.transaction-ticket-row-stolen.Mui-selected": {
+            backgroundColor: "rgba(211, 47, 47, 0.34)",
+          },
+          "& .MuiDataGrid-row.transaction-ticket-row-stolen.Mui-selected:hover":
+            {
+              backgroundColor: "rgba(211, 47, 47, 0.42)",
+            },
+          "& .MuiDataGrid-row.transaction-ticket-row-stolen .MuiDataGrid-cell":
+            {
+              borderRight: "1px solid rgba(211, 47, 47, 0.35)",
+              borderBottom: "1px solid rgba(211, 47, 47, 0.35)",
+            },
         }}
       />
     </Box>
