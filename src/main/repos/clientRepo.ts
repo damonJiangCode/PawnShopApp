@@ -6,7 +6,7 @@ import { connect } from "../../db/connection.ts";
 
 type DbClient = Awaited<ReturnType<typeof connect>>;
 
-const normalize = (value: unknown) => {
+const toDbNullable = (value: unknown) => {
   if (typeof value === "string") {
     const trimmed = value.trim();
     return trimmed === "" ? null : trimmed;
@@ -47,6 +47,26 @@ const mapRowToClient = (row: any): Client => ({
 const getDbClient = async (dbClient?: DbClient) =>
   dbClient ?? (await connect());
 
+const clientWithIdentificationsFromClause = `
+  SELECT
+    c.*,
+    COALESCE(ci.identifications, '[]') AS identifications
+  FROM client c
+  LEFT JOIN LATERAL (
+    SELECT json_agg(
+      jsonb_build_object(
+        'id', client_id.id,
+        'id_type', client_id.id_type,
+        'id_value', client_id.id_value,
+        'updated_at', client_id.updated_at
+      )
+      ORDER BY client_id.id
+    ) AS identifications
+    FROM client_id
+    WHERE client_id.client_number = c.client_number
+  ) ci ON TRUE
+`;
+
 export const clientRepo = {
   loadByNumber: async (
     clientNumber: number,
@@ -54,23 +74,7 @@ export const clientRepo = {
   ): Promise<Client | null> => {
     const client = await getDbClient(dbClient);
     const query = `
-      SELECT
-        c.*,
-        COALESCE(ci.identifications, '[]') AS identifications
-      FROM client c
-      LEFT JOIN LATERAL (
-        SELECT json_agg(
-          jsonb_build_object(
-            'id', client_id.id,
-            'id_type', client_id.id_type,
-            'id_value', client_id.id_value,
-            'updated_at', client_id.updated_at
-          )
-          ORDER BY client_id.id
-        ) AS identifications
-        FROM client_id
-        WHERE client_id.client_number = c.client_number
-      ) ci ON TRUE
+      ${clientWithIdentificationsFromClause}
       WHERE c.client_number = $1
       LIMIT 1
     `;
@@ -92,23 +96,7 @@ export const clientRepo = {
   ): Promise<Client[]> => {
     const client = await getDbClient(dbClient);
     const query = `
-      SELECT
-        c.*,
-        COALESCE(ci.identifications, '[]') AS identifications
-      FROM client c
-      LEFT JOIN LATERAL (
-        SELECT json_agg(
-          jsonb_build_object(
-            'id', client_id.id,
-            'id_type', client_id.id_type,
-            'id_value', client_id.id_value,
-            'updated_at', client_id.updated_at
-          )
-          ORDER BY client_id.id
-        ) AS identifications
-        FROM client_id
-        WHERE client_id.client_number = c.client_number
-      ) ci ON TRUE
+      ${clientWithIdentificationsFromClause}
       WHERE
         (LOWER(c.first_name) LIKE LOWER($1) || '%' OR $1 = '')
         AND
@@ -136,23 +124,7 @@ export const clientRepo = {
   ): Promise<Client[]> => {
     const client = await getDbClient(dbClient);
     const query = `
-      SELECT
-        c.*,
-        COALESCE(ci.identifications, '[]') AS identifications
-      FROM client c
-      LEFT JOIN LATERAL (
-        SELECT json_agg(
-          jsonb_build_object(
-            'id', client_id.id,
-            'id_type', client_id.id_type,
-            'id_value', client_id.id_value,
-            'updated_at', client_id.updated_at
-          )
-          ORDER BY client_id.id
-        ) AS identifications
-        FROM client_id
-        WHERE client_id.client_number = c.client_number
-      ) ci ON TRUE
+      ${clientWithIdentificationsFromClause}
       WHERE c.date_of_birth = $1::date
       ORDER BY c.last_name, c.first_name, c.client_number
     `;
@@ -204,24 +176,24 @@ export const clientRepo = {
     `;
 
     const values = [
-      normalize(clientData.first_name),
-      normalize(clientData.last_name),
-      normalize(clientData.middle_name),
-      normalize(clientData.date_of_birth),
-      normalize(clientData.gender),
-      normalize(clientData.hair_color),
-      normalize(clientData.eye_color),
+      toDbNullable(clientData.first_name),
+      toDbNullable(clientData.last_name),
+      toDbNullable(clientData.middle_name),
+      toDbNullable(clientData.date_of_birth),
+      toDbNullable(clientData.gender),
+      toDbNullable(clientData.hair_color),
+      toDbNullable(clientData.eye_color),
       clientData.height_cm ?? null,
       clientData.weight_kg ?? null,
-      normalize(clientData.address),
-      normalize(clientData.postal_code),
-      normalize(clientData.city),
-      normalize(clientData.province),
-      normalize(clientData.country),
-      normalize(clientData.email),
-      normalize(clientData.phone),
-      normalize(clientData.notes),
-      normalize(clientData.image_path),
+      toDbNullable(clientData.address),
+      toDbNullable(clientData.postal_code),
+      toDbNullable(clientData.city),
+      toDbNullable(clientData.province),
+      toDbNullable(clientData.country),
+      toDbNullable(clientData.email),
+      toDbNullable(clientData.phone),
+      toDbNullable(clientData.notes),
+      toDbNullable(clientData.image_path),
       Boolean(clientData.pickup_self_only),
       clientData.redeem_count ?? 0,
       clientData.sold_count ?? 0,
@@ -285,24 +257,24 @@ export const clientRepo = {
     `;
 
     const values = [
-      normalize(clientData.first_name),
-      normalize(clientData.last_name),
-      normalize(clientData.middle_name),
-      normalize(clientData.date_of_birth),
-      normalize(clientData.gender),
-      normalize(clientData.hair_color),
-      normalize(clientData.eye_color),
+      toDbNullable(clientData.first_name),
+      toDbNullable(clientData.last_name),
+      toDbNullable(clientData.middle_name),
+      toDbNullable(clientData.date_of_birth),
+      toDbNullable(clientData.gender),
+      toDbNullable(clientData.hair_color),
+      toDbNullable(clientData.eye_color),
       clientData.height_cm ?? null,
       clientData.weight_kg ?? null,
-      normalize(clientData.address),
-      normalize(clientData.postal_code),
-      normalize(clientData.city),
-      normalize(clientData.province),
-      normalize(clientData.country),
-      normalize(clientData.email),
-      normalize(clientData.phone),
-      normalize(clientData.notes),
-      normalize(clientData.image_path),
+      toDbNullable(clientData.address),
+      toDbNullable(clientData.postal_code),
+      toDbNullable(clientData.city),
+      toDbNullable(clientData.province),
+      toDbNullable(clientData.country),
+      toDbNullable(clientData.email),
+      toDbNullable(clientData.phone),
+      toDbNullable(clientData.notes),
+      toDbNullable(clientData.image_path),
       Boolean(clientData.pickup_self_only),
       clientData.redeem_count ?? 0,
       clientData.sold_count ?? 0,

@@ -128,6 +128,29 @@ const ensureInterestPaymentTable = async (client: DbClient) => {
   await client.query(createInterestPaymentIndexes);
 };
 
+const clientDisplayNameSql = (alias: string) => `
+  CONCAT(
+    UPPER(${alias}.last_name),
+    ', ',
+    UPPER(${alias}.first_name),
+    CASE
+      WHEN COALESCE(TRIM(${alias}.middle_name), '') = '' THEN ''
+      ELSE CONCAT(' ', UPPER(${alias}.middle_name))
+    END
+  )
+`;
+
+const mapLocationRow = (row: Record<string, unknown>): Location => ({
+  location: String(row.location),
+  description: String(row.description ?? ""),
+  is_active: Boolean(row.is_active),
+});
+
+const mapHolidayDateRow = (row: Record<string, unknown>): HolidayDate => ({
+  holiday_date: String(row.holiday_date),
+  name: String(row.name),
+});
+
 const mapTransferTicketPreviewRow = (
   row: Record<string, unknown>,
 ): TransferTicketPreview => ({
@@ -255,15 +278,7 @@ export const ticketRepo = {
         t.interest_paid_months,
         t.partial_payment,
         t.description,
-        CONCAT(
-          UPPER(c.last_name),
-          ', ',
-          UPPER(c.first_name),
-          CASE
-            WHEN COALESCE(TRIM(c.middle_name), '') = '' THEN ''
-            ELSE CONCAT(' ', UPPER(c.middle_name))
-          END
-        ) AS client_name
+        ${clientDisplayNameSql("c")} AS client_name
       FROM ticket t
       LEFT JOIN client c ON c.client_number = t.client_number
       WHERE t.status = 'picked_up'
@@ -291,15 +306,7 @@ export const ticketRepo = {
         ip.amount_paid,
         ip.payment_datetime,
         t.description,
-        CONCAT(
-          UPPER(c.last_name),
-          ', ',
-          UPPER(c.first_name),
-          CASE
-            WHEN COALESCE(TRIM(c.middle_name), '') = '' THEN ''
-            ELSE CONCAT(' ', UPPER(c.middle_name))
-          END
-        ) AS client_name
+        ${clientDisplayNameSql("c")} AS client_name
       FROM interest_payment ip
       INNER JOIN ticket t ON t.ticket_number = ip.ticket_number
       LEFT JOIN client c ON c.client_number = t.client_number
@@ -343,11 +350,7 @@ export const ticketRepo = {
 
     try {
       const result = await client.query(query);
-      return result.rows.map((row) => ({
-        location: String(row.location),
-        description: String(row.description ?? ""),
-        is_active: Boolean(row.is_active),
-      }));
+      return result.rows.map(mapLocationRow);
     } finally {
       client.release();
     }
@@ -369,13 +372,7 @@ export const ticketRepo = {
       ]);
       const row = result.rows[0];
 
-      return row
-        ? {
-            location: String(row.location),
-            description: String(row.description ?? ""),
-            is_active: Boolean(row.is_active),
-          }
-        : null;
+      return row ? mapLocationRow(row) : null;
     } finally {
       client.release();
     }
@@ -394,13 +391,7 @@ export const ticketRepo = {
       const result = await client.query(query, [location]);
       const row = result.rows[0];
 
-      return row
-        ? {
-            location: String(row.location),
-            description: String(row.description ?? ""),
-            is_active: Boolean(row.is_active),
-          }
-        : null;
+      return row ? mapLocationRow(row) : null;
     } finally {
       client.release();
     }
@@ -418,10 +409,7 @@ export const ticketRepo = {
 
     try {
       const result = await client.query(query);
-      return result.rows.map((row) => ({
-        holiday_date: String(row.holiday_date),
-        name: String(row.name),
-      }));
+      return result.rows.map(mapHolidayDateRow);
     } finally {
       client.release();
     }
@@ -445,12 +433,7 @@ export const ticketRepo = {
       ]);
       const row = result.rows[0];
 
-      return row
-        ? {
-            holiday_date: String(row.holiday_date),
-            name: String(row.name),
-          }
-        : null;
+      return row ? mapHolidayDateRow(row) : null;
     } finally {
       client.release();
     }
@@ -470,12 +453,7 @@ export const ticketRepo = {
       const result = await client.query(query, [holidayDate]);
       const row = result.rows[0];
 
-      return row
-        ? {
-            holiday_date: String(row.holiday_date),
-            name: String(row.name),
-          }
-        : null;
+      return row ? mapHolidayDateRow(row) : null;
     } finally {
       client.release();
     }
@@ -493,15 +471,7 @@ export const ticketRepo = {
         t.location,
         t.amount,
         t.client_number AS previous_client_number,
-        CONCAT(
-          UPPER(c.last_name),
-          ', ',
-          UPPER(c.first_name),
-          CASE
-            WHEN COALESCE(TRIM(c.middle_name), '') = '' THEN ''
-            ELSE CONCAT(' ', UPPER(c.middle_name))
-          END
-        ) AS previous_client_name
+        ${clientDisplayNameSql("c")} AS previous_client_name
       FROM ticket t
       INNER JOIN client c ON c.client_number = t.client_number
       WHERE t.ticket_number = $1

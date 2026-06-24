@@ -33,6 +33,40 @@ const mapItemRow = (row: Record<string, unknown>): Item => {
   };
 };
 
+const itemSelectColumns = `
+  i.item_number,
+  i.quantity,
+  i.subcategory_id,
+  c.name AS category_name,
+  s.name AS subcategory_name,
+  i.description,
+  i.brand_name,
+  i.model_number,
+  i.serial_number,
+  i.amount,
+  i.latest_ticket_number,
+  latest_ticket.status AS latest_ticket_status,
+  i.image_path
+`;
+
+const itemLookupJoins = `
+  LEFT JOIN ticket latest_ticket
+    ON latest_ticket.ticket_number = i.latest_ticket_number
+  LEFT JOIN item_subcategory s
+    ON s.id = i.subcategory_id
+  LEFT JOIN item_category c
+    ON c.id = s.category_id
+`;
+
+const mapItemCategoryRow = (
+  row: Record<string, unknown>,
+): ItemCategoryOption => ({
+  category_id: Number(row.category_id),
+  category_name: String(row.category_name),
+  subcategory_id: Number(row.subcategory_id),
+  subcategory_name: String(row.subcategory_name),
+});
+
 export const itemRepo = {
   loadCategories: async (): Promise<ItemCategoryOption[]> => {
     const client = await connect();
@@ -52,12 +86,7 @@ export const itemRepo = {
 
     try {
       const result = await client.query(query);
-      return result.rows.map((row) => ({
-        category_id: Number(row.category_id),
-        category_name: String(row.category_name),
-        subcategory_id: Number(row.subcategory_id),
-        subcategory_name: String(row.subcategory_name),
-      }));
+      return result.rows.map(mapItemCategoryRow);
     } finally {
       client.release();
     }
@@ -66,30 +95,12 @@ export const itemRepo = {
   loadByTicketNumber: async (ticketNumber: number): Promise<Item[]> => {
     const client = await connect();
     const query = `
-      SELECT
-        i.item_number,
-        i.quantity,
-        i.subcategory_id,
-        c.name AS category_name,
-        s.name AS subcategory_name,
-        i.description,
-        i.brand_name,
-        i.model_number,
-        i.serial_number,
-        i.amount,
-        i.latest_ticket_number,
-        latest_ticket.status AS latest_ticket_status,
-        i.image_path
+      SELECT ${itemSelectColumns}
       FROM item i
       INNER JOIN ticket_item ti
         ON ti.item_number = i.item_number
        AND ti.ticket_number = $1
-      LEFT JOIN ticket latest_ticket
-        ON latest_ticket.ticket_number = i.latest_ticket_number
-      LEFT JOIN item_subcategory s
-        ON s.id = i.subcategory_id
-      LEFT JOIN item_category c
-        ON c.id = s.category_id
+      ${itemLookupJoins}
       WHERE ti.ticket_number = $1
       ORDER BY i.item_number DESC
     `;
@@ -107,27 +118,9 @@ export const itemRepo = {
     dbClient: DbClient,
   ): Promise<Item | null> => {
     const query = `
-      SELECT
-        i.item_number,
-        i.quantity,
-        i.subcategory_id,
-        c.name AS category_name,
-        s.name AS subcategory_name,
-        i.description,
-        i.brand_name,
-        i.model_number,
-        i.serial_number,
-        i.amount,
-        i.latest_ticket_number,
-        latest_ticket.status AS latest_ticket_status,
-        i.image_path
+      SELECT ${itemSelectColumns}
       FROM item i
-      LEFT JOIN ticket latest_ticket
-        ON latest_ticket.ticket_number = i.latest_ticket_number
-      LEFT JOIN item_subcategory s
-        ON s.id = i.subcategory_id
-      LEFT JOIN item_category c
-        ON c.id = s.category_id
+      ${itemLookupJoins}
       WHERE i.item_number = $1
       LIMIT 1
     `;
@@ -137,7 +130,6 @@ export const itemRepo = {
   },
 
   search: async (payload: ItemSearchInput): Promise<Item[]> => {
-    const client = await connect();
     const conditions: string[] = [];
     const values: Array<number | string> = [];
 
@@ -166,32 +158,14 @@ export const itemRepo = {
     }
 
     if (!conditions.length) {
-      client.release();
       return [];
     }
 
+    const client = await connect();
     const query = `
-      SELECT
-        i.item_number,
-        i.quantity,
-        i.subcategory_id,
-        c.name AS category_name,
-        s.name AS subcategory_name,
-        i.description,
-        i.brand_name,
-        i.model_number,
-        i.serial_number,
-        i.amount,
-        i.latest_ticket_number,
-        latest_ticket.status AS latest_ticket_status,
-        i.image_path
+      SELECT ${itemSelectColumns}
       FROM item i
-      LEFT JOIN ticket latest_ticket
-        ON latest_ticket.ticket_number = i.latest_ticket_number
-      LEFT JOIN item_subcategory s
-        ON s.id = i.subcategory_id
-      LEFT JOIN item_category c
-        ON c.id = s.category_id
+      ${itemLookupJoins}
       WHERE ${conditions.join(" AND ")}
       ORDER BY i.item_number DESC
       LIMIT 100

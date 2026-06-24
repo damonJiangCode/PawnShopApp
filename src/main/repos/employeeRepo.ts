@@ -7,12 +7,22 @@ import type {
 
 type DbClient = Awaited<ReturnType<typeof connect>>;
 
-export interface EmployeeMatch {
-  employee_number: number;
-  first_name: string;
-  last_name: string;
-  nickname: string;
-}
+export type EmployeeMatch = Pick<
+  Employee,
+  "employee_number" | "first_name" | "last_name" | "nickname"
+>;
+
+const employeeSelectColumns = `
+  employee_number,
+  first_name,
+  last_name,
+  nickname,
+  date_of_birth,
+  gender,
+  password,
+  created_at,
+  updated_at
+`;
 
 const formatDateOnly = (value: unknown) => {
   if (!value) {
@@ -72,16 +82,7 @@ export const employeeRepo = {
     try {
       const result = await client.query(
         `
-          SELECT
-            employee_number,
-            first_name,
-            last_name,
-            nickname,
-            date_of_birth,
-            gender,
-            password,
-            created_at,
-            updated_at
+          SELECT ${employeeSelectColumns}
           FROM employee
           WHERE employee_number = $1
           LIMIT 1
@@ -113,16 +114,7 @@ export const employeeRepo = {
     try {
       const result = await client.query(
         `
-          SELECT
-            employee_number,
-            first_name,
-            last_name,
-            nickname,
-            date_of_birth,
-            gender,
-            password,
-            created_at,
-            updated_at
+          SELECT ${employeeSelectColumns}
           FROM employee
           ${filters.length ? `WHERE ${filters.join(" AND ")}` : ""}
           ORDER BY last_name, first_name, employee_number
@@ -151,16 +143,7 @@ export const employeeRepo = {
             password
           )
           VALUES ($1, $2, $3, $4, $5, $6)
-          RETURNING
-            employee_number,
-            first_name,
-            last_name,
-            nickname,
-            date_of_birth,
-            gender,
-            password,
-            created_at,
-            updated_at
+          RETURNING ${employeeSelectColumns}
         `,
         [
           payload.first_name,
@@ -197,16 +180,7 @@ export const employeeRepo = {
             password = $7,
             updated_at = CURRENT_TIMESTAMP
           WHERE employee_number = $1
-          RETURNING
-            employee_number,
-            first_name,
-            last_name,
-            nickname,
-            date_of_birth,
-            gender,
-            password,
-            created_at,
-            updated_at
+          RETURNING ${employeeSelectColumns}
         `,
         [
           employeeNumber,
