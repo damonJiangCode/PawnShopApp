@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { itemService } from "../../services/itemService";
+import { itemService } from "../../modules/items/item.api";
 import MainLayout from "./MainLayout";
 
 const MainApp: React.FC = () => {

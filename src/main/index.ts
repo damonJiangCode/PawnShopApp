@@ -1,6 +1,6 @@
 import path from "path";
 import type { Event as ElectronEvent } from "electron";
-import { registerHandlers } from "./handlers/registerHandlers.ts";
+import { registerHandlers } from "./ipc/register.ts";
 
 const { app, BrowserWindow, Menu, screen } =
   require("electron/main") as typeof import("electron");

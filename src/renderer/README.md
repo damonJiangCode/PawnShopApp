@@ -1,20 +1,14 @@
 # Renderer Code Map
 
-This folder is the React UI side of the Electron app. It should stay organized by responsibility, not only by file type. The goal is that a future feature has an obvious place to live.
+This folder is the React UI side of the Electron app. It is organized by feature modules first, with shared UI and API helpers separated out.
 
 ## Top-Level Rule
 
-Keep these layers separate:
+- `app/`: renderer startup, window routing, and whole-app state wiring.
+- `modules/`: feature/domain code. Put pages, windows, components, hooks, and renderer API wrappers near the feature that owns them.
+- `shared/`: reusable renderer UI, layout, formatting, and Electron API access.
 
-- `app/`: app startup, window routing, and whole-app state wiring.
-- `pages/`: screen-level pages, such as Client, Transaction, and History.
-- `components/`: reusable UI pieces used by pages.
-- `services/`: renderer-facing API wrappers around `window.electronAPI`.
-- `hooks/`: reusable React behavior.
-- `utils/`: pure formatting and form helpers.
-- `assets/`: small renderer-only constants or visual assets.
-
-If a file starts doing two jobs, split it. For example, layout should not also own transaction business logic; move that logic into a controller hook like `useMainLayoutController`.
+If a feature needs client code, start in `modules/clients`. If it needs ticket code, start in `modules/tickets`. Cross-feature pages such as transactions and history live in their own modules and import ticket/item/client components as needed.
 
 ## `app/`
 
@@ -29,172 +23,79 @@ app/
     MainApp.tsx
     MainLayout.tsx
     useMainLayoutController.ts
-  windows/
-    itemLoad/
-      ItemLoadWindowApp.tsx
+  menu-action/
+    MenuActionWindowApp.tsx
+    menuActionRegistry.ts
 ```
 
 - `main.tsx`: only mounts React into `#root`.
-- `RendererRoot.tsx`: asks which renderer app should run.
-- `windowRegistry.tsx`: maps `?window=item-load` style URL keys to window apps.
-- `main/MainApp.tsx`: the normal primary app window.
-- `main/MainLayout.tsx`: visual shell for the main window.
-- `main/useMainLayoutController.ts`: cross-page state and handlers for the main window.
-- `windows/*`: independent Electron child-window UIs.
+- `RendererRoot.tsx`: chooses which renderer app should run.
+- `windowRegistry.tsx`: maps URL window keys to window apps.
+- `main/`: the primary app shell.
+- `menu-action/`: the menu-action child window shell and registry.
 
-To add a new Electron renderer window:
+## `modules/`
 
-1. Create `app/windows/newWindow/NewWindowApp.tsx`.
-2. Add it to `windowRegistry.tsx`.
-3. Load it from Electron with `http://localhost:5173?window=new-window`.
-4. Put IPC API types in `shared/types`, and expose the renderer call through a `services/*Service.ts` file.
+Current modules:
 
-## `pages/`
-
-Pages are screen-level containers. They are allowed to load data, hold page-specific state, and connect components together.
-
-Current pages:
-
-- `ClientPage.tsx`: search, select, show profile/results for clients.
-- `TransactionPage.tsx`: active pawn/sell transaction workflow.
-- `HistoryPage.tsx`: historical tickets/items and repawn/load workflows.
-- `controllers/`: page controller hooks. These hold page state, effects, service calls, and event handlers so the page files stay mostly visual.
+- `clients/`: client API, client page/controller, client profile/results/dialogs, client image/search hooks.
+- `tickets/`: ticket API, ticket dialogs, ticket tables, ticket menu actions, payment window.
+- `items/`: item API, item dialogs, item tables, item load window, item search window.
+- `transactions/`: active pawn/sell transaction page and controller.
+- `history/`: history page and controller.
+- `employees/`: employee API and employee admin UI.
+- `reports/`: report menu windows.
+- `admin/`: color, holiday, and location admin windows.
 
 Rule of thumb:
 
-- If it owns a full screen area, it is probably a page.
-- If it is a repeated or reusable visual piece, put it in `components/`.
-- If it is page logic that makes the page hard to read, move it into `pages/controllers/useXxxPageController.ts`.
+- If it belongs to one feature, keep it inside that module.
+- If it is a cross-feature workflow, give the workflow its own module.
+- If it is generic UI or formatting, move it to `shared/`.
+- If a file approaches 500 lines, split helpers, columns, dialog sections, or action handlers into local sibling files.
 
-## `components/`
+## `shared/`
 
-Components are grouped by domain or UI role.
+Shared renderer code:
 
 ```text
-components/
-  appShell/
-  client/
-  history/
+shared/
+  api/
+  app-shell/
   layout/
-  shared/
-  transaction/
+  menu-action/
+  ui/
+  utils/
 ```
 
-### `components/appShell`
+- `api/`: `electron.api` and window-level API wrappers.
+- `app-shell/`: top bar/search/sidebar controls for the main app shell.
+- `layout/`: small reusable layout primitives and sizing constants.
+- `menu-action/`: shared menu-action window layout.
+- `ui/`: simple cross-domain UI pieces such as `CellTooltip` and `ClientBar`.
+- `utils/`: pure formatting and form helpers.
 
-Top-level app shell controls:
-
-- `TopBar`
-- `SearchBar`
-- `SideButtons`
-
-These belong to the main app shell, not to generic layout.
-
-### `components/layout`
-
-Small reusable layout primitives and sizing constants:
-
-- `ItemActionsLayout`
-- `TicketActionsLayout`
-- `layoutSizing`
-
-These should not know about pawn tickets, clients, or business behavior. They should receive config and render a consistent layout.
-
-### `components/shared`
-
-Small shared UI components that are used across domains:
-
-- `CellTooltip`
-- `ClientBar`
-- shared button style constants
-
-Use this folder for simple cross-domain pieces. If a component becomes domain-specific, move it into that domain folder.
-
-### `components/client`
-
-Client-specific UI:
-
-- `dialogs/`: add/edit client dialog and its fields.
-- `profile/`: client profile display.
-- `results/`: client search result table, image, and actions.
-
-### `components/transaction`
-
-Active transaction UI:
-
-- `dialogs/`: ticket/item dialogs.
-- `items/`: transaction item table, image, side panel, actions.
-- `tickets/`: transaction ticket table, panel, actions.
-
-### `components/history`
-
-History-only UI:
-
-- `tickets/`: history ticket table/panel/actions.
-- `items/`: history item panel/actions.
-
-History components may reuse transaction components when the UI is intentionally identical, such as the shared item table.
-
-## `services/`
-
-Renderer services are the only place pages/components should call `window.electronAPI` directly.
-
-Examples:
-
-- `clientService.ts`
-- `ticketService.ts`
-- `itemService.ts`
-- `windowService.ts`
-- `electronApi.ts`
-
-Good pattern:
+Avoid calling `window.electronAPI` from random components. Use module API files or `shared/api` so the chain stays readable:
 
 ```ts
-page/component -> service -> window.electronAPI -> main handler -> repo/db
+page/component -> module api -> window.electronAPI -> main handler -> service -> repo/db
 ```
-
-Avoid calling `window.electronAPI` from random components. It makes the app harder to test and harder to refactor.
-
-## `hooks/`
-
-Hooks hold reusable React behavior:
-
-- `useClientSearch`
-- `useClientImage`
-
-Use a hook when behavior needs state/effects and is reused, or when a page is becoming too large.
-
-## `utils/`
-
-Utilities should be pure functions with no React state and no IPC:
-
-- `formatters`
-- `formError`
-- `defaultClient`
-
-If a helper talks to Electron, it is a service. If it uses React state/effects, it is a hook.
 
 ## Naming Rules
 
-- Domain components should include the domain when ambiguity is likely:
-  - `TransactionTicketsTable`
-  - `HistoryTicketsTable`
-  - `TransactionItemsTable`
-- Generic layout components should describe the layout role:
-  - `ItemActionsLayout`
-  - `TicketActionsLayout`
-- Window apps should end with `WindowApp`:
-  - `ItemLoadWindowApp`
+- Renderer API wrappers use `*.api.ts`, such as `client.api.ts` and `ticket.api.ts`.
+- Local helper files should name what they own, such as `payment.rowActions.ts` or `itemSearchColumns.tsx`.
+- Window apps should end with `WindowApp`.
+- Domain components should keep domain words when ambiguity is likely, such as `TransactionTicketsTable` and `HistoryTicketsTable`.
 
 ## Maintenance Habit
 
-Before adding a feature, decide which layer it belongs to:
+Before adding a feature, decide its home:
 
-1. Does it create a new top-level Electron window? Use `app/windows` and `windowRegistry`.
-2. Is it a full screen/page workflow? Use `pages`.
-3. Is it a visual piece used inside a page? Use `components/<domain>`.
-4. Is it an API call? Use `services`.
-5. Is it reusable React behavior? Use `hooks`.
-6. Is it pure formatting/calculation? Use `utils`.
+1. New primary workflow? Add or update a module page/controller.
+2. New menu window? Put the window in the owning module and register it in `app/menu-action/menuActionRegistry.ts`.
+3. New IPC call? Add it to the owning module API and the matching main module.
+4. Reusable visual helper? Put it in `shared/ui` or `shared/layout`.
+5. Pure formatting/calculation? Put it in `shared/utils`.
 
-This is the same kind of problem larger teams have. The common solution is not perfect architecture on day one. It is small, written conventions and periodic cleanup before the structure becomes painful.
+The structure is meant to reduce jumping. A normal feature review should start in one module and only leave it for shared utilities or cross-module workflows.

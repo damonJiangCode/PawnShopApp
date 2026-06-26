@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import type { Client } from "../../../shared/types/Client";
 import type { Item } from "../../../shared/types/Item";
 import type { Ticket } from "../../../shared/types/Ticket";
-import type { TransactionItemLoadRequest } from "../../pages/TransactionPage";
-import { itemService } from "../../services/itemService";
-import { windowService } from "../../services/windowService";
+import type { TransactionItemLoadRequest } from "../../modules/transactions/pages/TransactionPage";
+import { itemService } from "../../modules/items/item.api";
+import { windowService } from "../../shared/api/window.api";
 
 type SearchParams = {
   firstName: string;

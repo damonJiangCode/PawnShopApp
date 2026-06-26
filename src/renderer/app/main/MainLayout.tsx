@@ -3,10 +3,10 @@ import { Box, Tabs, Tab, Paper } from "@mui/material";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import HistoryEduIcon from "@mui/icons-material/HistoryEdu";
-import TopBar from "../../components/appShell/TopBar";
-import ClientPage from "../../pages/ClientPage";
-import TransactionPage from "../../pages/TransactionPage";
-import HistoryPage from "../../pages/HistoryPage";
+import TopBar from "../../shared/app-shell/TopBar";
+import ClientPage from "../../modules/clients/pages/ClientPage";
+import TransactionPage from "../../modules/transactions/pages/TransactionPage";
+import HistoryPage from "../../modules/history/pages/HistoryPage";
 import { useMainLayoutController } from "./useMainLayoutController";
 
 interface MainTabPanelProps {

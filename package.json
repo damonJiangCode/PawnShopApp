@@ -14,7 +14,7 @@
     "typecheck:renderer": "tsc --noEmit -p renderer/tsconfig.json",
     "build:main": "node scripts/prepareElectronBuild.cjs && tsc -p tsconfig.main.json",
     "build": "npm run build:main && npm run typecheck:renderer && vite build --config renderer/vite.config.ts",
-    "db:init": "npm run build:main && node .electron-build/db/runInit.js",
+    "db:init": "npm run build:main && node .electron-build/main/database/runInit.js",
     "format": "prettier . --write",
     "format:check": "prettier . --check"
   },
