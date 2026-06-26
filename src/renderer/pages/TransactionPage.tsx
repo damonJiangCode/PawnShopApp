@@ -199,7 +199,7 @@ const TransactionPage: React.FC<TransactionPageProps> = ({
           clientFirstName={clientFirstName || ""}
           clientLastName={clientLastName || ""}
           clientMiddleName={clientMiddleName}
-          onClose={() => actions.setopenTicketPawnDialog(false)}
+          onClose={() => actions.setOpenTicketPawnDialog(false)}
           onSave={actions.handlePawnTicket}
         />
       )}
@@ -210,7 +210,7 @@ const TransactionPage: React.FC<TransactionPageProps> = ({
           clientFirstName={clientFirstName || ""}
           clientLastName={clientLastName || ""}
           clientMiddleName={clientMiddleName}
-          onClose={() => actions.setopenTicketSellDialog(false)}
+          onClose={() => actions.setOpenTicketSellDialog(false)}
           onSave={actions.handleSellTicket}
         />
       )}
@@ -222,7 +222,7 @@ const TransactionPage: React.FC<TransactionPageProps> = ({
           clientLastName={clientLastName || ""}
           clientMiddleName={clientMiddleName}
           ticket={selectedTicket}
-          onClose={() => actions.setopenTicketEditDialog(false)}
+          onClose={() => actions.setOpenTicketEditDialog(false)}
           onSave={actions.handleEditTicket}
         />
       )}

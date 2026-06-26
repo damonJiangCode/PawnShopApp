@@ -2,7 +2,7 @@ import type { IpcMainInvokeEvent } from "electron";
 import type {
   ItemSearchInput,
   SaveItemInput,
-} from "../../shared/types/itemPayload.ts";
+} from "../../shared/types/itemApiTypes.ts";
 import { itemService } from "../services/itemService.ts";
 import { CHANNELS } from "./channels.ts";
 

@@ -52,7 +52,7 @@ export type ReportDateInput = {
 export type BuybackReportRow = {
   ticket_number: number;
   pickup_datetime: Date;
-  amount: number;
+  pickup_amount_paid: number;
   description: string;
   client_name: string;
 };
@@ -99,8 +99,13 @@ export type MarkTicketStolenInput = EmployeeAuthorizedInput & {
   ticket_number: number;
 };
 
+export type PickupTicketPaymentInput = {
+  ticket_number: number;
+  pickup_amount_paid: number;
+};
+
 export type PickupTicketsInput = {
-  ticket_numbers: number[];
+  tickets: PickupTicketPaymentInput[];
 };
 
 export type ExtensionTicketPaymentInput = {

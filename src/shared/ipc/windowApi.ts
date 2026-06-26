@@ -1,17 +1,17 @@
 import type { Item } from "../types/Item.ts";
 import type {
-  ItemLoadWindowPayload,
-  PaymentWindowPayload,
-} from "../types/windowPayload.ts";
+  ItemLoadWindowData,
+  OpenPaymentWindowInput,
+} from "../types/windowApiTypes.ts";
 
 export type ElectronWindowApi = {
-  openPaymentWindow: (payload: PaymentWindowPayload) => Promise<void>;
+  openPaymentWindow: (input: OpenPaymentWindowInput) => Promise<void>;
   openItemLoadWindow: (
-    payload: ItemLoadWindowPayload,
+    input: ItemLoadWindowData,
   ) => Promise<Item[] | null>;
-  loadItemLoadWindowPayload: (
+  loadItemLoadWindowData: (
     requestId: string,
-  ) => Promise<ItemLoadWindowPayload | null>;
+  ) => Promise<ItemLoadWindowData | null>;
   submitItemLoadWindow: (
     requestId: string,
     selectedItemIds: Array<number | string>,

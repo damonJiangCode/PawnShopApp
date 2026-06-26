@@ -1,29 +1,16 @@
 import type { Ticket } from "../../shared/types/Ticket.ts";
-import type {
-  HolidayDate,
-  SaveHolidayInput,
-} from "../../shared/types/holidayDate.ts";
-import type {
-  Location,
-  SaveLocationInput,
-} from "../../shared/types/location.ts";
 import { calculation } from "../../shared/utils/calculation.ts";
 import type {
   ConvertTicketInput,
-  BuybackReportResult,
-  ExtendTicketsInput,
   ExpireTicketInput,
-  InterestReportResult,
   MarkTicketStolenInput,
-  PickupTicketsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
-  ReportDateInput,
   TicketSearchResult,
   TransferTicketInput,
   TransferTicketPreview,
   UpdateTicketInput,
-} from "../../shared/types/ticketPayload.ts";
+} from "../../shared/types/ticketApiTypes.ts";
 import { clientRepo } from "../repos/clientRepo.ts";
 import { ticketRepo } from "../repos/ticketRepo.ts";
 import { employeeService } from "./employeeService.ts";
@@ -38,98 +25,6 @@ export const ticketService = {
     }
 
     return ticketRepo.loadByClientNumber(clientNumber);
-  },
-
-  loadHolidayDates: async (): Promise<HolidayDate[]> => {
-    return ticketRepo.loadHolidayDates();
-  },
-
-  addHolidayDate: async (input: SaveHolidayInput): Promise<HolidayDate> => {
-    const normalizedInput = {
-      holiday_date: input?.holiday_date?.trim() ?? "",
-      name: input?.name?.trim() ?? "",
-    };
-
-    if (!ticketInput.isValidDateKey(normalizedInput.holiday_date)) {
-      throw new Error("Enter a valid holiday date.");
-    }
-
-    if (!normalizedInput.name) {
-      throw new Error("Holiday name is required.");
-    }
-
-    const holiday = await ticketRepo.addHolidayDate(normalizedInput);
-
-    if (!holiday) {
-      throw new Error("That holiday date has already been added.");
-    }
-
-    return holiday;
-  },
-
-  deleteHolidayDate: async (holidayDate: string): Promise<HolidayDate> => {
-    const normalizedDate = holidayDate?.trim() ?? "";
-
-    if (!ticketInput.isValidDateKey(normalizedDate)) {
-      throw new Error("Enter a valid holiday date.");
-    }
-
-    const holiday = await ticketRepo.deleteHolidayDate(normalizedDate);
-
-    if (!holiday) {
-      throw new Error("That holiday date was not found.");
-    }
-
-    return holiday;
-  },
-
-  loadLocations: async (): Promise<string[]> => {
-    return ticketRepo.loadLocations();
-  },
-
-  loadAdminLocations: async (): Promise<Location[]> => {
-    return ticketRepo.loadAdminLocations();
-  },
-
-  addLocation: async (input: SaveLocationInput): Promise<Location> => {
-    const normalizedInput = {
-      location: input?.location?.trim().toUpperCase() ?? "",
-      description: input?.description?.trim() ?? "",
-    };
-
-    if (!/^[A-Z]{2}\d{2}$/.test(normalizedInput.location)) {
-      throw new Error(
-        "Location code must contain two uppercase letters followed by two digits.",
-      );
-    }
-
-    if (normalizedInput.description.length > 1000) {
-      throw new Error("Location description cannot exceed 1000 characters.");
-    }
-
-    const location = await ticketRepo.addLocation(normalizedInput);
-
-    if (!location) {
-      throw new Error("That location code already exists.");
-    }
-
-    return location;
-  },
-
-  deactivateLocation: async (locationCode: string): Promise<Location> => {
-    const normalizedCode = locationCode?.trim().toUpperCase() ?? "";
-
-    if (!normalizedCode) {
-      throw new Error("Enter a valid location code.");
-    }
-
-    const location = await ticketRepo.deactivateLocation(normalizedCode);
-
-    if (!location) {
-      throw new Error("That active location was not found.");
-    }
-
-    return location;
   },
 
   searchTicket: async (
@@ -178,68 +73,6 @@ export const ticketService = {
     }
 
     return ticketRepo.loadTransferTicketPreview(normalizedTicketNumber);
-  },
-
-  loadBuybackReport: async (
-    input: ReportDateInput,
-  ): Promise<BuybackReportResult> => {
-    const normalizedInput = ticketInput.normalizeReportDate(input);
-
-    if (!ticketInput.isValidDateKey(normalizedInput.date)) {
-      throw createFieldError("date", "Enter a valid report date.");
-    }
-
-    const sourceRows = await ticketRepo.loadBuybackReportRows(
-      normalizedInput.date,
-    );
-
-    const rows = sourceRows.map((row) => {
-      const pickupAmount = Math.max(
-        0,
-        calculation.getPaymentPickupAmt(
-          row.amount,
-          row.onetime_fee,
-          row.transaction_datetime,
-          row.interest_paid_months,
-          row.pickup_datetime,
-        ) - Number(row.partial_payment ?? 0),
-      );
-
-      return {
-        ticket_number: row.ticket_number,
-        pickup_datetime: row.pickup_datetime,
-        amount: Number(pickupAmount.toFixed(2)),
-        description: row.description,
-        client_name: row.client_name,
-      };
-    });
-
-    const total = rows.reduce((sum, row) => sum + row.amount, 0);
-
-    return {
-      date: normalizedInput.date,
-      rows,
-      total_buyback_price: Number(total.toFixed(2)),
-    };
-  },
-
-  loadInterestReport: async (
-    input: ReportDateInput,
-  ): Promise<InterestReportResult> => {
-    const normalizedInput = ticketInput.normalizeReportDate(input);
-
-    if (!ticketInput.isValidDateKey(normalizedInput.date)) {
-      throw createFieldError("date", "Enter a valid report date.");
-    }
-
-    const rows = await ticketRepo.loadInterestReportRows(normalizedInput.date);
-    const total = rows.reduce((sum, row) => sum + row.amount_paid, 0);
-
-    return {
-      date: normalizedInput.date,
-      rows,
-      total_interest_paid: Number(total.toFixed(2)),
-    };
   },
 
   createPawnTicket: async (input: CreatePawnTicketInput): Promise<Ticket> => {
@@ -581,153 +414,6 @@ export const ticketService = {
         },
         client,
       );
-    });
-  },
-
-  pickupTickets: async (input: PickupTicketsInput): Promise<Ticket[]> => {
-    const normalizedInput = ticketInput.normalizePickupTickets(input);
-
-    if (!normalizedInput.ticket_numbers.length) {
-      throw createFieldError("ticket_number", "Select at least one ticket.");
-    }
-
-    return runInTransaction("pickupTickets", async (client) => {
-      const existingTickets = await Promise.all(
-        normalizedInput.ticket_numbers.map((ticketNumber) =>
-          ticketRepo.loadByTicketNumber(ticketNumber, client),
-        ),
-      );
-      const missingTicketNumber = normalizedInput.ticket_numbers.find(
-        (_ticketNumber, index) => !existingTickets[index],
-      );
-
-      if (missingTicketNumber) {
-        throw createFieldError(
-          "ticket_number",
-          `Ticket #${missingTicketNumber} was not found.`,
-        );
-      }
-
-      const nonPawnedTicket = existingTickets.find(
-        (ticket) => ticket && ticket.status !== "pawned",
-      );
-
-      if (nonPawnedTicket?.ticket_number) {
-        throw createFieldError(
-          "ticket_number",
-          `Ticket #${nonPawnedTicket.ticket_number} is not pawned.`,
-        );
-      }
-
-      const stolenTicket = existingTickets.find((ticket) => ticket?.is_stolen);
-
-      if (stolenTicket?.ticket_number) {
-        throw createFieldError(
-          "ticket_number",
-          `Ticket #${stolenTicket.ticket_number} is marked stolen.`,
-        );
-      }
-
-      const pickupDatetime = calculation.getCurrentDatetime();
-      const pickedUpTickets = await ticketRepo.pickup(
-        {
-          ticket_numbers: normalizedInput.ticket_numbers,
-          pickup_datetime: pickupDatetime,
-        },
-        client,
-      );
-
-      if (pickedUpTickets.length !== normalizedInput.ticket_numbers.length) {
-        throw createFieldError(
-          "ticket_number",
-          "Some selected tickets could not be picked up.",
-        );
-      }
-
-      return pickedUpTickets;
-    });
-  },
-
-  extendTickets: async (input: ExtendTicketsInput): Promise<Ticket[]> => {
-    const normalizedInput = ticketInput.normalizeExtendTickets(input);
-
-    if (!normalizedInput.extensions.length) {
-      throw createFieldError("ticket_number", "Select at least one ticket.");
-    }
-
-    return runInTransaction("extendTickets", async (client) => {
-      const existingTickets = await Promise.all(
-        normalizedInput.extensions.map((extension) =>
-          ticketRepo.loadByTicketNumber(extension.ticket_number, client),
-        ),
-      );
-      const missingExtension = normalizedInput.extensions.find(
-        (_extension, index) => !existingTickets[index],
-      );
-
-      if (missingExtension) {
-        throw createFieldError(
-          "ticket_number",
-          `Ticket #${missingExtension.ticket_number} was not found.`,
-        );
-      }
-
-      const nonPawnedTicket = existingTickets.find(
-        (ticket) => ticket && ticket.status !== "pawned",
-      );
-
-      if (nonPawnedTicket?.ticket_number) {
-        throw createFieldError(
-          "ticket_number",
-          `Ticket #${nonPawnedTicket.ticket_number} is not pawned.`,
-        );
-      }
-
-      const stolenTicket = existingTickets.find((ticket) => ticket?.is_stolen);
-
-      if (stolenTicket?.ticket_number) {
-        throw createFieldError(
-          "ticket_number",
-          `Ticket #${stolenTicket.ticket_number} is marked stolen.`,
-        );
-      }
-
-      const interestedDatetime = calculation.getCurrentDatetime();
-      const extendedTickets: Ticket[] = [];
-      const ticketByNumber = new Map(
-        existingTickets
-          .filter((ticket): ticket is Ticket => Boolean(ticket))
-          .map((ticket) => [ticket.ticket_number, ticket]),
-      );
-
-      for (const extension of normalizedInput.extensions) {
-        const extendedTicket = await ticketRepo.extend(
-          {
-            ticket_number: extension.ticket_number,
-            months: extension.months,
-            interested_datetime: interestedDatetime,
-          },
-          client,
-        );
-        const originalTicket = ticketByNumber.get(extension.ticket_number);
-        const amountPaid =
-          calculation.getBaseIntAmt(Number(originalTicket?.amount ?? 0)) *
-          extension.months;
-
-        await ticketRepo.addInterestPayment(
-          {
-            ticket_number: extension.ticket_number,
-            months_paid: extension.months,
-            amount_paid: Number(amountPaid.toFixed(2)),
-            payment_datetime: interestedDatetime,
-          },
-          client,
-        );
-
-        extendedTickets.push(extendedTicket);
-      }
-
-      return extendedTickets;
     });
   },
 

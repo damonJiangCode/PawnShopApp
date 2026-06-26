@@ -1,12 +1,12 @@
 import type {
-  ItemLoadWindowPayload,
-  PaymentWindowPayload,
-} from "../../shared/types/windowPayload";
+  ItemLoadWindowData,
+  OpenPaymentWindowInput,
+} from "../../shared/types/windowApiTypes";
 import type { Item } from "../../shared/types/Item";
 import { getElectronApi } from "./electronApi";
 
 export const windowService = {
-  openPaymentWindow: async (payload: PaymentWindowPayload): Promise<void> => {
+  openPaymentWindow: async (payload: OpenPaymentWindowInput): Promise<void> => {
     const api = getElectronApi()?.window;
 
     if (!api) {
@@ -17,7 +17,7 @@ export const windowService = {
   },
 
   openItemLoadWindow: async (
-    payload: ItemLoadWindowPayload,
+    payload: ItemLoadWindowData,
   ): Promise<Item[] | null> => {
     const api = getElectronApi()?.window;
 
@@ -28,16 +28,16 @@ export const windowService = {
     return api.openItemLoadWindow(payload);
   },
 
-  loadItemLoadWindowPayload: async (
+  loadItemLoadWindowData: async (
     requestId: string,
-  ): Promise<ItemLoadWindowPayload | null> => {
+  ): Promise<ItemLoadWindowData | null> => {
     const api = getElectronApi()?.window;
 
     if (!api) {
       return null;
     }
 
-    return api.loadItemLoadWindowPayload(requestId);
+    return api.loadItemLoadWindowData(requestId);
   },
 
   submitItemLoadWindow: async (

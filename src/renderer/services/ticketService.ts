@@ -19,7 +19,7 @@ import type {
   TransferTicketInput,
   TransferTicketPreview,
   UpdateTicketInput,
-} from "../../shared/types/ticketPayload";
+} from "../../shared/types/ticketApiTypes";
 import { getElectronApi } from "./electronApi";
 import { extractBackendFieldError } from "../utils/formError";
 
@@ -127,9 +127,22 @@ const normalizeMarkTicketStolenInput = (
 const normalizePickupTicketsInput = (
   input: PickupTicketsInput,
 ): PickupTicketsInput => ({
-  ticket_numbers: [...new Set(input.ticket_numbers.map(Number))].filter(
-    (ticketNumber) => Number.isFinite(ticketNumber) && ticketNumber > 0,
-  ),
+  tickets: [
+    ...new Map(
+      input.tickets
+        .map((ticket) => ({
+          ticket_number: toNumber(ticket.ticket_number),
+          pickup_amount_paid: toNonNegativeNumber(ticket.pickup_amount_paid),
+        }))
+        .filter(
+          (ticket) =>
+            Number.isFinite(ticket.ticket_number) &&
+            ticket.ticket_number > 0 &&
+            Number.isFinite(ticket.pickup_amount_paid),
+        )
+        .map((ticket) => [ticket.ticket_number, ticket]),
+    ).values(),
+  ],
 });
 
 const normalizeExtendTicketsInput = (
@@ -424,7 +437,7 @@ export const ticketService = {
       );
     }
 
-    if (!normalizedInput.ticket_numbers.length) {
+    if (!normalizedInput.tickets.length) {
       return [];
     }
 

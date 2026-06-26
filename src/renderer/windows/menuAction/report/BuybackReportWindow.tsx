@@ -172,7 +172,9 @@ const BuybackReportWindow: React.FC<MenuActionComponentProps> = () => {
                   rows.map((row) => (
                     <TableRow key={row.ticket_number}>
                       <TableCell>{row.ticket_number}</TableCell>
-                      <TableCell>{formatCurrency(row.amount)}</TableCell>
+                      <TableCell>
+                        {formatCurrency(row.pickup_amount_paid)}
+                      </TableCell>
                       <TableCell>{row.description}</TableCell>
                       <TableCell>{row.client_name}</TableCell>
                       <TableCell>

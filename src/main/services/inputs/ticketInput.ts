@@ -9,7 +9,7 @@ import type {
   ReportDateInput,
   TransferTicketInput,
   UpdateTicketInput,
-} from "../../../shared/types/ticketPayload.ts";
+} from "../../../shared/types/ticketApiTypes.ts";
 
 const trimText = (value?: string) => value?.trim() ?? "";
 
@@ -77,9 +77,22 @@ const normalizeMarkTicketStolen = (input: MarkTicketStolenInput) => ({
 });
 
 const normalizePickupTickets = (input: PickupTicketsInput) => ({
-  ticket_numbers: [...new Set(input.ticket_numbers.map(Number))].filter(
-    (ticketNumber) => Number.isFinite(ticketNumber) && ticketNumber > 0,
-  ),
+  tickets: [
+    ...new Map(
+      input.tickets
+        .map((ticket) => ({
+          ticket_number: toNumber(ticket.ticket_number),
+          pickup_amount_paid: toNonNegativeNumber(ticket.pickup_amount_paid),
+        }))
+        .filter(
+          (ticket) =>
+            Number.isFinite(ticket.ticket_number) &&
+            ticket.ticket_number > 0 &&
+            Number.isFinite(ticket.pickup_amount_paid),
+        )
+        .map((ticket) => [ticket.ticket_number, ticket]),
+    ).values(),
+  ],
 });
 
 const normalizeExtendTickets = (input: ExtendTicketsInput) => ({

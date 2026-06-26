@@ -54,9 +54,9 @@ export const useTransactionPageController = ({
   const [itemsLoading, setItemsLoading] = useState(false);
   const [ticketsError, setTicketsError] = useState<string>("");
   const [itemsError, setItemsError] = useState<string>("");
-  const [openTicketPawnDialog, setopenTicketPawnDialog] = useState(false);
-  const [openTicketSellDialog, setopenTicketSellDialog] = useState(false);
-  const [openTicketEditDialog, setopenTicketEditDialog] = useState(false);
+  const [openTicketPawnDialog, setOpenTicketPawnDialog] = useState(false);
+  const [openTicketSellDialog, setOpenTicketSellDialog] = useState(false);
+  const [openTicketEditDialog, setOpenTicketEditDialog] = useState(false);
   const [openTicketConvertDialog, setOpenTicketConvertDialog] = useState(false);
   const [openTicketTransferDialog, setOpenTicketTransferDialog] =
     useState(false);
@@ -345,17 +345,17 @@ export const useTransactionPageController = ({
   };
 
   const handlePawnButtonClick = () => {
-    setopenTicketPawnDialog(true);
+    setOpenTicketPawnDialog(true);
     setStatusMessage("");
   };
 
   const handleEditButtonClick = () => {
-    setopenTicketEditDialog(true);
+    setOpenTicketEditDialog(true);
     setStatusMessage("");
   };
 
   const handleSellButtonClick = () => {
-    setopenTicketSellDialog(true);
+    setOpenTicketSellDialog(true);
     setStatusMessage("");
   };
 
@@ -404,7 +404,7 @@ export const useTransactionPageController = ({
     setSelectedTicket(newTicket);
     setItems([]);
     setSelectedItem(null);
-    setopenTicketPawnDialog(false);
+    setOpenTicketPawnDialog(false);
     ticketPrintService.printEnvelopeTicket(newTicket);
     setStatusMessage(`Ticket #${newTicket.ticket_number} pawned.`);
   };
@@ -425,7 +425,7 @@ export const useTransactionPageController = ({
     setSelectedTicket(newTicket);
     setItems([]);
     setSelectedItem(null);
-    setopenTicketSellDialog(false);
+    setOpenTicketSellDialog(false);
     onClientSoldTicket?.();
     ticketPrintService.printEnvelopeTicket(newTicket);
     setStatusMessage(`Ticket #${newTicket.ticket_number} sold.`);
@@ -446,7 +446,7 @@ export const useTransactionPageController = ({
       ),
     );
     setSelectedTicket(updatedTicket);
-    setopenTicketEditDialog(false);
+    setOpenTicketEditDialog(false);
     setStatusMessage(`Ticket #${updatedTicket.ticket_number} updated.`);
   };
 
@@ -667,9 +667,9 @@ export const useTransactionPageController = ({
       itemCategories,
     },
     actions: {
-      setopenTicketPawnDialog,
-      setopenTicketSellDialog,
-      setopenTicketEditDialog,
+      setOpenTicketPawnDialog,
+      setOpenTicketSellDialog,
+      setOpenTicketEditDialog,
       setOpenTicketConvertDialog,
       setOpenTicketTransferDialog,
       setOpenItemDialog,

@@ -1,16 +1,16 @@
 import path from "path";
 import type { IpcMainInvokeEvent } from "electron";
 import type {
-  ItemLoadWindowPayload,
-  PaymentWindowPayload,
-} from "../../shared/types/windowPayload.ts";
+  ItemLoadWindowData,
+  OpenPaymentWindowInput,
+} from "../../shared/types/windowApiTypes.ts";
 import type { Item } from "../../shared/types/Item.ts";
 import { CHANNELS } from "./channels.ts";
 
 const { BrowserWindow, ipcMain } = require("electron/main") as typeof import("electron");
 
 type ItemLoadWindowSession = {
-  payload: ItemLoadWindowPayload;
+  payload: ItemLoadWindowData;
   window: Electron.BrowserWindow;
   resolve: (items: Item[] | null) => void;
   resolved: boolean;
@@ -59,7 +59,7 @@ const finishItemLoadWindow = (
 export const registerWindowHandlers = () => {
   ipcMain.handle(
     CHANNELS.OPEN_PAYMENT_WINDOW,
-    async (_event: IpcMainInvokeEvent, payload: PaymentWindowPayload) => {
+    async (_event: IpcMainInvokeEvent, payload: OpenPaymentWindowInput) => {
       const childWindow = new BrowserWindow({
         width: 1180,
         height: 680,
@@ -104,7 +104,7 @@ export const registerWindowHandlers = () => {
 
   ipcMain.handle(
     CHANNELS.OPEN_ITEM_LOAD_WINDOW,
-    async (_event: IpcMainInvokeEvent, payload: ItemLoadWindowPayload) => {
+    async (_event: IpcMainInvokeEvent, payload: ItemLoadWindowData) => {
       const requestId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
       const childWindow = new BrowserWindow({

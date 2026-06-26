@@ -2,7 +2,8 @@ import type { Client } from "../../shared/types/Client.ts";
 import type {
   ClientNotesAction,
   SaveClientInput,
-} from "../../shared/types/clientPayload.ts";
+} from "../../shared/types/clientApiTypes.ts";
+import { clientIdRepo } from "../repos/clientIdRepo.ts";
 import { clientRepo } from "../repos/clientRepo.ts";
 import { employeeService } from "./employeeService.ts";
 import { clientInput } from "./inputs/clientInput.ts";
@@ -10,8 +11,6 @@ import { createFieldError } from "../utils/createFieldError.ts";
 import { imageStorage } from "../utils/imageStorage.ts";
 import { runInTransaction } from "../utils/runInTransaction.ts";
 import type { DbClient } from "../../db/connection.ts";
-import type { HairColor } from "../../shared/types/hairColor.ts";
-import type { EyeColor } from "../../shared/types/eyeColor.ts";
 
 const resolveNotes = async (
   client: Client,
@@ -79,110 +78,6 @@ export const clientService = {
     return clientRepo.searchByDob(safeDob);
   },
 
-  loadCities: async () => {
-    return clientRepo.loadCities();
-  },
-
-  loadHairColors: async () => {
-    return clientRepo.loadHairColors();
-  },
-
-  loadAdminHairColors: async (): Promise<HairColor[]> => {
-    return clientRepo.loadAdminHairColors();
-  },
-
-  addHairColor: async (color: string): Promise<string> => {
-    const normalizedColor = clientInput.normalizeColor(color).toUpperCase();
-
-    if (!normalizedColor) {
-      throw new Error("Hair color is required.");
-    }
-
-    const savedColor = await clientRepo.addHairColor(normalizedColor);
-
-    if (!savedColor) {
-      throw new Error("That hair color already exists.");
-    }
-
-    return savedColor;
-  },
-
-  deactivateHairColor: async (color: string): Promise<HairColor> => {
-    const deactivatedColor = await clientRepo.deactivateHairColor(
-      clientInput.normalizeColor(color).toUpperCase(),
-    );
-
-    if (!deactivatedColor) {
-      throw new Error("That active hair color was not found.");
-    }
-
-    return deactivatedColor;
-  },
-
-  activateHairColor: async (color: string): Promise<HairColor> => {
-    const activatedColor = await clientRepo.activateHairColor(
-      clientInput.normalizeColor(color).toUpperCase(),
-    );
-
-    if (!activatedColor) {
-      throw new Error("That inactive hair color was not found.");
-    }
-
-    return activatedColor;
-  },
-
-  loadEyeColors: async () => {
-    return clientRepo.loadEyeColors();
-  },
-
-  loadAdminEyeColors: async (): Promise<EyeColor[]> => {
-    return clientRepo.loadAdminEyeColors();
-  },
-
-  addEyeColor: async (color: string): Promise<string> => {
-    const normalizedColor = clientInput.normalizeColor(color).toUpperCase();
-
-    if (!normalizedColor) {
-      throw new Error("Eye color is required.");
-    }
-
-    const savedColor = await clientRepo.addEyeColor(normalizedColor);
-
-    if (!savedColor) {
-      throw new Error("That eye color already exists.");
-    }
-
-    return savedColor;
-  },
-
-  deactivateEyeColor: async (color: string): Promise<EyeColor> => {
-    const deactivatedColor = await clientRepo.deactivateEyeColor(
-      clientInput.normalizeColor(color).toUpperCase(),
-    );
-
-    if (!deactivatedColor) {
-      throw new Error("That active eye color was not found.");
-    }
-
-    return deactivatedColor;
-  },
-
-  activateEyeColor: async (color: string): Promise<EyeColor> => {
-    const activatedColor = await clientRepo.activateEyeColor(
-      clientInput.normalizeColor(color).toUpperCase(),
-    );
-
-    if (!activatedColor) {
-      throw new Error("That inactive eye color was not found.");
-    }
-
-    return activatedColor;
-  },
-
-  loadIdTypes: async () => {
-    return clientRepo.loadIdTypes();
-  },
-
   saveClientImage: async (
     fileName: string,
     base64: string,
@@ -237,7 +132,7 @@ export const clientService = {
         );
       }
 
-      const insertedIds = await clientRepo.insertIds(
+      const insertedIds = await clientIdRepo.insertIds(
         insertedClient.client_number,
         normalizedInput.identifications,
         client,
@@ -292,11 +187,11 @@ export const clientService = {
         preparedClientWithImage,
         client,
       );
-      await clientRepo.deleteIds(
+      await clientIdRepo.deleteIds(
         preparedClientWithImage.client_number as number,
         client,
       );
-      const insertedIds = await clientRepo.insertIds(
+      const insertedIds = await clientIdRepo.insertIds(
         preparedClientWithImage.client_number as number,
         normalizedInput.identifications,
         client,

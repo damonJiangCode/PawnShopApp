@@ -47,7 +47,7 @@ To add a new Electron renderer window:
 1. Create `app/windows/newWindow/NewWindowApp.tsx`.
 2. Add it to `windowRegistry.tsx`.
 3. Load it from Electron with `http://localhost:5173?window=new-window`.
-4. Put IPC payload types in `shared/types`, and expose the renderer call through a `services/*Service.ts` file.
+4. Put IPC API types in `shared/types`, and expose the renderer call through a `services/*Service.ts` file.
 
 ## `pages/`
 

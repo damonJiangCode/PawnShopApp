@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { GridColDef, GridRowSelectionModel } from "@mui/x-data-grid";
 import type { Ticket } from "../../../shared/types/Ticket";
-import type { TicketSearchResult } from "../../../shared/types/ticketPayload";
+import type { TicketSearchResult } from "../../../shared/types/ticketApiTypes";
 import { calculation } from "../../../shared/utils/calculation";
 import CellTooltip from "../../components/shared/CellTooltip";
 import { clientService } from "../../services/clientService";
@@ -662,7 +662,10 @@ export const usePaymentWindowController = () => {
       const [pickedUpTickets, extendedTickets] = await Promise.all([
         pickupRows.length
           ? ticketService.pickupTickets({
-              ticket_numbers: pickupRows.map((row) => row.ticketNumber),
+              tickets: pickupRows.map((row) => ({
+                ticket_number: row.ticketNumber,
+                pickup_amount_paid: Number(row.pickupAmount ?? 0),
+              })),
             })
           : Promise.resolve([]),
         extensionMonthCounts.size

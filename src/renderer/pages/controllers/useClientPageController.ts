@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { ClientNotesAction } from "../../../shared/types/clientPayload";
+import type { ClientNotesAction } from "../../../shared/types/clientApiTypes";
 import type { Client, ID } from "../../../shared/types/Client";
 import { useClientSearch } from "../../hooks/useClientSearch";
 import { clientService } from "../../services/clientService";

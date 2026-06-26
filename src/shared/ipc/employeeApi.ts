@@ -2,13 +2,13 @@ import type { Employee } from "../types/Employee.ts";
 import type {
   EmployeeSearchInput,
   SaveEmployeeInput,
-} from "../types/employeePayload.ts";
+} from "../types/employeeApiTypes.ts";
 
 export type ElectronEmployeeApi = {
-  create: (payload: SaveEmployeeInput) => Promise<Employee>;
-  search: (payload: EmployeeSearchInput) => Promise<Employee[]>;
+  create: (input: SaveEmployeeInput) => Promise<Employee>;
+  search: (input: EmployeeSearchInput) => Promise<Employee[]>;
   update: (
     employeeNumber: number,
-    payload: SaveEmployeeInput,
+    input: SaveEmployeeInput,
   ) => Promise<Employee>;
 };

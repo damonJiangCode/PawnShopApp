@@ -3,7 +3,7 @@ import type {
   ItemSearchInput,
   ItemCategoryOption,
   SaveItemInput,
-} from "../../shared/types/itemPayload.ts";
+} from "../../shared/types/itemApiTypes.ts";
 import { itemRepo } from "../repos/itemRepo.ts";
 import { runInTransaction } from "../utils/runInTransaction.ts";
 import { imageStorage } from "../utils/imageStorage.ts";

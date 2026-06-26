@@ -4,7 +4,7 @@ import type {
   ItemCategoryOption,
   ItemSearchInput,
   SaveItemInput,
-} from "../../shared/types/itemPayload.ts";
+} from "../../shared/types/itemApiTypes.ts";
 import type { Item } from "../../shared/types/Item.ts";
 import type { Ticket } from "../../shared/types/Ticket.ts";
 

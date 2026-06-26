@@ -16,7 +16,7 @@ import type {
   TransferTicketInput,
   TransferTicketPreview,
   UpdateTicketInput,
-} from "../types/ticketPayload.ts";
+} from "../types/ticketApiTypes.ts";
 
 export type ElectronTicketApi = {
   loadByClient: (clientNumber: number) => Promise<Ticket[]>;
@@ -33,16 +33,16 @@ export type ElectronTicketApi = {
   ) => Promise<TicketSearchResult | null>;
   loadBuybackReport: (input: ReportDateInput) => Promise<BuybackReportResult>;
   loadInterestReport: (input: ReportDateInput) => Promise<InterestReportResult>;
-  createPawn: (payload: CreatePawnTicketInput) => Promise<Ticket>;
-  createSell: (payload: CreateSellTicketInput) => Promise<Ticket>;
-  update: (payload: UpdateTicketInput) => Promise<Ticket>;
-  convert: (payload: ConvertTicketInput) => Promise<Ticket>;
-  expire: (payload: ExpireTicketInput) => Promise<Ticket>;
-  markStolen: (payload: MarkTicketStolenInput) => Promise<Ticket>;
-  pickup: (payload: PickupTicketsInput) => Promise<Ticket[]>;
-  extend: (payload: ExtendTicketsInput) => Promise<Ticket[]>;
+  createPawn: (input: CreatePawnTicketInput) => Promise<Ticket>;
+  createSell: (input: CreateSellTicketInput) => Promise<Ticket>;
+  update: (input: UpdateTicketInput) => Promise<Ticket>;
+  convert: (input: ConvertTicketInput) => Promise<Ticket>;
+  expire: (input: ExpireTicketInput) => Promise<Ticket>;
+  markStolen: (input: MarkTicketStolenInput) => Promise<Ticket>;
+  pickup: (input: PickupTicketsInput) => Promise<Ticket[]>;
+  extend: (input: ExtendTicketsInput) => Promise<Ticket[]>;
   loadTransferPreview: (
     ticketNumber: number,
   ) => Promise<TransferTicketPreview | null>;
-  transfer: (payload: TransferTicketInput) => Promise<Ticket>;
+  transfer: (input: TransferTicketInput) => Promise<Ticket>;
 };

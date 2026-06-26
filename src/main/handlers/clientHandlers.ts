@@ -1,5 +1,6 @@
 import type { IpcMainInvokeEvent } from "electron";
-import type { SaveClientInput } from "../../shared/types/clientPayload.ts";
+import type { SaveClientInput } from "../../shared/types/clientApiTypes.ts";
+import { clientReferenceService } from "../services/clientReferenceService.ts";
 import { clientService } from "../services/clientService.ts";
 import { CHANNELS } from "./channels.ts";
 
@@ -19,51 +20,53 @@ export const registerClientHandlers = () => {
     },
   );
 
-  ipcMain.handle(CHANNELS.GET_CITIES, async () => clientService.loadCities());
+  ipcMain.handle(CHANNELS.GET_CITIES, async () =>
+    clientReferenceService.loadCities(),
+  );
   ipcMain.handle(CHANNELS.GET_HAIR_COLORS, async () =>
-    clientService.loadHairColors(),
+    clientReferenceService.loadHairColors(),
   );
   ipcMain.handle(CHANNELS.GET_ADMIN_HAIR_COLORS, async () =>
-    clientService.loadAdminHairColors(),
+    clientReferenceService.loadAdminHairColors(),
   );
   ipcMain.handle(CHANNELS.GET_EYE_COLORS, async () =>
-    clientService.loadEyeColors(),
+    clientReferenceService.loadEyeColors(),
   );
   ipcMain.handle(CHANNELS.GET_ADMIN_EYE_COLORS, async () =>
-    clientService.loadAdminEyeColors(),
+    clientReferenceService.loadAdminEyeColors(),
   );
   ipcMain.handle(
     CHANNELS.ADD_HAIR_COLOR,
     async (_event: IpcMainInvokeEvent, color: string) =>
-      clientService.addHairColor(color),
+      clientReferenceService.addHairColor(color),
   );
   ipcMain.handle(
     CHANNELS.ACTIVATE_HAIR_COLOR,
     async (_event: IpcMainInvokeEvent, color: string) =>
-      clientService.activateHairColor(color),
+      clientReferenceService.activateHairColor(color),
   );
   ipcMain.handle(
     CHANNELS.DEACTIVATE_HAIR_COLOR,
     async (_event: IpcMainInvokeEvent, color: string) =>
-      clientService.deactivateHairColor(color),
+      clientReferenceService.deactivateHairColor(color),
   );
   ipcMain.handle(
     CHANNELS.ADD_EYE_COLOR,
     async (_event: IpcMainInvokeEvent, color: string) =>
-      clientService.addEyeColor(color),
+      clientReferenceService.addEyeColor(color),
   );
   ipcMain.handle(
     CHANNELS.ACTIVATE_EYE_COLOR,
     async (_event: IpcMainInvokeEvent, color: string) =>
-      clientService.activateEyeColor(color),
+      clientReferenceService.activateEyeColor(color),
   );
   ipcMain.handle(
     CHANNELS.DEACTIVATE_EYE_COLOR,
     async (_event: IpcMainInvokeEvent, color: string) =>
-      clientService.deactivateEyeColor(color),
+      clientReferenceService.deactivateEyeColor(color),
   );
   ipcMain.handle(CHANNELS.GET_ID_TYPES, async () =>
-    clientService.loadIdTypes(),
+    clientReferenceService.loadIdTypes(),
   );
   ipcMain.handle(
     CHANNELS.ADD_CLIENT,

@@ -10,7 +10,7 @@ import {
   TextField,
 } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
-import type { ClientNotesAction } from "../../../../shared/types/clientPayload";
+import type { ClientNotesAction } from "../../../../shared/types/clientApiTypes";
 import InfoRow from "./InfoRow";
 import statColors from "../../../assets/client/statColors";
 import type { Client, ID } from "../../../../shared/types/Client";

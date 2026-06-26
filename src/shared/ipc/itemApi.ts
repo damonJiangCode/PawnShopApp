@@ -3,14 +3,14 @@ import type {
   ItemCategoryOption,
   ItemSearchInput,
   SaveItemInput,
-} from "../types/itemPayload.ts";
+} from "../types/itemApiTypes.ts";
 
 export type ElectronItemApi = {
   loadByTicket: (ticketNumber: number) => Promise<Item[]>;
   loadCategories: () => Promise<ItemCategoryOption[]>;
-  search: (payload: ItemSearchInput) => Promise<Item[]>;
-  create: (payload: SaveItemInput) => Promise<Item>;
-  update: (payload: SaveItemInput) => Promise<Item>;
+  search: (input: ItemSearchInput) => Promise<Item[]>;
+  create: (input: SaveItemInput) => Promise<Item>;
+  update: (input: SaveItemInput) => Promise<Item>;
   delete: (ticketNumber: number, itemNumber: number) => Promise<void>;
   linkToTicket: (
     ticketNumber: number,

@@ -5,7 +5,7 @@ import type {
   CitiesResponse,
   ClientNotesAction,
   SaveClientInput,
-} from "../../shared/types/clientPayload";
+} from "../../shared/types/clientApiTypes";
 import { getElectronApi } from "./electronApi";
 import { extractBackendFieldError } from "../utils/formError";
 

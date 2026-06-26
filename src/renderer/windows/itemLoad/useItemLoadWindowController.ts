@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { GridRowSelectionModel } from "@mui/x-data-grid";
-import type { ItemLoadWindowPayload } from "../../../shared/types/windowPayload";
+import type { ItemLoadWindowData } from "../../../shared/types/windowApiTypes";
 import { getTransactionItemRowId } from "../../components/transaction/items/TransactionItemsTable";
 import { windowService } from "../../services/windowService";
 
@@ -8,7 +8,7 @@ export const useItemLoadWindowController = () => {
   const requestId = useMemo(() => {
     return new URLSearchParams(window.location.search).get("requestId") ?? "";
   }, []);
-  const [payload, setPayload] = useState<ItemLoadWindowPayload | null>(null);
+  const [payload, setPayload] = useState<ItemLoadWindowData | null>(null);
   const [selectionModel, setSelectionModel] = useState<GridRowSelectionModel>(
     [],
   );
@@ -33,7 +33,7 @@ export const useItemLoadWindowController = () => {
       }
 
       const nextPayload =
-        await windowService.loadItemLoadWindowPayload(requestId);
+        await windowService.loadItemLoadWindowData(requestId);
 
       if (!active) {
         return;

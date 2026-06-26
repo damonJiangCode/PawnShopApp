@@ -19,7 +19,7 @@ import {
 } from "@mui/material";
 import MenuActionLayout from "../MenuActionLayout";
 import type { MenuActionComponentProps } from "../menuActionRegistry";
-import type { TicketSearchResult } from "../../../../shared/types/ticketPayload";
+import type { TicketSearchResult } from "../../../../shared/types/ticketApiTypes";
 import type { TicketFormError } from "../../../services/ticketService";
 import { ticketService } from "../../../services/ticketService";
 import { formatIsoDate, formatUppercase } from "../../../utils/formatters";

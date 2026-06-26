@@ -4,7 +4,7 @@ import type { EyeColor } from "../types/eyeColor.ts";
 import type {
   CitiesResponse,
   SaveClientInput,
-} from "../types/clientPayload.ts";
+} from "../types/clientApiTypes.ts";
 
 export type ElectronClientApi = {
   search: (firstName: string, lastName: string) => Promise<Client[]>;
@@ -21,8 +21,8 @@ export type ElectronClientApi = {
   activateEyeColor: (color: string) => Promise<EyeColor>;
   deactivateEyeColor: (color: string) => Promise<EyeColor>;
   loadIdTypes: () => Promise<string[]>;
-  create: (payload: SaveClientInput) => Promise<Client>;
-  update: (payload: SaveClientInput) => Promise<Client>;
+  create: (input: SaveClientInput) => Promise<Client>;
+  update: (input: SaveClientInput) => Promise<Client>;
   delete: (clientNumber: number) => Promise<boolean>;
   saveImage: (fileName: string, base64: string) => Promise<string>;
   loadImage: (imagePath: string) => Promise<string>;

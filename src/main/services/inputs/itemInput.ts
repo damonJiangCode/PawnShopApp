@@ -1,7 +1,7 @@
 import type {
   ItemSearchInput,
   SaveItemInput,
-} from "../../../shared/types/itemPayload.ts";
+} from "../../../shared/types/itemApiTypes.ts";
 
 const trimUpper = (value?: string) => value?.trim().toUpperCase() ?? "";
 

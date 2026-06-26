@@ -2,7 +2,7 @@ import type { Employee } from "../../shared/types/Employee";
 import type {
   EmployeeSearchInput,
   SaveEmployeeInput,
-} from "../../shared/types/employeePayload";
+} from "../../shared/types/employeeApiTypes";
 import { getElectronApi } from "./electronApi";
 
 const normalizeEmployeeInput = (

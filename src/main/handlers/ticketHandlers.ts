@@ -10,9 +10,12 @@ import type {
   ReportDateInput,
   TransferTicketInput,
   UpdateTicketInput,
-} from "../../shared/types/ticketPayload.ts";
+} from "../../shared/types/ticketApiTypes.ts";
 import type { SaveHolidayInput } from "../../shared/types/holidayDate.ts";
 import type { SaveLocationInput } from "../../shared/types/location.ts";
+import { ticketAdminService } from "../services/ticketAdminService.ts";
+import { ticketPaymentService } from "../services/ticketPaymentService.ts";
+import { ticketReportService } from "../services/ticketReportService.ts";
 import { ticketService } from "../services/ticketService.ts";
 import { CHANNELS } from "./channels.ts";
 
@@ -20,33 +23,33 @@ const { ipcMain } = require("electron/main") as typeof import("electron");
 
 export const registerTicketHandlers = () => {
   ipcMain.handle(CHANNELS.GET_LOCATIONS, async () =>
-    ticketService.loadLocations(),
+    ticketAdminService.loadLocations(),
   );
   ipcMain.handle(CHANNELS.GET_ADMIN_LOCATIONS, async () =>
-    ticketService.loadAdminLocations(),
+    ticketAdminService.loadAdminLocations(),
   );
   ipcMain.handle(
     CHANNELS.ADD_LOCATION,
     async (_event: IpcMainInvokeEvent, input: SaveLocationInput) =>
-      ticketService.addLocation(input),
+      ticketAdminService.addLocation(input),
   );
   ipcMain.handle(
     CHANNELS.DEACTIVATE_LOCATION,
     async (_event: IpcMainInvokeEvent, location: string) =>
-      ticketService.deactivateLocation(location),
+      ticketAdminService.deactivateLocation(location),
   );
   ipcMain.handle(CHANNELS.GET_HOLIDAY_DATES, async () =>
-    ticketService.loadHolidayDates(),
+    ticketAdminService.loadHolidayDates(),
   );
   ipcMain.handle(
     CHANNELS.ADD_HOLIDAY_DATE,
     async (_event: IpcMainInvokeEvent, input: SaveHolidayInput) =>
-      ticketService.addHolidayDate(input),
+      ticketAdminService.addHolidayDate(input),
   );
   ipcMain.handle(
     CHANNELS.DELETE_HOLIDAY_DATE,
     async (_event: IpcMainInvokeEvent, holidayDate: string) =>
-      ticketService.deleteHolidayDate(holidayDate),
+      ticketAdminService.deleteHolidayDate(holidayDate),
   );
   ipcMain.handle(
     CHANNELS.GET_TICKETS,
@@ -63,13 +66,13 @@ export const registerTicketHandlers = () => {
   ipcMain.handle(
     CHANNELS.LOAD_BUYBACK_REPORT,
     async (_event: IpcMainInvokeEvent, input: ReportDateInput) => {
-      return ticketService.loadBuybackReport(input);
+      return ticketReportService.loadBuybackReport(input);
     },
   );
   ipcMain.handle(
     CHANNELS.LOAD_INTEREST_REPORT,
     async (_event: IpcMainInvokeEvent, input: ReportDateInput) => {
-      return ticketService.loadInterestReport(input);
+      return ticketReportService.loadInterestReport(input);
     },
   );
   ipcMain.handle(
@@ -117,13 +120,13 @@ export const registerTicketHandlers = () => {
   ipcMain.handle(
     CHANNELS.PICKUP_TICKETS,
     async (_event: IpcMainInvokeEvent, payload: PickupTicketsInput) => {
-      return ticketService.pickupTickets(payload);
+      return ticketPaymentService.pickupTickets(payload);
     },
   );
   ipcMain.handle(
     CHANNELS.EXTEND_TICKETS,
     async (_event: IpcMainInvokeEvent, payload: ExtendTicketsInput) => {
-      return ticketService.extendTickets(payload);
+      return ticketPaymentService.extendTickets(payload);
     },
   );
   ipcMain.handle(
