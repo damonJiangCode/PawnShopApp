@@ -23,7 +23,7 @@ export const mapRowToClient = (row: Record<string, unknown>): Client => ({
   pickup_self_only: Boolean(row.pickup_self_only),
   updated_at: row.updated_at as Date,
   redeem_count: Number(row.redeem_count ?? 0),
-  sold_count: Number(row.sold_count ?? 0),
+  sell_count: Number(row.sell_count ?? 0),
   expire_count: Number(row.expire_count ?? 0),
   overdue_count: Number(row.overdue_count ?? 0),
   identifications: (row.identifications ?? []) as Client["identifications"],

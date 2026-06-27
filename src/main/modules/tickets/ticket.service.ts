@@ -148,7 +148,7 @@ export const ticketService = {
         client,
       );
 
-      await clientRepo.incrementSoldCount(
+      await clientRepo.incrementSellCount(
         normalizedInput.client_number,
         client,
       );

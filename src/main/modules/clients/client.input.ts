@@ -52,7 +52,8 @@ const validateClient = (client: Client, identifications: ID[]) => {
     !client.address ||
     !client.city ||
     !client.province ||
-    !client.country;
+    !client.country ||
+    !client.image_path;
 
   if (requiredMissing) {
     throw new Error("Please fill all required client fields before saving.");

@@ -294,7 +294,7 @@ export const useMainLayoutController = () => {
   const handleClientSoldTicket = () => {
     updateCurrentClient(selectedClient?.client_number, (client) => ({
       ...client,
-      sold_count: Number(client.sold_count ?? 0) + 1,
+      sell_count: Number(client.sell_count ?? 0) + 1,
       updated_at: new Date(),
     }));
   };

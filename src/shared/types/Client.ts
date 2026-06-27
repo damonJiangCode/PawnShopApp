@@ -29,7 +29,7 @@ export interface Client {
   pickup_self_only: boolean;
   updated_at: Date;
   redeem_count: number;
-  sold_count: number;
+  sell_count: number;
   expire_count: number;
   overdue_count: number;
   identifications?: ID[];

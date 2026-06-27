@@ -1,78 +1,174 @@
 # PawnShopApp
 
-PawnShopApp is an Electron desktop application for pawn shop operations. It helps staff manage clients, pawn and sell tickets, ticket history, payments, item records, reports, and admin lookup data such as employees, colors, holidays, and locations.
+PawnShopApp is an Electron desktop application for pawn shop operations. It supports client management, pawn and sell tickets, ticket history, payments, item records, reports, and admin data such as employees, holidays, colors, and locations.
 
-The app uses React, Vite, and MUI for the renderer UI, Electron for the desktop shell and IPC bridge, TypeScript across the codebase, and PostgreSQL for persistent data.
+The project uses Electron for the desktop shell, React + Vite + MUI for the renderer UI, TypeScript across the app, PostgreSQL for persistent data, and IPC contracts shared between the main and renderer processes.
 
 ## Project Structure
 
 ```text
 .
-├── renderer/                 # Vite renderer entry and renderer TypeScript config
-├── scripts/                  # Build, test, and maintenance scripts
+├── renderer/                 # Vite renderer entry files and renderer tsconfig
+│   ├── index.html
+│   ├── main.tsx
+│   ├── tsconfig.json
+│   └── vite.config.ts
+├── scripts/                  # Build, test, migration, and maintenance scripts
+│   ├── migrations/
+│   ├── prepareElectronBuild.cjs
+│   └── runTests.cjs
 ├── src/
-│   ├── db/                   # PostgreSQL connection, schema, initialization, and seed data
-│   │   ├── schema/           # Table definitions grouped by domain
-│   │   └── seed/             # Seed data for clients, tickets, items, and city data
 │   ├── main/                 # Electron main process
-│   │   ├── handlers/         # IPC handlers
-│   │   ├── repos/            # Database access layer
-│   │   ├── services/         # Main-process business logic
-│   │   └── utils/            # Main-process helpers
-│   ├── preload/              # Electron preload bridge exposed to the renderer
+│   │   ├── database/         # PostgreSQL connection, schema, initialization, seeds
+│   │   ├── ipc/              # IPC channel names and handler registration
+│   │   ├── modules/          # Domain modules: handlers, services, repos, input mapping
+│   │   └── shared/           # Main-process helpers
+│   ├── preload/              # Electron preload bridge exposed to renderer
 │   ├── renderer/             # React application source
-│   │   ├── app/              # App bootstrap, main layout, and window registry
-│   │   ├── assets/           # Renderer-side static constants/assets
-│   │   ├── components/       # Reusable UI components
-│   │   ├── hooks/            # Renderer hooks
-│   │   ├── pages/            # Main app pages: Client, Transaction, History
-│   │   ├── services/         # Renderer services that call the preload API
-│   │   ├── utils/            # Renderer utilities and tests
-│   │   └── windows/          # Secondary Electron windows and menu action screens
-│   └── shared/               # Shared IPC contracts, domain types, utilities, and tests
+│   │   ├── app/              # Renderer bootstrap, app routing, window registry
+│   │   ├── modules/          # Feature modules and workflows
+│   │   ├── shared/           # Reusable renderer API, UI, layout, and utilities
+│   │   └── windows/          # Specialized renderer window code
+│   └── shared/               # Shared types, IPC API contracts, utilities, and tests
+├── images/                   # Local client and item image storage
 ├── package.json              # npm scripts and dependencies
 ├── package-lock.json         # Locked dependency tree
 ├── tsconfig.json             # Shared TypeScript config
 └── tsconfig.main.json        # Main-process TypeScript config
 ```
 
-## Source Areas
+## Main Process
 
-### `src/renderer`
+`src/main` owns Electron startup, native windows, menu actions, IPC handler registration, database access, and server-side business rules.
 
-The React frontend. It contains the main client workflow, transaction workflow, history workflow, payment window, item load window, menu action windows, dialogs, tables, and renderer-side service wrappers.
+```text
+src/main/
+├── database/
+│   ├── schema/
+│   │   ├── client/
+│   │   ├── employee/
+│   │   ├── item/
+│   │   └── ticket/
+│   ├── seed/
+│   ├── connection.ts
+│   ├── initialize.ts
+│   └── runInit.ts
+├── ipc/
+│   ├── channels.ts
+│   ├── register.ts
+│   └── window.handlers.ts
+├── modules/
+│   ├── clients/
+│   ├── employees/
+│   ├── items/
+│   ├── reports/
+│   └── tickets/
+├── shared/
+└── index.ts
+```
 
-### `src/main`
+Each domain module keeps related IPC handlers, services, repositories, input validation/mapping, and module exports together. A typical request path is:
 
-The Electron main process. It owns application window creation, menu actions, IPC handler registration, service logic, database repository calls, transactions, and filesystem-backed image storage.
+```text
+renderer module api -> window.electronAPI -> main IPC handler -> service -> repo -> database
+```
 
-### `src/preload`
+## Renderer Process
 
-The preload bridge. It exposes a controlled `window.electronAPI` surface so renderer code can call Electron and database-backed operations through IPC.
+`src/renderer` is the React UI. It is organized by app orchestration first, feature modules second, and shared UI/helpers last.
 
-### `src/shared`
+```text
+src/renderer/
+├── app/                      # React mount, app/window selection, main shell
+│   ├── main/
+│   └── menu-action/
+├── modules/
+│   ├── admin/                # Holiday, location, hair color, eye color admin windows
+│   ├── clients/              # Client page, controller, API wrapper, hooks, components
+│   ├── employees/            # Employee API and admin window
+│   ├── history/              # Ticket history workflow
+│   ├── items/                # Item API, dialogs, load/search windows
+│   ├── reports/              # Report menu-action windows
+│   ├── tickets/              # Ticket API, menu actions, payment window
+│   └── transactions/         # Active pawn/sell transaction workflow
+├── shared/
+│   ├── api/
+│   ├── app-shell/
+│   ├── layout/
+│   ├── menu-action/
+│   ├── ui/
+│   └── utils/
+└── windows/
+```
 
-Code shared between main and renderer. This includes domain models, IPC API types, payload types, calculation utilities, and related tests.
+For more renderer-specific conventions, see `src/renderer/README.md`.
 
-### `src/db`
+## Shared Code
 
-Database setup code. It defines PostgreSQL tables, seed data, initialization logic, and the connection helper used by repositories.
+`src/shared` contains code used by both the main and renderer processes:
 
-### `renderer`
+```text
+src/shared/
+├── ipc/                      # Typed IPC API contracts
+├── test/                     # Shared test helpers
+├── types/                    # Domain and payload types
+└── utils/                    # Pure shared utilities and tests
+```
 
-Vite-specific renderer entry files and config. The actual React application source lives in `src/renderer`.
+Calculation and formatting logic that is independent of Electron should live here so it can be tested without launching the desktop app.
 
-### `scripts`
+## Development
 
-Project scripts for preparing Electron build output and running tests.
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run the Electron app in development:
+
+```bash
+npm run dev
+```
+
+Run tests:
+
+```bash
+npm test
+```
+
+Run type checks:
+
+```bash
+npm run typecheck:main
+npm run typecheck:renderer
+```
+
+Build the app:
+
+```bash
+npm run build
+```
+
+Initialize the database:
+
+```bash
+npm run db:init
+```
+
+Format the codebase:
+
+```bash
+npm run format
+```
 
 ## Generated And Local Data
 
 ```text
-.electron-build/             # Generated Electron-side build output
+.electron-build/             # Generated Electron build output used during dev/build
 images/                      # Local client and item images
 node_modules/                # Installed npm dependencies
 test-results/                # Local test output
 ```
 
-These directories are runtime or generated data rather than primary source code.
+These directories are generated or runtime data. They are not the primary source structure.

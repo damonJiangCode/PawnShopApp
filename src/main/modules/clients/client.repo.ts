@@ -118,7 +118,7 @@ export const clientRepo = {
         image_path,
         pickup_self_only,
         redeem_count,
-        sold_count,
+        sell_count,
         expire_count,
         overdue_count
       ) VALUES (
@@ -148,7 +148,7 @@ export const clientRepo = {
       toDbNullable(clientData.image_path),
       Boolean(clientData.pickup_self_only),
       clientData.redeem_count ?? 0,
-      clientData.sold_count ?? 0,
+      clientData.sell_count ?? 0,
       clientData.expire_count ?? 0,
       clientData.overdue_count ?? 0,
     ];
@@ -200,7 +200,7 @@ export const clientRepo = {
         image_path = $18,
         pickup_self_only = $19,
         redeem_count = $20,
-        sold_count = $21,
+        sell_count = $21,
         expire_count = $22,
         overdue_count = $23,
         updated_at = CURRENT_TIMESTAMP
@@ -229,7 +229,7 @@ export const clientRepo = {
       toDbNullable(clientData.image_path),
       Boolean(clientData.pickup_self_only),
       clientData.redeem_count ?? 0,
-      clientData.sold_count ?? 0,
+      clientData.sell_count ?? 0,
       clientData.expire_count ?? 0,
       clientData.overdue_count ?? 0,
       clientNumber,
@@ -276,7 +276,7 @@ export const clientRepo = {
     }
   },
 
-  incrementSoldCount: async (
+  incrementSellCount: async (
     clientNumber: number,
     dbClient?: DbClient,
   ): Promise<void> => {
@@ -286,7 +286,7 @@ export const clientRepo = {
       await client.query(
         `
           UPDATE client
-          SET sold_count = COALESCE(sold_count, 0) + 1,
+          SET sell_count = COALESCE(sell_count, 0) + 1,
               updated_at = CURRENT_TIMESTAMP
           WHERE client_number = $1
         `,

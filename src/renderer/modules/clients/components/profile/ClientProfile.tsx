@@ -245,7 +245,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
               },
               {
                 label: "Sold",
-                value: client.sold_count,
+                value: client.sell_count,
                 color: statColors.sold,
               },
             ].map((stat) => (
