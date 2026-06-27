@@ -48,13 +48,13 @@ const employeeToInput = (employee: Employee): SaveEmployeeInput => ({
   first_name: employee.first_name,
   last_name: employee.last_name,
   nickname: employee.nickname,
-  date_of_birth: employee.date_of_birth ?? "",
+  date_of_birth: employee.date_of_birth,
   gender: employee.gender,
   password: employee.password ?? "",
 });
 
-const getDateOfBirthError = (dateOfBirth?: string) => {
-  if (!dateOfBirth?.trim()) {
+const getDateOfBirthError = (dateOfBirth: string) => {
+  if (!dateOfBirth.trim()) {
     return "Date of birth is required.";
   }
 

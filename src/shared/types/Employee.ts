@@ -3,7 +3,7 @@ export interface Employee {
   first_name: string;
   last_name: string;
   nickname: string;
-  date_of_birth?: string;
+  date_of_birth: string;
   gender: string;
   password?: string;
   created_at?: Date;

@@ -26,7 +26,7 @@ const employeeSelectColumns = `
 
 const formatDateOnly = (value: unknown) => {
   if (!value) {
-    return undefined;
+    return "";
   }
 
   if (value instanceof Date) {
@@ -148,8 +148,8 @@ export const employeeRepo = {
         [
           payload.first_name,
           payload.last_name,
-          payload.nickname ?? "",
-          payload.date_of_birth || null,
+          payload.nickname,
+          payload.date_of_birth,
           payload.gender,
           payload.password,
         ],
@@ -186,8 +186,8 @@ export const employeeRepo = {
           employeeNumber,
           payload.first_name,
           payload.last_name,
-          payload.nickname ?? "",
-          payload.date_of_birth || null,
+          payload.nickname,
+          payload.date_of_birth,
           payload.gender,
           payload.password,
         ],
