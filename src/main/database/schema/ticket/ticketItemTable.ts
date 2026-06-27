@@ -23,12 +23,19 @@ export const createItemWithStatusView = `
     i.model_number,
     i.serial_number,
     i.amount,
-    i.latest_ticket_number,
-    t.status AS latest_ticket_status,
+    latest_ticket.ticket_number AS latest_ticket_number,
+    latest_ticket.status AS latest_ticket_status,
     i.image_path
   FROM item i
-  LEFT JOIN ticket t
-    ON t.ticket_number = i.latest_ticket_number;
+  LEFT JOIN LATERAL (
+    SELECT t.ticket_number, t.status
+    FROM ticket_item ti
+    INNER JOIN ticket t
+      ON t.ticket_number = ti.ticket_number
+    WHERE ti.item_number = i.item_number
+    ORDER BY t.transaction_datetime DESC, ti.ticket_number DESC
+    LIMIT 1
+  ) latest_ticket ON TRUE;
 `;
 
 export const createTicketItemGuards = `

@@ -44,14 +44,21 @@ const itemSelectColumns = `
   i.model_number,
   i.serial_number,
   i.amount,
-  i.latest_ticket_number,
+  latest_ticket.ticket_number AS latest_ticket_number,
   latest_ticket.status AS latest_ticket_status,
   i.image_path
 `;
 
 const itemLookupJoins = `
-  LEFT JOIN ticket latest_ticket
-    ON latest_ticket.ticket_number = i.latest_ticket_number
+  LEFT JOIN LATERAL (
+    SELECT t.ticket_number, t.status
+    FROM ticket_item ti
+    INNER JOIN ticket t
+      ON t.ticket_number = ti.ticket_number
+    WHERE ti.item_number = i.item_number
+    ORDER BY t.transaction_datetime DESC, ti.ticket_number DESC
+    LIMIT 1
+  ) latest_ticket ON TRUE
   LEFT JOIN item_subcategory s
     ON s.id = i.subcategory_id
   LEFT JOIN item_category c
@@ -188,11 +195,18 @@ export const itemRepo = {
       `
         SELECT
           i.item_number,
-          i.latest_ticket_number,
+          latest_ticket.ticket_number AS latest_ticket_number,
           latest_ticket.status AS latest_ticket_status
         FROM item i
-        LEFT JOIN ticket latest_ticket
-          ON latest_ticket.ticket_number = i.latest_ticket_number
+        LEFT JOIN LATERAL (
+          SELECT t.ticket_number, t.status
+          FROM ticket_item ti
+          INNER JOIN ticket t
+            ON t.ticket_number = ti.ticket_number
+          WHERE ti.item_number = i.item_number
+          ORDER BY t.transaction_datetime DESC, ti.ticket_number DESC
+          LIMIT 1
+        ) latest_ticket ON TRUE
         WHERE i.item_number = $1
         LIMIT 1
       `,
@@ -238,15 +252,6 @@ export const itemRepo = {
       [ticketNumber, itemNumber],
     );
 
-    await dbClient.query(
-      `
-        UPDATE item
-        SET latest_ticket_number = $1
-        WHERE item_number = $2
-      `,
-      [ticketNumber, itemNumber],
-    );
-
     const item = await itemRepo.loadByItemNumber(itemNumber, dbClient);
 
     if (!item) {
@@ -266,20 +271,9 @@ export const itemRepo = {
         model_number,
         serial_number,
         amount,
-        latest_ticket_number,
         image_path
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-      RETURNING
-        item_number,
-        quantity,
-        subcategory_id,
-        description,
-        brand_name,
-        model_number,
-        serial_number,
-        amount,
-        latest_ticket_number,
-        image_path
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+      RETURNING item_number
     `;
 
     const result = await dbClient.query(query, [
@@ -290,11 +284,10 @@ export const itemRepo = {
       payload.model_number,
       payload.serial_number,
       payload.amount,
-      payload.ticket_number,
       payload.image_path ?? "",
     ]);
 
-    const item = mapItemRow(result.rows[0]);
+    const itemNumber = Number(result.rows[0].item_number);
 
     await dbClient.query(
       `
@@ -302,8 +295,14 @@ export const itemRepo = {
         VALUES ($1, $2)
         ON CONFLICT (ticket_number, item_number) DO NOTHING
       `,
-      [payload.ticket_number, item.item_number],
+      [payload.ticket_number, itemNumber],
     );
+
+    const item = await itemRepo.loadByItemNumber(itemNumber, dbClient);
+
+    if (!item) {
+      throw new Error(`Item #${itemNumber} was not found after creating.`);
+    }
 
     return item;
   },
@@ -319,20 +318,9 @@ export const itemRepo = {
         model_number = $5,
         serial_number = $6,
         amount = $7,
-        latest_ticket_number = $8,
-        image_path = $9
-      WHERE item_number = $10
-      RETURNING
-        item_number,
-        quantity,
-        subcategory_id,
-        description,
-        brand_name,
-        model_number,
-        serial_number,
-        amount,
-        latest_ticket_number,
-        image_path
+        image_path = $8
+      WHERE item_number = $9
+      RETURNING item_number
     `;
 
     const result = await dbClient.query(query, [
@@ -343,7 +331,6 @@ export const itemRepo = {
       payload.model_number,
       payload.serial_number,
       payload.amount,
-      payload.ticket_number,
       payload.image_path ?? "",
       payload.item_number,
     ]);
@@ -354,7 +341,18 @@ export const itemRepo = {
       );
     }
 
-    return mapItemRow(result.rows[0]);
+    const item = await itemRepo.loadByItemNumber(
+      Number(result.rows[0].item_number),
+      dbClient,
+    );
+
+    if (!item) {
+      throw new Error(
+        `[itemRepo] update(): Item #${payload.item_number} not found after update`,
+      );
+    }
+
+    return item;
   },
 
   updateImagePath: async (
@@ -386,22 +384,5 @@ export const itemRepo = {
       [ticketNumber, itemNumber],
     );
 
-    await dbClient.query(
-      `
-        UPDATE item
-        SET latest_ticket_number = (
-          SELECT ti.ticket_number
-          FROM ticket_item ti
-          INNER JOIN ticket t
-            ON t.ticket_number = ti.ticket_number
-          WHERE ti.item_number = $1
-          ORDER BY t.transaction_datetime DESC, ti.ticket_number DESC
-          LIMIT 1
-        )
-        WHERE item_number = $1
-          AND latest_ticket_number = $2
-      `,
-      [itemNumber, ticketNumber],
-    );
   },
 };
