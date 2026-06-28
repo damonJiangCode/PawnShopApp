@@ -98,7 +98,7 @@ const TicketExpireWindow: React.FC<MenuActionComponentProps> = () => {
 
       if (
         result.ticket.status !== "pawned" &&
-        result.ticket.status !== "sold"
+        result.ticket.status !== "sell"
       ) {
         setError("Only pawned or sold tickets can be expired.");
         focusTicketField();

@@ -28,7 +28,7 @@ const TransactionTicketsTable: React.FC<TransactionTicketsTableProps> = ({
     if (ticket.due_date) return formatIsoDate(ticket.due_date);
     if (!ticket.transaction_datetime) return "";
     const due = new Date(ticket.transaction_datetime);
-    due.setDate(due.getDate() + (ticket.status === "sold" ? 45 : 30));
+    due.setDate(due.getDate() + (ticket.status === "sell" ? 45 : 30));
     return formatIsoDate(due);
   };
 
@@ -77,7 +77,7 @@ const TransactionTicketsTable: React.FC<TransactionTicketsTableProps> = ({
       renderCell: (params) => {
         const dueDate = params.value;
         const showOverdueIcon =
-          params.row.status !== "sold" &&
+          params.row.status !== "sell" &&
           params.row.due_date &&
           calculation.isBeforeCalendarDate(params.row.due_date);
 
@@ -113,9 +113,9 @@ const TransactionTicketsTable: React.FC<TransactionTicketsTableProps> = ({
       headerName: "INT",
       width: 84,
       valueGetter: (_value, row: Ticket) =>
-        row.status === "sold" ? null : calculation.getBaseIntAmt(row.amount),
+        row.status === "sell" ? null : calculation.getBaseIntAmt(row.amount),
       renderCell: (params) =>
-        params.row.status === "sold" ? (
+        params.row.status === "sell" ? (
           <CellTooltip value={null} fallback="---" />
         ) : (
           <CellTooltip value={formatCurrency(params.value)} fallback="---" />
@@ -138,7 +138,7 @@ const TransactionTicketsTable: React.FC<TransactionTicketsTableProps> = ({
       headerName: "PART",
       width: 84,
       renderCell: (params) =>
-        params.row.status === "sold" ? (
+        params.row.status === "sell" ? (
           <CellTooltip value={null} fallback="---" />
         ) : (
           <CellTooltip value={formatCurrency(params.value)} fallback="---" />

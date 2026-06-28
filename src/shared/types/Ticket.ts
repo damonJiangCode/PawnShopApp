@@ -16,7 +16,7 @@ export interface Ticket {
   pickup_datetime?: Date;
   pickup_amount_paid?: number;
   expire_date?: Date;
-  status: "pawned" | "pawn_expired" | "picked_up" | "sold" | "sell_expired";
+  status: "pawned" | "pawn_expired" | "picked_up" | "sell" | "sell_expired";
   status_updated_at: Date;
   client_number: number;
 }

@@ -57,7 +57,7 @@ const TicketTransferDialog: React.FC<TicketTransferDialogProps> = (props) => {
 
   const isTransferable =
     !!preview &&
-    (preview.status === "pawned" || preview.status === "sold") &&
+    (preview.status === "pawned" || preview.status === "sell") &&
     preview.previous_client_number !== clientNumber;
 
   useEffect(() => {

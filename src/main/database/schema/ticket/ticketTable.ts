@@ -18,7 +18,7 @@ export const createTicketTable = `
     pickup_datetime TIMESTAMPTZ DEFAULT NULL,
     pickup_amount_paid NUMERIC(10, 2) DEFAULT NULL CHECK (pickup_amount_paid IS NULL OR pickup_amount_paid >= 0),
     expire_date TIMESTAMPTZ DEFAULT NULL,
-    status TEXT NOT NULL CHECK (status IN ('pawned', 'pawn_expired', 'picked_up', 'sold', 'sell_expired')),
+    status TEXT NOT NULL CHECK (status IN ('pawned', 'pawn_expired', 'picked_up', 'sell', 'sell_expired')),
     status_updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     client_number INTEGER REFERENCES client(client_number) ON DELETE SET NULL
   );

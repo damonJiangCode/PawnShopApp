@@ -1,6 +1,6 @@
 export const createItemTable = `
   CREATE TABLE IF NOT EXISTS item (
-    item_number SERIAL PRIMARY KEY,
+    item_number BIGSERIAL PRIMARY KEY,
     quantity INTEGER NOT NULL CHECK (quantity > 0),
     subcategory_id INTEGER NOT NULL REFERENCES item_subcategory(id),
     description TEXT NOT NULL,

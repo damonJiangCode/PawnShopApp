@@ -62,12 +62,12 @@ const TicketConvertDialog: React.FC<TicketConvertDialogProps> = ({
   const [earlyClaimAmount, setEarlyClaimAmount] = useState(0);
   const [pickupAmount, setPickupAmount] = useState(0);
 
-  const targetStatus = useMemo<"pawned" | "sold" | null>(() => {
+  const targetStatus = useMemo<"pawned" | "sell" | null>(() => {
     if (!ticket) {
       return null;
     }
 
-    return ticket.status === "pawned" ? "sold" : "pawned";
+    return ticket.status === "pawned" ? "sell" : "pawned";
   }, [ticket]);
 
   const directionLabel = useMemo(() => {
@@ -119,7 +119,7 @@ const TicketConvertDialog: React.FC<TicketConvertDialogProps> = ({
 
     setDescription(ticket.description || "");
     setLocation(
-      targetStatus === "sold"
+      targetStatus === "sell"
         ? locationList.includes(DEFAULT_SELL_LOCATION)
           ? DEFAULT_SELL_LOCATION
           : ""
