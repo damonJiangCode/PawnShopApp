@@ -1,8 +1,8 @@
-import { registerClientHandlers } from "../modules/clients/index.ts";
-import { registerEmployeeHandlers } from "../modules/employees/index.ts";
-import { registerItemHandlers } from "../modules/items/index.ts";
-import { registerReportHandlers } from "../modules/reports/index.ts";
-import { registerTicketHandlers } from "../modules/tickets/index.ts";
+import { registerClientHandlers } from "../modules/clients/client.handlers.ts";
+import { registerEmployeeHandlers } from "../modules/employees/employee.handlers.ts";
+import { registerItemHandlers } from "../modules/items/item.handlers.ts";
+import { registerReportHandlers } from "../modules/reports/report.handlers.ts";
+import { registerTicketHandlers } from "../modules/tickets/ticket.handlers.ts";
 import { registerWindowHandlers } from "./window.handlers.ts";
 
 export const registerHandlers = () => {
