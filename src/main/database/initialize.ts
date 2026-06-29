@@ -21,9 +21,14 @@ import {
 } from "./schema/ticket/ticketTable.ts";
 import {
   createTicketItemIndexes,
-  createTicketItemGuards,
   createTicketItemTable,
 } from "./schema/ticket/ticketItemTable.ts";
+import {
+  createPreventItemMultiplePawnedTicketsFunction,
+  createPreventItemMultiplePawnedTicketsTrigger,
+  createPreventTicketWithConflictingPawnedItemsFunction,
+  createPreventTicketWithConflictingPawnedItemsTrigger,
+} from "./functions/ticketItemGuards.ts";
 import { createItemWithStatusView } from "./views/itemWithStatusView.ts";
 import {
   seedCities,
@@ -98,8 +103,25 @@ export const initializeDatabase = async () => {
     await client.query(createItemWithStatusView);
     console.log("item_with_status view created successfully");
 
-    await client.query(createTicketItemGuards);
-    console.log("ticket_item guards created successfully");
+    await client.query(createPreventItemMultiplePawnedTicketsFunction);
+    console.log(
+      "prevent_item_multiple_pawned_tickets function created successfully",
+    );
+
+    await client.query(createPreventItemMultiplePawnedTicketsTrigger);
+    console.log(
+      "prevent_item_multiple_pawned_tickets trigger created successfully",
+    );
+
+    await client.query(createPreventTicketWithConflictingPawnedItemsFunction);
+    console.log(
+      "prevent_ticket_with_conflicting_pawned_items function created successfully",
+    );
+
+    await client.query(createPreventTicketWithConflictingPawnedItemsTrigger);
+    console.log(
+      "prevent_ticket_with_conflicting_pawned_items trigger created successfully",
+    );
 
     await client.query(createEmployeeTable);
     console.log("employee table created successfully");

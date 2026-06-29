@@ -43,7 +43,7 @@ const ID_TYPES = [
   "Health Card",
   "Indian Status Card",
   "Birth Certificate",
-  "Social Insurance Number Card",
+  "Social Insurance Number",
   "Firearms License",
   "Canadian Passport",
   "Citizenship Card",
@@ -73,7 +73,10 @@ const seedColors = async (
 };
 
 export const seedCities = async (client: DbClient) => {
-  const filePath = path.resolve(process.cwd(), "src/main/database/seed/canadacities.csv");
+  const filePath = path.resolve(
+    process.cwd(),
+    "src/main/database/seed/canadacities.csv",
+  );
   const stream = fs.createReadStream(filePath).pipe(csv());
   const cities = new Map<string, { city: string; province: string }>();
 
