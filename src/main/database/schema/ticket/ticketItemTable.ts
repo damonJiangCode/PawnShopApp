@@ -1,7 +1,7 @@
 export const createTicketItemTable = `
   CREATE TABLE IF NOT EXISTS ticket_item (
-    ticket_number INTEGER NOT NULL REFERENCES ticket(ticket_number) ON DELETE CASCADE,
-    item_number INTEGER NOT NULL REFERENCES item(item_number) ON DELETE CASCADE,
+    ticket_number INTEGER NOT NULL REFERENCES ticket(ticket_number),
+    item_number INTEGER NOT NULL REFERENCES item(item_number),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (ticket_number, item_number)
   );
@@ -10,32 +10,6 @@ export const createTicketItemTable = `
 export const createTicketItemIndexes = `
   CREATE INDEX IF NOT EXISTS idx_ticket_item_item_number
   ON ticket_item(item_number);
-`;
-
-export const createItemWithStatusView = `
-  CREATE OR REPLACE VIEW item_with_status AS
-  SELECT
-    i.item_number,
-    i.quantity,
-    i.subcategory_id,
-    i.description,
-    i.brand_name,
-    i.model_number,
-    i.serial_number,
-    i.amount,
-    latest_ticket.ticket_number AS latest_ticket_number,
-    latest_ticket.status AS latest_ticket_status,
-    i.image_path
-  FROM item i
-  LEFT JOIN LATERAL (
-    SELECT t.ticket_number, t.status
-    FROM ticket_item ti
-    INNER JOIN ticket t
-      ON t.ticket_number = ti.ticket_number
-    WHERE ti.item_number = i.item_number
-    ORDER BY t.transaction_datetime DESC, ti.ticket_number DESC
-    LIMIT 1
-  ) latest_ticket ON TRUE;
 `;
 
 export const createTicketItemGuards = `

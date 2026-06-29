@@ -20,11 +20,11 @@ import {
   createTicketTable,
 } from "./schema/ticket/ticketTable.ts";
 import {
-  createItemWithStatusView,
   createTicketItemIndexes,
   createTicketItemGuards,
   createTicketItemTable,
 } from "./schema/ticket/ticketItemTable.ts";
+import { createItemWithStatusView } from "./views/itemWithStatusView.ts";
 import {
   seedCities,
   seedEyeColors,

@@ -34,35 +34,19 @@ const mapItemRow = (row: Record<string, unknown>): Item => {
 };
 
 const itemSelectColumns = `
-  i.item_number,
-  i.quantity,
-  i.subcategory_id,
-  c.name AS category_name,
-  s.name AS subcategory_name,
-  i.description,
-  i.brand_name,
-  i.model_number,
-  i.serial_number,
-  i.amount,
-  latest_ticket.ticket_number AS latest_ticket_number,
-  latest_ticket.status AS latest_ticket_status,
-  i.image_path
-`;
-
-const itemLookupJoins = `
-  LEFT JOIN LATERAL (
-    SELECT t.ticket_number, t.status
-    FROM ticket_item ti
-    INNER JOIN ticket t
-      ON t.ticket_number = ti.ticket_number
-    WHERE ti.item_number = i.item_number
-    ORDER BY t.transaction_datetime DESC, ti.ticket_number DESC
-    LIMIT 1
-  ) latest_ticket ON TRUE
-  LEFT JOIN item_subcategory s
-    ON s.id = i.subcategory_id
-  LEFT JOIN item_category c
-    ON c.id = s.category_id
+  iws.item_number,
+  iws.quantity,
+  iws.subcategory_id,
+  iws.category_name,
+  iws.subcategory_name,
+  iws.description,
+  iws.brand_name,
+  iws.model_number,
+  iws.serial_number,
+  iws.amount,
+  iws.latest_ticket_number,
+  iws.latest_ticket_status,
+  iws.image_path
 `;
 
 const mapItemCategoryRow = (
@@ -103,13 +87,12 @@ export const itemRepo = {
     const client = await connect();
     const query = `
       SELECT ${itemSelectColumns}
-      FROM item i
+      FROM item_with_status iws
       INNER JOIN ticket_item ti
-        ON ti.item_number = i.item_number
+        ON ti.item_number = iws.item_number
        AND ti.ticket_number = $1
-      ${itemLookupJoins}
       WHERE ti.ticket_number = $1
-      ORDER BY i.item_number DESC
+      ORDER BY iws.item_number DESC
     `;
 
     try {
@@ -126,9 +109,8 @@ export const itemRepo = {
   ): Promise<Item | null> => {
     const query = `
       SELECT ${itemSelectColumns}
-      FROM item i
-      ${itemLookupJoins}
-      WHERE i.item_number = $1
+      FROM item_with_status iws
+      WHERE iws.item_number = $1
       LIMIT 1
     `;
 
@@ -142,7 +124,7 @@ export const itemRepo = {
 
     if (payload.item_number) {
       values.push(payload.item_number);
-      conditions.push(`i.item_number = $${values.length}`);
+      conditions.push(`iws.item_number = $${values.length}`);
     } else {
       const brandName = payload.brand_name?.trim();
       const modelNumber = payload.model_number?.trim();
@@ -150,17 +132,17 @@ export const itemRepo = {
 
       if (brandName) {
         values.push(`%${brandName}%`);
-        conditions.push(`i.brand_name ILIKE $${values.length}`);
+        conditions.push(`iws.brand_name ILIKE $${values.length}`);
       }
 
       if (modelNumber) {
         values.push(`%${modelNumber}%`);
-        conditions.push(`i.model_number ILIKE $${values.length}`);
+        conditions.push(`iws.model_number ILIKE $${values.length}`);
       }
 
       if (serialNumber) {
         values.push(`%${serialNumber}%`);
-        conditions.push(`i.serial_number ILIKE $${values.length}`);
+        conditions.push(`iws.serial_number ILIKE $${values.length}`);
       }
     }
 
@@ -171,10 +153,9 @@ export const itemRepo = {
     const client = await connect();
     const query = `
       SELECT ${itemSelectColumns}
-      FROM item i
-      ${itemLookupJoins}
+      FROM item_with_status iws
       WHERE ${conditions.join(" AND ")}
-      ORDER BY i.item_number DESC
+      ORDER BY iws.item_number DESC
       LIMIT 100
     `;
 
@@ -194,20 +175,11 @@ export const itemRepo = {
     const result = await dbClient.query(
       `
         SELECT
-          i.item_number,
-          latest_ticket.ticket_number AS latest_ticket_number,
-          latest_ticket.status AS latest_ticket_status
-        FROM item i
-        LEFT JOIN LATERAL (
-          SELECT t.ticket_number, t.status
-          FROM ticket_item ti
-          INNER JOIN ticket t
-            ON t.ticket_number = ti.ticket_number
-          WHERE ti.item_number = i.item_number
-          ORDER BY t.transaction_datetime DESC, ti.ticket_number DESC
-          LIMIT 1
-        ) latest_ticket ON TRUE
-        WHERE i.item_number = $1
+          item_number,
+          latest_ticket_number,
+          latest_ticket_status
+        FROM item_with_status
+        WHERE item_number = $1
         LIMIT 1
       `,
       [itemNumber],
