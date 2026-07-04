@@ -23,6 +23,7 @@ app/
     MainApp.tsx
     MainLayout.tsx
     useMainLayout.ts
+    shell/
   window-host/
     WindowHostApp.tsx
     windowHostRegistry.ts
@@ -31,7 +32,7 @@ app/
 - `index.tsx`: only mounts React into `#root`.
 - `RendererRoot.tsx`: chooses which renderer app should run.
 - `windowRegistry.tsx`: maps URL window keys to window apps.
-- `main/`: the primary app shell.
+- `main/`: the primary app shell, layout, and shell-only UI.
 - `window-host/`: the secondary-window host and screen registry.
 
 ## `modules/`
@@ -61,7 +62,6 @@ Shared renderer code:
 ```text
 shared/
   api/
-  app-shell/
   layout/
   menu-action/
   ui/
@@ -69,7 +69,6 @@ shared/
 ```
 
 - `api/`: `electron.api` and window-level API wrappers.
-- `app-shell/`: top bar/search/sidebar controls for the main app shell.
 - `layout/`: small reusable layout primitives and sizing constants.
 - `menu-action/`: shared layout for menu-style secondary windows.
 - `ui/`: simple cross-domain UI pieces such as `CellTooltip` and `ClientBar`.

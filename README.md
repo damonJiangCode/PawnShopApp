@@ -81,7 +81,8 @@ renderer module api -> window.electronAPI -> main IPC handler -> service -> repo
 ```text
 src/renderer/
 ├── app/                      # React mount, app/window selection, main shell
-│   ├── main/
+│   ├── main/                 # Main window app, layout, hooks, and shell UI
+│   │   └── shell/
 │   └── window-host/
 ├── modules/
 │   ├── admin/                # Holiday, location, hair color, eye color admin windows
@@ -94,7 +95,6 @@ src/renderer/
 │   └── transactions/         # Active pawn/sell transaction workflow
 ├── shared/
 │   ├── api/
-│   ├── app-shell/
 │   ├── layout/
 │   ├── menu-action/
 │   ├── ui/

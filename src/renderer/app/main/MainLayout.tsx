@@ -3,7 +3,7 @@ import { Box, Tabs, Tab, Paper } from "@mui/material";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import HistoryEduIcon from "@mui/icons-material/HistoryEdu";
-import TopBar from "../../shared/app-shell/TopBar";
+import TopBar from "./shell/TopBar";
 import ClientPage from "../../modules/clients/pages/ClientPage";
 import TransactionPage from "../../modules/transactions/pages/TransactionPage";
 import HistoryPage from "../../modules/history/pages/HistoryPage";
