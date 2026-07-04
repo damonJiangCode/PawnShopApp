@@ -4,8 +4,8 @@ import type {
   OpenPaymentWindowInput,
 } from "../../shared/types/windowApiTypes.ts";
 import type { Item } from "../../shared/types/Item.ts";
-import { CHANNELS } from "./channels.ts";
-import { openWindowHost } from "../window/openWindowHost.ts";
+import { CHANNELS } from "../ipc/channels.ts";
+import { openWindowHost } from "./openWindowHost.ts";
 
 const { ipcMain } = require("electron/main") as typeof import("electron");
 
