@@ -16,6 +16,26 @@ export const windowService = {
     return api.openPaymentWindow(payload);
   },
 
+  openTicketSearchWindow: async (): Promise<void> => {
+    const api = getElectronApi()?.window;
+
+    if (!api) {
+      throw new Error("Window API is unavailable.");
+    }
+
+    return api.openTicketSearchWindow();
+  },
+
+  openItemSearchWindow: async (): Promise<void> => {
+    const api = getElectronApi()?.window;
+
+    if (!api) {
+      throw new Error("Window API is unavailable.");
+    }
+
+    return api.openItemSearchWindow();
+  },
+
   openItemLoadWindow: async (
     payload: ItemLoadWindowData,
   ): Promise<Item[] | null> => {

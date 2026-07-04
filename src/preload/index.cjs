@@ -45,6 +45,8 @@ const CHANNELS = {
   SAVE_ITEM_IMAGE: "save-item-image",
   GET_ITEM_IMAGE: "get-item-image",
   OPEN_PAYMENT_WINDOW: "open-payment-window",
+  OPEN_TICKET_SEARCH_WINDOW: "open-ticket-search-window",
+  OPEN_ITEM_SEARCH_WINDOW: "open-item-search-window",
   OPEN_ITEM_LOAD_WINDOW: "open-item-load-window",
   GET_ITEM_LOAD_WINDOW_PAYLOAD: "get-item-load-window-payload",
   SUBMIT_ITEM_LOAD_WINDOW: "submit-item-load-window",
@@ -141,6 +143,8 @@ const itemApi = {
 
 const windowApi = {
   openPaymentWindow: (payload) => invoke(CHANNELS.OPEN_PAYMENT_WINDOW, payload),
+  openTicketSearchWindow: () => invoke(CHANNELS.OPEN_TICKET_SEARCH_WINDOW),
+  openItemSearchWindow: () => invoke(CHANNELS.OPEN_ITEM_SEARCH_WINDOW),
   openItemLoadWindow: (payload) =>
     invoke(CHANNELS.OPEN_ITEM_LOAD_WINDOW, payload),
   loadItemLoadWindowPayload: (requestId) =>

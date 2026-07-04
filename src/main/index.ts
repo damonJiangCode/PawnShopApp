@@ -37,15 +37,6 @@ const createAppMenu = () => {
       label: "Ticket",
       submenu: [
         {
-          label: "Search",
-          click: () =>
-            openMenuActionWindow({
-              id: "ticket-search",
-              title: "Search Ticket",
-              description: "Search tickets by ticket number.",
-            }),
-        },
-        {
           label: "Expire",
           click: () =>
             openMenuActionWindow({
@@ -65,23 +56,6 @@ const createAppMenu = () => {
               description: "Mark a ticket as stolen for police/risk tracking.",
               width: 860,
               height: 680,
-            }),
-        },
-      ],
-    },
-    {
-      label: "Item",
-      submenu: [
-        {
-          label: "Search",
-          click: () =>
-            openMenuActionWindow({
-              id: "item-search",
-              title: "Search Item",
-              description:
-                "Search by item number, brand name, model number, or serial number.",
-              width: 1100,
-              height: 640,
             }),
         },
       ],

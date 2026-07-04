@@ -76,6 +76,33 @@ export const registerWindowHandlers = () => {
   );
 
   ipcMain.handle(
+    CHANNELS.OPEN_TICKET_SEARCH_WINDOW,
+    async (_event: IpcMainInvokeEvent) => {
+      openWindowHost({
+        screen: "ticket-search",
+        title: "Search Ticket",
+        description: "Search tickets by ticket number.",
+        width: 720,
+        height: 420,
+      });
+    },
+  );
+
+  ipcMain.handle(
+    CHANNELS.OPEN_ITEM_SEARCH_WINDOW,
+    async (_event: IpcMainInvokeEvent) => {
+      openWindowHost({
+        screen: "item-search",
+        title: "Search Item",
+        description:
+          "Search by item number, brand name, model number, or serial number.",
+        width: 1100,
+        height: 640,
+      });
+    },
+  );
+
+  ipcMain.handle(
     CHANNELS.OPEN_ITEM_LOAD_WINDOW,
     async (_event: IpcMainInvokeEvent, payload: ItemLoadWindowData) => {
       const requestId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;

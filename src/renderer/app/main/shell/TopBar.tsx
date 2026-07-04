@@ -8,6 +8,8 @@ interface TopBarProps {
   onBirthdaySearch?: (params: { dateOfBirth: string }) => void;
   onClear?: () => void;
   onPayment?: () => void;
+  onTicketSearch?: () => void;
+  onItemSearch?: () => void;
 }
 
 const TopBar: React.FC<TopBarProps> = ({
@@ -15,6 +17,8 @@ const TopBar: React.FC<TopBarProps> = ({
   onBirthdaySearch,
   onClear,
   onPayment,
+  onTicketSearch,
+  onItemSearch,
 }) => {
   return (
     <Box
@@ -22,8 +26,11 @@ const TopBar: React.FC<TopBarProps> = ({
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
+        gap: 1.5,
+        flexWrap: "nowrap",
         px: 1.5,
         py: 1,
+        minWidth: 0,
       }}
     >
       <SearchBar
@@ -31,7 +38,11 @@ const TopBar: React.FC<TopBarProps> = ({
         onBirthdaySearch={onBirthdaySearch}
         onClear={onClear}
       />
-      <SideButtons onPayment={onPayment} />
+      <SideButtons
+        onPayment={onPayment}
+        onTicketSearch={onTicketSearch}
+        onItemSearch={onItemSearch}
+      />
     </Box>
   );
 };

@@ -6,6 +6,8 @@ import type {
 
 export type ElectronWindowApi = {
   openPaymentWindow: (input: OpenPaymentWindowInput) => Promise<void>;
+  openTicketSearchWindow: () => Promise<void>;
+  openItemSearchWindow: () => Promise<void>;
   openItemLoadWindow: (
     input: ItemLoadWindowData,
   ) => Promise<Item[] | null>;

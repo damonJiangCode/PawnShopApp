@@ -291,6 +291,14 @@ export const useMainLayout = () => {
     });
   };
 
+  const handleOpenTicketSearch = () => {
+    void windowService.openTicketSearchWindow();
+  };
+
+  const handleOpenItemSearch = () => {
+    void windowService.openItemSearchWindow();
+  };
+
   const handleClientSoldTicket = () => {
     updateCurrentClient(selectedClient?.client_number, (client) => ({
       ...client,
@@ -376,6 +384,8 @@ export const useMainLayout = () => {
       handleBirthdaySearch,
       handleClear,
       handlePayment,
+      handleOpenTicketSearch,
+      handleOpenItemSearch,
       handleClientSoldTicket,
       requestHistoryRefresh,
       handleRepawnCreated,

@@ -56,6 +56,8 @@ const MainLayout: React.FC = () => {
         onBirthdaySearch={actions.handleBirthdaySearch}
         onClear={actions.handleClear}
         onPayment={actions.handlePayment}
+        onTicketSearch={actions.handleOpenTicketSearch}
+        onItemSearch={actions.handleOpenItemSearch}
       />
       <Paper
         elevation={3}

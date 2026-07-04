@@ -98,13 +98,17 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
   return (
     <>
-      <form onSubmit={handleSearch}>
+      <Box
+        component="form"
+        onSubmit={handleSearch}
+        sx={{ flex: "1 1 auto", minWidth: 0 }}
+      >
         <Box
           sx={{
             display: "flex",
-            gap: 2,
-            justifyContent: "space-between",
+            gap: 1,
             alignItems: "center",
+            minWidth: 0,
           }}
         >
           <TextField
@@ -113,7 +117,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
             size="small"
             label="Last Name"
             value={lastName}
-            sx={{ width: 240 }}
+            sx={{ width: { xs: 140, sm: 170, md: 190 } }}
             onChange={(e) => setLastName(e.target.value)}
           />
           <TextField
@@ -121,7 +125,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
             size="small"
             label="First Name"
             value={firstName}
-            sx={{ width: 240 }}
+            sx={{ width: { xs: 140, sm: 170, md: 190 } }}
             onChange={(e) => setFirstName(e.target.value)}
           />
 
@@ -130,6 +134,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
             size="small"
             variant="contained"
             startIcon={<SearchIcon />}
+            sx={{ whiteSpace: "nowrap" }}
           >
             Search
           </Button>
@@ -139,6 +144,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
             variant="outlined"
             startIcon={<ClearIcon />}
             onClick={handleClear}
+            sx={{ whiteSpace: "nowrap" }}
           >
             Clear
           </Button>
@@ -162,7 +168,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
             </IconButton>
           </Tooltip>
         </Box>
-      </form>
+      </Box>
 
       <Menu
         id="client-search-menu"
