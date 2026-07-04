@@ -12,7 +12,7 @@ import {
 import type { Location } from "../../../../shared/types/location";
 import { ticketService } from "../../tickets/ticket.api";
 import MenuActionLayout from "../../../shared/menu-action/MenuActionLayout";
-import type { MenuActionComponentProps } from "../../../app/menu-action/menuActionRegistry";
+import type { WindowHostScreenProps } from "../../../app/window-host/windowHostRegistry";
 import LocationAddDialog from "./LocationAddDialog";
 
 const sortLocations = (locations: Location[]) =>
@@ -22,7 +22,7 @@ const sortLocations = (locations: Location[]) =>
       a.location.localeCompare(b.location),
   );
 
-const LocationAdminWindow: React.FC<MenuActionComponentProps> = () => {
+const LocationAdminWindow: React.FC<WindowHostScreenProps> = () => {
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const [searchInput, setSearchInput] = React.useState("");
   const [searchedCode, setSearchedCode] = React.useState("");

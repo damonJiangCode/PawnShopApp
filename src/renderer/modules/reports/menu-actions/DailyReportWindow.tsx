@@ -1,8 +1,8 @@
 import React from "react";
 import MenuActionLayout from "../../../shared/menu-action/MenuActionLayout";
-import type { MenuActionComponentProps } from "../../../app/menu-action/menuActionRegistry";
+import type { WindowHostScreenProps } from "../../../app/window-host/windowHostRegistry";
 
-const DailyReportWindow: React.FC<MenuActionComponentProps> = () => (
+const DailyReportWindow: React.FC<WindowHostScreenProps> = () => (
   <MenuActionLayout
     title="Daily Report"
     description="Generate daily ticket and payment records."

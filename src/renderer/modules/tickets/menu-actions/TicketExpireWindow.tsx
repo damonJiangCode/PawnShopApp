@@ -18,14 +18,14 @@ import {
   Typography,
 } from "@mui/material";
 import MenuActionLayout from "../../../shared/menu-action/MenuActionLayout";
-import type { MenuActionComponentProps } from "../../../app/menu-action/menuActionRegistry";
+import type { WindowHostScreenProps } from "../../../app/window-host/windowHostRegistry";
 import type { TicketSearchResult } from "../../../../shared/types/ticketApiTypes";
 import type { TicketFormError } from "../ticket.api";
 import { ticketService } from "../ticket.api";
 import { calculation } from "../../../../shared/utils/calculation";
 import { formatIsoDate, formatUppercase } from "../../../shared/utils/formatters";
 
-const TicketExpireWindow: React.FC<MenuActionComponentProps> = () => {
+const TicketExpireWindow: React.FC<WindowHostScreenProps> = () => {
   const ticketInputRef = React.useRef<HTMLInputElement>(null);
   const passwordInputRef = React.useRef<HTMLInputElement>(null);
   const [ticketNumber, setTicketNumber] = React.useState("");

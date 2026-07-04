@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import MenuActionLayout from "../../../shared/menu-action/MenuActionLayout";
-import type { MenuActionComponentProps } from "../../../app/menu-action/menuActionRegistry";
+import type { WindowHostScreenProps } from "../../../app/window-host/windowHostRegistry";
 import type { Item } from "../../../../shared/types/Item";
 import TransactionItemImage from "../components/transaction/TransactionItemImage";
 import { itemService } from "../item.api";
@@ -46,7 +46,7 @@ const isItemSearchAddToTicketResultEvent = (
   );
 };
 
-const ItemSearchWindow: React.FC<MenuActionComponentProps> = () => {
+const ItemSearchWindow: React.FC<WindowHostScreenProps> = () => {
   const itemNumberInputRef = React.useRef<HTMLInputElement>(null);
   const brandInputRef = React.useRef<HTMLInputElement>(null);
   const menuEventsChannelRef = React.useRef<BroadcastChannel | null>(null);

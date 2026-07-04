@@ -10,7 +10,7 @@ export interface TransactionItemLoadRequest {
   mode: "repawn" | "load";
 }
 
-export interface UseTransactionPageControllerParams {
+export interface UseTransactionPageParams {
   clientNumber?: number;
   focusTicketNumber?: number;
   focusRequestId?: number;

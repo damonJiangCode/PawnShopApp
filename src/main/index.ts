@@ -1,11 +1,9 @@
-import path from "path";
-import type { Event as ElectronEvent } from "electron";
 import { registerHandlers } from "./ipc/register.ts";
+import { hasMainWindow, openMainWindow } from "./window/openMainWindow.ts";
+import { openWindowHost } from "./window/openWindowHost.ts";
 
-const { app, BrowserWindow, Menu, screen } =
+const { app, BrowserWindow, Menu } =
   require("electron/main") as typeof import("electron");
-const preloadPath = path.resolve(process.cwd(), "src/preload/index.cjs");
-let mainWindow: Electron.BrowserWindow | null = null;
 
 app.setName("ME");
 
@@ -24,36 +22,13 @@ const openMenuActionWindow = ({
   width = 720,
   height = 420,
 }: MenuActionConfig) => {
-  const childWindow = new BrowserWindow({
-    width,
-    height,
-    minWidth: 560,
-    minHeight: 320,
-    center: true,
-    show: false,
-    title,
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      preload: preloadPath,
-    },
-  });
-
-  childWindow.setMenu(null);
-
-  childWindow.once("ready-to-show", () => {
-    childWindow.show();
-    childWindow.focus();
-  });
-
-  const searchParams = new URLSearchParams({
-    window: "menu-action",
-    actionId: id,
+  openWindowHost({
+    screen: id,
     title,
     description,
+    width,
+    height,
   });
-
-  void childWindow.loadURL(`http://localhost:5173?${searchParams.toString()}`);
 };
 
 const createAppMenu = () => {
@@ -221,77 +196,15 @@ const createAppMenu = () => {
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 };
 
-function createWindow() {
-  const { workAreaSize } = screen.getPrimaryDisplay();
-  const targetWidth = Math.round(workAreaSize.width * 0.72);
-  const targetHeight = Math.round(workAreaSize.height * 0.8);
-
-  const width = Math.max(1100, Math.min(targetWidth, 1500));
-  const height = Math.max(760, Math.min(targetHeight, 980));
-
-  const win = new BrowserWindow({
-    width,
-    height,
-    minWidth: 1000,
-    minHeight: 700,
-    center: true,
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      preload: preloadPath,
-    },
-  });
-
-  win.once("ready-to-show", () => {
-    win.show();
-    win.focus();
-  });
-
-  win.on("closed", () => {
-    if (mainWindow === win) {
-      mainWindow = null;
-    }
-  });
-
-  win.webContents.on(
-    "did-fail-load",
-    (
-      _event: ElectronEvent,
-      errorCode: number,
-      errorDescription: string,
-      validatedURL: string,
-    ) => {
-      console.error("[main] failed to load window", {
-        errorCode,
-        errorDescription,
-        validatedURL,
-      });
-    },
-  );
-
-  win.webContents.on("did-finish-load", () => {
-    win.show();
-  });
-
-  // Open DevTools
-  // win.webContents.openDevTools();
-
-  // dev: load vite server
-  win.loadURL("http://localhost:5173");
-
-  mainWindow = win;
-  return win;
-}
-
 app.whenReady().then(() => {
-  createWindow();
+  openMainWindow();
   createAppMenu();
   registerHandlers();
 });
 
 app.on("activate", () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
+  if (BrowserWindow.getAllWindows().length === 0 || !hasMainWindow()) {
+    openMainWindow();
   }
 });
 

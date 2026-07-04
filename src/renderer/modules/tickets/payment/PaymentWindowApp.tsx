@@ -15,8 +15,8 @@ import ClientBar from "../../../shared/ui/ClientBar";
 import { formatCurrency } from "../../../shared/utils/formatters";
 import {
   type PaymentMode,
-  usePaymentWindowController,
-} from "./usePaymentWindowController";
+  usePaymentWindow,
+} from "./usePaymentWindow";
 import TicketOwnerCheckDialog from "./TicketOwnerCheckDialog";
 
 const modeStyles: Record<
@@ -69,7 +69,7 @@ const paymentTableSx = {
 };
 
 const PaymentWindowApp: React.FC = () => {
-  const { state, actions } = usePaymentWindowController();
+  const { state, actions } = usePaymentWindow();
   const {
     mode,
     availableRows,

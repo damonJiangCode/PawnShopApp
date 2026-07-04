@@ -94,7 +94,7 @@ const isPaymentCompletedEvent = (
   return (value as { type?: string }).type === "payment-completed";
 };
 
-export const useMainLayoutController = () => {
+export const useMainLayout = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const [searchFirstName, setSearchFirstName] = useState("");
   const [searchLastName, setSearchLastName] = useState("");

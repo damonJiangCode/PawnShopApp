@@ -7,10 +7,10 @@ import {
   transactionItemColumns,
   transactionItemsTableSx,
 } from "../components/transaction/TransactionItemsTable";
-import { useItemLoadWindowController } from "./useItemLoadWindowController";
+import { useItemLoadWindow } from "./useItemLoadWindow";
 
 const ItemLoadWindowApp: React.FC = () => {
-  const { state, actions } = useItemLoadWindowController();
+  const { state, actions } = useItemLoadWindow();
   const { payload, selectionModel, previewItem, blockedItemCount, error } =
     state;
 

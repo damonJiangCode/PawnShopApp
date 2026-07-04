@@ -1,7 +1,7 @@
 import React from "react";
 import { Alert, Box, Button, Stack, TextField } from "@mui/material";
 import MenuActionLayout from "../../../shared/menu-action/MenuActionLayout";
-import type { MenuActionComponentProps } from "../../../app/menu-action/menuActionRegistry";
+import type { WindowHostScreenProps } from "../../../app/window-host/windowHostRegistry";
 import { ticketService } from "../ticket.api";
 
 const ticketSearchHistoryStatuses = new Set([
@@ -10,7 +10,7 @@ const ticketSearchHistoryStatuses = new Set([
   "sell_expired",
 ]);
 
-const TicketSearchWindow: React.FC<MenuActionComponentProps> = () => {
+const TicketSearchWindow: React.FC<WindowHostScreenProps> = () => {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [ticketNumber, setTicketNumber] = React.useState("");
   const [error, setError] = React.useState("");

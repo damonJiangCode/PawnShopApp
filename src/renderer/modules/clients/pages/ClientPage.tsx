@@ -5,7 +5,7 @@ import ClientsPanel from "../components/results/ClientsPanel";
 import { CLIENT_RESULTS_HEIGHT } from "../../../shared/layout/layoutSizing";
 import defaultClient from "../defaultClient";
 import type { Client } from "../../../../shared/types/Client";
-import { useClientPageController } from "../controllers/useClientPageController";
+import { useClientPage } from "../hooks/useClientPage";
 
 interface ClientPageProps {
   searchFirstName: string;
@@ -26,7 +26,7 @@ const ClientPage: React.FC<ClientPageProps> = ({
   activeClient,
   onClientSelected,
 }) => {
-  const { state, actions } = useClientPageController({
+  const { state, actions } = useClientPage({
     searchFirstName,
     searchLastName,
     searchDateOfBirth,

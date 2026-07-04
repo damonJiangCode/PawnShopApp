@@ -10,7 +10,7 @@ The project uses Electron for the desktop shell, React + Vite + MUI for the rend
 .
 ├── renderer/                 # Vite renderer entry files and renderer tsconfig
 │   ├── index.html
-│   ├── main.tsx
+│   ├── index.tsx
 │   ├── tsconfig.json
 │   └── vite.config.ts
 ├── scripts/                  # Build, test, migration, and maintenance scripts
@@ -22,13 +22,13 @@ The project uses Electron for the desktop shell, React + Vite + MUI for the rend
 │   │   ├── database/         # PostgreSQL connection, schema, initialization, seeds
 │   │   ├── ipc/              # IPC channel names and handler registration
 │   │   ├── modules/          # Domain modules: handlers, services, repos, input mapping
-│   │   └── shared/           # Main-process helpers
+│   │   ├── shared/           # Main-process helpers
+│   │   └── window/           # Electron BrowserWindow creation and routing
 │   ├── preload/              # Electron preload bridge exposed to renderer
 │   ├── renderer/             # React application source
 │   │   ├── app/              # Renderer bootstrap, app routing, window registry
 │   │   ├── modules/          # Feature modules and workflows
-│   │   ├── shared/           # Reusable renderer API, UI, layout, and utilities
-│   │   └── windows/          # Specialized renderer window code
+│   │   └── shared/           # Reusable renderer API, UI, layout, and utilities
 │   └── shared/               # Shared types, IPC API contracts, utilities, and tests
 ├── images/                   # Local client and item image storage
 ├── package.json              # npm scripts and dependencies
@@ -64,6 +64,7 @@ src/main/
 │   ├── reports/
 │   └── tickets/
 ├── shared/
+├── window/
 └── index.ts
 ```
 
@@ -81,15 +82,15 @@ renderer module api -> window.electronAPI -> main IPC handler -> service -> repo
 src/renderer/
 ├── app/                      # React mount, app/window selection, main shell
 │   ├── main/
-│   └── menu-action/
+│   └── window-host/
 ├── modules/
 │   ├── admin/                # Holiday, location, hair color, eye color admin windows
-│   ├── clients/              # Client page, controller, API wrapper, hooks, components
+│   ├── clients/              # Client page, hook, API wrapper, and components
 │   ├── employees/            # Employee API and admin window
 │   ├── history/              # Ticket history workflow
 │   ├── items/                # Item API, dialogs, load/search windows
-│   ├── reports/              # Report menu-action windows
-│   ├── tickets/              # Ticket API, menu actions, payment window
+│   ├── reports/              # Report secondary-window screens
+│   ├── tickets/              # Ticket API, menu screens, payment workflow
 │   └── transactions/         # Active pawn/sell transaction workflow
 ├── shared/
 │   ├── api/
@@ -98,7 +99,6 @@ src/renderer/
 │   ├── menu-action/
 │   ├── ui/
 │   └── utils/
-└── windows/
 ```
 
 For more renderer-specific conventions, see `src/renderer/README.md`.

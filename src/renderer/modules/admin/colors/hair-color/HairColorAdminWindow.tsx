@@ -12,7 +12,7 @@ import {
 import type { HairColor } from "../../../../../shared/types/hairColor";
 import { clientService } from "../../../clients/client.api";
 import MenuActionLayout from "../../../../shared/menu-action/MenuActionLayout";
-import type { MenuActionComponentProps } from "../../../../app/menu-action/menuActionRegistry";
+import type { WindowHostScreenProps } from "../../../../app/window-host/windowHostRegistry";
 import ColorAddDialog from "../color/ColorAddDialog";
 
 const sortHairColors = (colors: HairColor[]) =>
@@ -22,7 +22,7 @@ const sortHairColors = (colors: HairColor[]) =>
       a.color.localeCompare(b.color),
   );
 
-const HairColorAdminWindow: React.FC<MenuActionComponentProps> = () => {
+const HairColorAdminWindow: React.FC<WindowHostScreenProps> = () => {
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const [searchInput, setSearchInput] = React.useState("");
   const [searchedColor, setSearchedColor] = React.useState("");

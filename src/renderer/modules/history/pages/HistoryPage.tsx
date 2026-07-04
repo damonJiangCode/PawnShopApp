@@ -7,7 +7,7 @@ import HistoryTicketsPanel from "../../tickets/components/history/HistoryTickets
 import HistoryItemsPanel from "../../items/components/history/HistoryItemsPanel";
 import TicketPawnDialog from "../../tickets/components/dialogs/TicketPawnDialog";
 import ItemEditDialog from "../../items/components/dialogs/ItemEditDialog";
-import { useHistoryPageController } from "../controllers/useHistoryPageController";
+import { useHistoryPage } from "../hooks/useHistoryPage";
 
 interface HistoryPageProps {
   clientNumber?: number;
@@ -41,7 +41,7 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
   onRepawnCreated,
   onLoadItemsToTransaction,
 }) => {
-  const { state, actions } = useHistoryPageController({
+  const { state, actions } = useHistoryPage({
     clientNumber,
     focusTicketNumber,
     focusRequestId,

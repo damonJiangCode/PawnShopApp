@@ -10,8 +10,8 @@ import {
   Typography,
 } from "@mui/material";
 import type { Ticket } from "../../../../shared/types/Ticket";
-import type { TransactionItemLoadRequest } from "../controllers/useTransactionPageController";
-import { useTransactionPageController } from "../controllers/useTransactionPageController";
+import type { TransactionItemLoadRequest } from "../hooks/useTransactionPage";
+import { useTransactionPage } from "../hooks/useTransactionPage";
 import ClientBar from "../../../shared/ui/ClientBar";
 import TransactionTicketsPanel from "../../tickets/components/transaction/TransactionTicketsPanel";
 import TransactionItemsPanel from "../../items/components/transaction/TransactionItemsPanel";
@@ -51,7 +51,7 @@ const TransactionPage: React.FC<TransactionPageProps> = ({
   onSelectedTicketChange,
   onClientSoldTicket,
 }) => {
-  const { state, actions } = useTransactionPageController({
+  const { state, actions } = useTransactionPage({
     clientNumber,
     focusTicketNumber,
     focusRequestId,

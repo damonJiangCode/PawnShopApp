@@ -11,7 +11,7 @@ import {
 import type { HolidayDate } from "../../../../shared/types/holidayDate";
 import { ticketService } from "../../tickets/ticket.api";
 import MenuActionLayout from "../../../shared/menu-action/MenuActionLayout";
-import type { MenuActionComponentProps } from "../../../app/menu-action/menuActionRegistry";
+import type { WindowHostScreenProps } from "../../../app/window-host/windowHostRegistry";
 import HolidayAddDialog from "./HolidayAddDialog";
 
 const formatHolidayDate = (dateKey: string) => {
@@ -29,7 +29,7 @@ const normalizeYear = (value: string) => value.trim();
 
 const isValidYear = (value: string) => /^\d{4}$/.test(value);
 
-const HolidayAdminWindow: React.FC<MenuActionComponentProps> = () => {
+const HolidayAdminWindow: React.FC<WindowHostScreenProps> = () => {
   const currentYear = String(new Date().getFullYear());
   const yearInputRef = React.useRef<HTMLInputElement>(null);
   const [yearInput, setYearInput] = React.useState(currentYear);

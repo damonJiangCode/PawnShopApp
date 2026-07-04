@@ -7,7 +7,7 @@ import TopBar from "../../shared/app-shell/TopBar";
 import ClientPage from "../../modules/clients/pages/ClientPage";
 import TransactionPage from "../../modules/transactions/pages/TransactionPage";
 import HistoryPage from "../../modules/history/pages/HistoryPage";
-import { useMainLayoutController } from "./useMainLayoutController";
+import { useMainLayout } from "./useMainLayout";
 
 interface MainTabPanelProps {
   active: boolean;
@@ -31,7 +31,7 @@ const MainTabPanel: React.FC<MainTabPanelProps> = ({ active, children }) => {
 };
 
 const MainLayout: React.FC = () => {
-  const { state, actions } = useMainLayoutController();
+  const { state, actions } = useMainLayout();
   const {
     currentTab,
     searchFirstName,

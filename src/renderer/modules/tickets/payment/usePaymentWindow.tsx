@@ -25,7 +25,7 @@ import type {
 
 export type { PaymentMode } from "./payment.types";
 
-export const usePaymentWindowController = () => {
+export const usePaymentWindow = () => {
   const params = new URLSearchParams(window.location.search);
   const ticketSearchInputRef = useRef<HTMLInputElement>(null);
   const [mode, setMode] = useState<PaymentMode>("pickup");

@@ -11,7 +11,7 @@ import {
 } from "../../tickets/ticket.api";
 import { windowService } from "../../../shared/api/window.api";
 
-interface UseHistoryPageControllerParams {
+interface UseHistoryPageParams {
   clientNumber?: number;
   focusTicketNumber?: number;
   focusRequestId?: number;
@@ -56,7 +56,7 @@ const sortHistoryTickets = (tickets: Ticket[]) =>
     return (a.ticket_number ?? 0) - (b.ticket_number ?? 0);
   });
 
-export const useHistoryPageController = ({
+export const useHistoryPage = ({
   clientNumber,
   focusTicketNumber,
   focusRequestId,
@@ -64,7 +64,7 @@ export const useHistoryPageController = ({
   transactionTargetTicket,
   onRepawnCreated,
   onLoadItemsToTransaction,
-}: UseHistoryPageControllerParams) => {
+}: UseHistoryPageParams) => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [items, setItems] = useState<Item[]>([]);

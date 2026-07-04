@@ -14,10 +14,10 @@ import {
   type EmployeeSearchInput,
 } from "../employee.api";
 import MenuActionLayout from "../../../shared/menu-action/MenuActionLayout";
-import type { MenuActionComponentProps } from "../../../app/menu-action/menuActionRegistry";
+import type { WindowHostScreenProps } from "../../../app/window-host/windowHostRegistry";
 import EmployeeAddEditDialog from "./EmployeeAddEditDialog";
 
-const EmployeeAdminWindow: React.FC<MenuActionComponentProps> = () => {
+const EmployeeAdminWindow: React.FC<WindowHostScreenProps> = () => {
   const lastNameInputRef = React.useRef<HTMLInputElement>(null);
   const [searchInput, setSearchInput] = React.useState<EmployeeSearchInput>({
     last_name: "",

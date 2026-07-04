@@ -1,15 +1,11 @@
 import type { ComponentType } from "react";
 import MainApp from "./main/MainApp";
-import ItemLoadWindowApp from "../modules/items/item-load/ItemLoadWindowApp";
-import MenuActionWindowApp from "./menu-action/MenuActionWindowApp";
-import PaymentWindowApp from "../modules/tickets/payment/PaymentWindowApp";
+import WindowHostApp from "./window-host/WindowHostApp";
 
 const WINDOW_QUERY_PARAM = "window";
 
 const windowApps: Record<string, ComponentType> = {
-  "item-load": ItemLoadWindowApp,
-  "menu-action": MenuActionWindowApp,
-  payment: PaymentWindowApp,
+  host: WindowHostApp,
 };
 
 export const resolveRendererApp = (

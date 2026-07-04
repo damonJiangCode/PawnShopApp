@@ -8,13 +8,13 @@ import {
 import { ticketService } from "../../tickets/ticket.api";
 import { windowService } from "../../../shared/api/window.api";
 import { filterVisibleTickets, sortTickets } from "../transaction.helpers";
-import type { TransactionItemLoadRequest, UseTransactionPageControllerParams } from "../transaction.types";
-import { createTransactionItemActions } from "./transactionItemActions";
-import { createTransactionTicketActions } from "./transactionTicketActions";
+import type { TransactionItemLoadRequest, UseTransactionPageParams } from "../transaction.types";
+import { createTransactionItemActions } from "../actions/transactionItemActions";
+import { createTransactionTicketActions } from "../actions/transactionTicketActions";
 
 export type { TransactionItemLoadRequest } from "../transaction.types";
 
-export const useTransactionPageController = ({
+export const useTransactionPage = ({
   clientNumber,
   focusTicketNumber,
   focusRequestId,
@@ -23,7 +23,7 @@ export const useTransactionPageController = ({
   incomingItemLoadRequest,
   onSelectedTicketChange,
   onClientSoldTicket,
-}: UseTransactionPageControllerParams) => {
+}: UseTransactionPageParams) => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);

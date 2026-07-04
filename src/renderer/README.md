@@ -16,36 +16,36 @@ The `app` folder is for renderer entry orchestration.
 
 ```text
 app/
-  main.tsx
+  index.tsx
   RendererRoot.tsx
   windowRegistry.tsx
   main/
     MainApp.tsx
     MainLayout.tsx
-    useMainLayoutController.ts
-  menu-action/
-    MenuActionWindowApp.tsx
-    menuActionRegistry.ts
+    useMainLayout.ts
+  window-host/
+    WindowHostApp.tsx
+    windowHostRegistry.ts
 ```
 
-- `main.tsx`: only mounts React into `#root`.
+- `index.tsx`: only mounts React into `#root`.
 - `RendererRoot.tsx`: chooses which renderer app should run.
 - `windowRegistry.tsx`: maps URL window keys to window apps.
 - `main/`: the primary app shell.
-- `menu-action/`: the menu-action child window shell and registry.
+- `window-host/`: the secondary-window host and screen registry.
 
 ## `modules/`
 
 Current modules:
 
-- `clients/`: client API, client page/controller, client profile/results/dialogs, client image/search hooks.
-- `tickets/`: ticket API, ticket dialogs, ticket tables, ticket menu actions, payment window.
-- `items/`: item API, item dialogs, item tables, item load window, item search window.
-- `transactions/`: active pawn/sell transaction page and controller.
-- `history/`: history page and controller.
+- `clients/`: client API, client page hook, client profile/results/dialogs, client image/search hooks.
+- `tickets/`: ticket API, ticket dialogs, ticket tables, ticket menu screens, payment workflow.
+- `items/`: item API, item dialogs, item tables, item load screen, item search screen.
+- `transactions/`: active pawn/sell transaction page, hook, and action helpers.
+- `history/`: history page and hook.
 - `employees/`: employee API and employee admin UI.
-- `reports/`: report menu windows.
-- `admin/`: color, holiday, and location admin windows.
+- `reports/`: report secondary-window screens.
+- `admin/`: color, holiday, and location admin screens.
 
 Rule of thumb:
 
@@ -71,7 +71,7 @@ shared/
 - `api/`: `electron.api` and window-level API wrappers.
 - `app-shell/`: top bar/search/sidebar controls for the main app shell.
 - `layout/`: small reusable layout primitives and sizing constants.
-- `menu-action/`: shared menu-action window layout.
+- `menu-action/`: shared layout for menu-style secondary windows.
 - `ui/`: simple cross-domain UI pieces such as `CellTooltip` and `ClientBar`.
 - `utils/`: pure formatting and form helpers.
 
@@ -85,15 +85,15 @@ page/component -> module api -> window.electronAPI -> main handler -> service ->
 
 - Renderer API wrappers use `*.api.ts`, such as `client.api.ts` and `ticket.api.ts`.
 - Local helper files should name what they own, such as `payment.rowActions.ts` or `itemSearchColumns.tsx`.
-- Window apps should end with `WindowApp`.
+- Top-level renderer apps should end with `App`; secondary-window entries should use `Screen` or a domain-specific component name.
 - Domain components should keep domain words when ambiguity is likely, such as `TransactionTicketsTable` and `HistoryTicketsTable`.
 
 ## Maintenance Habit
 
 Before adding a feature, decide its home:
 
-1. New primary workflow? Add or update a module page/controller.
-2. New menu window? Put the window in the owning module and register it in `app/menu-action/menuActionRegistry.ts`.
+1. New primary workflow? Add or update a module page and hook.
+2. New secondary window screen? Put the screen in the owning module and register it in `app/window-host/windowHostRegistry.ts`.
 3. New IPC call? Add it to the owning module API and the matching main module.
 4. Reusable visual helper? Put it in `shared/ui` or `shared/layout`.
 5. Pure formatting/calculation? Put it in `shared/utils`.

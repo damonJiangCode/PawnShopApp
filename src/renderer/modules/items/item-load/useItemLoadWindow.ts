@@ -4,7 +4,7 @@ import type { ItemLoadWindowData } from "../../../../shared/types/windowApiTypes
 import { getTransactionItemRowId } from "../components/transaction/TransactionItemsTable";
 import { windowService } from "../../../shared/api/window.api";
 
-export const useItemLoadWindowController = () => {
+export const useItemLoadWindow = () => {
   const requestId = useMemo(() => {
     return new URLSearchParams(window.location.search).get("requestId") ?? "";
   }, []);

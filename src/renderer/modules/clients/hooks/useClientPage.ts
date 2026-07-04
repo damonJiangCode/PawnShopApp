@@ -5,7 +5,7 @@ import { useClientSearch } from "../hooks/useClientSearch";
 import { clientService } from "../client.api";
 import { formatIsoDate } from "../../../shared/utils/formatters";
 
-interface UseClientPageControllerParams {
+interface UseClientPageParams {
   searchFirstName: string;
   searchLastName: string;
   searchDateOfBirth?: string;
@@ -33,7 +33,7 @@ const matchesSearch = (
   return firstMatches && lastMatches && dobMatches;
 };
 
-export const useClientPageController = ({
+export const useClientPage = ({
   searchFirstName,
   searchLastName,
   searchDateOfBirth = "",
@@ -41,7 +41,7 @@ export const useClientPageController = ({
   forcedClient,
   activeClient,
   onClientSelected,
-}: UseClientPageControllerParams) => {
+}: UseClientPageParams) => {
   const [selectedClient, setSelectedClient] = useState<Client | null>(
     forcedClient ?? activeClient ?? null,
   );

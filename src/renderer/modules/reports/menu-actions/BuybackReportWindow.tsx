@@ -24,9 +24,9 @@ import {
   formatIsoDateTime,
 } from "../../../shared/utils/formatters";
 import MenuActionLayout from "../../../shared/menu-action/MenuActionLayout";
-import type { MenuActionComponentProps } from "../../../app/menu-action/menuActionRegistry";
+import type { WindowHostScreenProps } from "../../../app/window-host/windowHostRegistry";
 
-const BuybackReportWindow: React.FC<MenuActionComponentProps> = () => {
+const BuybackReportWindow: React.FC<WindowHostScreenProps> = () => {
   const today = useMemo(() => formatIsoDate(new Date()), []);
   const [selectedDate, setSelectedDate] = useState(today);
   const [report, setReport] =
