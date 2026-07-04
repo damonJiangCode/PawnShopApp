@@ -69,7 +69,7 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
         onChange={onChange}
         onBlur={onDateOfBirthBlur}
         size="small"
-        InputLabelProps={{ shrink: true }}
+        slotProps={{ inputLabel: { shrink: true } }}
         error={Boolean(dateOfBirthError)}
         helperText={dateOfBirthError || " "}
       />

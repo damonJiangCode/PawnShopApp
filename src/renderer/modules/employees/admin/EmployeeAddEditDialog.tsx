@@ -250,7 +250,7 @@ const EmployeeAddEditDialog: React.FC<EmployeeAddEditDialogProps> = ({
               required
               fullWidth
               size="small"
-              InputLabelProps={{ shrink: true }}
+              slotProps={{ inputLabel: { shrink: true } }}
             />
             <TextField
               select

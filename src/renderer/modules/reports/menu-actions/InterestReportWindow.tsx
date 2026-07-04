@@ -104,7 +104,7 @@ const InterestReportWindow: React.FC<WindowHostScreenProps> = () => {
             size="small"
             value={selectedDate}
             onChange={(event) => setSelectedDate(event.target.value)}
-            InputLabelProps={{ shrink: true }}
+            slotProps={{ inputLabel: { shrink: true } }}
             sx={{ width: { xs: "100%", sm: 180 } }}
           />
           <Button

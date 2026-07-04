@@ -113,7 +113,7 @@ const HolidayAddDialog: React.FC<HolidayAddDialogProps> = ({
             required
             fullWidth
             size="small"
-            InputLabelProps={{ shrink: true }}
+            slotProps={{ inputLabel: { shrink: true } }}
           />
           <TextField
             name="name"

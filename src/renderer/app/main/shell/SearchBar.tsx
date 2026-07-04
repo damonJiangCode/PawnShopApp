@@ -195,7 +195,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
               fullWidth
               margin="dense"
               onChange={(event) => setBirthday(event.target.value)}
-              InputLabelProps={{ shrink: true }}
+              slotProps={{ inputLabel: { shrink: true } }}
             />
           </DialogContent>
           <DialogActions>
