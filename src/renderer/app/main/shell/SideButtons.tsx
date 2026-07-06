@@ -19,18 +19,18 @@ const SideButtons: React.FC<SideButtonsProps> = ({
     <Box
       sx={{
         display: "grid",
-        gridTemplateColumns: "repeat(3, minmax(88px, 1fr))",
-        gap: 0.75,
+        gridTemplateColumns: "repeat(3, minmax(100px, 1fr))",
+        gap: 2,
         flex: "0 0 288px",
       }}
     >
       <Button
         variant="outlined"
-        startIcon={<PaymentsIcon />}
-        onClick={onPayment}
+        startIcon={<Inventory2Icon />}
+        onClick={onItemSearch}
         size="small"
       >
-        Payment
+        Item
       </Button>
       <Button
         variant="outlined"
@@ -42,11 +42,11 @@ const SideButtons: React.FC<SideButtonsProps> = ({
       </Button>
       <Button
         variant="outlined"
-        startIcon={<Inventory2Icon />}
-        onClick={onItemSearch}
+        startIcon={<PaymentsIcon />}
+        onClick={onPayment}
         size="small"
       >
-        Item
+        Payment
       </Button>
     </Box>
   );
