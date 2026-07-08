@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Box, Button, Typography } from "@mui/material";
 import type { Client } from "../../../../../../shared/types/Client";
 import { clientService } from "../../../client.api";
+import { getClientImageDataUrl } from "../../../hooks/useClientImage";
 
 interface ClientPhotoCaptureProps {
   client: Client;
@@ -51,7 +52,7 @@ const ClientPhotoCapture: React.FC<ClientPhotoCaptureProps> = (props) => {
         try {
           const base64 = await clientService.loadClientImage(client.image_path);
           if (base64) {
-            setPhotoData(`data:image/png;base64,${base64}`);
+            setPhotoData(getClientImageDataUrl(base64, client.image_path));
           }
         } catch (err) {
           console.error("Failed to load client image", err);

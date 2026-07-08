@@ -5,12 +5,8 @@ import type { DbClient } from "../connection.ts";
 
 const HAIR_COLORS = [
   "BLACK",
-  "DARK BROWN",
   "BROWN",
-  "LIGHT BROWN",
   "BLONDE",
-  "DARK BLONDE",
-  "LIGHT BLONDE",
   "RED",
   "GRAY",
   "WHITE",
@@ -25,8 +21,6 @@ const HAIR_COLORS = [
 const EYE_COLORS = [
   "BLACK",
   "BROWN",
-  "DARK BROWN",
-  "LIGHT BROWN",
   "HAZEL",
   "AMBER",
   "GREEN",
@@ -48,6 +42,7 @@ const ID_TYPES = [
   "Canadian Passport",
   "Citizenship Card",
   "Permanent Resident Card",
+  "Provincial ID",
   "Military ID",
   "Other",
 ];
@@ -78,28 +73,40 @@ export const seedCities = async (client: DbClient) => {
     "src/main/database/seed/canadacities.csv",
   );
   const stream = fs.createReadStream(filePath).pipe(csv());
-  const cities = new Map<string, { city: string; province: string }>();
+  const cities = new Map<
+    string,
+    { city: string; province: string; country: string }
+  >();
 
   for await (const row of stream) {
     const city = row.city_ascii?.trim();
     const province = row.province_name?.trim();
+    const country = row.country?.trim() || "Canada";
 
-    if (!city || !province) {
+    if (!city || !province || !country) {
       continue;
     }
 
-    cities.set(`${city}\u0000${province}`, { city, province });
+    cities.set(`${city}\u0000${province}\u0000${country}`, {
+      city,
+      province,
+      country,
+    });
   }
 
   const values = [...cities.values()];
   await client.query(
     `
       INSERT INTO city (city, province, country)
-      SELECT seed.city, seed.province, 'Canada'
-      FROM UNNEST($1::text[], $2::text[]) AS seed(city, province)
+      SELECT seed.city, seed.province, seed.country
+      FROM UNNEST($1::text[], $2::text[], $3::text[]) AS seed(city, province, country)
       ON CONFLICT (city, province, country) DO NOTHING
     `,
-    [values.map((value) => value.city), values.map((value) => value.province)],
+    [
+      values.map((value) => value.city),
+      values.map((value) => value.province),
+      values.map((value) => value.country),
+    ],
   );
 };
 

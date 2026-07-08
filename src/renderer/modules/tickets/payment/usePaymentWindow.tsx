@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { GridRowSelectionModel } from "@mui/x-data-grid";
 import type { TicketSearchResult } from "../../../../shared/types/ticketApiTypes";
 import { clientService } from "../../clients/client.api";
+import { getClientImageDataUrl } from "../../clients/hooks/useClientImage";
 import { ticketService } from "../ticket.api";
 import { createPaymentColumns } from "./payment.columns";
 import {
@@ -162,7 +163,9 @@ export const usePaymentWindow = () => {
         preview.client.image_path,
       );
       setTicketSearchClientImage(
-        clientImageBase64 ? `data:image/png;base64,${clientImageBase64}` : null,
+        clientImageBase64
+          ? getClientImageDataUrl(clientImageBase64, preview.client.image_path)
+          : null,
       );
       setTicketSearchDialogOpen(true);
 
