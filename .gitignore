@@ -7,4 +7,5 @@ node_modules/
 .DS_Store
 images/
 test-results/
-migration-data/
+migration-data/exports
+migration-data/source
