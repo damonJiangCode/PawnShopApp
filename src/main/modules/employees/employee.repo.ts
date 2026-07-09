@@ -20,6 +20,10 @@ const employeeSelectColumns = `
   date_of_birth,
   gender,
   password,
+  is_terminated,
+  address,
+  phone,
+  email,
   created_at,
   updated_at
 `;
@@ -44,6 +48,10 @@ const mapEmployeeRow = (row: Record<string, unknown>): Employee => ({
   date_of_birth: formatDateOnly(row.date_of_birth),
   gender: row.gender ? String(row.gender) : "",
   password: row.password ? String(row.password) : "",
+  is_terminated: Boolean(row.is_terminated),
+  address: row.address ? String(row.address) : "",
+  phone: row.phone ? String(row.phone) : "",
+  email: row.email ? String(row.email) : "",
   created_at: row.created_at ? new Date(String(row.created_at)) : undefined,
   updated_at: row.updated_at ? new Date(String(row.updated_at)) : undefined,
 });
@@ -52,6 +60,7 @@ export const employeeRepo = {
   findByPassword: async (
     password: string,
     dbClient?: DbClient,
+    includeTerminated = false,
   ): Promise<EmployeeMatch | null> => {
     const client = dbClient ?? (await connect());
 
@@ -61,9 +70,10 @@ export const employeeRepo = {
           SELECT employee_number, first_name, last_name, nickname
           FROM employee
           WHERE password = $1
+            AND ($2::boolean OR is_terminated = FALSE)
           LIMIT 1
         `,
-        [password],
+        [password, includeTerminated],
       );
 
       return result.rows[0] ?? null;
@@ -140,9 +150,13 @@ export const employeeRepo = {
             nickname,
             date_of_birth,
             gender,
-            password
+            password,
+            is_terminated,
+            address,
+            phone,
+            email
           )
-          VALUES ($1, $2, $3, $4, $5, $6)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
           RETURNING ${employeeSelectColumns}
         `,
         [
@@ -152,6 +166,10 @@ export const employeeRepo = {
           payload.date_of_birth,
           payload.gender,
           payload.password,
+          payload.is_terminated,
+          payload.address,
+          payload.phone,
+          payload.email,
         ],
       );
 
@@ -178,6 +196,10 @@ export const employeeRepo = {
             date_of_birth = $5,
             gender = $6,
             password = $7,
+            is_terminated = $8,
+            address = $9,
+            phone = $10,
+            email = $11,
             updated_at = CURRENT_TIMESTAMP
           WHERE employee_number = $1
           RETURNING ${employeeSelectColumns}
@@ -190,6 +212,10 @@ export const employeeRepo = {
           payload.date_of_birth,
           payload.gender,
           payload.password,
+          payload.is_terminated,
+          payload.address,
+          payload.phone,
+          payload.email,
         ],
       );
 

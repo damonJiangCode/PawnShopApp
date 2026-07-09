@@ -7,6 +7,10 @@ export const createEmployeeTable = `
     date_of_birth DATE NOT NULL,
     gender TEXT NOT NULL,
     password TEXT NOT NULL UNIQUE,
+    is_terminated BOOLEAN NOT NULL DEFAULT FALSE,
+    address TEXT NOT NULL DEFAULT '',
+    phone TEXT NOT NULL DEFAULT '',
+    email TEXT NOT NULL DEFAULT '',
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
   );

@@ -2,10 +2,12 @@ import React from "react";
 import {
   Alert,
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControlLabel,
   MenuItem,
   Stack,
   TextField,
@@ -33,6 +35,10 @@ const emptyEmployeeInput = (): SaveEmployeeInput => ({
   date_of_birth: "",
   gender: "",
   password: "",
+  is_terminated: false,
+  address: "",
+  phone: "",
+  email: "",
 });
 
 const emptyErrors = (): EmployeeFormErrors => ({
@@ -42,6 +48,10 @@ const emptyErrors = (): EmployeeFormErrors => ({
   date_of_birth: "",
   gender: "",
   password: "",
+  is_terminated: "",
+  address: "",
+  phone: "",
+  email: "",
 });
 
 const employeeToInput = (employee: Employee): SaveEmployeeInput => ({
@@ -51,6 +61,10 @@ const employeeToInput = (employee: Employee): SaveEmployeeInput => ({
   date_of_birth: employee.date_of_birth,
   gender: employee.gender,
   password: employee.password ?? "",
+  is_terminated: employee.is_terminated,
+  address: employee.address,
+  phone: employee.phone,
+  email: employee.email,
 });
 
 const getDateOfBirthError = (dateOfBirth: string) => {
@@ -117,8 +131,10 @@ const EmployeeAddEditDialog: React.FC<EmployeeAddEditDialogProps> = ({
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
-    const { name, value } = event.target;
-    setEmployee((prev) => ({ ...prev, [name]: value }));
+    const { name, type, value } = event.target;
+    const nextValue =
+      type === "checkbox" ? (event.target as HTMLInputElement).checked : value;
+    setEmployee((prev) => ({ ...prev, [name]: nextValue }));
     setErrors((prev) => ({ ...prev, [name]: "" }));
     setMessage("");
     setSubmitError("");
@@ -267,7 +283,7 @@ const EmployeeAddEditDialog: React.FC<EmployeeAddEditDialogProps> = ({
               <MenuItem value=""></MenuItem>
               <MenuItem value="male">Male</MenuItem>
               <MenuItem value="female">Female</MenuItem>
-              <MenuItem value="other">Other</MenuItem>
+              <MenuItem value="unknown">Unknown</MenuItem>
             </TextField>
           </Stack>
 
@@ -283,6 +299,51 @@ const EmployeeAddEditDialog: React.FC<EmployeeAddEditDialogProps> = ({
             fullWidth
             size="small"
           />
+
+          <FormControlLabel
+            control={
+              <Checkbox
+                name="is_terminated"
+                checked={employee.is_terminated}
+                onChange={handleChange}
+              />
+            }
+            label="Terminated"
+          />
+
+          <TextField
+            name="address"
+            label="Address"
+            value={employee.address}
+            onChange={handleChange}
+            helperText=" "
+            fullWidth
+            multiline
+            minRows={2}
+            size="small"
+          />
+
+          <Stack direction="row" spacing={1}>
+            <TextField
+              name="phone"
+              label="Phone"
+              value={employee.phone}
+              onChange={handleChange}
+              helperText=" "
+              fullWidth
+              size="small"
+            />
+            <TextField
+              name="email"
+              label="Email"
+              value={employee.email}
+              onChange={handleChange}
+              helperText=" "
+              fullWidth
+              size="small"
+            />
+          </Stack>
+
         </Stack>
       </DialogContent>
       <DialogActions>

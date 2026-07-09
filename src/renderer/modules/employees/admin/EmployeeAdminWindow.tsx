@@ -243,7 +243,7 @@ const EmployeeAdminWindow: React.FC<WindowHostScreenProps> = () => {
                     <Box
                       sx={{
                         display: "grid",
-                        gridTemplateColumns: "120px 120px 140px",
+                        gridTemplateColumns: "120px 120px 140px 120px",
                         columnGap: 2,
                         color: "text.secondary",
                       }}
@@ -257,7 +257,22 @@ const EmployeeAdminWindow: React.FC<WindowHostScreenProps> = () => {
                       <Typography variant="caption" noWrap>
                         DOB: {employee.date_of_birth || "-"}
                       </Typography>
+                      <Typography variant="caption" noWrap>
+                        {employee.is_terminated ? "Terminated" : "Active"}
+                      </Typography>
                     </Box>
+                    {(employee.phone || employee.email || employee.address) && (
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        noWrap
+                        display="block"
+                      >
+                        {[employee.phone, employee.email, employee.address]
+                          .filter(Boolean)
+                          .join(" | ")}
+                      </Typography>
+                    )}
                   </Box>
                   <Button
                     size="small"

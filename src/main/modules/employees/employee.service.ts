@@ -44,6 +44,8 @@ export const employeeService = {
 
     const existingEmployee = await employeeRepo.findByPassword(
       normalizedInput.password,
+      undefined,
+      true,
     );
 
     if (existingEmployee) {
@@ -73,6 +75,8 @@ export const employeeService = {
 
     const employeeWithPassword = await employeeRepo.findByPassword(
       normalizedInput.password,
+      undefined,
+      true,
     );
 
     if (

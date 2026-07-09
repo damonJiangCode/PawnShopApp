@@ -5,6 +5,10 @@ export type SaveEmployeeInput = {
   date_of_birth: string;
   gender: string;
   password: string;
+  is_terminated: boolean;
+  address: string;
+  phone: string;
+  email: string;
 };
 
 export type EmployeeSearchInput = {

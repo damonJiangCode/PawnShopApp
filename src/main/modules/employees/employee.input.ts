@@ -10,6 +10,10 @@ const normalizeEmployee = (input: SaveEmployeeInput): SaveEmployeeInput => ({
   date_of_birth: input.date_of_birth?.trim() ?? "",
   gender: input.gender?.trim() ?? "",
   password: input.password?.trim() ?? "",
+  is_terminated: Boolean(input.is_terminated),
+  address: input.address?.trim() ?? "",
+  phone: input.phone?.trim() ?? "",
+  email: input.email?.trim() ?? "",
 });
 
 const normalizeEmployeeSearch = (
