@@ -20,6 +20,7 @@ import { ticketService } from "../../ticket.api";
 import { calculation } from "../../../../../shared/utils/calculation";
 import Autocomplete from "@mui/material/Autocomplete";
 import { resolveFormFieldError } from "../../../../shared/utils/formError";
+import { confirmZeroTicketAmount } from "./confirmZeroTicketAmount";
 
 interface TicketEditDialogProps {
   open: boolean;
@@ -139,8 +140,8 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
           ? "Select a valid location from the list."
           : "";
     const nextAmountError =
-      typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0
-        ? "Amount must be greater than 0."
+      typeof amount !== "number" || !Number.isFinite(amount) || amount < 0
+        ? "Amount cannot be negative."
         : "";
     const nextOneTimeFeeError =
       !isSellTicket &&
@@ -176,6 +177,11 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
       return;
     }
 
+    const normalizedAmount = amount as number;
+    if (!confirmZeroTicketAmount(normalizedAmount)) {
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -184,7 +190,7 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
         is_lost: isLost,
         description: trimmedDescription,
         location: trimmedLocation,
-        amount: amount as number,
+        amount: normalizedAmount,
         onetime_fee: isSellTicket
           ? 0
           : typeof oneTimeFee === "number"

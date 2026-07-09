@@ -211,9 +211,9 @@ export const ticketService = {
 
       if (
         !Number.isFinite(normalizedInput.amount) ||
-        normalizedInput.amount <= 0
+        normalizedInput.amount < 0
       ) {
-        throw createFieldError("amount", "Amount must be greater than 0.");
+        throw createFieldError("amount", "Amount cannot be negative.");
       }
 
       if (normalizedInput.onetime_fee < 0) {

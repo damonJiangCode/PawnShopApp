@@ -16,6 +16,7 @@ import type {
 } from "../../ticket.api";
 import { ticketService } from "../../ticket.api";
 import { resolveFormFieldError } from "../../../../shared/utils/formError";
+import { confirmZeroTicketAmount } from "./confirmZeroTicketAmount";
 
 const DEFAULT_SELL_LOCATION = "BIWK";
 
@@ -130,8 +131,8 @@ const TicketSellDialog: React.FC<TicketSellDialogProps> = (props) => {
           ? "Select a valid location from the list."
           : "";
     const nextAmountError =
-      typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0
-        ? "Amount must be greater than 0."
+      typeof amount !== "number" || !Number.isFinite(amount) || amount < 0
+        ? "Amount cannot be negative."
         : "";
     const nextEmployeePasswordError =
       trimmedPassword.length === 0 ? "Enter employee password." : "";
@@ -151,13 +152,18 @@ const TicketSellDialog: React.FC<TicketSellDialogProps> = (props) => {
       return;
     }
 
+    const normalizedAmount = amount as number;
+    if (!confirmZeroTicketAmount(normalizedAmount)) {
+      return;
+    }
+
     setSaving(true);
 
     try {
       await onSave({
         description: trimmedDescription,
         location: trimmedLocation,
-        amount: amount as number,
+        amount: normalizedAmount,
         employee_password: trimmedPassword,
       });
     } catch (err) {

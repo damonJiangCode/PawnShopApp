@@ -17,6 +17,7 @@ import type {
 import { ticketService } from "../../ticket.api";
 import { calculation } from "../../../../../shared/utils/calculation";
 import { resolveFormFieldError } from "../../../../shared/utils/formError";
+import { confirmZeroTicketAmount } from "./confirmZeroTicketAmount";
 
 interface TicketPawnDialogProps {
   open: boolean;
@@ -146,8 +147,8 @@ const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
           ? "Select a valid location from the list."
           : "";
     const nextAmountError =
-      typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0
-        ? "Amount must be greater than 0."
+      typeof amount !== "number" || !Number.isFinite(amount) || amount < 0
+        ? "Amount cannot be negative."
         : "";
     const nextOneTimeFeeError =
       oneTimeFee !== "" && (!Number.isFinite(oneTimeFee) || oneTimeFee < 0)
@@ -174,6 +175,10 @@ const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
     }
 
     const normalizedAmount = amount as number;
+    if (!confirmZeroTicketAmount(normalizedAmount)) {
+      return;
+    }
+
     setSaving(true);
 
     try {

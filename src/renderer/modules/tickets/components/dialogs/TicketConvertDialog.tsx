@@ -18,6 +18,7 @@ import type {
 import { ticketService } from "../../ticket.api";
 import { resolveFormFieldError } from "../../../../shared/utils/formError";
 import { calculation } from "../../../../../shared/utils/calculation";
+import { confirmZeroTicketAmount } from "./confirmZeroTicketAmount";
 
 const DEFAULT_SELL_LOCATION = "BIWK";
 
@@ -164,8 +165,8 @@ const TicketConvertDialog: React.FC<TicketConvertDialogProps> = ({
     const nextEmployeePasswordError =
       trimmedPassword.length === 0 ? "Enter employee password." : "";
     const nextAmountError =
-      typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0
-        ? "Amount must be greater than 0."
+      typeof amount !== "number" || !Number.isFinite(amount) || amount < 0
+        ? "Amount cannot be negative."
         : "";
     const nextOneTimeFeeError =
       oneTimeFee !== "" && (!Number.isFinite(oneTimeFee) || oneTimeFee < 0)
@@ -189,6 +190,11 @@ const TicketConvertDialog: React.FC<TicketConvertDialogProps> = ({
       return;
     }
 
+    const normalizedAmount = amount as number;
+    if (!confirmZeroTicketAmount(normalizedAmount)) {
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -197,7 +203,7 @@ const TicketConvertDialog: React.FC<TicketConvertDialogProps> = ({
         target_status: targetStatus,
         description: trimmedDescription,
         location: trimmedLocation,
-        amount: amount as number,
+        amount: normalizedAmount,
         onetime_fee: typeof oneTimeFee === "number" ? oneTimeFee : 0,
         employee_password: trimmedPassword,
       });

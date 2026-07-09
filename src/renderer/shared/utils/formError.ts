@@ -37,11 +37,11 @@ const FIELD_MESSAGE_RESOLVERS: Record<string, FieldMessageResolver> = {
     ],
   },
   amount: {
-    fallback: "Amount must be greater than 0.",
+    fallback: "Amount cannot be negative.",
     rules: [
       {
-        pattern: /greater than 0|required|valid/i,
-        message: "Amount must be greater than 0.",
+        pattern: /negative|greater than 0|required|valid/i,
+        message: "Amount cannot be negative.",
       },
     ],
   },
