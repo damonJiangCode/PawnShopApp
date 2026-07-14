@@ -86,7 +86,7 @@ export type TransferTicketInput = {
 export type ConvertTicketInput = TicketDescriptionInput &
   EmployeeAuthorizedInput & {
     ticket_number: number;
-    target_status: "pawned" | "sell";
+    target_status: "pawned" | "sold";
     onetime_fee: number;
   };
 

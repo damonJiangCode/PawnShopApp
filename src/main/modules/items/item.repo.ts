@@ -28,7 +28,9 @@ const mapItemRow = (row: Record<string, unknown>): Item => {
       ? Number(row.latest_ticket_number)
       : undefined,
     latest_ticket_status: latestTicketStatus,
-    is_loadable: latestTicketStatus ? latestTicketStatus !== "pawned" : true,
+    is_loadable: latestTicketStatus
+      ? latestTicketStatus !== "pawned" && latestTicketStatus !== "sold"
+      : true,
     image_path: row.image_path ? String(row.image_path) : "",
   };
 };

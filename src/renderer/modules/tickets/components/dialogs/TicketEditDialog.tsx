@@ -42,7 +42,7 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
     onClose,
     onSave,
   } = props;
-  const isSellTicket = ticket?.status === "sell";
+  const isSellTicket = ticket?.status === "sold";
   const formattedClientName = [clientFirstName, clientMiddleName]
     .filter((value): value is string => Boolean(value?.trim()))
     .map((value) => value.toUpperCase())

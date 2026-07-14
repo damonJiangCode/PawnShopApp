@@ -98,7 +98,7 @@ const TicketExpireWindow: React.FC<WindowHostScreenProps> = () => {
 
       if (
         result.ticket.status !== "pawned" &&
-        result.ticket.status !== "sell"
+        result.ticket.status !== "sold"
       ) {
         setError("Only pawned or sold tickets can be expired.");
         focusTicketField();

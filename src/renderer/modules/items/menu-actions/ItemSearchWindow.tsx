@@ -29,10 +29,12 @@ type ItemSearchAddToTicketResultEvent = {
 };
 
 const ticketSearchHistoryStatuses = new Set([
-  "pawn_expired",
-  "picked_up",
-  "sell_expired",
+  "pawned_expired",
+  "pawned_picked_up",
+  "sold_expired",
 ]);
+
+const activeItemTicketStatuses = new Set(["pawned", "sold"]);
 
 const isItemSearchAddToTicketResultEvent = (
   value: unknown,
@@ -211,7 +213,10 @@ const ItemSearchWindow: React.FC<WindowHostScreenProps> = () => {
   };
 
   const handleAddToTicket = () => {
-    if (!selectedItem || selectedItem.latest_ticket_status === "pawned") {
+    if (
+      !selectedItem ||
+      activeItemTicketStatuses.has(selectedItem.latest_ticket_status ?? "")
+    ) {
       return;
     }
 
@@ -345,7 +350,9 @@ const ItemSearchWindow: React.FC<WindowHostScreenProps> = () => {
               color="secondary"
               disabled={
                 !selectedItem ||
-                selectedItem.latest_ticket_status === "pawned" ||
+                activeItemTicketStatuses.has(
+                  selectedItem.latest_ticket_status ?? "",
+                ) ||
                 addingToTicket
               }
               onClick={handleAddToTicket}
@@ -386,7 +393,7 @@ const ItemSearchWindow: React.FC<WindowHostScreenProps> = () => {
             }
             onRowClick={(params) => setSelectedItem(params.row)}
             getRowClassName={(params) =>
-              params.row.latest_ticket_status === "pawned"
+              activeItemTicketStatuses.has(params.row.latest_ticket_status ?? "")
                 ? "pawned-item-row"
                 : ""
             }

@@ -279,7 +279,7 @@ export const ticketRepo = {
       WITH picked AS (
         UPDATE ticket
         SET
-          status = 'picked_up',
+          status = 'pawned_picked_up',
           pickup_datetime = $1,
           pickup_amount_paid = pickup_values.input_pickup_amount_paid,
           status_updated_at = $1

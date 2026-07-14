@@ -23,11 +23,11 @@ const getHistoryStatusLabel = (ticket: Ticket) => {
     return "S";
   }
 
-  if (ticket.status === "picked_up") {
+  if (ticket.status === "pawned_picked_up") {
     return "P";
   }
 
-  if (ticket.status === "pawn_expired") {
+  if (ticket.status === "pawned_expired" || ticket.status === "sold_expired") {
     return "E";
   }
 

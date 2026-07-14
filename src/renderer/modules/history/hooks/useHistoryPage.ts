@@ -30,9 +30,9 @@ interface UseHistoryPageParams {
 }
 
 const historyTicketStatuses = new Set<Ticket["status"]>([
-  "pawn_expired",
-  "picked_up",
-  "sell_expired",
+  "pawned_expired",
+  "pawned_picked_up",
+  "sold_expired",
 ]);
 
 const sortHistoryTickets = (tickets: Ticket[]) =>

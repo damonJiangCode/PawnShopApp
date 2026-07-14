@@ -79,7 +79,7 @@ export const reportRepo = {
         ${clientDisplayNameSql("c")} AS client_name
       FROM ticket t
       LEFT JOIN client c ON c.client_number = t.client_number
-      WHERE t.status = 'picked_up'
+      WHERE t.status = 'pawned_picked_up'
         AND t.pickup_datetime >= $1::date
         AND t.pickup_datetime < ($1::date + INTERVAL '1 day')
       ORDER BY t.pickup_datetime ASC, t.ticket_number ASC

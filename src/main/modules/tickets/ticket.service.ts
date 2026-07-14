@@ -142,7 +142,7 @@ export const ticketService = {
           amount: normalizedInput.amount,
           onetime_fee: 0,
           employee_name: employeeName,
-          status: "sell",
+          status: "sold",
           client_number: normalizedInput.client_number,
         },
         client,
@@ -250,7 +250,7 @@ export const ticketService = {
 
       if (
         existingTicket.status !== "pawned" &&
-        existingTicket.status !== "sell"
+        existingTicket.status !== "sold"
       ) {
         throw createFieldError(
           "ticket_number",
@@ -316,7 +316,7 @@ export const ticketService = {
 
       if (
         existingTicket.status !== "pawned" &&
-        existingTicket.status !== "sell"
+        existingTicket.status !== "sold"
       ) {
         throw createFieldError(
           "ticket_number",
@@ -347,7 +347,7 @@ export const ticketService = {
       }
 
       const expiredStatus =
-        existingTicket.status === "sell" ? "sell_expired" : "pawn_expired";
+        existingTicket.status === "sold" ? "sold_expired" : "pawned_expired";
 
       const expiredTicket = await ticketRepo.expire(
         {
@@ -448,7 +448,7 @@ export const ticketService = {
 
       if (
         transferPreview.status !== "pawned" &&
-        transferPreview.status !== "sell"
+        transferPreview.status !== "sold"
       ) {
         throw createFieldError(
           "ticket_number",

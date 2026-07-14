@@ -303,6 +303,10 @@ export const useTransactionPage = ({
       ) ?? null;
 
     if (!matchedTicket) {
+      if (selectedTicket.status === "pawned" || selectedTicket.status === "sold") {
+        return;
+      }
+
       setSelectedTicket(tickets[0] ?? null);
     }
   }, [tickets, selectedTicket]);

@@ -2,7 +2,7 @@ import type { Ticket } from "../../../shared/types/Ticket";
 
 export const filterVisibleTickets = (nextTickets: Ticket[]) =>
   nextTickets.filter(
-    (ticket) => ticket.status === "pawned" || ticket.status === "sell",
+    (ticket) => ticket.status === "pawned" || ticket.status === "sold",
   );
 
 export const sortTickets = (nextTickets: Ticket[]) =>

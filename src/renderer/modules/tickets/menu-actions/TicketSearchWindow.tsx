@@ -5,9 +5,9 @@ import type { WindowHostScreenProps } from "../../../app/window-host/windowHostR
 import { ticketService } from "../ticket.api";
 
 const ticketSearchHistoryStatuses = new Set([
-  "pawn_expired",
-  "picked_up",
-  "sell_expired",
+  "pawned_expired",
+  "pawned_picked_up",
+  "sold_expired",
 ]);
 
 const TicketSearchWindow: React.FC<WindowHostScreenProps> = () => {
