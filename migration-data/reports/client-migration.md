@@ -287,3 +287,66 @@ Updated DB image_path: yes
 - 60870: migration-data/exports/client-photos/60870_GLEN_MURDOCK.jpg
 - 61718: migration-data/exports/client-photos/61718_ABEL.jpg
 - 61719: migration-data/exports/client-photos/61719_ALYSHIA.jpg
+
+## Client Statistics Recalculation
+
+Generated: 2026-07-14T17:46:37.564Z
+
+Mode: commit
+
+Rules:
+
+- `redeem_count`: count tickets with status `pawned_picked_up`.
+- `expire_count`: count tickets with status `pawned_expired` only.
+- `sell_count`: count tickets with status `sold` or `sold_expired`, plus any ticket whose location is `BIWK`.
+- `partial_payment` and other ticket amounts do not affect these statistics.
+
+Summary:
+
+```txt
+Clients with changed statistics: 16180
+Clients with ticket-derived stats: 51697
+Before redeem total: 476227
+Before expire total: 144815
+Before sold total: 10549
+Recomputed redeem total: 484443
+Recomputed expire total: 129850
+Recomputed sold total: 20089
+After redeem total: 484443
+After expire total: 129850
+After sold total: 20089
+```
+
+Ticket status counts used:
+
+```txt
+  484443  pawned_picked_up
+  129850  pawned_expired
+   14944  sold_expired
+    2753  pawned
+```
+
+Largest changed clients:
+
+| client_number | client_name | redeem | expire | sold | total_delta |
+| ---: | --- | ---: | ---: | ---: | ---: |
+| 5675 | COURTOREILLE, HARLEY CHARLES | 287 -> 495 | 51 -> 51 | 210 -> 0 | 418 |
+| 74473 | MEMISEVIC, JASMIN | 15 -> 16 | 133 -> 21 | 0 -> 113 | 226 |
+| 70036 | MOOSEWAYPAYO, MITCHELL | 38 -> 43 | 133 -> 35 | 0 -> 103 | 206 |
+| 9541 | CHRISTAL, DOUG | 232 -> 322 | 82 -> 80 | 90 -> 12 | 170 |
+| 9494 | KINNIEWESS, BLAINE | 137 -> 212 | 15 -> 15 | 75 -> 0 | 150 |
+| 74493 | DANIELS, MIRANDA | 1 -> 1 | 73 -> 3 | 0 -> 70 | 140 |
+| 50789 | SEMCHYSHEN, MICHAEL THOMAS | 37 -> 37 | 98 -> 31 | 0 -> 67 | 134 |
+| 74281 | GAVIN, DAYTON | 0 -> 0 | 68 -> 2 | 0 -> 66 | 132 |
+| 13480 | PRITCHARD, RONNIE F | 557 -> 543 | 378 -> 323 | 1 -> 59 | 127 |
+| 67018 | SPRAYSON, JESSE | 43 -> 44 | 78 -> 23 | 0 -> 56 | 112 |
+| 76276 | LOYER, WILLIAM JOHN | 0 -> 0 | 53 -> 3 | 0 -> 50 | 100 |
+| 78606 | GALLANT, AARON Z | 0 -> 9 | 45 -> 5 | 0 -> 49 | 98 |
+| 16228 | GRAY, WILLARD EDWARD | 18 -> 18 | 58 -> 10 | 0 -> 48 | 96 |
+| 52956 | PECHAWIS, VICTOR VERN H | 16 -> 18 | 84 -> 43 | 0 -> 43 | 86 |
+| 12305 | MCKAY, COREY D | 10 -> 54 | 22 -> 21 | 43 -> 9 | 79 |
+| 1743 | COTE, EDNA THOREEN | 6 -> 43 | 11 -> 11 | 37 -> 3 | 71 |
+| 1975 | POUNDMAKER, BETTY ANN | 38 -> 74 | 15 -> 15 | 36 -> 2 | 70 |
+| 13490 | HENTON, DAVID M | 0 -> 1 | 40 -> 5 | 1 -> 35 | 70 |
+| 66103 | VANDALE, LEANNA GLADYS | 52 -> 50 | 47 -> 14 | 0 -> 33 | 68 |
+| 66220 | SEVERIGHT, TAMARA | 42 -> 43 | 53 -> 20 | 0 -> 34 | 68 |

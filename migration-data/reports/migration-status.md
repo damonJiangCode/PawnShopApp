@@ -15,6 +15,7 @@ client-migration.md     Client migration plus client photo export
 employee-migration.md   Employee migration and ticket employee backfill rule
 ticket-migration.md     Ticket migration
 item-migration.md       Item and ticket-item migration
+final-migration-runbook.md Final cutover runbook for the last source refresh
 ```
 
 ## Scripts
@@ -25,6 +26,7 @@ migrate-static.cjs          Static-data comparison report
 migrate-city.cjs            City/province/country migration
 migrate-client.cjs          Client migration; preview unless --commit is passed
 migrate-client-photos.cjs   Client photo export; DB update when --update-db is passed
+migrate-client-statistics.cjs Client statistics recalculation; preview unless --commit is passed
 migrate-employee.cjs        Employee migration; preview unless --commit is passed
 migrate-ticket.cjs          Ticket migration; preview unless --commit is passed
 migrate-item.cjs            Item and ticket-item migration; preview unless --commit is passed
@@ -37,7 +39,7 @@ migrate-item-photos.cjs     Item photo export; DB update when --update-db is pas
 - City migration is complete in `pawnsystemdb_migration`.
 - Location mapping is approved.
 - Category/subcategory mapping is approved.
-- Client migration is complete, including address apartment merge, notes, and photo path update.
+- Client migration is complete, including address apartment merge, notes, photo path update, and recalculated redeem/expire/sold statistics.
 - Employee migration is complete, including employee `999` and terminated-password handling.
 - Ticket migration is complete through legacy ticket `982189`, including zero amounts, status mapping, pickup amount paid, missing clients, and employee-name backfill.
 - Item and ticket-item migration is complete for the refreshed 2026-07-12 source, including quantity/default description cleanup and generated item numbers for invalid legacy item number 0 rows.
