@@ -1,6 +1,6 @@
 # Item Migration
 
-Generated: 2026-07-14T15:21:59.042Z
+Generated: 2026-07-14T16:35:37.481Z
 
 Sources: `WC400INVEN` and `SA110ITEM` in `superpawnconv.mdb`
 
@@ -270,7 +270,7 @@ _none_
 
 ## Item Photo Export
 
-Generated: 2026-07-14T15:24:29.222Z
+Generated: 2026-07-14T16:41:18.383Z
 
 Source: `WC405ITEMPIC.WC405ITEMPICTURE` from `Pictureconv.mdb`.
 
@@ -306,14 +306,46 @@ _none_
 
 ## Samples
 
-- 504413: migration-data/exports/item-photos/504413_2.jpg
-- 517706: migration-data/exports/item-photos/517706_2.jpg
-- 518057: migration-data/exports/item-photos/518057_2.jpg
-- 521964: migration-data/exports/item-photos/521964_2.jpg
-- 532619: migration-data/exports/item-photos/532619_2.jpg
-- 552212: migration-data/exports/item-photos/552212_2.jpg
-- 552213: migration-data/exports/item-photos/552213_2.jpg
-- 574003: migration-data/exports/item-photos/574003_2.jpg
-- 575919: migration-data/exports/item-photos/575919_2.jpg
-- 578416: migration-data/exports/item-photos/578416_2.jpg
+- 504413: migration-data/exports/item-photos/504413.jpg
+- 517706: migration-data/exports/item-photos/517706.jpg
+- 518057: migration-data/exports/item-photos/518057.jpg
+- 521964: migration-data/exports/item-photos/521964.jpg
+- 532619: migration-data/exports/item-photos/532619.jpg
+- 552212: migration-data/exports/item-photos/552212.jpg
+- 552213: migration-data/exports/item-photos/552213.jpg
+- 574003: migration-data/exports/item-photos/574003.jpg
+- 575919: migration-data/exports/item-photos/575919.jpg
+- 578416: migration-data/exports/item-photos/578416.jpg
+
+
+## Summary
+
+```txt
+Legacy item photo rows: 58113
+Rows with photo: 58097
+Rows without photo: 16
+Photos exported for migrated items: 58097
+Photo rows without migrated item: 0
+JPEG files: 58097
+Non-JPEG files: 0
+Total exported bytes: 1887359783
+Updated DB image_path: yes
+```
+
+## Missing Migrated Item Samples
+
+_none_
+
+## Samples
+
+- 504413: migration-data/exports/item-photos/504413_3.jpg
+- 517706: migration-data/exports/item-photos/517706_3.jpg
+- 518057: migration-data/exports/item-photos/518057_3.jpg
+- 521964: migration-data/exports/item-photos/521964_3.jpg
+- 532619: migration-data/exports/item-photos/532619_3.jpg
+- 552212: migration-data/exports/item-photos/552212_3.jpg
+- 552213: migration-data/exports/item-photos/552213_3.jpg
+- 574003: migration-data/exports/item-photos/574003_3.jpg
+- 575919: migration-data/exports/item-photos/575919_3.jpg
+- 578416: migration-data/exports/item-photos/578416_3.jpg
 

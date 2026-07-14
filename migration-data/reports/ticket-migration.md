@@ -1,6 +1,6 @@
 # Ticket Migration
 
-Generated: 2026-07-14T15:21:24.968Z
+Generated: 2026-07-14T16:35:05.850Z
 
 Source: `SA100TRAN` in `superpawnconv.mdb`
 
@@ -25,9 +25,9 @@ _none_
 ## Statuses
 
 ```txt
- 484443  picked_up
- 129850  pawn_expired
-  14944  sell_expired
+ 484443  pawned_picked_up
+ 129850  pawned_expired
+  14944  sold_expired
    2753  pawned
 ```
 
@@ -69,9 +69,8 @@ _none_
       5  duplicate earlier row skipped
 ```
 
-## Employee Placeholder
+## Employee Backfill
 
-`employee_name` is temporarily stored as `Legacy Employee {legacy_employee_number}`.
-After employee migration is complete, update tickets by re-reading
-`SA100EMPLOYEENO` / `SA100EMPLOYEENO2` and replacing this placeholder with the
-resolved employee name.
+During insert, `employee_name` is staged as `Legacy Employee {legacy_employee_number}`.
+Before commit, migrated employee nicknames are backfilled from the `employee` table.
+The ticket number identity sequence is also advanced to the maximum migrated ticket number.

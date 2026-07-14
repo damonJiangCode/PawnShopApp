@@ -42,7 +42,7 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
     onClose,
     onSave,
   } = props;
-  const isSellTicket = ticket?.status === "sold";
+  const isPawnedTicket = ticket?.status === "pawned";
   const formattedClientName = [clientFirstName, clientMiddleName]
     .filter((value): value is string => Boolean(value?.trim()))
     .map((value) => value.toUpperCase())
@@ -144,13 +144,13 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
         ? "Amount cannot be negative."
         : "";
     const nextOneTimeFeeError =
-      !isSellTicket &&
+      isPawnedTicket &&
       oneTimeFee !== "" &&
       (!Number.isFinite(oneTimeFee) || oneTimeFee < 0)
         ? "One Time Fee cannot be negative."
         : "";
     const nextPartialPaymentError =
-      !isSellTicket &&
+      isPawnedTicket &&
       partialPayment !== "" &&
       (!Number.isFinite(partialPayment) || partialPayment < 0)
         ? "Partial Payment cannot be negative."
@@ -191,14 +191,12 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
         description: trimmedDescription,
         location: trimmedLocation,
         amount: normalizedAmount,
-        onetime_fee: isSellTicket
-          ? 0
-          : typeof oneTimeFee === "number"
+        onetime_fee:
+          isPawnedTicket && typeof oneTimeFee === "number"
             ? oneTimeFee
             : 0,
-        partial_payment: isSellTicket
-          ? 0
-          : typeof partialPayment === "number"
+        partial_payment:
+          isPawnedTicket && typeof partialPayment === "number"
             ? partialPayment
             : 0,
         employee_password: trimmedPassword,
@@ -244,7 +242,7 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
             disabled
             fullWidth
           />
-          {!isSellTicket && (
+          {isPawnedTicket && (
             <FormControlLabel
               control={
                 <Checkbox
@@ -333,7 +331,7 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
             error={Boolean(amountError)}
             helperText={amountError || " "}
           />
-          {!isSellTicket && (
+          {isPawnedTicket && (
             <>
               <TextField
                 label="One Time Fee"

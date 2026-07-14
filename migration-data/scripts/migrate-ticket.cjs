@@ -202,15 +202,15 @@ const candidateStatus = (row) => {
   const rawLocation = normalizeUpper(row.SA100LOCATION);
 
   if (type === "E" && rawLocation === "BIWK")
-    return { value: "sell_expired", reason: "E at BIWK" };
-  if (type === "E") return { value: "pawn_expired", reason: "E" };
+    return { value: "sold_expired", reason: "E at BIWK" };
+  if (type === "E") return { value: "pawned_expired", reason: "E" };
   if (type === "B" || type === "A")
-    return { value: "picked_up", reason: `${type} treated as B` };
+    return { value: "pawned_picked_up", reason: `${type} treated as B` };
   if (type === "S" && isPayback)
-    return { value: "picked_up", reason: "S/stolen with payback" };
+    return { value: "pawned_picked_up", reason: "S/stolen with payback" };
   if (type === "S") return { value: "pawned", reason: "S/stolen active" };
   if (type === "P" && isPayback)
-    return { value: "picked_up", reason: "P treated as P with payback" };
+    return { value: "pawned_picked_up", reason: "P treated as P with payback" };
   if (type === "P") return { value: "pawned", reason: "P treated as active P" };
   return { value: null, reason: `unresolved type ${type || "<blank>"}` };
 };
@@ -222,7 +222,7 @@ const candidateAmount = (row, status) => {
     return { value: pawnAmount, reason: "pawn amount" };
   }
   if (
-    (status.value === "sell" || status.value === "sell_expired") &&
+    (status.value === "sold" || status.value === "sold_expired") &&
     paidAmount !== undefined &&
     paidAmount > 0
   ) {
@@ -232,7 +232,7 @@ const candidateAmount = (row, status) => {
 };
 
 const candidatePickupAmountPaid = (row, status) => {
-  if (status.value !== "picked_up") {
+  if (status.value !== "pawned_picked_up") {
     return { value: null, reason: "not picked up" };
   }
   const amountPaidBack = parseNumber(row.SA100AMOUNPB) || 0;
@@ -496,9 +496,9 @@ const main = async () => {
       }
 
       const statusUpdatedAt =
-        status.value === "picked_up"
+        status.value === "pawned_picked_up"
           ? pickupDateTime.value || transactionDateTime.value
-          : status.value === "pawn_expired" || status.value === "sell_expired"
+          : status.value === "pawned_expired" || status.value === "sold_expired"
             ? expireDate.value || dueDate.value
             : transactionDateTime.value;
 
@@ -515,10 +515,10 @@ const main = async () => {
         interest_paid_months: interestPaidMonths,
         interested_datetime: interestDateTime.value,
         employee_name: `${PENDING_EMPLOYEE_PREFIX} ${employeeNumber}`,
-        pickup_datetime: status.value === "picked_up" ? pickupDateTime.value : null,
+        pickup_datetime: status.value === "pawned_picked_up" ? pickupDateTime.value : null,
         pickup_amount_paid: pickupAmountPaid.value,
         expire_date:
-          status.value === "pawn_expired" || status.value === "sell_expired"
+          status.value === "pawned_expired" || status.value === "sold_expired"
             ? expireDate.value || dueDate.value
             : null,
         status: status.value,
@@ -546,6 +546,15 @@ const main = async () => {
     const hasBlockers = sortedCounts(blockerCounts).length > 0;
 
     if (shouldCommit && !hasBlockers) {
+      await client.query(`
+        UPDATE ticket t
+        SET employee_name = COALESCE(NULLIF(e.nickname, ''), e.first_name)
+        FROM employee e
+        WHERE t.employee_name = 'Legacy Employee ' || e.employee_number::text
+      `);
+      await client.query(
+        "SELECT setval(pg_get_serial_sequence('ticket', 'ticket_number'), (SELECT MAX(ticket_number) FROM ticket))",
+      );
       await client.query("COMMIT");
     } else {
       await client.query("ROLLBACK");
@@ -599,12 +608,11 @@ ${formatCounts(pickupAmountPaidCounts)}
 
 ${formatCounts(warningCounts)}
 
-## Employee Placeholder
+## Employee Backfill
 
-\`employee_name\` is temporarily stored as \`${PENDING_EMPLOYEE_PREFIX} {legacy_employee_number}\`.
-After employee migration is complete, update tickets by re-reading
-\`SA100EMPLOYEENO\` / \`SA100EMPLOYEENO2\` and replacing this placeholder with the
-resolved employee name.
+During insert, \`employee_name\` is staged as \`${PENDING_EMPLOYEE_PREFIX} {legacy_employee_number}\`.
+Before commit, migrated employee nicknames are backfilled from the \`employee\` table.
+The ticket number identity sequence is also advanced to the maximum migrated ticket number.
 `;
 
     fs.writeFileSync(reportPath, report);

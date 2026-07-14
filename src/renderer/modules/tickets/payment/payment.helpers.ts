@@ -56,14 +56,11 @@ export const mapTicketToPaymentRow = (
       holidayDateKeys,
     ),
     earliestPickupDate,
-    pickupAmount: Math.max(
-      0,
-      calculation.getPaymentPickupAmt(
-        pawnAmount,
-        oneTimeFee,
-        ticket.transaction_datetime,
-        ticket.interest_paid_months,
-      ) - Number(ticket.partial_payment ?? 0),
+    pickupAmount: calculation.getPaymentPickupAmt(
+      pawnAmount,
+      oneTimeFee,
+      ticket.transaction_datetime,
+      ticket.interest_paid_months,
     ),
     baseExtensionAmount,
     extensionAmount: baseExtensionAmount,
