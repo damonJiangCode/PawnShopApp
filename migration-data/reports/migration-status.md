@@ -1,6 +1,6 @@
 # Migration Status
 
-Generated: 2026-07-09
+Generated: 2026-07-14
 
 This is the index for the migration workspace. Reports are kept to one file per migration subject.
 
@@ -14,6 +14,7 @@ category-migration.md   Item category/subcategory mapping
 client-migration.md     Client migration plus client photo export
 employee-migration.md   Employee migration and ticket employee backfill rule
 ticket-migration.md     Ticket migration
+item-migration.md       Item and ticket-item migration
 ```
 
 ## Scripts
@@ -26,6 +27,8 @@ migrate-client.cjs          Client migration; preview unless --commit is passed
 migrate-client-photos.cjs   Client photo export; DB update when --update-db is passed
 migrate-employee.cjs        Employee migration; preview unless --commit is passed
 migrate-ticket.cjs          Ticket migration; preview unless --commit is passed
+migrate-item.cjs            Item and ticket-item migration; preview unless --commit is passed
+migrate-item-photos.cjs     Item photo export; DB update when --update-db is passed
 ```
 
 ## Completed
@@ -36,9 +39,10 @@ migrate-ticket.cjs          Ticket migration; preview unless --commit is passed
 - Category/subcategory mapping is approved.
 - Client migration is complete, including address apartment merge, notes, and photo path update.
 - Employee migration is complete, including employee `999` and terminated-password handling.
-- Ticket migration is complete, including zero amounts, status mapping, pickup amount paid, missing clients, and employee-name backfill.
+- Ticket migration is complete through legacy ticket `982189`, including zero amounts, status mapping, pickup amount paid, missing clients, and employee-name backfill.
+- Item and ticket-item migration is complete for the refreshed 2026-07-12 source, including quantity/default description cleanup and generated item numbers for invalid legacy item number 0 rows.
+- Item photo export and path update is complete; paths point to `migration-data/exports/item-photos/`.
 
 ## Pending
 
-- Item dry-run and migration.
-- Item photo export from `Pictureconv.mdb.WC405ITEMPIC`.
+- Legacy locations not in the current location list intentionally map to `UNKNOWN`, including active pawned tickets that still use those retired locations.

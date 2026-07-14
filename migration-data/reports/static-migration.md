@@ -1,6 +1,6 @@
 # Static Migration
 
-Generated: 2026-07-09T21:27:20.029Z
+Generated: 2026-07-14T04:15:51.012Z
 
 No data was written to PostgreSQL.
 
@@ -16,10 +16,10 @@ localhost:5432/pawnsystemdb_migration as moneyexpress
 AR400ID          28
 BW010HAIRCODE    32
 BW015EYECODE     20
-WC450LOCATION    1432
+WC450LOCATION    1466
 WC510CATEGORY    37
 WC520SUBCAT      639
-MF100CITY        26343
+MF100CITY        26348
 MF110PROVINCE    65
 MF120COUNTRY     4
 EM200EMPLOYEE    101
@@ -112,11 +112,11 @@ _none_
 
 ## Locations: WC450LOCATION -> location
 
-Source rows: 1432
-Unique source values after normalization: 1431
-Existing target values: 772
-Already present: 701
-Would insert: 730
+Source rows: 1466
+Unique source values after normalization: 1465
+Existing target values: 774
+Already present: 734
+Would insert: 731
 
 Would insert sample:
 - RR14
@@ -139,7 +139,7 @@ Would insert sample:
 - AC39
 - AC44
 - AC45
-- ... 710 more
+- ... 711 more
 
 
 ## Item Categories: WC510CATEGORY -> item_category
@@ -208,11 +208,11 @@ Would insert sample:
 
 ## Cities: MF100/MF110/MF120 -> city
 
-Source rows: 26343
-Unique source values after normalization: 26343
+Source rows: 26348
+Unique source values after normalization: 26348
 Existing target values: 2136
 Already present: 0
-Would insert: 26343
+Would insert: 26348
 
 Would insert sample:
 - Rockport / Arkansas / USA
@@ -235,20 +235,40 @@ Would insert sample:
 - Royal Oak / Arkansas / USA
 - Rudd / Arkansas / USA
 - Rudy / Arkansas / USA
-- ... 26323 more
+- ... 26328 more
 
 
 ## Employees: EM200EMPLOYEE -> employee
 
 Source rows: 101
-Existing target employees: 102
-Would insert by employee id: 0
+Existing target employees: 0
+Would insert by employee id: 101
 Missing password: 0
 Missing birthdate: 2
 Missing nickname: 0
 
 Would insert employee ids sample:
-_none_
+- 19
+- 20
+- 21
+- 22
+- 23
+- 24
+- 25
+- 26
+- 27
+- 28
+- 29
+- 30
+- 31
+- 32
+- 33
+- 34
+- 35
+- 2
+- 3
+- 4
+- ... 81 more
 
 Employee migration needs a default strategy for required app fields: date_of_birth, gender, nickname, and password.
 

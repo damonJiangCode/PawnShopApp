@@ -102,6 +102,31 @@ const EYE_COLOR_MAPPING = {
 
 const DEFAULT_DATE_OF_BIRTH = "1900-01-01";
 const DEFAULT_MISSING_NAME = "null";
+const OTHER_MIGRATION_CLIENT = {
+  first_name: "Unknown",
+  last_name: "Legacy Client",
+  middle_name: null,
+  date_of_birth: DEFAULT_DATE_OF_BIRTH,
+  gender: "Other",
+  hair_color: "OTHER",
+  eye_color: "OTHER",
+  height_cm: 170,
+  weight_kg: 70,
+  address: "Migration fallback client",
+  postal_code: null,
+  city: "Other",
+  province: "Other",
+  country: "Other",
+  email: null,
+  phone: null,
+  notes: "Fallback client for legacy tickets whose client number is missing from AR200CLIENT.",
+  image_path: "",
+  pickup_self_only: false,
+  redeem_count: 0,
+  sell_count: 0,
+  expire_count: 0,
+  overdue_count: 0,
+};
 const INSERT_BATCH_SIZE = 1000;
 
 const normalizeText = (value) => String(value ?? "").trim();
@@ -429,12 +454,16 @@ const main = async () => {
       targetIdTypes,
       targetCities,
       existingClients,
+      existingOtherMigrationClient,
     ] = await Promise.all([
       pool.query("SELECT color FROM hair_color"),
       pool.query("SELECT color FROM eye_color"),
       pool.query("SELECT type FROM id_type"),
       pool.query("SELECT city, province, country FROM city"),
       pool.query("SELECT client_number FROM client"),
+      pool.query(
+        "SELECT client_number FROM client WHERE first_name = 'Unknown' AND last_name = 'Legacy Client' ORDER BY client_number LIMIT 1",
+      ),
     ]);
 
     const hairTargets = new Set(targetHairColors.rows.map((row) => row.color));
@@ -512,6 +541,8 @@ const main = async () => {
     let oneId = 0;
     let twoOrMoreIds = 0;
     let cityMissCount = 0;
+    let otherMigrationClientNumber =
+      existingOtherMigrationClient.rows[0]?.client_number || null;
 
     for (const row of clientRows) {
       const sourceClientNumber = normalizeText(getValue(row, "AR200CLIENT"));
@@ -736,6 +767,20 @@ const main = async () => {
       }
     }
 
+    if (!otherMigrationClientNumber) {
+      otherMigrationClientNumber = nextGeneratedClientNumber;
+      nextGeneratedClientNumber += 1;
+      clientsToInsert.push({
+        client_number: otherMigrationClientNumber,
+        ...OTHER_MIGRATION_CLIENT,
+      });
+      samplePush(
+        warningSamples,
+        `${otherMigrationClientNumber}: Unknown Legacy Client fallback client inserted`,
+      );
+      increment(warningCounts, "Unknown Legacy Client fallback client inserted");
+    }
+
     let insertedClients = 0;
     let insertedClientIds = 0;
 
@@ -785,6 +830,7 @@ const main = async () => {
       `Existing target clients before migration: ${existingClientNumbers.size}`,
       `Prepared client rows: ${clientsToInsert.length}`,
       `Prepared client_id rows: ${clientIdsToInsert.length}`,
+      `Unknown Legacy Client fallback client number: ${otherMigrationClientNumber || "already exists"}`,
       `Blocked client rows: ${blocked}`,
       `Duplicate source client numbers reassigned: ${duplicateClientNumbers.length}`,
       `Clients with 0 importable IDs: ${noIds}`,

@@ -75,6 +75,54 @@ const loadLocationMapping = () => {
   return mapping;
 };
 
+const normalizeLocationVariant = (rawLocation) => {
+  const raw = normalizeUpper(rawLocation);
+  const compact = raw.replace(/\s+/g, "");
+
+  const directMappings = {
+    BIWK: "BIWK",
+    WATM: "W-M",
+    WATL: "W-L",
+  };
+  if (directMappings[compact]) return directMappings[compact];
+
+  let match = compact.match(/^C'([1-5])$/);
+  if (match) return `C${match[1]}`;
+
+  match = compact.match(/^RR'([A-Z])$/);
+  if (match) return `RR-${match[1]}`;
+
+  match = compact.match(/^R'([A-Z])$/);
+  if (match) return `RR-${match[1]}`;
+
+  match = compact.match(/^W'([LM])$/);
+  if (match) return `W-${match[1]}`;
+
+  match = raw.match(/^F\s+([0-9])$/);
+  if (match) return `F${match[1]}`;
+
+  return raw;
+};
+
+const resolveLocation = (rawLocation, locationMapping, targetLocations) => {
+  const normalizedLocation = normalizeLocationVariant(rawLocation);
+
+  if (targetLocations.has(normalizedLocation)) {
+    return normalizedLocation;
+  }
+
+  const mappedLocation = locationMapping.get(normalizeUpper(rawLocation));
+  if (mappedLocation && mappedLocation !== "UNKNOWN") {
+    return mappedLocation;
+  }
+
+  if (targetLocations.has(normalizeUpper(rawLocation))) {
+    return normalizeUpper(rawLocation);
+  }
+
+  return mappedLocation || "UNKNOWN";
+};
+
 const parseLegacyDate = (value, { allowSentinel = false } = {}) => {
   const raw = normalizeText(value);
   const match = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
@@ -316,7 +364,7 @@ const main = async () => {
       client.query("SELECT client_number FROM client"),
       client.query("SELECT location FROM location"),
       client.query(
-        "SELECT client_number FROM client WHERE first_name = 'Other' AND last_name = 'Migration' ORDER BY client_number LIMIT 1",
+        "SELECT client_number FROM client WHERE first_name = 'Unknown' AND last_name = 'Legacy Client' ORDER BY client_number LIMIT 1",
       ),
     ]);
     const targetClients = new Set(
@@ -360,9 +408,11 @@ const main = async () => {
       }
 
       const rawLocation = normalizeUpper(row.SA100LOCATION);
-      const mappedLocation =
-        locationMapping.get(rawLocation) ||
-        (targetLocations.has(rawLocation) ? rawLocation : "UNKNOWN");
+      const mappedLocation = resolveLocation(
+        rawLocation,
+        locationMapping,
+        targetLocations,
+      );
       if (!targetLocations.has(normalizeUpper(mappedLocation))) {
         blockers.push("mapped location missing from target");
       }
@@ -374,7 +424,7 @@ const main = async () => {
         } else {
           clientNumber = otherClientNumber;
           missingClientsMappedToOther += 1;
-          increment(warningCounts, "client missing from target mapped to Other Migration");
+          increment(warningCounts, "client missing from target mapped to Unknown Legacy Client");
         }
       }
 
@@ -493,17 +543,15 @@ const main = async () => {
       batch = [];
     }
 
-    if (sortedCounts(blockerCounts).length) {
-      throw new Error("Ticket migration has blockers; see ticket-migration.md");
-    }
+    const hasBlockers = sortedCounts(blockerCounts).length > 0;
 
-    if (shouldCommit) {
+    if (shouldCommit && !hasBlockers) {
       await client.query("COMMIT");
     } else {
       await client.query("ROLLBACK");
     }
 
-    const targetCountResult = shouldCommit
+    const targetCountResult = shouldCommit && !hasBlockers
       ? await pool.query("SELECT COUNT(*)::int AS count FROM ticket")
       : { rows: [{ count: 0 }] };
 
@@ -523,9 +571,9 @@ Mode: ${shouldCommit ? "commit" : "preview"}
 | --- | ---: |
 | Legacy ticket rows scanned | ${total.toLocaleString()} |
 | Duplicate earlier rows skipped | ${skippedDuplicateEarlierRows.toLocaleString()} |
-| Rows ${shouldCommit ? "inserted" : "insertable"} | ${inserted.toLocaleString()} |
+| Rows ${shouldCommit && !hasBlockers ? "inserted" : "insertable"} | ${inserted.toLocaleString()} |
 | Target ticket rows after commit | ${Number(targetCountResult.rows[0].count).toLocaleString()} |
-| Missing clients mapped to Other Migration | ${missingClientsMappedToOther.toLocaleString()} |
+| Missing clients mapped to Unknown Legacy Client | ${missingClientsMappedToOther.toLocaleString()} |
 
 ## Blockers
 
@@ -560,6 +608,11 @@ resolved employee name.
 `;
 
     fs.writeFileSync(reportPath, report);
+
+    if (hasBlockers) {
+      throw new Error("Ticket migration has blockers; see ticket-migration.md");
+    }
+
     console.log(`Ticket migration ${shouldCommit ? "committed" : "previewed"}`);
     console.log(`Rows ${shouldCommit ? "inserted" : "insertable"}: ${inserted.toLocaleString()}`);
     console.log(`Report: ${reportPath}`);

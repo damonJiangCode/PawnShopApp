@@ -1,8 +1,8 @@
 # Client Migration
 
-Generated: 2026-07-09T21:23:38.283Z
+Generated: 2026-07-14T04:16:00.279Z
 
-Mode: dry-run
+Mode: commit
 
 Target database:
 
@@ -13,18 +13,19 @@ localhost:5432/pawnsystemdb_migration as moneyexpress
 ## Summary
 
 ```txt
-Legacy AR200CLIENT rows: 54744
-Existing target clients before migration: 54745
-Prepared client rows: 13
-Prepared client_id rows: 26
-Blocked client rows: 54731
+Legacy AR200CLIENT rows: 56024
+Existing target clients before migration: 0
+Prepared client rows: 56025
+Prepared client_id rows: 126535
+Unknown Legacy Client fallback client number: 81904
+Blocked client rows: 0
 Duplicate source client numbers reassigned: 13
 Clients with 0 importable IDs: 104
-Clients with 1 importable ID: 963
-Clients with 2+ importable IDs: 53677
+Clients with 1 importable ID: 961
+Clients with 2+ importable IDs: 54959
 Rows with missing target city combos: 0
-Inserted clients: 0
-Inserted client IDs: 0
+Inserted clients: 56025
+Inserted client IDs: 126535
 ```
 
 ## Insert Rules
@@ -42,87 +43,66 @@ Inserted client IDs: 0
 
 ## Blockers
 
-```txt
-  54731  client number already exists in target
-```
+_none_
 
 Blocked samples:
 
-- 60869 JONATHAN HUGHES: client number already exists in target
-- 60871 RYAN E PINKNEY: client number already exists in target
-- 60872 CARLANE E SZABO: client number already exists in target
-- 60873 BRIAN VINCENT BAIN: client number already exists in target
-- 60874 CANDACE FAITHFUL: client number already exists in target
-- 60875 ALAN LAMORE: client number already exists in target
-- 60868 JANICE ERMINE: client number already exists in target
-- 60870 GLEN MURDOCK CLARK: client number already exists in target
-- 61718 ABEL DEAR: client number already exists in target
-- 61719 ALYSHIA ASSINIBOINE: client number already exists in target
-- 61720 TOMMY BADGER: client number already exists in target
-- 61721 JOHN LEASK: client number already exists in target
-- 61722 LIAM LARSEN: client number already exists in target
-- 60882 MICHAEL SHAYNE MCNAB: client number already exists in target
-- 60883 JAMES ZOERB: client number already exists in target
-- 60879 RAELENE L LAROCQUE: client number already exists in target
-- 60881 CHRISTOPHER J AUBICHON: client number already exists in target
-- 61075 ERIC PATRICK J COOK: client number already exists in target
-- 60877 JESSE N KOZAR: client number already exists in target
-- 60878 TANNIA J LANSALL: client number already exists in target
+_none_
 
 ## Warnings
 
 ```txt
-  16422  missing/short phone
-   3939  unusual weight: 0
-   3680  unusual height: 0
+  17645  missing/short phone
+   3938  unusual weight: 0
+   3679  unusual height: 0
    3585  gender defaulted to Other
-    963  only one importable ID
-    893  overdue_count negative value -1 defaulted to 0
-    278  ID 4 has type but no value
-    257  overdue_count negative value -2 defaulted to 0
-    134  ID 5 has type but no value
-    109  overdue_count negative value -3 defaulted to 0
+    961  only one importable ID
+    920  overdue_count negative value -1 defaulted to 0
+    279  ID 4 has type but no value
+    265  overdue_count negative value -2 defaulted to 0
+    137  ID 5 has type but no value
+    107  overdue_count negative value -3 defaulted to 0
     104  no importable IDs
-     57  overdue_count negative value -4 defaulted to 0
-     54  overdue_count negative value -5 defaulted to 0
+     64  overdue_count negative value -4 defaulted to 0
      52  ID 3 has type but no value
-     30  overdue_count negative value -6 defaulted to 0
-     20  overdue_count negative value -8 defaulted to 0
-     15  overdue_count negative value -7 defaulted to 0
+     51  overdue_count negative value -5 defaulted to 0
+     25  overdue_count negative value -6 defaulted to 0
+     19  overdue_count negative value -7 defaulted to 0
+     17  overdue_count negative value -8 defaulted to 0
      13  ID 2 has type but no value
+     13  overdue_count negative value -9 defaulted to 0
      12  missing/invalid date of birth defaulted to 1900-01-01
-     10  overdue_count negative value -9 defaulted to 0
-      8  overdue_count negative value -10 defaulted to 0
-      7  overdue_count negative value -13 defaulted to 0
-      5  overdue_count negative value -17 defaulted to 0
+      9  overdue_count negative value -10 defaulted to 0
+      6  overdue_count negative value -13 defaulted to 0
       4  ID 1 has type but no value
+      4  overdue_count negative value -11 defaulted to 0
       4  overdue_count negative value -14 defaulted to 0
-      3  overdue_count negative value -11 defaulted to 0
       3  overdue_count negative value -12 defaulted to 0
       3  overdue_count negative value -15 defaulted to 0
+      3  overdue_count negative value -17 defaulted to 0
+      3  overdue_count negative value -19 defaulted to 0
       2  missing first name defaulted to null
       2  overdue_count negative value -16 defaulted to 0
       2  overdue_count negative value -21 defaulted to 0
+      2  overdue_count negative value -23 defaulted to 0
       2  overdue_count negative value -25 defaulted to 0
-      1  duplicate source client number reassigned from 62812 to 80625
-      1  duplicate source client number reassigned from 69700 to 80626
-      1  duplicate source client number reassigned from 69722 to 80627
-      1  duplicate source client number reassigned from 70473 to 80628
-      1  duplicate source client number reassigned from 70496 to 80629
-      1  duplicate source client number reassigned from 70588 to 80630
-      1  duplicate source client number reassigned from 70601 to 80631
-      1  duplicate source client number reassigned from 70846 to 80633
-      1  duplicate source client number reassigned from 70890 to 80632
-      1  duplicate source client number reassigned from 71301 to 80634
-      1  duplicate source client number reassigned from 74392 to 80635
-      1  duplicate source client number reassigned from 74954 to 80636
-      1  duplicate source client number reassigned from 75692 to 80637
+      1  duplicate source client number reassigned from 62812 to 81891
+      1  duplicate source client number reassigned from 69700 to 81892
+      1  duplicate source client number reassigned from 69722 to 81893
+      1  duplicate source client number reassigned from 70473 to 81894
+      1  duplicate source client number reassigned from 70496 to 81895
+      1  duplicate source client number reassigned from 70588 to 81896
+      1  duplicate source client number reassigned from 70601 to 81897
+      1  duplicate source client number reassigned from 70846 to 81899
+      1  duplicate source client number reassigned from 70890 to 81898
+      1  duplicate source client number reassigned from 71301 to 81900
+      1  duplicate source client number reassigned from 74392 to 81901
+      1  duplicate source client number reassigned from 74954 to 81902
+      1  duplicate source client number reassigned from 75692 to 81903
       1  expire_count negative value -1 defaulted to 0
       1  missing last name defaulted to null
+      1  Unknown Legacy Client fallback client inserted
       1  overdue_count negative value -18 defaulted to 0
-      1  overdue_count negative value -19 defaulted to 0
-      1  overdue_count negative value -23 defaulted to 0
-      1  overdue_count negative value -24 defaulted to 0
       1  redeem_count negative value -1 defaulted to 0
       1  redeem_count negative value -13 defaulted to 0
       1  redeem_count negative value -3 defaulted to 0
@@ -155,36 +135,36 @@ Warning samples:
 - 24097: ID 5 has type but no value
 - 7717: ID 4 has type but no value; ID 5 has type but no value
 - 60740: missing/short phone
-- 29: overdue_count negative value -3 defaulted to 0
+- 29: overdue_count negative value -4 defaulted to 0
 
 ## Duplicate Client Number Reassignments
 
-- 62812 -> 80625
-- 69700 -> 80626
-- 69722 -> 80627
-- 70473 -> 80628
-- 70496 -> 80629
-- 70588 -> 80630
-- 70601 -> 80631
-- 70890 -> 80632
-- 70846 -> 80633
-- 71301 -> 80634
-- 74392 -> 80635
-- 74954 -> 80636
-- 75692 -> 80637
+- 62812 -> 81891
+- 69700 -> 81892
+- 69722 -> 81893
+- 70473 -> 81894
+- 70496 -> 81895
+- 70588 -> 81896
+- 70601 -> 81897
+- 70890 -> 81898
+- 70846 -> 81899
+- 71301 -> 81900
+- 74392 -> 81901
+- 74954 -> 81902
+- 75692 -> 81903
 
 ## Mapped ID Type Usage
 
 ```txt
-  37704  Health Card
-  37475  Driver's License
-  14081  Social Insurance Number
-  13912  Indian Status Card
-   7846  Birth Certificate
-   5803  Provincial ID
-   5747  Other
-    614  Firearms License
-    471  Canadian Passport
+  38530  Health Card
+  38209  Driver's License
+  14329  Indian Status Card
+  14121  Social Insurance Number
+   7933  Birth Certificate
+   6356  Provincial ID
+   5793  Other
+    630  Firearms License
+    522  Canadian Passport
     112  Citizenship Card
 ```
 
@@ -193,13 +173,13 @@ Warning samples:
 Hair color target usage:
 
 ```txt
-  31537  BROWN
-  15847  BLACK
-   4638  OTHER
-   1391  GRAY
-    934  BLONDE
-    263  RED
-    127  BALD
+  32070  BROWN
+  16448  BLACK
+   4661  OTHER
+   1480  GRAY
+    942  BLONDE
+    275  RED
+    141  BALD
       3  WHITE
       2  BLUE
       2  GREEN
@@ -208,30 +188,30 @@ Hair color target usage:
 Eye color target usage:
 
 ```txt
-  27675  OTHER
-  18566  BROWN
-   4229  BLUE
-   1796  HAZEL
-   1678  GREEN
-    501  BLACK
-    299  GRAY
+  27610  OTHER
+  19613  BROWN
+   4369  BLUE
+   1876  HAZEL
+   1735  GREEN
+    515  BLACK
+    306  GRAY
 ```
 
 Gender target usage:
 
 ```txt
-  32693  Male
-  18466  Female
+  33482  Male
+  18957  Female
    3585  Other
 ```
 
 Province usage after migration mapping:
 
 ```txt
-  54246  Saskatchewan
-    274  Alberta
+  55523  Saskatchewan
+    275  Alberta
      82  British Columbia
-     60  Ontario
+     62  Ontario
      50  Manitoba
       9  Quebec
       6  Other
@@ -245,13 +225,13 @@ Province usage after migration mapping:
 Country usage after migration mapping:
 
 ```txt
-  54738  Canada
+  56018  Canada
       6  Other
 ```
 
 ## Client Photo Export
 
-Generated: 2026-07-09T21:24:46.114Z
+Generated: 2026-07-14T04:17:19.954Z
 
 Source: `AR200CLIENT.AR200CLIENTPIC` from `superpawnconv.mdb`.
 
@@ -270,41 +250,40 @@ clientnumber_firstname.jpg
 ## Summary
 
 ```txt
-Legacy client rows: 54744
-Photos exported: 36385
-Clients without photo: 18359
-JPEG files: 36384
+Legacy client rows: 56024
+Photos exported: 37686
+Clients without photo: 18338
+JPEG files: 37685
 Non-JPEG files: 1
-Total exported bytes: 811861755
+Total exported bytes: 891866948
 Updated DB image_path: yes
 ```
 
 ## Duplicate Client Number Reassignments Used
 
-- 62812 -> 80611
-- 69700 -> 80612
-- 69722 -> 80613
-- 70473 -> 80614
-- 70496 -> 80615
-- 70588 -> 80616
-- 70601 -> 80617
-- 70890 -> 80618
-- 70846 -> 80619
-- 71301 -> 80620
-- 74392 -> 80621
-- 74954 -> 80622
-- 75692 -> 80623
+- 62812 -> 81891
+- 69700 -> 81892
+- 69722 -> 81893
+- 70473 -> 81894
+- 70496 -> 81895
+- 70588 -> 81896
+- 70601 -> 81897
+- 70890 -> 81898
+- 70846 -> 81899
+- 71301 -> 81900
+- 74392 -> 81901
+- 74954 -> 81902
+- 75692 -> 81903
 
 ## Samples
 
-- 60869: migration-data/exports/client-photos/60869_JONATHAN_2.jpg
-- 60871: migration-data/exports/client-photos/60871_RYAN_E_2.jpg
-- 60872: migration-data/exports/client-photos/60872_CARLANE_E_2.jpg
-- 60873: migration-data/exports/client-photos/60873_BRIAN_VINCENT_2.jpg
-- 60874: migration-data/exports/client-photos/60874_CANDACE_2.jpg
-- 60875: migration-data/exports/client-photos/60875_ALAN_2.jpg
-- 60868: migration-data/exports/client-photos/60868_JANICE_2.jpg
-- 60870: migration-data/exports/client-photos/60870_GLEN_MURDOCK_2.jpg
-- 61718: migration-data/exports/client-photos/61718_ABEL_2.jpg
-- 61719: migration-data/exports/client-photos/61719_ALYSHIA_2.jpg
-
+- 60869: migration-data/exports/client-photos/60869_JONATHAN.jpg
+- 60871: migration-data/exports/client-photos/60871_RYAN_E.jpg
+- 60872: migration-data/exports/client-photos/60872_CARLANE_E.jpg
+- 60873: migration-data/exports/client-photos/60873_BRIAN_VINCENT.jpg
+- 60874: migration-data/exports/client-photos/60874_CANDACE.jpg
+- 60875: migration-data/exports/client-photos/60875_ALAN.jpg
+- 60868: migration-data/exports/client-photos/60868_JANICE.jpg
+- 60870: migration-data/exports/client-photos/60870_GLEN_MURDOCK.jpg
+- 61718: migration-data/exports/client-photos/61718_ABEL.jpg
+- 61719: migration-data/exports/client-photos/61719_ALYSHIA.jpg
