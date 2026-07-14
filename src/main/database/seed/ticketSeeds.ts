@@ -191,10 +191,12 @@ const LOCATION_CODES = [
   ...expandLocationRange("BX", 61, 62),
   ...expandLocationRange("C", 1, 5),
   ...expandLocationRange("CP", 1, 15),
+  "F7",
   "F8",
   "F9",
   "F10",
   "AK",
+  "BIWK",
   "FRON",
   "UNKNOWN",
   ...Array.from({ length: 26 }, (_value, index) => {
