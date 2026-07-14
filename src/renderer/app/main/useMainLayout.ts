@@ -114,6 +114,7 @@ export const useMainLayout = () => {
   const [focusRequestId, setFocusRequestId] = useState(0);
   const [itemLoadRequestId, setItemLoadRequestId] = useState(0);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
+  const [historyActivationKey, setHistoryActivationKey] = useState(0);
   const [transactionRefreshKey, setTransactionRefreshKey] = useState(0);
   const currentTabRef = useRef(currentTab);
   const selectedTransactionTicketRef = useRef<Ticket | null>(null);
@@ -283,6 +284,15 @@ export const useMainLayout = () => {
     setHistoryRefreshKey((prev) => prev + 1);
   };
 
+  const handleTabChange = (tab: number) => {
+    setCurrentTab(tab);
+
+    if (tab === 2) {
+      setFocusTicketNumber(undefined);
+      setHistoryActivationKey((prev) => prev + 1);
+    }
+  };
+
   const handlePayment = () => {
     void windowService.openPaymentWindow({
       clientNumber: selectedClient?.client_number,
@@ -374,10 +384,12 @@ export const useMainLayout = () => {
       focusTicketNumber,
       focusRequestId,
       historyRefreshKey,
+      historyActivationKey,
       transactionRefreshKey,
     },
     actions: {
       setCurrentTab,
+      handleTabChange,
       setSelectedClient,
       setSelectedTransactionTicket,
       handleSearch,

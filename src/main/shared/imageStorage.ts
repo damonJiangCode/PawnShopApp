@@ -62,6 +62,14 @@ const resolveStoredImagePath = async (
   }
 
   const workspacePath = path.resolve(process.cwd(), imagePath);
+  const workspaceBase = path.resolve(process.cwd());
+
+  if (
+    workspacePath.startsWith(`${workspaceBase}${path.sep}`) &&
+    (await fileExists(workspacePath))
+  ) {
+    return workspacePath;
+  }
 
   if (workspacePath.startsWith(`${baseDir}${path.sep}`)) {
     return workspacePath;

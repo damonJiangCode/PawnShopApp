@@ -16,6 +16,7 @@ interface UseHistoryPageParams {
   focusTicketNumber?: number;
   focusRequestId?: number;
   refreshKey?: number;
+  activationKey?: number;
   transactionTargetTicket?: Ticket | null;
   onRepawnCreated?: (
     ticket: Ticket,
@@ -34,20 +35,10 @@ const historyTicketStatuses = new Set<Ticket["status"]>([
   "sell_expired",
 ]);
 
-const getHistoryUpdatedTime = (ticket: Ticket) => {
-  const updatedAt = ticket.status_updated_at?.getTime();
-
-  if (Number.isFinite(updatedAt)) {
-    return updatedAt;
-  }
-
-  return ticket.transaction_datetime.getTime();
-};
-
 const sortHistoryTickets = (tickets: Ticket[]) =>
   [...tickets].sort((a, b) => {
-    const aTime = getHistoryUpdatedTime(a);
-    const bTime = getHistoryUpdatedTime(b);
+    const aTime = a.transaction_datetime.getTime();
+    const bTime = b.transaction_datetime.getTime();
 
     if (aTime !== bTime) {
       return aTime - bTime;
@@ -61,6 +52,7 @@ export const useHistoryPage = ({
   focusTicketNumber,
   focusRequestId,
   refreshKey = 0,
+  activationKey = 0,
   transactionTargetTicket,
   onRepawnCreated,
   onLoadItemsToTransaction,
@@ -71,6 +63,7 @@ export const useHistoryPage = ({
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [ticketsLoading, setTicketsLoading] = useState(false);
   const [itemsLoading, setItemsLoading] = useState(false);
+  const [ticketScrollRequestKey, setTicketScrollRequestKey] = useState(0);
   const [statusMessage, setStatusMessage] = useState("");
   const [openRepawnDialog, setOpenRepawnDialog] = useState(false);
   const [openItemEditDialog, setOpenItemEditDialog] = useState(false);
@@ -80,10 +73,16 @@ export const useHistoryPage = ({
   const transactionTargetTicketRef = useRef<Ticket | null>(
     transactionTargetTicket ?? null,
   );
+  const selectedTicketRef = useRef<Ticket | null>(null);
+  const handledActivationKeyRef = useRef(0);
 
   useEffect(() => {
     transactionTargetTicketRef.current = transactionTargetTicket ?? null;
   }, [transactionTargetTicket]);
+
+  useEffect(() => {
+    selectedTicketRef.current = selectedTicket;
+  }, [selectedTicket]);
 
   useEffect(() => {
     let active = true;
@@ -128,14 +127,15 @@ export const useHistoryPage = ({
       if (!active) return;
 
       setTickets(historyTickets);
-      setSelectedTicket((prev) => {
-        if (!historyTickets.length) return null;
-        return (
-          historyTickets.find(
-            (ticket) => ticket.ticket_number === prev?.ticket_number,
+      const nextSelected = historyTickets.length
+        ? historyTickets.find(
+            (ticket) =>
+              ticket.ticket_number ===
+              selectedTicketRef.current?.ticket_number,
           ) ?? historyTickets[historyTickets.length - 1]
-        );
-      });
+        : null;
+      setSelectedTicket(nextSelected);
+      setTicketScrollRequestKey((prev) => prev + 1);
       setTicketsLoading(false);
     };
 
@@ -157,9 +157,25 @@ export const useHistoryPage = ({
 
     if (matchedTicket) {
       setSelectedTicket(matchedTicket);
+      setTicketScrollRequestKey((prev) => prev + 1);
       setStatusMessage("");
     }
   }, [focusRequestId, focusTicketNumber, tickets]);
+
+  useEffect(() => {
+    if (
+      !activationKey ||
+      handledActivationKeyRef.current === activationKey ||
+      !tickets.length
+    ) {
+      return;
+    }
+
+    handledActivationKeyRef.current = activationKey;
+    setSelectedTicket(tickets[tickets.length - 1]);
+    setTicketScrollRequestKey((prev) => prev + 1);
+    setStatusMessage("");
+  }, [activationKey, tickets]);
 
   useEffect(() => {
     let active = true;
@@ -278,6 +294,7 @@ export const useHistoryPage = ({
       selectedItem,
       ticketsLoading,
       itemsLoading,
+      ticketScrollRequestKey,
       statusMessage,
       openRepawnDialog,
       openItemEditDialog,

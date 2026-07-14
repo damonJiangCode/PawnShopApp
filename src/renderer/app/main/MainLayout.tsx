@@ -46,6 +46,7 @@ const MainLayout: React.FC = () => {
     focusTicketNumber,
     focusRequestId,
     historyRefreshKey,
+    historyActivationKey,
     transactionRefreshKey,
   } = state;
 
@@ -79,7 +80,7 @@ const MainLayout: React.FC = () => {
       >
         <Tabs
           value={currentTab}
-          onChange={(_e, newVal) => actions.setCurrentTab(newVal)}
+          onChange={(_e, newVal) => actions.handleTabChange(newVal)}
           variant="fullWidth"
           sx={{
             px: 0.35,
@@ -175,6 +176,7 @@ const MainLayout: React.FC = () => {
               focusTicketNumber={focusTicketNumber}
               focusRequestId={focusRequestId}
               refreshKey={historyRefreshKey}
+              activationKey={historyActivationKey}
               transactionTargetTicket={selectedTransactionTicket}
               onRepawnCreated={actions.handleRepawnCreated}
               onLoadItemsToTransaction={actions.handleLoadHistoryItems}

@@ -32,8 +32,16 @@ export const useItemLoadWindow = () => {
         return;
       }
 
-      const nextPayload =
-        await windowService.loadItemLoadWindowData(requestId);
+      let nextPayload: ItemLoadWindowData | null = null;
+      try {
+        nextPayload = await windowService.loadItemLoadWindowData(requestId);
+      } catch (err) {
+        console.error(err);
+        if (active) {
+          setError("Unable to load this window.");
+        }
+        return;
+      }
 
       if (!active) {
         return;

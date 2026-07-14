@@ -64,18 +64,24 @@ export const useClientPage = ({
 
   useEffect(() => {
     if (forcedClient) {
-      setSelectedClient(forcedClient);
+      setSelectedClient(
+        forcedClient.client_number
+          ? clientOverrides[forcedClient.client_number] ?? forcedClient
+          : forcedClient,
+      );
       return;
     }
 
     if (activeClient) {
       setSelectedClient((prev) =>
         !prev || prev.client_number === activeClient.client_number
-          ? activeClient
+          ? activeClient.client_number
+            ? clientOverrides[activeClient.client_number] ?? activeClient
+            : activeClient
           : prev,
       );
     }
-  }, [forcedClient, activeClient]);
+  }, [forcedClient, activeClient, clientOverrides]);
 
   useEffect(() => {
     setCreatedClient(null);
@@ -107,6 +113,10 @@ export const useClientPage = ({
         return null;
       }
 
+      if (clientOverrides[clientNumber]) {
+        return clientOverrides[clientNumber];
+      }
+
       if (forcedClient?.client_number === clientNumber) {
         return forcedClient;
       }
@@ -115,7 +125,7 @@ export const useClientPage = ({
         return activeClient;
       }
 
-      return clientOverrides[clientNumber] ?? null;
+      return null;
     };
 
     const mergedResults = results

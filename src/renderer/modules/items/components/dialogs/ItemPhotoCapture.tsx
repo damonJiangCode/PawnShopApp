@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Button, Typography } from "@mui/material";
+import { getImageDataUrl } from "../../../../shared/utils/imageDataUrl";
 import { itemService } from "../../item.api";
 
 interface ItemPhotoCaptureProps {
@@ -59,7 +60,7 @@ const ItemPhotoCapture: React.FC<ItemPhotoCaptureProps> = ({
 
     itemService.loadItemImage(imagePath).then((base64) => {
       if (mounted && base64) {
-        setPhotoData(`data:image/png;base64,${base64}`);
+        setPhotoData(getImageDataUrl(base64, imagePath));
       }
     }).catch((err) => {
       console.error("Failed to load item image", err);

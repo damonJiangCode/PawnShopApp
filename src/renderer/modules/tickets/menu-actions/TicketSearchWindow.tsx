@@ -24,6 +24,13 @@ const TicketSearchWindow: React.FC<WindowHostScreenProps> = () => {
     return () => cancelAnimationFrame(frame);
   }, []);
 
+  const focusTicketInput = () => {
+    requestAnimationFrame(() => {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    });
+  };
+
   const handleSearch = async () => {
     const normalizedTicketNumber = Number(ticketNumber);
 
@@ -32,6 +39,7 @@ const TicketSearchWindow: React.FC<WindowHostScreenProps> = () => {
       normalizedTicketNumber <= 0
     ) {
       setError("Enter a valid ticket number.");
+      focusTicketInput();
       return;
     }
 
@@ -43,6 +51,7 @@ const TicketSearchWindow: React.FC<WindowHostScreenProps> = () => {
 
       if (!result) {
         setError("No ticket was found for that number.");
+        focusTicketInput();
         return;
       }
 
@@ -62,6 +71,7 @@ const TicketSearchWindow: React.FC<WindowHostScreenProps> = () => {
     } catch (err) {
       console.error(err);
       setError("Unable to search ticket right now.");
+      focusTicketInput();
     } finally {
       setSearching(false);
     }

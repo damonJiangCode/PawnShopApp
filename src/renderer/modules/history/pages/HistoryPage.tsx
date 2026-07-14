@@ -17,6 +17,7 @@ interface HistoryPageProps {
   focusTicketNumber?: number;
   focusRequestId?: number;
   refreshKey?: number;
+  activationKey?: number;
   transactionTargetTicket?: Ticket | null;
   onRepawnCreated?: (
     ticket: Ticket,
@@ -37,6 +38,7 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
   focusTicketNumber,
   focusRequestId,
   refreshKey = 0,
+  activationKey = 0,
   transactionTargetTicket,
   onRepawnCreated,
   onLoadItemsToTransaction,
@@ -46,6 +48,7 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
     focusTicketNumber,
     focusRequestId,
     refreshKey,
+    activationKey,
     transactionTargetTicket,
     onRepawnCreated,
     onLoadItemsToTransaction,
@@ -110,6 +113,7 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
           tickets={tickets}
           selectedTicket={selectedTicket}
           loading={ticketsLoading}
+          scrollRequestKey={state.ticketScrollRequestKey}
           onSelectTicket={(ticket) => {
             actions.setSelectedTicket(ticket);
             actions.setStatusMessage("");

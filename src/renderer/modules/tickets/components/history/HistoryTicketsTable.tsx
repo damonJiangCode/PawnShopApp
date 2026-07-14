@@ -14,6 +14,7 @@ interface HistoryTicketsTableProps {
   tickets: Ticket[];
   selectedTicket?: Ticket | null;
   loading?: boolean;
+  scrollRequestKey?: number;
   onSelectTicket: (ticket: Ticket | null) => void;
 }
 
@@ -37,9 +38,11 @@ const HistoryTicketsTable: React.FC<HistoryTicketsTableProps> = ({
   tickets,
   selectedTicket,
   loading = false,
+  scrollRequestKey = 0,
   onSelectTicket,
 }) => {
   const apiRef = useGridApiRef();
+  const lastScrollTargetRef = React.useRef("");
   const columns = useMemo<GridColDef[]>(
     () => [
       {
@@ -158,13 +161,26 @@ const HistoryTicketsTable: React.FC<HistoryTicketsTableProps> = ({
         )
       : -1;
     const targetIndex = selectedIndex >= 0 ? selectedIndex : tickets.length - 1;
+    const scrollTargetKey = `${scrollRequestKey}:${targetIndex}`;
 
-    const timeoutId = window.setTimeout(() => {
+    if (lastScrollTargetRef.current === scrollTargetKey) {
+      return;
+    }
+
+    lastScrollTargetRef.current = scrollTargetKey;
+
+    const scrollToTarget = () => {
       apiRef.current.scrollToIndexes({ rowIndex: targetIndex });
-    }, 0);
+    };
 
-    return () => window.clearTimeout(timeoutId);
-  }, [apiRef, selectedTicket?.ticket_number, tickets]);
+    const animationFrameId = window.requestAnimationFrame(scrollToTarget);
+    const timeoutId = window.setTimeout(scrollToTarget, 80);
+
+    return () => {
+      window.cancelAnimationFrame(animationFrameId);
+      window.clearTimeout(timeoutId);
+    };
+  }, [apiRef, scrollRequestKey, selectedTicket?.ticket_number, tickets]);
 
   return (
     <DataGrid

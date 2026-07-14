@@ -147,7 +147,7 @@ const windowApi = {
   openItemSearchWindow: () => invoke(CHANNELS.OPEN_ITEM_SEARCH_WINDOW),
   openItemLoadWindow: (payload) =>
     invoke(CHANNELS.OPEN_ITEM_LOAD_WINDOW, payload),
-  loadItemLoadWindowPayload: (requestId) =>
+  loadItemLoadWindowData: (requestId) =>
     invoke(CHANNELS.GET_ITEM_LOAD_WINDOW_PAYLOAD, requestId),
   submitItemLoadWindow: (requestId, selectedItemIds) =>
     invoke(CHANNELS.SUBMIT_ITEM_LOAD_WINDOW, requestId, selectedItemIds),

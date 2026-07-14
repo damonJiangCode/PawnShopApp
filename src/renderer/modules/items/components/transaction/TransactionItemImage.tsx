@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import type { Item } from "../../../../../shared/types/Item";
+import { getImageDataUrl } from "../../../../shared/utils/imageDataUrl";
 import { itemService } from "../../item.api";
 
 interface TransactionItemImageProps {
@@ -23,7 +24,7 @@ const TransactionItemImage: React.FC<TransactionItemImageProps> = (props) => {
 
     itemService.loadItemImage(selectedItem.image_path).then((base64) => {
       if (active && base64) {
-        setImageSrc(`data:image/png;base64,${base64}`);
+        setImageSrc(getImageDataUrl(base64, selectedItem.image_path));
       }
     }).catch((err) => {
       console.error("Failed to load item image", err);
