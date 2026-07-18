@@ -1,6 +1,13 @@
 import React, { useMemo } from "react";
+import { Box, IconButton, Typography } from "@mui/material";
+import {
+  FirstPage,
+  KeyboardArrowLeft,
+  KeyboardArrowRight,
+  LastPage,
+} from "@mui/icons-material";
 import { DataGrid, useGridApiRef } from "@mui/x-data-grid";
-import type { GridColDef } from "@mui/x-data-grid";
+import type { GridColDef, GridPaginationModel } from "@mui/x-data-grid";
 import type { Ticket } from "../../../../../shared/types/Ticket";
 import CellTooltip from "../../../../shared/ui/CellTooltip";
 import {
@@ -17,6 +24,8 @@ interface HistoryTicketsTableProps {
   scrollRequestKey?: number;
   onSelectTicket: (ticket: Ticket | null) => void;
 }
+
+const HISTORY_PAGE_SIZE = 100;
 
 const getHistoryStatusLabel = (ticket: Ticket) => {
   if (ticket.is_stolen) {
@@ -43,6 +52,84 @@ const HistoryTicketsTable: React.FC<HistoryTicketsTableProps> = ({
 }) => {
   const apiRef = useGridApiRef();
   const lastScrollTargetRef = React.useRef("");
+  const pendingScrollIndexRef = React.useRef<number | null>(null);
+  const [paginationModel, setPaginationModel] =
+    React.useState<GridPaginationModel>({
+      page: 0,
+      pageSize: HISTORY_PAGE_SIZE,
+    });
+  const [scrollTrigger, setScrollTrigger] = React.useState(0);
+  const pageCount = Math.max(1, Math.ceil(tickets.length / HISTORY_PAGE_SIZE));
+  const currentPage = Math.min(paginationModel.page, pageCount - 1);
+
+  const setPage = (page: number) => {
+    setPaginationModel({
+      page: Math.min(Math.max(page, 0), pageCount - 1),
+      pageSize: HISTORY_PAGE_SIZE,
+    });
+  };
+
+  const CompactFooter = () => (
+    <Box
+      sx={{
+        height: 28,
+        minHeight: 28,
+        px: 0.5,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "flex-end",
+        gap: 0.25,
+        borderTop: "1px solid #ddd",
+        boxSizing: "border-box",
+      }}
+    >
+      <IconButton
+        size="small"
+        disabled={currentPage <= 0}
+        onClick={() => setPage(0)}
+        sx={{ width: 24, height: 24, p: 0 }}
+      >
+        <FirstPage fontSize="inherit" />
+      </IconButton>
+      <IconButton
+        size="small"
+        disabled={currentPage <= 0}
+        onClick={() => setPage(currentPage - 1)}
+        sx={{ width: 24, height: 24, p: 0 }}
+      >
+        <KeyboardArrowLeft fontSize="inherit" />
+      </IconButton>
+      <Typography
+        component="span"
+        sx={{
+          minWidth: 40,
+          textAlign: "center",
+          fontSize: 12,
+          lineHeight: "24px",
+          color: "text.secondary",
+        }}
+      >
+        {currentPage + 1} / {pageCount}
+      </Typography>
+      <IconButton
+        size="small"
+        disabled={currentPage >= pageCount - 1}
+        onClick={() => setPage(currentPage + 1)}
+        sx={{ width: 24, height: 24, p: 0 }}
+      >
+        <KeyboardArrowRight fontSize="inherit" />
+      </IconButton>
+      <IconButton
+        size="small"
+        disabled={currentPage >= pageCount - 1}
+        onClick={() => setPage(pageCount - 1)}
+        sx={{ width: 24, height: 24, p: 0 }}
+      >
+        <LastPage fontSize="inherit" />
+      </IconButton>
+    </Box>
+  );
+
   const columns = useMemo<GridColDef[]>(
     () => [
       {
@@ -161,26 +248,48 @@ const HistoryTicketsTable: React.FC<HistoryTicketsTableProps> = ({
         )
       : -1;
     const targetIndex = selectedIndex >= 0 ? selectedIndex : tickets.length - 1;
-    const scrollTargetKey = `${scrollRequestKey}:${targetIndex}`;
+    const targetPage = Math.floor(targetIndex / HISTORY_PAGE_SIZE);
+    const targetPageIndex = targetIndex - targetPage * HISTORY_PAGE_SIZE;
+    const scrollTargetKey = `${scrollRequestKey}:${targetPage}:${targetPageIndex}`;
 
     if (lastScrollTargetRef.current === scrollTargetKey) {
       return;
     }
 
     lastScrollTargetRef.current = scrollTargetKey;
+    pendingScrollIndexRef.current = targetPageIndex;
 
+    setPaginationModel((prev) =>
+      prev.page === targetPage && prev.pageSize === HISTORY_PAGE_SIZE
+        ? prev
+        : { page: targetPage, pageSize: HISTORY_PAGE_SIZE },
+    );
+    setScrollTrigger((prev) => prev + 1);
+  }, [scrollRequestKey, selectedTicket?.ticket_number, tickets]);
+
+  React.useEffect(() => {
+    if (pendingScrollIndexRef.current === null) {
+      return;
+    }
+
+    const targetPageIndex = pendingScrollIndexRef.current;
+    pendingScrollIndexRef.current = null;
     const scrollToTarget = () => {
-      apiRef.current.scrollToIndexes({ rowIndex: targetIndex });
+      apiRef.current.scrollToIndexes({
+        rowIndex: targetPageIndex,
+      });
     };
 
     const animationFrameId = window.requestAnimationFrame(scrollToTarget);
     const timeoutId = window.setTimeout(scrollToTarget, 80);
+    const secondTimeoutId = window.setTimeout(scrollToTarget, 180);
 
     return () => {
       window.cancelAnimationFrame(animationFrameId);
       window.clearTimeout(timeoutId);
+      window.clearTimeout(secondTimeoutId);
     };
-  }, [apiRef, scrollRequestKey, selectedTicket?.ticket_number, tickets]);
+  }, [apiRef, paginationModel.page, paginationModel.pageSize, scrollTrigger]);
 
   return (
     <DataGrid
@@ -190,6 +299,15 @@ const HistoryTicketsTable: React.FC<HistoryTicketsTableProps> = ({
       rows={tickets}
       columns={columns}
       getRowId={(row) => row.ticket_number}
+      paginationModel={paginationModel}
+      onPaginationModelChange={(model) => {
+        setPaginationModel({
+          page: model.page,
+          pageSize: HISTORY_PAGE_SIZE,
+        });
+      }}
+      pageSizeOptions={[HISTORY_PAGE_SIZE]}
+      slots={{ footer: CompactFooter }}
       rowSelectionModel={
         selectedTicket?.ticket_number ? [selectedTicket.ticket_number] : []
       }
@@ -204,7 +322,6 @@ const HistoryTicketsTable: React.FC<HistoryTicketsTableProps> = ({
       disableColumnFilter
       disableColumnSelector
       disableDensitySelector
-      hideFooter
       localeText={{ noRowsLabel: "No tickets" }}
       sx={{
         border: "1px solid #ccc",

@@ -9,7 +9,7 @@ import {
 } from "../components/transaction/TransactionItemsTable";
 import { useItemLoadWindow } from "./useItemLoadWindow";
 
-const ItemLoadWindowApp: React.FC = () => {
+const ItemLoadWindow: React.FC = () => {
   const { state, actions } = useItemLoadWindow();
   const { payload, selectionModel, previewItem, blockedItemCount, error } =
     state;
@@ -181,4 +181,4 @@ const ItemLoadWindowApp: React.FC = () => {
   );
 };
 
-export default ItemLoadWindowApp;
+export default ItemLoadWindow;

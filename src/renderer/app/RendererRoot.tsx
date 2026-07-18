@@ -9,9 +9,7 @@ const windowApps: Record<string, ComponentType> = {
   host: WindowHostApp,
 };
 
-const resolveRendererApp = (
-  search = window.location.search,
-): ComponentType => {
+const resolveRendererApp = (search = window.location.search): ComponentType => {
   const windowKey = new URLSearchParams(search).get(WINDOW_QUERY_PARAM);
 
   if (!windowKey) {

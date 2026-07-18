@@ -68,7 +68,7 @@ const paymentTableSx = {
   },
 };
 
-const PaymentWindowApp: React.FC = () => {
+const PaymentWindow: React.FC = () => {
   const { state, actions } = usePaymentWindow();
   const {
     mode,
@@ -416,4 +416,4 @@ const PaymentWindowApp: React.FC = () => {
   );
 };
 
-export default PaymentWindowApp;
+export default PaymentWindow;
