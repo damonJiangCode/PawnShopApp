@@ -17,7 +17,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import MenuActionLayout from "../../../shared/menu-action/MenuActionLayout";
+import MenuWindowLayout from "../../../shared/layout/MenuWindowLayout";
 import type { WindowHostScreenProps } from "../../../app/window-host/windowHostRegistry";
 import type { TicketSearchResult } from "../../../../shared/types/ticketApiTypes";
 import type { TicketFormError } from "../ticket.api";
@@ -169,7 +169,7 @@ const TicketStolenWindow: React.FC<WindowHostScreenProps> = () => {
   };
 
   return (
-    <MenuActionLayout
+    <MenuWindowLayout
       title="Mark Ticket Stolen"
       description="Search a ticket, confirm the details, then mark it stolen."
     >
@@ -314,7 +314,7 @@ const TicketStolenWindow: React.FC<WindowHostScreenProps> = () => {
           </DialogActions>
         </Dialog>
       </Stack>
-    </MenuActionLayout>
+    </MenuWindowLayout>
   );
 };
 

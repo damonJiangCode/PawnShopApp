@@ -10,7 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import MenuActionLayout from "../../../shared/menu-action/MenuActionLayout";
+import MenuWindowLayout from "../../../shared/layout/MenuWindowLayout";
 import type { WindowHostScreenProps } from "../../../app/window-host/windowHostRegistry";
 import type { Item } from "../../../../shared/types/Item";
 import TransactionItemImage from "../components/transaction/TransactionItemImage";
@@ -233,7 +233,7 @@ const ItemSearchWindow: React.FC<WindowHostScreenProps> = () => {
   };
 
   return (
-    <MenuActionLayout
+    <MenuWindowLayout
       title="Search Item"
       description="Search by item number, or by brand/model/serial."
     >
@@ -451,7 +451,7 @@ const ItemSearchWindow: React.FC<WindowHostScreenProps> = () => {
           />
         </Box>
       </Stack>
-    </MenuActionLayout>
+    </MenuWindowLayout>
   );
 };
 

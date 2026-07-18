@@ -1,6 +1,6 @@
 import React from "react";
 import { Alert, Box } from "@mui/material";
-import MenuActionLayout from "../../shared/menu-action/MenuActionLayout";
+import MenuWindowLayout from "../../shared/layout/MenuWindowLayout";
 import { windowHostRegistry } from "./windowHostRegistry";
 
 const WindowHostApp: React.FC = () => {
@@ -8,10 +8,10 @@ const WindowHostApp: React.FC = () => {
   const screen = params.get("screen") ?? "";
   const title = params.get("title") || "Window";
   const description = params.get("description") || "";
-  const RegisteredScreen = screen ? windowHostRegistry[screen] : undefined;
+  const ScreenComponent = windowHostRegistry[screen];
 
-  if (RegisteredScreen) {
-    return <RegisteredScreen screen={screen} />;
+  if (ScreenComponent) {
+    return <ScreenComponent screen={screen} />;
   }
 
   return (
@@ -23,14 +23,14 @@ const WindowHostApp: React.FC = () => {
         boxSizing: "border-box",
       }}
     >
-      <MenuActionLayout
+      <MenuWindowLayout
         title={title}
         description={description || "No registered window screen was found."}
       >
         <Alert severity="warning">
           This window screen is not registered in the window host registry.
         </Alert>
-      </MenuActionLayout>
+      </MenuWindowLayout>
     </Box>
   );
 };

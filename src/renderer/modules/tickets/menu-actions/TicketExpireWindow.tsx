@@ -17,7 +17,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import MenuActionLayout from "../../../shared/menu-action/MenuActionLayout";
+import MenuWindowLayout from "../../../shared/layout/MenuWindowLayout";
 import type { WindowHostScreenProps } from "../../../app/window-host/windowHostRegistry";
 import type { TicketSearchResult } from "../../../../shared/types/ticketApiTypes";
 import type { TicketFormError } from "../ticket.api";
@@ -180,7 +180,7 @@ const TicketExpireWindow: React.FC<WindowHostScreenProps> = () => {
   };
 
   return (
-    <MenuActionLayout
+    <MenuWindowLayout
       title="Expire Ticket"
       description="Search tickets, confirm the details, then expire them."
     >
@@ -325,7 +325,7 @@ const TicketExpireWindow: React.FC<WindowHostScreenProps> = () => {
           </DialogActions>
         </Dialog>
       </Stack>
-    </MenuActionLayout>
+    </MenuWindowLayout>
   );
 };
 

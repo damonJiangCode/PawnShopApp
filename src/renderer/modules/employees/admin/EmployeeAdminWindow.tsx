@@ -13,7 +13,7 @@ import {
   employeeService,
   type EmployeeSearchInput,
 } from "../employee.api";
-import MenuActionLayout from "../../../shared/menu-action/MenuActionLayout";
+import MenuWindowLayout from "../../../shared/layout/MenuWindowLayout";
 import type { WindowHostScreenProps } from "../../../app/window-host/windowHostRegistry";
 import EmployeeAddEditDialog from "./EmployeeAddEditDialog";
 
@@ -133,7 +133,7 @@ const EmployeeAdminWindow: React.FC<WindowHostScreenProps> = () => {
   };
 
   return (
-    <MenuActionLayout
+    <MenuWindowLayout
       title="Edit Employee"
       description="Search employees by first name and last name, then update employee information."
     >
@@ -316,7 +316,7 @@ const EmployeeAdminWindow: React.FC<WindowHostScreenProps> = () => {
           }}
         />
       </Stack>
-    </MenuActionLayout>
+    </MenuWindowLayout>
   );
 };
 

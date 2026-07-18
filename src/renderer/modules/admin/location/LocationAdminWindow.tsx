@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import type { Location } from "../../../../shared/types/location";
 import { ticketService } from "../../tickets/ticket.api";
-import MenuActionLayout from "../../../shared/menu-action/MenuActionLayout";
+import MenuWindowLayout from "../../../shared/layout/MenuWindowLayout";
 import type { WindowHostScreenProps } from "../../../app/window-host/windowHostRegistry";
 import LocationAddDialog from "./LocationAddDialog";
 
@@ -132,7 +132,7 @@ const LocationAdminWindow: React.FC<WindowHostScreenProps> = () => {
   const activeCount = locations.filter((location) => location.is_active).length;
 
   return (
-    <MenuActionLayout
+    <MenuWindowLayout
       title="Location"
       description="Add storage locations and deactivate locations that should no longer be selected."
     >
@@ -290,7 +290,7 @@ const LocationAdminWindow: React.FC<WindowHostScreenProps> = () => {
           }}
         />
       </Stack>
-    </MenuActionLayout>
+    </MenuWindowLayout>
   );
 };
 

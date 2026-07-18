@@ -1,9 +1,9 @@
 import React from "react";
-import MenuActionLayout from "../../../shared/menu-action/MenuActionLayout";
+import MenuWindowLayout from "../../../shared/layout/MenuWindowLayout";
 import type { WindowHostScreenProps } from "../../../app/window-host/windowHostRegistry";
 
 const PoliceXmlWindow: React.FC<WindowHostScreenProps> = () => (
-  <MenuActionLayout
+  <MenuWindowLayout
     title="Police XML / BWI"
     description="Generate the daily police XML file."
   />

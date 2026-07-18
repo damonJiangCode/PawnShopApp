@@ -1,6 +1,6 @@
 import React from "react";
 import { Alert, Box, Button, Stack, TextField } from "@mui/material";
-import MenuActionLayout from "../../../shared/menu-action/MenuActionLayout";
+import MenuWindowLayout from "../../../shared/layout/MenuWindowLayout";
 import type { WindowHostScreenProps } from "../../../app/window-host/windowHostRegistry";
 import { ticketService } from "../ticket.api";
 
@@ -78,7 +78,7 @@ const TicketSearchWindow: React.FC<WindowHostScreenProps> = () => {
   };
 
   return (
-    <MenuActionLayout
+    <MenuWindowLayout
       title="Search Ticket"
       description="Search tickets by ticket number."
     >
@@ -118,7 +118,7 @@ const TicketSearchWindow: React.FC<WindowHostScreenProps> = () => {
           Found tickets will open on Transaction or History automatically.
         </Alert>
       </Box>
-    </MenuActionLayout>
+    </MenuWindowLayout>
   );
 };
 

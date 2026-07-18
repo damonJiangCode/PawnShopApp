@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import type { HairColor } from "../../../../../shared/types/hairColor";
 import { clientService } from "../../../clients/client.api";
-import MenuActionLayout from "../../../../shared/menu-action/MenuActionLayout";
+import MenuWindowLayout from "../../../../shared/layout/MenuWindowLayout";
 import type { WindowHostScreenProps } from "../../../../app/window-host/windowHostRegistry";
 import ColorAddDialog from "../color/ColorAddDialog";
 
@@ -149,7 +149,7 @@ const HairColorAdminWindow: React.FC<WindowHostScreenProps> = () => {
   const activeCount = colors.filter((color) => color.is_active).length;
 
   return (
-    <MenuActionLayout
+    <MenuWindowLayout
       title="Hair Color"
       description="Search, add, or deactivate hair color options."
     >
@@ -299,7 +299,7 @@ const HairColorAdminWindow: React.FC<WindowHostScreenProps> = () => {
           }}
         />
       </Stack>
-    </MenuActionLayout>
+    </MenuWindowLayout>
   );
 };
 

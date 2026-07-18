@@ -23,7 +23,7 @@ import {
   formatIsoDate,
   formatIsoDateTime,
 } from "../../../shared/utils/formatters";
-import MenuActionLayout from "../../../shared/menu-action/MenuActionLayout";
+import MenuWindowLayout from "../../../shared/layout/MenuWindowLayout";
 import type { WindowHostScreenProps } from "../../../app/window-host/windowHostRegistry";
 
 const InterestReportWindow: React.FC<WindowHostScreenProps> = () => {
@@ -64,7 +64,7 @@ const InterestReportWindow: React.FC<WindowHostScreenProps> = () => {
   const rows = report?.rows ?? [];
 
   return (
-    <MenuActionLayout
+    <MenuWindowLayout
       title="Interest Report"
       description="Generate interest payment records."
     >
@@ -205,7 +205,7 @@ const InterestReportWindow: React.FC<WindowHostScreenProps> = () => {
           </Stack>
         </Box>
       </Box>
-    </MenuActionLayout>
+    </MenuWindowLayout>
   );
 };
 

@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import type { HolidayDate } from "../../../../shared/types/holidayDate";
 import { ticketService } from "../../tickets/ticket.api";
-import MenuActionLayout from "../../../shared/menu-action/MenuActionLayout";
+import MenuWindowLayout from "../../../shared/layout/MenuWindowLayout";
 import type { WindowHostScreenProps } from "../../../app/window-host/windowHostRegistry";
 import HolidayAddDialog from "./HolidayAddDialog";
 
@@ -138,7 +138,7 @@ const HolidayAdminWindow: React.FC<WindowHostScreenProps> = () => {
   const busy = loading || Boolean(removingDate);
 
   return (
-    <MenuActionLayout
+    <MenuWindowLayout
       title="Holiday"
       description="Search holidays by year, add new dates, or remove existing dates."
     >
@@ -284,7 +284,7 @@ const HolidayAdminWindow: React.FC<WindowHostScreenProps> = () => {
           }}
         />
       </Stack>
-    </MenuActionLayout>
+    </MenuWindowLayout>
   );
 };
 
