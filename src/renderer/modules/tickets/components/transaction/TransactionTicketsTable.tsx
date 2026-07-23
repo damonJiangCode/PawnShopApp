@@ -122,6 +122,21 @@ const TransactionTicketsTable: React.FC<TransactionTicketsTableProps> = ({
         ),
     },
     {
+      field: "pickup_amount_display",
+      headerName: "PK AMT",
+      width: 92,
+      valueGetter: (_value, row: Ticket) =>
+        row.status === "sold"
+          ? null
+          : row.amount + calculation.getBaseIntAmt(row.amount),
+      renderCell: (params) =>
+        params.row.status === "sold" ? (
+          <CellTooltip value={null} fallback="---" />
+        ) : (
+          <CellTooltip value={formatCurrency(params.value)} fallback="---" />
+        ),
+    },
+    {
       field: "interested_datetime",
       headerName: "INT DATE",
       width: 110,
