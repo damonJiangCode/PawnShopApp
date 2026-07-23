@@ -1,4 +1,4 @@
-import type { Ticket } from "./Ticket.ts";
+import type { Ticket } from "./ticket.model.ts";
 
 export interface Item {
   item_number: number;

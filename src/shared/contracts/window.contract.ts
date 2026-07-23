@@ -1,10 +1,11 @@
-import type { Item } from "./Item.ts";
+import type { Item } from "../models/item.model.ts";
 
 export type ItemLoadWindowData = {
   title: string;
   description?: string;
   actionLabel: string;
   items: Item[];
+  mode?: "repawn" | "load";
 };
 
 export type OpenPaymentWindowInput = {

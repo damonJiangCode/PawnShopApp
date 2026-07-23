@@ -1,6 +1,6 @@
-import type { Ticket } from "../types/Ticket.ts";
-import type { HolidayDate, SaveHolidayInput } from "../types/holidayDate.ts";
-import type { Location, SaveLocationInput } from "../types/location.ts";
+import type { Ticket } from "../models/ticket.model.ts";
+import type { HolidayDate } from "../models/holiday-date.model.ts";
+import type { Location } from "../models/location.model.ts";
 import type {
   ConvertTicketInput,
   BuybackReportResult,
@@ -16,33 +16,37 @@ import type {
   TransferTicketInput,
   TransferTicketPreview,
   UpdateTicketInput,
-} from "../types/ticketApiTypes.ts";
+  SaveHolidayInput,
+  SaveLocationInput,
+} from "../contracts/ticket.contract.ts";
 
-export type ElectronTicketApi = {
-  loadByClient: (clientNumber: number) => Promise<Ticket[]>;
+export type TicketApi = {
+  loadTicketsByClient: (clientNumber: number) => Promise<Ticket[]>;
   loadHolidayDates: () => Promise<HolidayDate[]>;
   addHolidayDate: (input: SaveHolidayInput) => Promise<HolidayDate>;
   deleteHolidayDate: (holidayDate: string) => Promise<HolidayDate>;
   loadLocations: () => Promise<string[]>;
-  loadAdminLocations: () => Promise<Location[]>;
+  loadLocationsForAdmin: () => Promise<Location[]>;
   addLocation: (input: SaveLocationInput) => Promise<Location>;
   deactivateLocation: (location: string) => Promise<Location>;
-  searchTicket: (ticketNumber: number) => Promise<TicketSearchResult | null>;
-  searchPaymentTicket: (
+  searchTicketByNumber: (
+    ticketNumber: number,
+  ) => Promise<TicketSearchResult | null>;
+  searchPaymentTicketByNumber: (
     ticketNumber: number,
   ) => Promise<TicketSearchResult | null>;
   loadBuybackReport: (input: ReportDateInput) => Promise<BuybackReportResult>;
   loadInterestReport: (input: ReportDateInput) => Promise<InterestReportResult>;
-  createPawn: (input: CreatePawnTicketInput) => Promise<Ticket>;
-  createSell: (input: CreateSellTicketInput) => Promise<Ticket>;
-  update: (input: UpdateTicketInput) => Promise<Ticket>;
-  convert: (input: ConvertTicketInput) => Promise<Ticket>;
-  expire: (input: ExpireTicketInput) => Promise<Ticket>;
-  markStolen: (input: MarkTicketStolenInput) => Promise<Ticket>;
-  pickup: (input: PickupTicketsInput) => Promise<Ticket[]>;
-  extend: (input: ExtendTicketsInput) => Promise<Ticket[]>;
-  loadTransferPreview: (
+  createPawnTicket: (input: CreatePawnTicketInput) => Promise<Ticket>;
+  createSellTicket: (input: CreateSellTicketInput) => Promise<Ticket>;
+  updateTicket: (input: UpdateTicketInput) => Promise<Ticket>;
+  convertTicket: (input: ConvertTicketInput) => Promise<Ticket>;
+  expireTicket: (input: ExpireTicketInput) => Promise<Ticket>;
+  markTicketStolen: (input: MarkTicketStolenInput) => Promise<Ticket>;
+  pickupTickets: (input: PickupTicketsInput) => Promise<Ticket[]>;
+  extendTickets: (input: ExtendTicketsInput) => Promise<Ticket[]>;
+  loadTransferTicketPreview: (
     ticketNumber: number,
   ) => Promise<TransferTicketPreview | null>;
-  transfer: (input: TransferTicketInput) => Promise<Ticket>;
+  transferTicket: (input: TransferTicketInput) => Promise<Ticket>;
 };

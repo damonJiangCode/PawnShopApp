@@ -1,10 +1,10 @@
-import type { Item } from "../types/Item.ts";
+import type { Item } from "../models/item.model.ts";
 import type {
   ItemLoadWindowData,
   OpenPaymentWindowInput,
-} from "../types/windowApiTypes.ts";
+} from "../contracts/window.contract.ts";
 
-export type ElectronWindowApi = {
+export type WindowApi = {
   openPaymentWindow: (input: OpenPaymentWindowInput) => Promise<void>;
   openTicketSearchWindow: () => Promise<void>;
   openItemSearchWindow: () => Promise<void>;
@@ -14,6 +14,9 @@ export type ElectronWindowApi = {
   loadItemLoadWindowData: (
     requestId: string,
   ) => Promise<ItemLoadWindowData | null>;
+  subscribeToItemLoadWindowDataUpdated: (
+    callback: (requestId: string) => void,
+  ) => () => void;
   submitItemLoadWindow: (
     requestId: string,
     selectedItemIds: Array<number | string>,

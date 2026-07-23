@@ -1,13 +1,13 @@
-import type { Employee } from "../types/Employee.ts";
+import type { Employee } from "../models/employee.model.ts";
 import type {
   EmployeeSearchInput,
   SaveEmployeeInput,
-} from "../types/employeeApiTypes.ts";
+} from "../contracts/employee.contract.ts";
 
-export type ElectronEmployeeApi = {
-  create: (input: SaveEmployeeInput) => Promise<Employee>;
-  search: (input: EmployeeSearchInput) => Promise<Employee[]>;
-  update: (
+export type EmployeeApi = {
+  createEmployee: (input: SaveEmployeeInput) => Promise<Employee>;
+  searchEmployees: (input: EmployeeSearchInput) => Promise<Employee[]>;
+  updateEmployee: (
     employeeNumber: number,
     input: SaveEmployeeInput,
   ) => Promise<Employee>;

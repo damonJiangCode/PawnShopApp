@@ -1,5 +1,5 @@
-import type { Ticket } from "./Ticket.ts";
-import type { Client } from "./Client.ts";
+import type { Client } from "../models/client.model.ts";
+import type { Ticket } from "../models/ticket.model.ts";
 
 type TicketDescriptionInput = {
   description: string;
@@ -115,4 +115,14 @@ export type ExtensionTicketPaymentInput = {
 
 export type ExtendTicketsInput = {
   extensions: ExtensionTicketPaymentInput[];
+};
+
+export type SaveHolidayInput = {
+  holiday_date: string;
+  name: string;
+};
+
+export type SaveLocationInput = {
+  location: string;
+  description: string;
 };

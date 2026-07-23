@@ -1,21 +1,21 @@
-import type { Item } from "../types/Item.ts";
+import type { Item } from "../models/item.model.ts";
 import type {
   ItemCategoryOption,
   ItemSearchInput,
   SaveItemInput,
-} from "../types/itemApiTypes.ts";
+} from "../contracts/item.contract.ts";
 
-export type ElectronItemApi = {
-  loadByTicket: (ticketNumber: number) => Promise<Item[]>;
-  loadCategories: () => Promise<ItemCategoryOption[]>;
-  search: (input: ItemSearchInput) => Promise<Item[]>;
-  create: (input: SaveItemInput) => Promise<Item>;
-  update: (input: SaveItemInput) => Promise<Item>;
-  delete: (ticketNumber: number, itemNumber: number) => Promise<void>;
-  linkToTicket: (
+export type ItemApi = {
+  loadItemsByTicket: (ticketNumber: number) => Promise<Item[]>;
+  loadItemCategories: () => Promise<ItemCategoryOption[]>;
+  searchItems: (input: ItemSearchInput) => Promise<Item[]>;
+  createItem: (input: SaveItemInput) => Promise<Item>;
+  updateItem: (input: SaveItemInput) => Promise<Item>;
+  deleteItem: (ticketNumber: number, itemNumber: number) => Promise<void>;
+  linkItemsToTicket: (
     ticketNumber: number,
     itemNumbers: number[],
   ) => Promise<Item[]>;
-  saveImage: (fileName: string, base64: string) => Promise<string>;
-  loadImage: (imagePath: string) => Promise<string>;
+  saveItemImage: (fileName: string, base64: string) => Promise<string>;
+  loadItemImage: (imagePath: string) => Promise<string>;
 };

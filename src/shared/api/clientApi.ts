@@ -1,19 +1,19 @@
-import type { Client } from "../types/Client.ts";
-import type { HairColor } from "../types/hairColor.ts";
-import type { EyeColor } from "../types/eyeColor.ts";
+import type { Client } from "../models/client.model.ts";
+import type { HairColor } from "../models/hair-color.model.ts";
+import type { EyeColor } from "../models/eye-color.model.ts";
 import type {
   CitiesResponse,
   SaveClientInput,
-} from "../types/clientApiTypes.ts";
+} from "../contracts/client.contract.ts";
 
-export type ElectronClientApi = {
-  search: (firstName: string, lastName: string) => Promise<Client[]>;
-  searchByDob: (dateOfBirth: string) => Promise<Client[]>;
+export type ClientApi = {
+  searchClients: (firstName: string, lastName: string) => Promise<Client[]>;
+  searchClientsByDob: (dateOfBirth: string) => Promise<Client[]>;
   loadCities: () => Promise<CitiesResponse>;
   loadHairColors: () => Promise<string[]>;
-  loadAdminHairColors: () => Promise<HairColor[]>;
+  loadHairColorsForAdmin: () => Promise<HairColor[]>;
   loadEyeColors: () => Promise<string[]>;
-  loadAdminEyeColors: () => Promise<EyeColor[]>;
+  loadEyeColorsForAdmin: () => Promise<EyeColor[]>;
   addHairColor: (color: string) => Promise<string>;
   activateHairColor: (color: string) => Promise<HairColor>;
   deactivateHairColor: (color: string) => Promise<HairColor>;
@@ -21,9 +21,9 @@ export type ElectronClientApi = {
   activateEyeColor: (color: string) => Promise<EyeColor>;
   deactivateEyeColor: (color: string) => Promise<EyeColor>;
   loadIdTypes: () => Promise<string[]>;
-  create: (input: SaveClientInput) => Promise<Client>;
-  update: (input: SaveClientInput) => Promise<Client>;
-  delete: (clientNumber: number) => Promise<boolean>;
-  saveImage: (fileName: string, base64: string) => Promise<string>;
-  loadImage: (imagePath: string) => Promise<string>;
+  createClient: (input: SaveClientInput) => Promise<Client>;
+  updateClient: (input: SaveClientInput) => Promise<Client>;
+  deleteClient: (clientNumber: number) => Promise<boolean>;
+  saveClientImage: (fileName: string, base64: string) => Promise<string>;
+  loadClientImage: (imagePath: string) => Promise<string>;
 };

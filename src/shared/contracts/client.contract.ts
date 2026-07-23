@@ -1,4 +1,4 @@
-import type { Client, ID } from "./Client.ts";
+import type { Client, ID } from "../models/client.model.ts";
 
 export type CitiesResponse = {
   provinces: string[];
