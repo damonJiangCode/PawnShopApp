@@ -52,7 +52,7 @@ const HistoryTicketsTable: React.FC<HistoryTicketsTableProps> = ({
 }) => {
   const apiRef = useGridApiRef();
   const lastScrollTargetRef = React.useRef("");
-  const pendingScrollIndexRef = React.useRef<number | null>(null);
+  const pendingScrollRowIndexRef = React.useRef<number | null>(null);
   const [paginationModel, setPaginationModel] =
     React.useState<GridPaginationModel>({
       page: 0,
@@ -257,7 +257,7 @@ const HistoryTicketsTable: React.FC<HistoryTicketsTableProps> = ({
     }
 
     lastScrollTargetRef.current = scrollTargetKey;
-    pendingScrollIndexRef.current = targetPageIndex;
+    pendingScrollRowIndexRef.current = targetIndex;
 
     setPaginationModel((prev) =>
       prev.page === targetPage && prev.pageSize === HISTORY_PAGE_SIZE
@@ -268,26 +268,28 @@ const HistoryTicketsTable: React.FC<HistoryTicketsTableProps> = ({
   }, [scrollRequestKey, selectedTicket?.ticket_number, tickets]);
 
   React.useEffect(() => {
-    if (pendingScrollIndexRef.current === null) {
+    if (pendingScrollRowIndexRef.current === null) {
       return;
     }
 
-    const targetPageIndex = pendingScrollIndexRef.current;
-    pendingScrollIndexRef.current = null;
+    const targetRowIndex = pendingScrollRowIndexRef.current;
+    pendingScrollRowIndexRef.current = null;
     const scrollToTarget = () => {
       apiRef.current.scrollToIndexes({
-        rowIndex: targetPageIndex,
+        rowIndex: targetRowIndex,
       });
     };
 
     const animationFrameId = window.requestAnimationFrame(scrollToTarget);
     const timeoutId = window.setTimeout(scrollToTarget, 80);
     const secondTimeoutId = window.setTimeout(scrollToTarget, 180);
+    const finalTimeoutId = window.setTimeout(scrollToTarget, 320);
 
     return () => {
       window.cancelAnimationFrame(animationFrameId);
       window.clearTimeout(timeoutId);
       window.clearTimeout(secondTimeoutId);
+      window.clearTimeout(finalTimeoutId);
     };
   }, [apiRef, paginationModel.page, paginationModel.pageSize, scrollTrigger]);
 
