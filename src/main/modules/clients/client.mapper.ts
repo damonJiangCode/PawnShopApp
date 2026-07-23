@@ -20,6 +20,9 @@ export const mapRowToClient = (row: Record<string, unknown>): Client => ({
   phone: String(row.phone ?? ""),
   notes: String(row.notes ?? ""),
   image_path: String(row.image_path ?? ""),
+  image_updated_at: row.image_updated_at
+    ? (row.image_updated_at as Date)
+    : null,
   pickup_self_only: Boolean(row.pickup_self_only),
   updated_at: row.updated_at as Date,
   redeem_count: Number(row.redeem_count ?? 0),

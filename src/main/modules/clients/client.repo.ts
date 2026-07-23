@@ -116,13 +116,14 @@ export const clientRepo = {
         phone,
         notes,
         image_path,
+        image_updated_at,
         pickup_self_only,
         redeem_count,
         sell_count,
         expire_count,
         overdue_count
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24
       )
       RETURNING client_number, updated_at
     `;
@@ -146,6 +147,7 @@ export const clientRepo = {
       toDbNullable(clientData.phone),
       toDbNullable(clientData.notes),
       toDbNullable(clientData.image_path),
+      clientData.image_updated_at ?? null,
       Boolean(clientData.pickup_self_only),
       clientData.redeem_count ?? 0,
       clientData.sell_count ?? 0,
@@ -198,13 +200,14 @@ export const clientRepo = {
         phone = $16,
         notes = $17,
         image_path = $18,
-        pickup_self_only = $19,
-        redeem_count = $20,
-        sell_count = $21,
-        expire_count = $22,
-        overdue_count = $23,
+        image_updated_at = $19,
+        pickup_self_only = $20,
+        redeem_count = $21,
+        sell_count = $22,
+        expire_count = $23,
+        overdue_count = $24,
         updated_at = CURRENT_TIMESTAMP
-      WHERE client_number = $24
+      WHERE client_number = $25
       RETURNING updated_at
     `;
 
@@ -227,6 +230,7 @@ export const clientRepo = {
       toDbNullable(clientData.phone),
       toDbNullable(clientData.notes),
       toDbNullable(clientData.image_path),
+      clientData.image_updated_at ?? null,
       Boolean(clientData.pickup_self_only),
       clientData.redeem_count ?? 0,
       clientData.sell_count ?? 0,
@@ -264,6 +268,7 @@ export const clientRepo = {
         `
           UPDATE client
           SET image_path = $1,
+              image_updated_at = COALESCE(image_updated_at, CURRENT_TIMESTAMP),
               updated_at = CURRENT_TIMESTAMP
           WHERE client_number = $2
         `,

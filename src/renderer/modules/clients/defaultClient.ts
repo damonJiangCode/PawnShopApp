@@ -26,6 +26,7 @@ const defaultClient: Client = {
   phone: "",
   notes: "",
   image_path: "",
+  image_updated_at: null,
   pickup_self_only: false,
   updated_at: new Date(""),
   redeem_count: 0,

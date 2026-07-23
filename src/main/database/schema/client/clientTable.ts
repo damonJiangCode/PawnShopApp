@@ -19,6 +19,7 @@ export const createClientTable = `
     phone TEXT,
     notes TEXT,
     image_path TEXT NOT NULL,
+    image_updated_at TIMESTAMPTZ,
     pickup_self_only BOOLEAN NOT NULL DEFAULT FALSE,
     redeem_count INTEGER NOT NULL DEFAULT 0 CHECK (redeem_count >= 0),
     sell_count INTEGER NOT NULL DEFAULT 0 CHECK (sell_count >= 0),

@@ -133,7 +133,11 @@ const ClientAddEditDialog: React.FC<ClientAddEditDialogProps> = (props) => {
   ): Promise<void> {
     try {
       const relPath = await clientService.saveClientImage(fileName, base64);
-      setClient((prev) => ({ ...prev, image_path: relPath }));
+      setClient((prev) => ({
+        ...prev,
+        image_path: relPath,
+        image_updated_at: new Date(),
+      }));
       setPhotoCaptured(true);
       clearValidationError("photo");
     } catch (error) {
