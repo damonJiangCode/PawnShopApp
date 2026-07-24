@@ -1,0 +1,1 @@
+export const TICKET_ACTIONS_PANEL_WIDTH = 148;

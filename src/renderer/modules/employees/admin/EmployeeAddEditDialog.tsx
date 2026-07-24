@@ -12,7 +12,7 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-import type { Employee } from "../../../../shared/types/Employee";
+import type { Employee } from "../../../../shared/models/employee.model";
 import {
   employeeService,
   type SaveEmployeeInput,

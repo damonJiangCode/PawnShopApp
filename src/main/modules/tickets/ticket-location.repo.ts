@@ -1,8 +1,6 @@
 import { connect } from "../../database/connection.ts";
-import type {
-  Location,
-  SaveLocationInput,
-} from "../../../shared/types/location.ts";
+import type { Location } from "../../../shared/models/location.model.ts";
+import type { SaveLocationInput } from "../../../shared/contracts/ticket.contract.ts";
 
 const mapLocationRow = (row: Record<string, unknown>): Location => ({
   location: String(row.location),
@@ -28,7 +26,7 @@ export const ticketLocationRepo = {
     }
   },
 
-  loadAdminLocations: async (): Promise<Location[]> => {
+  loadLocationsForAdmin: async (): Promise<Location[]> => {
     const client = await connect();
     const query = `
       SELECT location, description, is_active

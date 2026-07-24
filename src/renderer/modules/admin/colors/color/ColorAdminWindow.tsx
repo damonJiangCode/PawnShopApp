@@ -9,8 +9,8 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import type { EyeColor } from "../../../../../shared/types/eyeColor";
-import MenuWindowLayout from "../../../../shared/layout/MenuWindowLayout";
+import type { EyeColor } from "../../../../../shared/models/eye-color.model";
+import WindowLayout from "../../../../windows/WindowLayout";
 import ColorAddDialog from "./ColorAddDialog";
 
 type ColorAdminWindowProps = {
@@ -163,7 +163,7 @@ const ColorAdminWindow: React.FC<ColorAdminWindowProps> = ({
   const activeCount = colors.filter((color) => color.is_active).length;
 
   return (
-    <MenuWindowLayout
+    <WindowLayout
       title={`${colorType} Color`}
       description={`Search, add, or deactivate ${colorType.toLowerCase()} color options.`}
     >
@@ -324,7 +324,7 @@ const ColorAdminWindow: React.FC<ColorAdminWindowProps> = ({
           }}
         />
       </Stack>
-    </MenuWindowLayout>
+    </WindowLayout>
   );
 };
 

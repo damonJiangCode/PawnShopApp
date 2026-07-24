@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Button, Typography } from "@mui/material";
-import type { Client } from "../../../../../../shared/types/Client";
+import type { Client } from "../../../../../../shared/models/client.model";
 import { clientService } from "../../../client.api";
 import { getClientImageDataUrl } from "../../../hooks/useClientImage";
 

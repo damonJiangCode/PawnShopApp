@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import type { Client } from "../../../shared/types/Client";
-import type { Item } from "../../../shared/types/Item";
-import type { Ticket } from "../../../shared/types/Ticket";
-import type { TransactionItemLoadRequest } from "../../modules/transactions/pages/TransactionPage";
-import { itemService } from "../../modules/items/item.api";
-import { windowService } from "../../shared/api/window.api";
+import type { Client } from "../../shared/models/client.model";
+import type { Item } from "../../shared/models/item.model";
+import type { Ticket } from "../../shared/models/ticket.model";
+import type { TransactionItemLoadRequest } from "../modules/transactions/pages/TransactionPage";
+import { itemService } from "../modules/items/item.api";
+import { getAppApi } from "../shared/api/app.api";
 
 type SearchParams = {
   firstName: string;
@@ -294,7 +294,7 @@ export const useMainLayout = () => {
   };
 
   const handlePayment = () => {
-    void windowService.openPaymentWindow({
+    void getAppApi()?.window.openPaymentWindow({
       clientNumber: selectedClient?.client_number,
       clientLastName: selectedClient?.last_name,
       clientFirstName: selectedClient?.first_name,
@@ -302,11 +302,11 @@ export const useMainLayout = () => {
   };
 
   const handleOpenTicketSearch = () => {
-    void windowService.openTicketSearchWindow();
+    void getAppApi()?.window.openTicketSearchWindow();
   };
 
   const handleOpenItemSearch = () => {
-    void windowService.openItemSearchWindow();
+    void getAppApi()?.window.openItemSearchWindow();
   };
 
   const handleClientSoldTicket = () => {

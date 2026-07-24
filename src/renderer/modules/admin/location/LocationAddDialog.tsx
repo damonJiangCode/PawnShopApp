@@ -9,10 +9,8 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-import type {
-  Location,
-  SaveLocationInput,
-} from "../../../../shared/types/location";
+import type { Location } from "../../../../shared/models/location.model";
+import type { SaveLocationInput } from "../../../../shared/contracts/ticket.contract";
 import { ticketService } from "../../tickets/ticket.api";
 
 type LocationAddDialogProps = {

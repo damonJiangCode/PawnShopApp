@@ -9,7 +9,7 @@ import {
   DialogContent,
   FormControlLabel,
 } from "@mui/material";
-import type { Client } from "../../../../../shared/types/Client";
+import type { Client } from "../../../../../shared/models/client.model";
 import ClientPhotoCapture from "./fields/ClientPhotoCapture";
 import HeightWeightFields from "./fields/HeightWeightFields";
 import NameFields from "./fields/NameFields";

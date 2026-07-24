@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
-import type { Client } from "../../../../../shared/types/Client";
-import ItemActionsLayout from "../../../../shared/layout/ItemActionsLayout";
+import type { Client } from "../../../../../shared/models/client.model";
+import ClientActionsLayout from "./shared/ClientActionsLayout";
 import ClientAddEditDialog from "../dialogs/ClientAddEditDialog";
 
 interface ClientActionsProps {
@@ -21,7 +21,7 @@ const ClientActions: React.FC<ClientActionsProps> = ({
 
   return (
     <>
-      <ItemActionsLayout
+      <ClientActionsLayout
         actions={[
           {
             label: "Add Client",

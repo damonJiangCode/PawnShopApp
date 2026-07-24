@@ -1,5 +1,5 @@
 import type { GridColDef } from "@mui/x-data-grid";
-import CellTooltip from "../../../shared/ui/CellTooltip";
+import CellTooltip from "../../../shared/components/CellTooltip";
 import { formatCurrency, formatIsoDate } from "../../../shared/utils/formatters";
 import type { PaymentMode, PaymentTicketRow } from "./payment.types";
 

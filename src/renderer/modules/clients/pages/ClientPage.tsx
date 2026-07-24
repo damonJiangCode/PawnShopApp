@@ -2,9 +2,9 @@ import React from "react";
 import { Box, Paper, Typography } from "@mui/material";
 import ClientProfile from "../components/profile/ClientProfile";
 import ClientsPanel from "../components/results/ClientsPanel";
-import { CLIENT_RESULTS_HEIGHT } from "../../../shared/layout/layoutSizing";
+import { CLIENT_RESULTS_HEIGHT } from "../clientLayout";
 import defaultClient from "../defaultClient";
-import type { Client } from "../../../../shared/types/Client";
+import type { Client } from "../../../../shared/models/client.model";
 import { useClientPage } from "../hooks/useClientPage";
 
 interface ClientPageProps {

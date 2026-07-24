@@ -2,7 +2,7 @@ import type { IpcMainInvokeEvent } from "electron";
 import type {
   ItemSearchInput,
   SaveItemInput,
-} from "../../../shared/types/itemApiTypes.ts";
+} from "../../../shared/contracts/item.contract.ts";
 import { itemService } from "./item.service.ts";
 import { CHANNELS } from "../../ipc/channels.ts";
 
@@ -17,7 +17,7 @@ export const registerItemHandlers = () => {
   );
 
   ipcMain.handle(CHANNELS.GET_ITEM_CATEGORIES, async () => {
-    return itemService.loadCategories();
+    return itemService.loadItemCategories();
   });
 
   ipcMain.handle(

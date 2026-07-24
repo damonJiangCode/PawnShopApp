@@ -1,6 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
-import type { Item } from "../../../../shared/types/Item";
-import type { Ticket } from "../../../../shared/types/Ticket";
+import type { Item } from "../../../../shared/models/item.model";
+import type { Ticket } from "../../../../shared/models/ticket.model";
 import { itemService } from "../../items/item.api";
 import type { TransactionItemLoadRequest } from "../transaction.types";
 

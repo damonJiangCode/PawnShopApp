@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { Client } from "../../../../shared/types/Client";
+import type { Client } from "../../../../shared/models/client.model";
 import { clientService } from "../client.api";
 
 export const useClientSearch = (

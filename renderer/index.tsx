@@ -1,1 +1,1 @@
-import "../src/renderer/app/index.tsx";
+import "../src/renderer/boot/index.tsx";

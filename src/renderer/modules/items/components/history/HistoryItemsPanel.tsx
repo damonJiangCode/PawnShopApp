@@ -1,13 +1,13 @@
 import React from "react";
 import { Box, Paper } from "@mui/material";
-import type { Item } from "../../../../../shared/types/Item";
+import type { Item } from "../../../../../shared/models/item.model";
 import TransactionItemsTable from "../transaction/TransactionItemsTable";
 import TransactionItemImage from "../transaction/TransactionItemImage";
 import HistoryItemActions from "./HistoryItemActions";
 import {
-  ITEM_ACTIONS_PANEL_WIDTH,
-  ITEM_SIDE_PANEL_WIDTH,
-} from "../../../../shared/layout/layoutSizing";
+  SIDE_ACTIONS_PANEL_WIDTH,
+  SIDE_PANEL_WIDTH,
+} from "../../../../shared/styles/layoutSizing";
 
 interface HistoryItemsPanelProps {
   items: Item[];
@@ -57,7 +57,7 @@ const HistoryItemsPanel: React.FC<HistoryItemsPanelProps> = ({
         </Box>
         <Paper
           sx={{
-            width: ITEM_SIDE_PANEL_WIDTH,
+            width: SIDE_PANEL_WIDTH,
             minWidth: 292,
             border: "1px solid",
             borderColor: "divider",
@@ -67,7 +67,7 @@ const HistoryItemsPanel: React.FC<HistoryItemsPanelProps> = ({
             flexShrink: 0,
             boxSizing: "border-box",
             display: "grid",
-            gridTemplateColumns: `minmax(0, 1fr) ${ITEM_ACTIONS_PANEL_WIDTH}px`,
+            gridTemplateColumns: `minmax(0, 1fr) ${SIDE_ACTIONS_PANEL_WIDTH}px`,
             alignItems: "stretch",
             columnGap: 0.75,
             p: 0.75,

@@ -1,4 +1,4 @@
-import type { Ticket } from "../../../../shared/types/Ticket";
+import type { Ticket } from "../../../../shared/models/ticket.model";
 import { calculation } from "../../../../shared/utils/calculation";
 import { formatIsoDate } from "../../../shared/utils/formatters";
 import type {

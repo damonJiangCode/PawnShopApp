@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Paper } from "@mui/material";
-import type { Ticket } from "../../../../../shared/types/Ticket";
-import { TICKET_ACTIONS_PANEL_WIDTH } from "../../../../shared/layout/layoutSizing";
+import type { Ticket } from "../../../../../shared/models/ticket.model";
+import { TICKET_ACTIONS_PANEL_WIDTH } from "../../ticketLayout";
 import HistoryTicketActions from "./HistoryTicketActions";
 import HistoryTicketsTable from "./HistoryTicketsTable";
 

@@ -1,5 +1,5 @@
 import type { IpcMainInvokeEvent } from "electron";
-import type { SaveClientInput } from "../../../shared/types/clientApiTypes.ts";
+import type { SaveClientInput } from "../../../shared/contracts/client.contract.ts";
 import { clientReferenceService } from "./client-reference.service.ts";
 import { clientService } from "./client.service.ts";
 import { CHANNELS } from "../../ipc/channels.ts";
@@ -27,13 +27,13 @@ export const registerClientHandlers = () => {
     clientReferenceService.loadHairColors(),
   );
   ipcMain.handle(CHANNELS.GET_ADMIN_HAIR_COLORS, async () =>
-    clientReferenceService.loadAdminHairColors(),
+    clientReferenceService.loadHairColorsForAdmin(),
   );
   ipcMain.handle(CHANNELS.GET_EYE_COLORS, async () =>
     clientReferenceService.loadEyeColors(),
   );
   ipcMain.handle(CHANNELS.GET_ADMIN_EYE_COLORS, async () =>
-    clientReferenceService.loadAdminEyeColors(),
+    clientReferenceService.loadEyeColorsForAdmin(),
   );
   ipcMain.handle(
     CHANNELS.ADD_HAIR_COLOR,

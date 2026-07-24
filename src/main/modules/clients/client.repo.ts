@@ -1,4 +1,4 @@
-import type { Client } from "../../../shared/types/Client.ts";
+import type { Client } from "../../../shared/models/client.model.ts";
 import { connect } from "../../database/connection.ts";
 import {
   clientWithIdentificationsFromClause,

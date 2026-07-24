@@ -1,9 +1,9 @@
-import type { Employee } from "../../../shared/types/Employee";
+import type { Employee } from "../../../shared/models/employee.model";
 import type {
   EmployeeSearchInput,
   SaveEmployeeInput,
-} from "../../../shared/types/employeeApiTypes";
-import { getElectronApi } from "../../shared/api/electron.api";
+} from "../../../shared/contracts/employee.contract";
+import { getAppApi } from "../../shared/api/app.api";
 
 const normalizeEmployeeInput = (
   input: SaveEmployeeInput,
@@ -29,36 +29,36 @@ const normalizeEmployeeSearchInput = (
 
 export const employeeService = {
   createEmployee: async (input: SaveEmployeeInput): Promise<Employee> => {
-    const api = getElectronApi()?.employee;
+    const api = getAppApi()?.employee;
 
     if (!api) {
       throw new Error("Employee API is unavailable.");
     }
 
-    return api.create(normalizeEmployeeInput(input));
+    return api.createEmployee(normalizeEmployeeInput(input));
   },
 
   searchEmployees: async (input: EmployeeSearchInput): Promise<Employee[]> => {
-    const api = getElectronApi()?.employee;
+    const api = getAppApi()?.employee;
 
     if (!api) {
       throw new Error("Employee API is unavailable.");
     }
 
-    return api.search(normalizeEmployeeSearchInput(input));
+    return api.searchEmployees(normalizeEmployeeSearchInput(input));
   },
 
   updateEmployee: async (
     employeeNumber: number,
     input: SaveEmployeeInput,
   ): Promise<Employee> => {
-    const api = getElectronApi()?.employee;
+    const api = getAppApi()?.employee;
 
     if (!api) {
       throw new Error("Employee API is unavailable.");
     }
 
-    return api.update(employeeNumber, normalizeEmployeeInput(input));
+    return api.updateEmployee(employeeNumber, normalizeEmployeeInput(input));
   },
 };
 

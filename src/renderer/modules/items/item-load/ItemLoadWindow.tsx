@@ -73,11 +73,19 @@ const ItemLoadWindow: React.FC = () => {
                 height: "100%",
                 minHeight: 0,
                 display: "grid",
-                gridTemplateColumns: "minmax(0, 1fr) 240px",
+                gridTemplateColumns: "minmax(0, 1fr) 300px",
                 gap: 1.5,
+                alignItems: "stretch",
               }}
             >
-              <Box sx={{ minWidth: 0, minHeight: 0 }}>
+              <Box
+                sx={{
+                  minWidth: 0,
+                  minHeight: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
                 {blockedItemCount > 0 && (
                   <Alert severity="error" sx={{ mb: 1 }}>
                     {blockedItemCount} item(s) are already active on a pawn
@@ -109,6 +117,8 @@ const ItemLoadWindow: React.FC = () => {
                   localeText={{ noRowsLabel: "No items" }}
                   sx={{
                     ...transactionItemsTableSx,
+                    flex: 1,
+                    minHeight: 0,
                     "& .MuiDataGrid-row.item-load-row-blocked": {
                       backgroundColor: "rgba(211, 47, 47, 0.18)",
                     },
@@ -130,28 +140,21 @@ const ItemLoadWindow: React.FC = () => {
                   minHeight: 0,
                   display: "flex",
                   flexDirection: "column",
-                  gap: 1,
                 }}
               >
-                <Typography variant="subtitle2" fontWeight={700}>
-                  Item Image
-                </Typography>
-                <TransactionItemImage selectedItem={previewItem} />
-                {previewItem && (
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{
-                      overflow: "hidden",
-                      display: "-webkit-box",
-                      WebkitLineClamp: 3,
-                      WebkitBoxOrient: "vertical",
-                    }}
-                  >
-                    #{previewItem.source_item_number ?? previewItem.item_number}{" "}
-                    {previewItem.description}
-                  </Typography>
-                )}
+                <TransactionItemImage
+                  selectedItem={previewItem}
+                  objectFit="contain"
+                  showPlaceholderText={false}
+                  sx={{
+                    flex: 1,
+                    height: "100%",
+                    aspectRatio: "auto",
+                    alignSelf: "stretch",
+                    border: "1px solid #ccc",
+                    borderRadius: 0,
+                  }}
+                />
               </Box>
             </Box>
           )}

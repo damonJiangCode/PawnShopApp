@@ -8,8 +8,8 @@ import {
 } from "@mui/icons-material";
 import { DataGrid, useGridApiRef } from "@mui/x-data-grid";
 import type { GridColDef, GridPaginationModel } from "@mui/x-data-grid";
-import type { Ticket } from "../../../../../shared/types/Ticket";
-import CellTooltip from "../../../../shared/ui/CellTooltip";
+import type { Ticket } from "../../../../../shared/models/ticket.model";
+import CellTooltip from "../../../../shared/components/CellTooltip";
 import {
   formatCurrency,
   formatIsoDate,

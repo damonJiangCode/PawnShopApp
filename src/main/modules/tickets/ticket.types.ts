@@ -1,5 +1,5 @@
 import type { connect } from "../../database/connection.ts";
-import type { Ticket } from "../../../shared/types/Ticket.ts";
+import type { Ticket } from "../../../shared/models/ticket.model.ts";
 
 export type DbClient = Awaited<ReturnType<typeof connect>>;
 

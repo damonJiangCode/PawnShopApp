@@ -1,4 +1,4 @@
-import type { Client } from "../../../shared/types/Client";
+import type { Client } from "../../../shared/models/client.model";
 
 const today = new Date();
 const defaultDob = new Date(

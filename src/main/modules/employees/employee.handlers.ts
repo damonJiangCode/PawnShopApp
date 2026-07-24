@@ -2,7 +2,7 @@ import type { IpcMainInvokeEvent } from "electron";
 import type {
   EmployeeSearchInput,
   SaveEmployeeInput,
-} from "../../../shared/types/employeeApiTypes.ts";
+} from "../../../shared/contracts/employee.contract.ts";
 import { employeeService } from "./employee.service.ts";
 import { CHANNELS } from "../../ipc/channels.ts";
 

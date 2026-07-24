@@ -1,10 +1,10 @@
-import type { Item } from "../../../shared/types/Item";
+import type { Item } from "../../../shared/models/item.model";
 import type {
   ItemSearchInput,
   ItemCategoryOption,
   SaveItemInput,
-} from "../../../shared/types/itemApiTypes";
-import { getElectronApi } from "../../shared/api/electron.api";
+} from "../../../shared/contracts/item.contract";
+import { getAppApi } from "../../shared/api/app.api";
 
 let categoryCache: ItemCategoryOption[] | null = null;
 let categoryPromise: Promise<ItemCategoryOption[]> | null = null;
@@ -16,12 +16,12 @@ export const itemService = {
         return [];
       }
 
-      const api = getElectronApi()?.item;
+      const api = getAppApi()?.item;
       if (!api) {
         return [];
       }
 
-      return await api.loadByTicket(ticketNumber);
+      return await api.loadItemsByTicket(ticketNumber);
     } catch {
       return [];
     }
@@ -36,13 +36,13 @@ export const itemService = {
       return categoryPromise;
     }
 
-    const api = getElectronApi()?.item;
+    const api = getAppApi()?.item;
     if (!api) {
       categoryCache = [];
       return categoryCache;
     }
 
-    categoryPromise = api.loadCategories().then((categories) => {
+    categoryPromise = api.loadItemCategories().then((categories) => {
       categoryCache = categories;
       categoryPromise = null;
       return categories;
@@ -52,12 +52,12 @@ export const itemService = {
   },
 
   searchItems: async (input: ItemSearchInput): Promise<Item[]> => {
-    const api = getElectronApi()?.item;
+    const api = getAppApi()?.item;
     if (!api) {
       return [];
     }
 
-    return api.search({
+    return api.searchItems({
       item_number: input.item_number ? Number(input.item_number) : undefined,
       brand_name: input.brand_name?.trim() ?? "",
       model_number: input.model_number?.trim() ?? "",
@@ -66,63 +66,63 @@ export const itemService = {
   },
 
   createItem: async (payload: SaveItemInput): Promise<Item> => {
-    const api = getElectronApi()?.item;
+    const api = getAppApi()?.item;
     if (!api) {
       throw new Error("Item API is unavailable.");
     }
 
-    return api.create(payload);
+    return api.createItem(payload);
   },
 
   updateItem: async (payload: SaveItemInput): Promise<Item> => {
-    const api = getElectronApi()?.item;
+    const api = getAppApi()?.item;
     if (!api) {
       throw new Error("Item API is unavailable.");
     }
 
-    return api.update(payload);
+    return api.updateItem(payload);
   },
 
   deleteItem: async (
     ticketNumber: number,
     itemNumber: number,
   ): Promise<void> => {
-    const api = getElectronApi()?.item;
+    const api = getAppApi()?.item;
     if (!api) {
       throw new Error("Item API is unavailable.");
     }
 
-    return api.delete(ticketNumber, itemNumber);
+    return api.deleteItem(ticketNumber, itemNumber);
   },
 
   linkItemsToTicket: async (
     ticketNumber: number,
     itemNumbers: number[],
   ): Promise<Item[]> => {
-    const api = getElectronApi()?.item;
+    const api = getAppApi()?.item;
     if (!api) {
       throw new Error("Item API is unavailable.");
     }
 
-    return api.linkToTicket(ticketNumber, itemNumbers);
+    return api.linkItemsToTicket(ticketNumber, itemNumbers);
   },
 
   saveItemImage: async (fileName: string, base64: string): Promise<string> => {
-    const api = getElectronApi()?.item;
+    const api = getAppApi()?.item;
     if (!api) {
       throw new Error("Item API is unavailable.");
     }
 
-    return api.saveImage(fileName, base64);
+    return api.saveItemImage(fileName, base64);
   },
 
   loadItemImage: async (imagePath: string): Promise<string> => {
-    const api = getElectronApi()?.item;
+    const api = getAppApi()?.item;
     if (!api) {
       return "";
     }
 
-    return api.loadImage(imagePath);
+    return api.loadItemImage(imagePath);
   },
 };
 

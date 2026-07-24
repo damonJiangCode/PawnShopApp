@@ -1,100 +1,173 @@
 # Renderer Code Map
 
-This folder is the React UI side of the Electron app. It is organized by feature modules first, with shared UI and API helpers separated out.
+This folder is the React side of the app. The structure is feature-first:
+most code should live in the module that owns the screen, workflow, or data it
+is working with.
 
-## Top-Level Rule
-
-- `app/`: renderer startup, window routing, and whole-app state wiring.
-- `modules/`: feature/domain code. Put pages, windows, components, hooks, and renderer API wrappers near the feature that owns them.
-- `shared/`: reusable renderer UI, layout, formatting, and Electron API access.
-
-If a feature needs client code, start in `modules/clients`. If it needs ticket code, start in `modules/tickets`. Cross-feature pages such as transactions and history live in their own modules and import ticket/item/client components as needed.
-
-## `app/`
-
-The `app` folder is for renderer entry orchestration.
+## Top Level
 
 ```text
-app/
-  index.tsx
-  RendererRoot.tsx
-  windowRegistry.tsx
+renderer/
+  boot/
   main/
-    MainApp.tsx
-    MainLayout.tsx
-    useMainLayout.ts
-    shell/
-  window-host/
-    WindowHostApp.tsx
-    windowHostRegistry.ts
+  windows/
+  modules/
+  shared/
 ```
 
-- `index.tsx`: only mounts React into `#root`.
-- `RendererRoot.tsx`: chooses which renderer app should run.
-- `windowRegistry.tsx`: maps URL window keys to window apps.
-- `main/`: the primary app shell, layout, and shell-only UI.
-- `window-host/`: the secondary-window host and screen registry.
+- `boot/` starts the renderer and chooses whether to show the main app or a window view.
+- `main/` owns the main app shell.
+- `windows/` chooses which non-main window view to show.
+- `modules/` contains feature and workflow code.
+- `shared/` contains only renderer utilities that are truly reused across modules.
+
+## `boot/`
+
+`boot/` owns renderer startup and top-level routing.
+
+```text
+boot/
+  index.tsx
+  RendererApp.tsx
+```
+
+- `index.tsx`: mounts React into the DOM.
+- `RendererApp.tsx`: chooses `MainApp` or `WindowView` from the URL.
+
+## `main/`
+
+`main/` owns the main app shell.
+
+```text
+main/
+  MainApp.tsx
+  MainLayout.tsx
+  useMainLayout.ts
+  shell/
+```
+
+- `MainApp.tsx`: main window entry.
+- `MainLayout.tsx`: tabs, top bar, and main page layout.
+- `useMainLayout.ts`: main app state and actions.
+- `shell/`: top-bar and shell-only controls.
+
+Do not put feature business logic in `boot/` or `main/`. If logic belongs to clients,
+tickets, items, payment, history, or admin, put it in the matching module.
+
+## `windows/`
+
+`windows/` owns routing for non-main app windows.
+
+```text
+windows/
+  WindowLayout.tsx
+  WindowView.tsx
+  windowRegistry.ts
+```
+
+- `WindowLayout.tsx`: common frame for non-main app windows.
+- `WindowView.tsx`: reads the URL `screen` value and renders the matching window component.
+- `windowRegistry.ts`: maps each screen key to its component.
+
+The actual window content stays in the owning module. For example, ticket
+search lives in `modules/tickets/menu-actions`, payment lives in
+`modules/tickets/payment`, and item load lives in `modules/items/item-load`.
 
 ## `modules/`
 
-Current modules:
+Modules are either domain modules or workflow modules.
 
-- `clients/`: client API, client page hook, client profile/results/dialogs, client image/search hooks.
-- `tickets/`: ticket API, ticket dialogs, ticket tables, ticket menu screens, payment workflow.
-- `items/`: item API, item dialogs, item tables, item load screen, item search screen.
-- `transactions/`: active pawn/sell transaction page, hook, and action helpers.
-- `history/`: history page and hook.
-- `employees/`: employee API and employee admin UI.
-- `reports/`: report secondary-window screens.
-- `admin/`: color, holiday, and location admin screens.
+Domain modules:
 
-Rule of thumb:
+- `clients/`: client API wrapper, client page, dialogs, profile/results UI, client image/search hooks.
+- `tickets/`: ticket API wrapper, ticket dialogs, ticket tables, ticket menu windows, payment workflow, print helper.
+- `items/`: item API wrapper, item dialogs, item tables, item load window, item search window.
+- `employees/`: employee API wrapper and employee admin window.
+- `admin/`: color, holiday, and location admin windows.
+- `reports/`: report secondary windows.
 
-- If it belongs to one feature, keep it inside that module.
-- If it is a cross-feature workflow, give the workflow its own module.
-- If it is generic UI or formatting, move it to `shared/`.
-- If a file approaches 500 lines, split helpers, columns, dialog sections, or action handlers into local sibling files.
+Workflow modules:
+
+- `transactions/`: active pawn/sell page, transaction hook, transaction actions.
+- `history/`: history page and history hook.
+
+Common local file roles:
+
+- `*.api.ts`: renderer wrapper around `getAppApi()?.domain`.
+- `*.helpers.ts`: pure local helpers for that module.
+- `*.types.ts`: local UI/workflow types, not database models.
+- `*Layout.ts`: module-owned layout constants or layout components.
+- `components/`: reusable pieces inside that module.
+- `hooks/`: React hooks owned by that module.
+- `pages/`: primary page components.
+- `menu-actions/`: secondary windows opened from menu/action buttons.
+
+If a component is only used by one module, keep it in that module. Do not move
+it into `shared/` just because it looks reusable.
 
 ## `shared/`
 
-Shared renderer code:
+`shared/` is for renderer code that is genuinely cross-module.
 
 ```text
 shared/
   api/
-  layout/
-  menu-action/
-  ui/
+    app.api.ts
+  components/
+    CellTooltip.tsx
+    ClientBar.tsx
+  styles/
+    layoutSizing.ts
+    actionButtonStyles.ts
   utils/
+    formError.ts
+    formatters.ts
+    imageDataUrl.ts
 ```
 
-- `api/`: `electron.api` and window-level API wrappers.
-- `layout/`: small reusable layout primitives and sizing constants.
-- `menu-action/`: shared layout for menu-style secondary windows.
-- `ui/`: simple cross-domain UI pieces such as `CellTooltip` and `ClientBar`.
-- `utils/`: pure formatting and form helpers.
+- `api/app.api.ts`: declares `window.appAPI` on the renderer side and exposes `getAppApi()`.
+- `components/`: small cross-module React components.
+- `styles/`: shared sizing and style helpers used by more than one module.
+- `utils/`: pure formatting, image, and form-error helpers.
 
-Avoid calling `window.electronAPI` from random components. Use module API files or `shared/api` so the chain stays readable:
+Avoid calling `window.appAPI` directly from components. Use module API files or
+`getAppApi()` inside module-level code:
 
-```ts
-page/component -> module api -> window.electronAPI -> main handler -> service -> repo/db
+```text
+component/page -> module api or hook -> getAppApi().domain -> preload -> main handler -> service -> repo/db
 ```
+
+## Shared Models And Contracts
+
+Renderer code imports app-wide data shapes from `src/shared`, not from
+`renderer/shared`.
+
+- `src/shared/models/`: app data models such as `Client`, `Ticket`, `Item`.
+- `src/shared/contracts/`: IPC/API inputs and response shapes.
+- `src/shared/api/`: shape of `AppApi`, including `client`, `ticket`, `item`, `window`.
+
+Renderer `shared/` is only for renderer helpers. App-wide model/API contracts
+belong in `src/shared`.
 
 ## Naming Rules
 
-- Renderer API wrappers use `*.api.ts`, such as `client.api.ts` and `ticket.api.ts`.
-- Local helper files should name what they own, such as `payment.rowActions.ts` or `itemSearchColumns.tsx`.
-- Top-level renderer apps should end with `App`; secondary-window entries should use `Screen` or a domain-specific component name.
-- Domain components should keep domain words when ambiguity is likely, such as `TransactionTicketsTable` and `HistoryTicketsTable`.
+- API methods should be action-first: `searchClients`, `createPawnTicket`, `loadItemsByTicket`.
+- Renderer API files should use `*.api.ts`: `client.api.ts`, `ticket.api.ts`.
+- Window frame layout belongs in `windows/WindowLayout.tsx`, not `shared/`.
+- Top-level apps end in `App`: `RendererApp`, `MainApp`.
+- Domain components should keep domain words when ambiguity is likely:
+  `TransactionTicketsTable`, `HistoryTicketsTable`, `ItemActionsLayout`.
+- If a layout belongs to one module, keep it in that module:
+  `items/components/shared/ItemActionsLayout.tsx`,
+  `tickets/components/shared/TicketActionsLayout.tsx`.
 
-## Maintenance Habit
+## Placement Rules
 
-Before adding a feature, decide its home:
+1. If it belongs to one domain, put it in that domain module.
+2. If it belongs to one workflow, put it in that workflow module.
+3. If it is used by multiple modules and has no domain ownership, put it in `renderer/shared`.
+4. If it defines app data shape or IPC/API shape, put it in `src/shared`, not `renderer/shared`.
+5. If a file grows too large, split local helpers, actions, columns, dialog sections, or hooks next to the owner.
 
-1. New primary workflow? Add or update a module page and hook.
-2. New secondary window screen? Put the screen in the owning module and register it in `app/window-host/windowHostRegistry.ts`.
-3. New IPC call? Add it to the owning module API and the matching main module.
-4. Reusable visual helper? Put it in `shared/ui` or `shared/layout`.
-5. Pure formatting/calculation? Put it in `shared/utils`.
-
-The structure is meant to reduce jumping. A normal feature review should start in one module and only leave it for shared utilities or cross-module workflows.
+The goal is that review usually starts in one module and only leaves it for
+`src/shared` contracts/models or small renderer helpers.

@@ -1,5 +1,5 @@
-import type { EyeColor } from "../../../shared/types/eyeColor.ts";
-import type { HairColor } from "../../../shared/types/hairColor.ts";
+import type { EyeColor } from "../../../shared/models/eye-color.model.ts";
+import type { HairColor } from "../../../shared/models/hair-color.model.ts";
 import { clientReferenceRepo } from "./client-reference.repo.ts";
 import { clientInput } from "./client.input.ts";
 
@@ -12,8 +12,8 @@ export const clientReferenceService = {
     return clientReferenceRepo.loadHairColors();
   },
 
-  loadAdminHairColors: async (): Promise<HairColor[]> => {
-    return clientReferenceRepo.loadAdminHairColors();
+  loadHairColorsForAdmin: async (): Promise<HairColor[]> => {
+    return clientReferenceRepo.loadHairColorsForAdmin();
   },
 
   addHairColor: async (color: string): Promise<string> => {
@@ -60,8 +60,8 @@ export const clientReferenceService = {
     return clientReferenceRepo.loadEyeColors();
   },
 
-  loadAdminEyeColors: async (): Promise<EyeColor[]> => {
-    return clientReferenceRepo.loadAdminEyeColors();
+  loadEyeColorsForAdmin: async (): Promise<EyeColor[]> => {
+    return clientReferenceRepo.loadEyeColorsForAdmin();
   },
 
   addEyeColor: async (color: string): Promise<string> => {

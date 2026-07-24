@@ -23,10 +23,10 @@ import {
   formatIsoDate,
   formatIsoDateTime,
 } from "../../../shared/utils/formatters";
-import MenuWindowLayout from "../../../shared/layout/MenuWindowLayout";
-import type { WindowHostScreenProps } from "../../../app/window-host/windowHostRegistry";
+import WindowLayout from "../../../windows/WindowLayout";
+import type { WindowScreenProps } from "../../../windows/windowRegistry";
 
-const InterestReportWindow: React.FC<WindowHostScreenProps> = () => {
+const InterestReportWindow: React.FC<WindowScreenProps> = () => {
   const today = useMemo(() => formatIsoDate(new Date()), []);
   const [selectedDate, setSelectedDate] = useState(today);
   const [report, setReport] =
@@ -64,7 +64,7 @@ const InterestReportWindow: React.FC<WindowHostScreenProps> = () => {
   const rows = report?.rows ?? [];
 
   return (
-    <MenuWindowLayout
+    <WindowLayout
       title="Interest Report"
       description="Generate interest payment records."
     >
@@ -205,7 +205,7 @@ const InterestReportWindow: React.FC<WindowHostScreenProps> = () => {
           </Stack>
         </Box>
       </Box>
-    </MenuWindowLayout>
+    </WindowLayout>
   );
 };
 

@@ -1,8 +1,8 @@
-import type { Client, ID } from "../../../shared/types/Client.ts";
+import type { Client, ID } from "../../../shared/models/client.model.ts";
 import type {
   ClientNotesAction,
   SaveClientInput,
-} from "../../../shared/types/clientApiTypes.ts";
+} from "../../../shared/contracts/client.contract.ts";
 
 type NormalizedSaveClientInput = {
   client: Client;

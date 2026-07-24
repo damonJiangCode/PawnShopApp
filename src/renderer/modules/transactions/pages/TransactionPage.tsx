@@ -9,10 +9,10 @@ import {
   Paper,
   Typography,
 } from "@mui/material";
-import type { Ticket } from "../../../../shared/types/Ticket";
+import type { Ticket } from "../../../../shared/models/ticket.model";
 import type { TransactionItemLoadRequest } from "../hooks/useTransactionPage";
 import { useTransactionPage } from "../hooks/useTransactionPage";
-import ClientBar from "../../../shared/ui/ClientBar";
+import ClientBar from "../../../shared/components/ClientBar";
 import TransactionTicketsPanel from "../../tickets/components/transaction/TransactionTicketsPanel";
 import TransactionItemsPanel from "../../items/components/transaction/TransactionItemsPanel";
 import TicketPawnDialog from "../../tickets/components/dialogs/TicketPawnDialog";

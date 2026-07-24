@@ -1,7 +1,7 @@
 import React from "react";
 import { Alert, Box, Button, Stack, TextField } from "@mui/material";
-import MenuWindowLayout from "../../../shared/layout/MenuWindowLayout";
-import type { WindowHostScreenProps } from "../../../app/window-host/windowHostRegistry";
+import WindowLayout from "../../../windows/WindowLayout";
+import type { WindowScreenProps } from "../../../windows/windowRegistry";
 import { ticketService } from "../ticket.api";
 
 const ticketSearchHistoryStatuses = new Set([
@@ -10,7 +10,7 @@ const ticketSearchHistoryStatuses = new Set([
   "sold_expired",
 ]);
 
-const TicketSearchWindow: React.FC<WindowHostScreenProps> = () => {
+const TicketSearchWindow: React.FC<WindowScreenProps> = () => {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [ticketNumber, setTicketNumber] = React.useState("");
   const [error, setError] = React.useState("");
@@ -47,7 +47,7 @@ const TicketSearchWindow: React.FC<WindowHostScreenProps> = () => {
     setError("");
 
     try {
-      const result = await ticketService.searchTicket(normalizedTicketNumber);
+      const result = await ticketService.searchTicketByNumber(normalizedTicketNumber);
 
       if (!result) {
         setError("No ticket was found for that number.");
@@ -78,7 +78,7 @@ const TicketSearchWindow: React.FC<WindowHostScreenProps> = () => {
   };
 
   return (
-    <MenuWindowLayout
+    <WindowLayout
       title="Search Ticket"
       description="Search tickets by ticket number."
     >
@@ -118,7 +118,7 @@ const TicketSearchWindow: React.FC<WindowHostScreenProps> = () => {
           Found tickets will open on Transaction or History automatically.
         </Alert>
       </Box>
-    </MenuWindowLayout>
+    </WindowLayout>
   );
 };
 

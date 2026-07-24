@@ -1,8 +1,6 @@
 import { connect } from "../../database/connection.ts";
-import type {
-  HolidayDate,
-  SaveHolidayInput,
-} from "../../../shared/types/holidayDate.ts";
+import type { HolidayDate } from "../../../shared/models/holiday-date.model.ts";
+import type { SaveHolidayInput } from "../../../shared/contracts/ticket.contract.ts";
 
 const mapHolidayDateRow = (row: Record<string, unknown>): HolidayDate => ({
   holiday_date: String(row.holiday_date),

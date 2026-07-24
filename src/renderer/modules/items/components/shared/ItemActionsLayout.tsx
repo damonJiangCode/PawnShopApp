@@ -1,8 +1,8 @@
 import React from "react";
 import { Box, Button, Tooltip } from "@mui/material";
 import type { SxProps, Theme } from "@mui/material/styles";
-import { ITEM_ACTIONS_PANEL_WIDTH } from "./layoutSizing";
-import { actionButtonSx } from "../ui/actionButtonStyles";
+import { SIDE_ACTIONS_PANEL_WIDTH } from "../../../../shared/styles/layoutSizing";
+import { actionButtonSx } from "../../../../shared/styles/actionButtonStyles";
 
 export type ItemActionConfig = {
   label: string;
@@ -21,8 +21,8 @@ const ItemActionsLayout: React.FC<ItemActionsLayoutProps> = ({ actions }) => {
   return (
     <Box
       sx={{
-        width: ITEM_ACTIONS_PANEL_WIDTH,
-        minWidth: ITEM_ACTIONS_PANEL_WIDTH,
+        width: SIDE_ACTIONS_PANEL_WIDTH,
+        minWidth: SIDE_ACTIONS_PANEL_WIDTH,
         flexShrink: 0,
         display: "flex",
         flexDirection: "column",

@@ -8,10 +8,10 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import type { HolidayDate } from "../../../../shared/types/holidayDate";
+import type { HolidayDate } from "../../../../shared/models/holiday-date.model";
 import { ticketService } from "../../tickets/ticket.api";
-import MenuWindowLayout from "../../../shared/layout/MenuWindowLayout";
-import type { WindowHostScreenProps } from "../../../app/window-host/windowHostRegistry";
+import WindowLayout from "../../../windows/WindowLayout";
+import type { WindowScreenProps } from "../../../windows/windowRegistry";
 import HolidayAddDialog from "./HolidayAddDialog";
 
 const formatHolidayDate = (dateKey: string) => {
@@ -29,7 +29,7 @@ const normalizeYear = (value: string) => value.trim();
 
 const isValidYear = (value: string) => /^\d{4}$/.test(value);
 
-const HolidayAdminWindow: React.FC<WindowHostScreenProps> = () => {
+const HolidayAdminWindow: React.FC<WindowScreenProps> = () => {
   const currentYear = String(new Date().getFullYear());
   const yearInputRef = React.useRef<HTMLInputElement>(null);
   const [yearInput, setYearInput] = React.useState(currentYear);
@@ -138,7 +138,7 @@ const HolidayAdminWindow: React.FC<WindowHostScreenProps> = () => {
   const busy = loading || Boolean(removingDate);
 
   return (
-    <MenuWindowLayout
+    <WindowLayout
       title="Holiday"
       description="Search holidays by year, add new dates, or remove existing dates."
     >
@@ -284,7 +284,7 @@ const HolidayAdminWindow: React.FC<WindowHostScreenProps> = () => {
           }}
         />
       </Stack>
-    </MenuWindowLayout>
+    </WindowLayout>
   );
 };
 

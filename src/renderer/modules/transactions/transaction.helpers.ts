@@ -1,4 +1,4 @@
-import type { Ticket } from "../../../shared/types/Ticket";
+import type { Ticket } from "../../../shared/models/ticket.model";
 
 export const filterVisibleTickets = (nextTickets: Ticket[]) =>
   nextTickets.filter(

@@ -1,8 +1,8 @@
 import React from "react";
 import { Box, Paper, Typography } from "@mui/material";
-import type { Ticket } from "../../../../shared/types/Ticket";
-import type { Item } from "../../../../shared/types/Item";
-import ClientBar from "../../../shared/ui/ClientBar";
+import type { Ticket } from "../../../../shared/models/ticket.model";
+import type { Item } from "../../../../shared/models/item.model";
+import ClientBar from "../../../shared/components/ClientBar";
 import HistoryTicketsPanel from "../../tickets/components/history/HistoryTicketsPanel";
 import HistoryItemsPanel from "../../items/components/history/HistoryItemsPanel";
 import TicketPawnDialog from "../../tickets/components/dialogs/TicketPawnDialog";

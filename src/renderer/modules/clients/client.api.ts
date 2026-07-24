@@ -1,12 +1,12 @@
-import type { Client } from "../../../shared/types/Client";
-import type { HairColor } from "../../../shared/types/hairColor";
-import type { EyeColor } from "../../../shared/types/eyeColor";
+import type { Client } from "../../../shared/models/client.model";
+import type { HairColor } from "../../../shared/models/hair-color.model";
+import type { EyeColor } from "../../../shared/models/eye-color.model";
 import type {
   CitiesResponse,
   ClientNotesAction,
   SaveClientInput,
-} from "../../../shared/types/clientApiTypes";
-import { getElectronApi } from "../../shared/api/electron.api";
+} from "../../../shared/contracts/client.contract";
+import { getAppApi } from "../../shared/api/app.api";
 import { extractBackendFieldError } from "../../shared/utils/formError";
 
 export type ClientFormField = "employee_password";
@@ -88,13 +88,13 @@ export const clientService = {
       return [];
     }
 
-    const api = getElectronApi()?.client;
+    const api = getAppApi()?.client;
     if (!api) {
       return [];
     }
 
     try {
-      return await api.search(normalizedFirstName, normalizedLastName);
+      return await api.searchClients(normalizedFirstName, normalizedLastName);
     } catch {
       return [];
     }
@@ -107,20 +107,20 @@ export const clientService = {
       return [];
     }
 
-    const api = getElectronApi()?.client;
+    const api = getAppApi()?.client;
     if (!api) {
       return [];
     }
 
     try {
-      return await api.searchByDob(normalizedDob);
+      return await api.searchClientsByDob(normalizedDob);
     } catch {
       return [];
     }
   },
 
   loadCities: async (): Promise<CitiesResponse> => {
-    const api = getElectronApi()?.client;
+    const api = getAppApi()?.client;
     if (!api) {
       return emptyCities();
     }
@@ -133,7 +133,7 @@ export const clientService = {
   },
 
   loadHairColors: async (): Promise<string[]> => {
-    const api = getElectronApi()?.client;
+    const api = getAppApi()?.client;
     if (!api) {
       return [];
     }
@@ -145,18 +145,18 @@ export const clientService = {
     }
   },
 
-  loadAdminHairColors: async (): Promise<HairColor[]> => {
-    const api = getElectronApi()?.client;
+  loadHairColorsForAdmin: async (): Promise<HairColor[]> => {
+    const api = getAppApi()?.client;
 
     if (!api) {
       throw new Error("Hair color API is unavailable.");
     }
 
-    return api.loadAdminHairColors();
+    return api.loadHairColorsForAdmin();
   },
 
   addHairColor: async (color: string): Promise<string> => {
-    const api = getElectronApi()?.client;
+    const api = getAppApi()?.client;
 
     if (!api) {
       throw new Error("Hair color API is unavailable.");
@@ -166,7 +166,7 @@ export const clientService = {
   },
 
   deactivateHairColor: async (color: string): Promise<HairColor> => {
-    const api = getElectronApi()?.client;
+    const api = getAppApi()?.client;
 
     if (!api) {
       throw new Error("Hair color API is unavailable.");
@@ -176,7 +176,7 @@ export const clientService = {
   },
 
   activateHairColor: async (color: string): Promise<HairColor> => {
-    const api = getElectronApi()?.client;
+    const api = getAppApi()?.client;
 
     if (!api) {
       throw new Error("Hair color API is unavailable.");
@@ -186,7 +186,7 @@ export const clientService = {
   },
 
   loadEyeColors: async (): Promise<string[]> => {
-    const api = getElectronApi()?.client;
+    const api = getAppApi()?.client;
     if (!api) {
       return [];
     }
@@ -198,18 +198,18 @@ export const clientService = {
     }
   },
 
-  loadAdminEyeColors: async (): Promise<EyeColor[]> => {
-    const api = getElectronApi()?.client;
+  loadEyeColorsForAdmin: async (): Promise<EyeColor[]> => {
+    const api = getAppApi()?.client;
 
     if (!api) {
       throw new Error("Eye color API is unavailable.");
     }
 
-    return api.loadAdminEyeColors();
+    return api.loadEyeColorsForAdmin();
   },
 
   addEyeColor: async (color: string): Promise<string> => {
-    const api = getElectronApi()?.client;
+    const api = getAppApi()?.client;
 
     if (!api) {
       throw new Error("Eye color API is unavailable.");
@@ -219,7 +219,7 @@ export const clientService = {
   },
 
   deactivateEyeColor: async (color: string): Promise<EyeColor> => {
-    const api = getElectronApi()?.client;
+    const api = getAppApi()?.client;
 
     if (!api) {
       throw new Error("Eye color API is unavailable.");
@@ -229,7 +229,7 @@ export const clientService = {
   },
 
   activateEyeColor: async (color: string): Promise<EyeColor> => {
-    const api = getElectronApi()?.client;
+    const api = getAppApi()?.client;
 
     if (!api) {
       throw new Error("Eye color API is unavailable.");
@@ -239,7 +239,7 @@ export const clientService = {
   },
 
   loadIdTypes: async (): Promise<string[]> => {
-    const api = getElectronApi()?.client;
+    const api = getAppApi()?.client;
     if (!api) {
       return [];
     }
@@ -255,62 +255,62 @@ export const clientService = {
     fileName: string,
     base64: string,
   ): Promise<string> => {
-    const api = getElectronApi()?.client;
+    const api = getAppApi()?.client;
     if (!api) {
       throw new Error("saveClientImage is not available");
     }
 
-    return api.saveImage(fileName, base64);
+    return api.saveClientImage(fileName, base64);
   },
 
   loadClientImage: async (imagePath?: string): Promise<string | null> => {
-    const api = getElectronApi()?.client;
+    const api = getAppApi()?.client;
 
     if (!imagePath || !api) {
       return null;
     }
 
     try {
-      return await api.loadImage(imagePath);
+      return await api.loadClientImage(imagePath);
     } catch {
       return null;
     }
   },
 
   createClient: async (input: SaveClientInput): Promise<Client> => {
-    const api = getElectronApi()?.client;
+    const api = getAppApi()?.client;
     if (!api) {
       throw new Error("createClient is not available");
     }
 
     try {
-      return await api.create(normalizeSaveClientInput(input));
+      return await api.createClient(normalizeSaveClientInput(input));
     } catch (error) {
       throw mapBackendError(error);
     }
   },
 
   updateClient: async (input: SaveClientInput): Promise<Client> => {
-    const api = getElectronApi()?.client;
+    const api = getAppApi()?.client;
     if (!api) {
       throw new Error("updateClient is not available");
     }
 
     try {
-      return await api.update(normalizeSaveClientInput(input));
+      return await api.updateClient(normalizeSaveClientInput(input));
     } catch (error) {
       throw mapBackendError(error);
     }
   },
 
   deleteClient: async (clientNumber: number): Promise<boolean> => {
-    const api = getElectronApi()?.client;
+    const api = getAppApi()?.client;
     if (!api) {
       return false;
     }
 
     try {
-      return await api.delete(clientNumber);
+      return await api.deleteClient(clientNumber);
     } catch {
       return false;
     }

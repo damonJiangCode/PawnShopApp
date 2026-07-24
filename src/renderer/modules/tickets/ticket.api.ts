@@ -1,9 +1,6 @@
-import type { Ticket } from "../../../shared/types/Ticket";
-import type {
-  HolidayDate,
-  SaveHolidayInput,
-} from "../../../shared/types/holidayDate";
-import type { Location, SaveLocationInput } from "../../../shared/types/location";
+import type { Ticket } from "../../../shared/models/ticket.model";
+import type { HolidayDate } from "../../../shared/models/holiday-date.model";
+import type { Location } from "../../../shared/models/location.model";
 import type {
   ConvertTicketInput,
   BuybackReportResult,
@@ -19,8 +16,10 @@ import type {
   TransferTicketInput,
   TransferTicketPreview,
   UpdateTicketInput,
-} from "../../../shared/types/ticketApiTypes";
-import { getElectronApi } from "../../shared/api/electron.api";
+  SaveHolidayInput,
+  SaveLocationInput,
+} from "../../../shared/contracts/ticket.contract";
+import { getAppApi } from "../../shared/api/app.api";
 import {
   mapBackendError,
   normalizeConvertTicketInput,
@@ -42,19 +41,19 @@ export const ticketService = {
         return [];
       }
 
-      const api = getElectronApi()?.ticket;
+      const api = getAppApi()?.ticket;
       if (!api) {
         return [];
       }
 
-      return await api.loadByClient(clientNumber);
+      return await api.loadTicketsByClient(clientNumber);
     } catch {
       return [];
     }
   },
 
   loadHolidayDates: async (): Promise<HolidayDate[]> => {
-    const api = getElectronApi()?.ticket;
+    const api = getAppApi()?.ticket;
     if (!api) {
       return [];
     }
@@ -67,7 +66,7 @@ export const ticketService = {
   },
 
   addHolidayDate: async (input: SaveHolidayInput): Promise<HolidayDate> => {
-    const api = getElectronApi()?.ticket;
+    const api = getAppApi()?.ticket;
 
     if (!api) {
       throw new Error("Holiday API is unavailable.");
@@ -80,7 +79,7 @@ export const ticketService = {
   },
 
   deleteHolidayDate: async (holidayDate: string): Promise<HolidayDate> => {
-    const api = getElectronApi()?.ticket;
+    const api = getAppApi()?.ticket;
 
     if (!api) {
       throw new Error("Holiday API is unavailable.");
@@ -90,7 +89,7 @@ export const ticketService = {
   },
 
   loadLocations: async (): Promise<string[]> => {
-    const api = getElectronApi()?.ticket;
+    const api = getAppApi()?.ticket;
     if (!api) {
       return [];
     }
@@ -102,18 +101,18 @@ export const ticketService = {
     }
   },
 
-  loadAdminLocations: async (): Promise<Location[]> => {
-    const api = getElectronApi()?.ticket;
+  loadLocationsForAdmin: async (): Promise<Location[]> => {
+    const api = getAppApi()?.ticket;
 
     if (!api) {
       throw new Error("Location API is unavailable.");
     }
 
-    return api.loadAdminLocations();
+    return api.loadLocationsForAdmin();
   },
 
   addLocation: async (input: SaveLocationInput): Promise<Location> => {
-    const api = getElectronApi()?.ticket;
+    const api = getAppApi()?.ticket;
 
     if (!api) {
       throw new Error("Location API is unavailable.");
@@ -126,7 +125,7 @@ export const ticketService = {
   },
 
   deactivateLocation: async (location: string): Promise<Location> => {
-    const api = getElectronApi()?.ticket;
+    const api = getAppApi()?.ticket;
 
     if (!api) {
       throw new Error("Location API is unavailable.");
@@ -135,11 +134,11 @@ export const ticketService = {
     return api.deactivateLocation(location.trim().toUpperCase());
   },
 
-  searchPaymentTicket: async (
+  searchPaymentTicketByNumber: async (
     ticketNumber: number,
   ): Promise<TicketSearchResult | null> => {
     const normalizedTicketNumber = Number(ticketNumber);
-    const api = getElectronApi()?.ticket;
+    const api = getAppApi()?.ticket;
 
     if (
       !api ||
@@ -150,17 +149,17 @@ export const ticketService = {
     }
 
     try {
-      return await api.searchPaymentTicket(normalizedTicketNumber);
+      return await api.searchPaymentTicketByNumber(normalizedTicketNumber);
     } catch (error) {
       throw mapBackendError(error);
     }
   },
 
-  searchTicket: async (
+  searchTicketByNumber: async (
     ticketNumber: number,
   ): Promise<TicketSearchResult | null> => {
     const normalizedTicketNumber = Number(ticketNumber);
-    const api = getElectronApi()?.ticket;
+    const api = getAppApi()?.ticket;
 
     if (
       !api ||
@@ -171,7 +170,7 @@ export const ticketService = {
     }
 
     try {
-      return await api.searchTicket(normalizedTicketNumber);
+      return await api.searchTicketByNumber(normalizedTicketNumber);
     } catch (error) {
       throw mapBackendError(error);
     }
@@ -179,7 +178,7 @@ export const ticketService = {
 
   createPawnTicket: async (input: CreatePawnTicketInput): Promise<Ticket> => {
     const normalizedInput = normalizeCreatePawnTicketInput(input);
-    const api = getElectronApi()?.ticket;
+    const api = getAppApi()?.ticket;
 
     if (!api) {
       throw new Error(
@@ -188,7 +187,7 @@ export const ticketService = {
     }
 
     try {
-      return await api.createPawn(normalizedInput);
+      return await api.createPawnTicket(normalizedInput);
     } catch (error) {
       throw mapBackendError(error);
     }
@@ -196,7 +195,7 @@ export const ticketService = {
 
   createSellTicket: async (input: CreateSellTicketInput): Promise<Ticket> => {
     const normalizedInput = normalizeCreateSellTicketInput(input);
-    const api = getElectronApi()?.ticket;
+    const api = getAppApi()?.ticket;
 
     if (!api) {
       throw new Error(
@@ -205,7 +204,7 @@ export const ticketService = {
     }
 
     try {
-      return await api.createSell(normalizedInput);
+      return await api.createSellTicket(normalizedInput);
     } catch (error) {
       throw mapBackendError(error);
     }
@@ -213,7 +212,7 @@ export const ticketService = {
 
   updateTicket: async (input: UpdateTicketInput): Promise<Ticket> => {
     const normalizedInput = normalizeUpdateTicketInput(input);
-    const api = getElectronApi()?.ticket;
+    const api = getAppApi()?.ticket;
 
     if (!api) {
       throw new Error(
@@ -222,7 +221,7 @@ export const ticketService = {
     }
 
     try {
-      return await api.update(normalizedInput);
+      return await api.updateTicket(normalizedInput);
     } catch (error) {
       throw mapBackendError(error);
     }
@@ -230,7 +229,7 @@ export const ticketService = {
 
   convertTicket: async (input: ConvertTicketInput): Promise<Ticket> => {
     const normalizedInput = normalizeConvertTicketInput(input);
-    const api = getElectronApi()?.ticket;
+    const api = getAppApi()?.ticket;
 
     if (!api) {
       throw new Error(
@@ -239,7 +238,7 @@ export const ticketService = {
     }
 
     try {
-      return await api.convert(normalizedInput);
+      return await api.convertTicket(normalizedInput);
     } catch (error) {
       throw mapBackendError(error);
     }
@@ -247,7 +246,7 @@ export const ticketService = {
 
   expireTicket: async (input: ExpireTicketInput): Promise<Ticket> => {
     const normalizedInput = normalizeExpireTicketInput(input);
-    const api = getElectronApi()?.ticket;
+    const api = getAppApi()?.ticket;
 
     if (!api) {
       throw new Error(
@@ -256,7 +255,7 @@ export const ticketService = {
     }
 
     try {
-      return await api.expire(normalizedInput);
+      return await api.expireTicket(normalizedInput);
     } catch (error) {
       throw mapBackendError(error);
     }
@@ -264,7 +263,7 @@ export const ticketService = {
 
   markTicketStolen: async (input: MarkTicketStolenInput): Promise<Ticket> => {
     const normalizedInput = normalizeMarkTicketStolenInput(input);
-    const api = getElectronApi()?.ticket;
+    const api = getAppApi()?.ticket;
 
     if (!api) {
       throw new Error(
@@ -273,7 +272,7 @@ export const ticketService = {
     }
 
     try {
-      return await api.markStolen(normalizedInput);
+      return await api.markTicketStolen(normalizedInput);
     } catch (error) {
       throw mapBackendError(error);
     }
@@ -281,7 +280,7 @@ export const ticketService = {
 
   pickupTickets: async (input: PickupTicketsInput): Promise<Ticket[]> => {
     const normalizedInput = normalizePickupTicketsInput(input);
-    const api = getElectronApi()?.ticket;
+    const api = getAppApi()?.ticket;
 
     if (!api) {
       throw new Error(
@@ -294,7 +293,7 @@ export const ticketService = {
     }
 
     try {
-      return await api.pickup(normalizedInput);
+      return await api.pickupTickets(normalizedInput);
     } catch (error) {
       throw mapBackendError(error);
     }
@@ -302,7 +301,7 @@ export const ticketService = {
 
   extendTickets: async (input: ExtendTicketsInput): Promise<Ticket[]> => {
     const normalizedInput = normalizeExtendTicketsInput(input);
-    const api = getElectronApi()?.ticket;
+    const api = getAppApi()?.ticket;
 
     if (!api) {
       throw new Error(
@@ -315,7 +314,7 @@ export const ticketService = {
     }
 
     try {
-      return await api.extend(normalizedInput);
+      return await api.extendTickets(normalizedInput);
     } catch (error) {
       throw mapBackendError(error);
     }
@@ -325,7 +324,7 @@ export const ticketService = {
     input: ReportDateInput,
   ): Promise<BuybackReportResult> => {
     const normalizedInput = normalizeReportDateInput(input);
-    const api = getElectronApi()?.ticket;
+    const api = getAppApi()?.ticket;
 
     if (!api) {
       throw new Error(
@@ -344,7 +343,7 @@ export const ticketService = {
     input: ReportDateInput,
   ): Promise<InterestReportResult> => {
     const normalizedInput = normalizeReportDateInput(input);
-    const api = getElectronApi()?.ticket;
+    const api = getAppApi()?.ticket;
 
     if (!api) {
       throw new Error(
@@ -363,7 +362,7 @@ export const ticketService = {
     ticketNumber: number,
   ): Promise<TransferTicketPreview | null> => {
     const normalizedTicketNumber = Number(ticketNumber);
-    const api = getElectronApi()?.ticket;
+    const api = getAppApi()?.ticket;
 
     if (
       !api ||
@@ -374,7 +373,7 @@ export const ticketService = {
     }
 
     try {
-      return await api.loadTransferPreview(normalizedTicketNumber);
+      return await api.loadTransferTicketPreview(normalizedTicketNumber);
     } catch (error) {
       throw mapBackendError(error);
     }
@@ -382,7 +381,7 @@ export const ticketService = {
 
   transferTicket: async (input: TransferTicketInput): Promise<Ticket> => {
     const normalizedInput = normalizeTransferTicketInput(input);
-    const api = getElectronApi()?.ticket;
+    const api = getAppApi()?.ticket;
 
     if (!api) {
       throw new Error(
@@ -391,7 +390,7 @@ export const ticketService = {
     }
 
     try {
-      return await api.transfer(normalizedInput);
+      return await api.transferTicket(normalizedInput);
     } catch (error) {
       throw mapBackendError(error);
     }

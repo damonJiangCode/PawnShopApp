@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
-import type { ID } from "../../../../../../shared/types/Client";
+import type { ID } from "../../../../../../shared/models/client.model";
 import { clientService } from "../../../client.api";
 
 export interface IDFieldsRef {

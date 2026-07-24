@@ -1,8 +1,8 @@
 import React from "react";
 import ReplayIcon from "@mui/icons-material/Replay";
 import InputIcon from "@mui/icons-material/Input";
-import type { Ticket } from "../../../../../shared/types/Ticket";
-import TicketActionsLayout from "../../../../shared/layout/TicketActionsLayout";
+import type { Ticket } from "../../../../../shared/models/ticket.model";
+import TicketActionsLayout from "../shared/TicketActionsLayout";
 
 interface HistoryTicketActionsProps {
   selectedTicket?: Ticket | null;

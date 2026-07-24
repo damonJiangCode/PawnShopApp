@@ -1,9 +1,9 @@
 import { connect } from "../../database/connection.ts";
-import type { Employee } from "../../../shared/types/Employee.ts";
+import type { Employee } from "../../../shared/models/employee.model.ts";
 import type {
   EmployeeSearchInput,
   SaveEmployeeInput,
-} from "../../../shared/types/employeeApiTypes.ts";
+} from "../../../shared/contracts/employee.contract.ts";
 
 type DbClient = Awaited<ReturnType<typeof connect>>;
 

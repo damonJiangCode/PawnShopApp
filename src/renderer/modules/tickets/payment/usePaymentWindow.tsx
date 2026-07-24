@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { GridRowSelectionModel } from "@mui/x-data-grid";
-import type { TicketSearchResult } from "../../../../shared/types/ticketApiTypes";
+import type { TicketSearchResult } from "../../../../shared/contracts/ticket.contract";
 import { clientService } from "../../clients/client.api";
 import { getClientImageDataUrl } from "../../clients/hooks/useClientImage";
 import { ticketService } from "../ticket.api";
@@ -142,7 +142,7 @@ export const usePaymentWindow = () => {
 
     try {
       const [preview, holidays] = await Promise.all([
-        ticketService.searchPaymentTicket(ticketNumber),
+        ticketService.searchPaymentTicketByNumber(ticketNumber),
         ticketService.loadHolidayDates(),
       ]);
 

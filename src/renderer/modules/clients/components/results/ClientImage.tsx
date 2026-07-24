@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Typography } from "@mui/material";
-import type { Client } from "../../../../../shared/types/Client";
+import type { Client } from "../../../../../shared/models/client.model";
 import { useClientImage } from "../../hooks/useClientImage";
 import { formatIsoDate } from "../../../../shared/utils/formatters";
 

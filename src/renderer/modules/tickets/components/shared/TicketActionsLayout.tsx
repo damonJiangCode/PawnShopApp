@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Button } from "@mui/material";
 import type { SxProps, Theme } from "@mui/material/styles";
-import { actionButtonSx } from "../ui/actionButtonStyles";
+import { actionButtonSx } from "../../../../shared/styles/actionButtonStyles";
 
 export type TicketActionConfig = {
   label: string;

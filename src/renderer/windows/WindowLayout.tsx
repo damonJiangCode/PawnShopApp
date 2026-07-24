@@ -1,13 +1,13 @@
 import React from "react";
 import { Box, Button, Paper, Stack, Typography } from "@mui/material";
 
-export type MenuWindowLayoutProps = {
+export type WindowLayoutProps = {
   title: string;
   description: string;
   children?: React.ReactNode;
 };
 
-const MenuWindowLayout: React.FC<MenuWindowLayoutProps> = ({
+const WindowLayout: React.FC<WindowLayoutProps> = ({
   title,
   description,
   children,
@@ -54,4 +54,4 @@ const MenuWindowLayout: React.FC<MenuWindowLayoutProps> = ({
   );
 };
 
-export default MenuWindowLayout;
+export default WindowLayout;

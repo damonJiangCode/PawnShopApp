@@ -1,16 +1,26 @@
 import React, { useEffect, useState } from "react";
 import { Box, CircularProgress, Typography } from "@mui/material";
-import type { Item } from "../../../../../shared/types/Item";
+import type { SxProps, Theme } from "@mui/material/styles";
+import type { Item } from "../../../../../shared/models/item.model";
 import { getImageDataUrl } from "../../../../shared/utils/imageDataUrl";
 import { itemService } from "../../item.api";
 
 interface TransactionItemImageProps {
   selectedItem?: Item;
   loading?: boolean;
+  objectFit?: React.CSSProperties["objectFit"];
+  showPlaceholderText?: boolean;
+  sx?: SxProps<Theme>;
 }
 
 const TransactionItemImage: React.FC<TransactionItemImageProps> = (props) => {
-  const { selectedItem, loading = false } = props;
+  const {
+    selectedItem,
+    loading = false,
+    objectFit = "cover",
+    showPlaceholderText = true,
+    sx,
+  } = props;
   const [imageSrc, setImageSrc] = useState("");
 
   useEffect(() => {
@@ -40,20 +50,23 @@ const TransactionItemImage: React.FC<TransactionItemImageProps> = (props) => {
 
   return (
     <Box
-      sx={{
-        width: "100%",
-        height: "auto",
-        aspectRatio: "1 / 1",
-        minWidth: 0,
-        maxHeight: "100%",
-        alignSelf: "center",
-        backgroundColor: "#f3f4f6",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: 0.75,
-        overflow: "hidden",
-      }}
+      sx={[
+        {
+          width: "100%",
+          height: "auto",
+          aspectRatio: "1 / 1",
+          minWidth: 0,
+          maxHeight: "100%",
+          alignSelf: "center",
+          backgroundColor: "#f3f4f6",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: 0.75,
+          overflow: "hidden",
+        },
+        ...(Array.isArray(sx) ? sx : [sx]),
+      ]}
     >
       {loading ? (
         <CircularProgress size={24} />
@@ -61,12 +74,14 @@ const TransactionItemImage: React.FC<TransactionItemImageProps> = (props) => {
         <img
           src={imageSrc}
           alt="Item"
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          style={{ width: "100%", height: "100%", objectFit }}
         />
-      ) : selectedItem ? (
+      ) : selectedItem && showPlaceholderText ? (
         <Typography color="text.secondary">img area</Typography>
-      ) : (
+      ) : showPlaceholderText ? (
         <Typography color="text.secondary">Select an item</Typography>
+      ) : (
+        <Box />
       )}
     </Box>
   );

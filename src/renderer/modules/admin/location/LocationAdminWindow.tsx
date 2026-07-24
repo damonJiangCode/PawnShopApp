@@ -9,10 +9,10 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import type { Location } from "../../../../shared/types/location";
+import type { Location } from "../../../../shared/models/location.model";
 import { ticketService } from "../../tickets/ticket.api";
-import MenuWindowLayout from "../../../shared/layout/MenuWindowLayout";
-import type { WindowHostScreenProps } from "../../../app/window-host/windowHostRegistry";
+import WindowLayout from "../../../windows/WindowLayout";
+import type { WindowScreenProps } from "../../../windows/windowRegistry";
 import LocationAddDialog from "./LocationAddDialog";
 
 const sortLocations = (locations: Location[]) =>
@@ -22,7 +22,7 @@ const sortLocations = (locations: Location[]) =>
       a.location.localeCompare(b.location),
   );
 
-const LocationAdminWindow: React.FC<WindowHostScreenProps> = () => {
+const LocationAdminWindow: React.FC<WindowScreenProps> = () => {
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const [searchInput, setSearchInput] = React.useState("");
   const [searchedCode, setSearchedCode] = React.useState("");
@@ -47,7 +47,7 @@ const LocationAdminWindow: React.FC<WindowHostScreenProps> = () => {
     setError("");
 
     try {
-      const results = sortLocations(await ticketService.loadAdminLocations());
+      const results = sortLocations(await ticketService.loadLocationsForAdmin());
       setAllLocations(results);
       setLocations(results);
       setSearchInput("");
@@ -132,7 +132,7 @@ const LocationAdminWindow: React.FC<WindowHostScreenProps> = () => {
   const activeCount = locations.filter((location) => location.is_active).length;
 
   return (
-    <MenuWindowLayout
+    <WindowLayout
       title="Location"
       description="Add storage locations and deactivate locations that should no longer be selected."
     >
@@ -290,7 +290,7 @@ const LocationAdminWindow: React.FC<WindowHostScreenProps> = () => {
           }}
         />
       </Stack>
-    </MenuWindowLayout>
+    </WindowLayout>
   );
 };
 

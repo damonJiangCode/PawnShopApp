@@ -9,9 +9,11 @@ import type {
   CreateSellTicketInput,
   TransferTicketInput,
   UpdateTicketInput,
-} from "../../../shared/types/ticketApiTypes.ts";
-import type { SaveHolidayInput } from "../../../shared/types/holidayDate.ts";
-import type { SaveLocationInput } from "../../../shared/types/location.ts";
+} from "../../../shared/contracts/ticket.contract.ts";
+import type {
+  SaveHolidayInput,
+  SaveLocationInput,
+} from "../../../shared/contracts/ticket.contract.ts";
 import { ticketAdminService } from "./ticket-admin.service.ts";
 import { ticketPaymentService } from "./ticket-payment.service.ts";
 import { ticketService } from "./ticket.service.ts";
@@ -24,7 +26,7 @@ export const registerTicketHandlers = () => {
     ticketAdminService.loadLocations(),
   );
   ipcMain.handle(CHANNELS.GET_ADMIN_LOCATIONS, async () =>
-    ticketAdminService.loadAdminLocations(),
+    ticketAdminService.loadLocationsForAdmin(),
   );
   ipcMain.handle(
     CHANNELS.ADD_LOCATION,
@@ -58,13 +60,13 @@ export const registerTicketHandlers = () => {
   ipcMain.handle(
     CHANNELS.SEARCH_PAYMENT_TICKET,
     async (_event: IpcMainInvokeEvent, ticketNumber: number) => {
-      return ticketService.searchPaymentTicket(ticketNumber);
+      return ticketService.searchPaymentTicketByNumber(ticketNumber);
     },
   );
   ipcMain.handle(
     CHANNELS.SEARCH_TICKET,
     async (_event: IpcMainInvokeEvent, ticketNumber: number) => {
-      return ticketService.searchTicket(ticketNumber);
+      return ticketService.searchTicketByNumber(ticketNumber);
     },
   );
   ipcMain.handle(

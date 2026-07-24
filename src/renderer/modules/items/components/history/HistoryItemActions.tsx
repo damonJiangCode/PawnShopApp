@@ -1,7 +1,7 @@
 import React from "react";
 import EditIcon from "@mui/icons-material/Edit";
-import type { Item } from "../../../../../shared/types/Item";
-import ItemActionsLayout from "../../../../shared/layout/ItemActionsLayout";
+import type { Item } from "../../../../../shared/models/item.model";
+import ItemActionsLayout from "../shared/ItemActionsLayout";
 
 interface HistoryItemActionsProps {
   selectedItem?: Item;

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import type { Item } from "../../../../shared/types/Item";
-import type { Ticket } from "../../../../shared/types/Ticket";
+import type { Item } from "../../../../shared/models/item.model";
+import type { Ticket } from "../../../../shared/models/ticket.model";
 import {
   itemService,
   type ItemCategoryOption,
@@ -9,7 +9,7 @@ import {
   ticketService,
   type CreatePawnTicketInput,
 } from "../../tickets/ticket.api";
-import { windowService } from "../../../shared/api/window.api";
+import { getAppApi } from "../../../shared/api/app.api";
 
 interface UseHistoryPageParams {
   clientNumber?: number;
@@ -240,7 +240,13 @@ export const useHistoryPage = ({
     setStatusMessage("");
 
     try {
-      const selectedItems = await windowService.openItemLoadWindow({
+      const windowApi = getAppApi()?.window;
+
+      if (!windowApi) {
+        throw new Error("Window API is unavailable.");
+      }
+
+      const selectedItems = await windowApi.openItemLoadWindow({
         title: `Load Ticket #${selectedTicket.ticket_number} Items`,
         description: `Select items from ticket #${selectedTicket.ticket_number}.`,
         actionLabel: "Add to Ticket",

@@ -10,9 +10,9 @@ import {
   Typography,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import MenuWindowLayout from "../../../shared/layout/MenuWindowLayout";
-import type { WindowHostScreenProps } from "../../../app/window-host/windowHostRegistry";
-import type { Item } from "../../../../shared/types/Item";
+import WindowLayout from "../../../windows/WindowLayout";
+import type { WindowScreenProps } from "../../../windows/windowRegistry";
+import type { Item } from "../../../../shared/models/item.model";
 import TransactionItemImage from "../components/transaction/TransactionItemImage";
 import { itemService } from "../item.api";
 import { ticketService } from "../../tickets/ticket.api";
@@ -48,7 +48,7 @@ const isItemSearchAddToTicketResultEvent = (
   );
 };
 
-const ItemSearchWindow: React.FC<WindowHostScreenProps> = () => {
+const ItemSearchWindow: React.FC<WindowScreenProps> = () => {
   const itemNumberInputRef = React.useRef<HTMLInputElement>(null);
   const brandInputRef = React.useRef<HTMLInputElement>(null);
   const menuEventsChannelRef = React.useRef<BroadcastChannel | null>(null);
@@ -183,7 +183,7 @@ const ItemSearchWindow: React.FC<WindowHostScreenProps> = () => {
     setError("");
 
     try {
-      const result = await ticketService.searchTicket(
+      const result = await ticketService.searchTicketByNumber(
         selectedItem.latest_ticket_number,
       );
 
@@ -233,7 +233,7 @@ const ItemSearchWindow: React.FC<WindowHostScreenProps> = () => {
   };
 
   return (
-    <MenuWindowLayout
+    <WindowLayout
       title="Search Item"
       description="Search by item number, or by brand/model/serial."
     >
@@ -451,7 +451,7 @@ const ItemSearchWindow: React.FC<WindowHostScreenProps> = () => {
           />
         </Box>
       </Stack>
-    </MenuWindowLayout>
+    </WindowLayout>
   );
 };
 

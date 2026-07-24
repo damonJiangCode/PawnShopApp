@@ -1,10 +1,10 @@
 import { employeeRepo } from "./employee.repo.ts";
 import type { DbClient } from "../../database/connection.ts";
-import type { Employee } from "../../../shared/types/Employee.ts";
+import type { Employee } from "../../../shared/models/employee.model.ts";
 import type {
   EmployeeSearchInput,
   SaveEmployeeInput,
-} from "../../../shared/types/employeeApiTypes.ts";
+} from "../../../shared/contracts/employee.contract.ts";
 import { employeeInput } from "./employee.input.ts";
 
 export const employeeService = {

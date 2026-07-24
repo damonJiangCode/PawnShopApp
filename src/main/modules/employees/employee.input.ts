@@ -1,7 +1,7 @@
 import type {
   EmployeeSearchInput,
   SaveEmployeeInput,
-} from "../../../shared/types/employeeApiTypes.ts";
+} from "../../../shared/contracts/employee.contract.ts";
 
 const normalizeEmployee = (input: SaveEmployeeInput): SaveEmployeeInput => ({
   first_name: input.first_name?.trim() ?? "",

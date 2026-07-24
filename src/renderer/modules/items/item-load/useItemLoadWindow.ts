@@ -1,14 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { GridRowSelectionModel } from "@mui/x-data-grid";
-import type { ItemLoadWindowData } from "../../../../shared/types/windowApiTypes";
+import type { ItemLoadWindowData } from "../../../../shared/contracts/window.contract";
 import { getTransactionItemRowId } from "../components/transaction/TransactionItemsTable";
-import { windowService } from "../../../shared/api/window.api";
+import { getAppApi } from "../../../shared/api/app.api";
 
 export const useItemLoadWindow = () => {
   const requestId = useMemo(() => {
     return new URLSearchParams(window.location.search).get("requestId") ?? "";
   }, []);
   const [payload, setPayload] = useState<ItemLoadWindowData | null>(null);
+  const payloadRef = useRef<ItemLoadWindowData | null>(null);
   const [selectionModel, setSelectionModel] = useState<GridRowSelectionModel>(
     [],
   );
@@ -26,7 +27,7 @@ export const useItemLoadWindow = () => {
   useEffect(() => {
     let active = true;
 
-    const loadPayload = async () => {
+    const loadPayload = async (preserveCurrentSelection = false) => {
       if (!requestId) {
         setError("Missing window request.");
         return;
@@ -34,7 +35,8 @@ export const useItemLoadWindow = () => {
 
       let nextPayload: ItemLoadWindowData | null = null;
       try {
-        nextPayload = await windowService.loadItemLoadWindowData(requestId);
+        nextPayload =
+          (await getAppApi()?.window.loadItemLoadWindowData(requestId)) ?? null;
       } catch (err) {
         console.error(err);
         if (active) {
@@ -52,24 +54,74 @@ export const useItemLoadWindow = () => {
         return;
       }
 
-      setPayload(nextPayload);
-      setSelectionModel(
+      const previousPayload = payloadRef.current;
+      const previousItemIds = new Set(
+        (previousPayload?.items ?? [])
+          .map(getTransactionItemRowId)
+          .filter((id): id is number | string => id !== undefined)
+          .map(String),
+      );
+      const loadableIds = nextPayload.items
+        .filter((item) => item.is_loadable !== false)
+        .map(getTransactionItemRowId)
+        .filter((id): id is number | string => id !== undefined);
+      const firstNewItemId =
         nextPayload.items
-          .filter((item) => item.is_loadable !== false)
-          .map(getTransactionItemRowId),
-      );
-      setPreviewItemId(
-        nextPayload.items[0]
-          ? getTransactionItemRowId(nextPayload.items[0])
-          : null,
-      );
+          .map(getTransactionItemRowId)
+          .find(
+            (id): id is number | string =>
+              id !== undefined && !previousItemIds.has(String(id)),
+          ) ?? null;
+      const firstItemId = nextPayload.items[0]
+        ? getTransactionItemRowId(nextPayload.items[0]) ?? null
+        : null;
+
+      setError("");
+      payloadRef.current = nextPayload;
+      setPayload(nextPayload);
+      if (preserveCurrentSelection) {
+        setSelectionModel((currentSelectionModel) => {
+          const selectedIds = new Set(currentSelectionModel.map(String));
+          return loadableIds.filter((id) => {
+            const idText = String(id);
+            return selectedIds.has(idText) || !previousItemIds.has(idText);
+          });
+        });
+      } else {
+        setSelectionModel(loadableIds);
+      }
+      setPreviewItemId((currentPreviewItemId) => {
+        const currentPreviewStillExists =
+          currentPreviewItemId !== null &&
+          nextPayload.items.some(
+            (item) =>
+              String(getTransactionItemRowId(item)) ===
+              String(currentPreviewItemId),
+          );
+
+        if (preserveCurrentSelection && currentPreviewStillExists) {
+          return currentPreviewItemId;
+        }
+
+        return firstNewItemId ?? firstItemId;
+      });
       document.title = nextPayload.title;
     };
 
     void loadPayload();
 
+    const unsubscribe =
+      getAppApi()?.window.subscribeToItemLoadWindowDataUpdated(
+        (updatedRequestId) => {
+          if (updatedRequestId === requestId) {
+            void loadPayload(true);
+          }
+        },
+      ) ?? (() => {});
+
     return () => {
       active = false;
+      unsubscribe();
     };
   }, [requestId]);
 
@@ -95,7 +147,9 @@ export const useItemLoadWindow = () => {
       return;
     }
 
-    await windowService.submitItemLoadWindow(requestId, [...selectionModel]);
+    await getAppApi()?.window.submitItemLoadWindow(requestId, [
+      ...selectionModel,
+    ]);
   };
 
   const handleCancel = async () => {
@@ -104,7 +158,7 @@ export const useItemLoadWindow = () => {
       return;
     }
 
-    await windowService.cancelItemLoadWindow(requestId);
+    await getAppApi()?.window.cancelItemLoadWindow(requestId);
   };
 
   return {

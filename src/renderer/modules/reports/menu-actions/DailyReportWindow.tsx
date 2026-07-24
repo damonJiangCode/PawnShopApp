@@ -1,9 +1,9 @@
 import React from "react";
-import MenuWindowLayout from "../../../shared/layout/MenuWindowLayout";
-import type { WindowHostScreenProps } from "../../../app/window-host/windowHostRegistry";
+import WindowLayout from "../../../windows/WindowLayout";
+import type { WindowScreenProps } from "../../../windows/windowRegistry";
 
-const DailyReportWindow: React.FC<WindowHostScreenProps> = () => (
-  <MenuWindowLayout
+const DailyReportWindow: React.FC<WindowScreenProps> = () => (
+  <WindowLayout
     title="Daily Report"
     description="Generate daily ticket and payment records."
   />

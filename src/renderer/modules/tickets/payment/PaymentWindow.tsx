@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import { DataGrid } from "@mui/x-data-grid";
-import ClientBar from "../../../shared/ui/ClientBar";
+import ClientBar from "../../../shared/components/ClientBar";
 import { formatCurrency } from "../../../shared/utils/formatters";
 import {
   type PaymentMode,

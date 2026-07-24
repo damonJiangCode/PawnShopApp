@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import type { Item } from "../../../../shared/types/Item";
-import type { Ticket } from "../../../../shared/types/Ticket";
+import type { Item } from "../../../../shared/models/item.model";
+import type { Ticket } from "../../../../shared/models/ticket.model";
 import {
   itemService,
   type ItemCategoryOption,
 } from "../../items/item.api";
 import { ticketService } from "../../tickets/ticket.api";
-import { windowService } from "../../../shared/api/window.api";
+import { getAppApi } from "../../../shared/api/app.api";
 import { filterVisibleTickets, sortTickets } from "../transaction.helpers";
 import type { TransactionItemLoadRequest, UseTransactionPageParams } from "../transaction.types";
 import { createTransactionItemActions } from "../actions/transactionItemActions";
@@ -189,7 +189,13 @@ export const useTransactionPage = ({
 
     const openItemLoadWindow = async (request: TransactionItemLoadRequest) => {
       try {
-        const selectedItems = await windowService.openItemLoadWindow({
+        const windowApi = getAppApi()?.window;
+
+        if (!windowApi) {
+          throw new Error("Window API is unavailable.");
+        }
+
+        const selectedItems = await windowApi.openItemLoadWindow({
           title:
             request.mode === "repawn"
               ? `Repawn Ticket #${request.sourceTicketNumber} Items`
@@ -197,6 +203,7 @@ export const useTransactionPage = ({
           description: `Select the items from ticket #${request.sourceTicketNumber} (${request.sourceTicketDescription}) and add them to ticket #${request.targetTicketNumber}.`,
           actionLabel: "Add to Ticket",
           items: request.items,
+          mode: request.mode,
         });
 
         if (!selectedItems?.length) {

@@ -1,6 +1,6 @@
 import type { GridColDef } from "@mui/x-data-grid";
-import type { Item } from "../../../../shared/types/Item";
-import CellTooltip from "../../../shared/ui/CellTooltip";
+import type { Item } from "../../../../shared/models/item.model";
+import CellTooltip from "../../../shared/components/CellTooltip";
 import { formatCurrency, formatUppercase } from "../../../shared/utils/formatters";
 
 const formatTicketStatus = (status?: string) =>

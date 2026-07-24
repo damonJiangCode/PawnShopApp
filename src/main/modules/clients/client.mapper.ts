@@ -1,4 +1,4 @@
-import type { Client } from "../../../shared/types/Client.ts";
+import type { Client } from "../../../shared/models/client.model.ts";
 
 export const mapRowToClient = (row: Record<string, unknown>): Client => ({
   client_number: Number(row.client_number),

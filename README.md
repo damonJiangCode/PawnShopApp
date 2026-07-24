@@ -71,7 +71,7 @@ src/main/
 Each domain module keeps related IPC handlers, services, repositories, input validation/mapping, and module exports together. A typical request path is:
 
 ```text
-renderer module api -> window.electronAPI -> main IPC handler -> service -> repo -> database
+renderer module api -> window.appAPI -> main IPC handler -> service -> repo -> database
 ```
 
 ## Renderer Process
@@ -80,10 +80,10 @@ renderer module api -> window.electronAPI -> main IPC handler -> service -> repo
 
 ```text
 src/renderer/
-├── app/                      # React mount, app/window selection, main shell
-│   ├── main/                 # Main window app, layout, hooks, and shell UI
-│   │   └── shell/
-│   └── window-host/
+├── boot/                     # React mount and main/window selection
+├── main/                     # Main window app, layout, hooks, and shell UI
+│   └── shell/
+├── windows/                  # Non-main window view and registry
 ├── modules/
 │   ├── admin/                # Holiday, location, hair color, eye color admin windows
 │   ├── clients/              # Client page, hook, API wrapper, and components
@@ -96,7 +96,6 @@ src/renderer/
 ├── shared/
 │   ├── api/
 │   ├── layout/
-│   ├── menu-action/
 │   ├── ui/
 │   └── utils/
 ```
@@ -109,9 +108,10 @@ For more renderer-specific conventions, see `src/renderer/README.md`.
 
 ```text
 src/shared/
-├── ipc/                      # Typed IPC API contracts
+├── api/                      # App API shape exposed through window.appAPI
+├── contracts/                # API/IPC input and response contracts
+├── models/                   # Domain models
 ├── test/                     # Shared test helpers
-├── types/                    # Domain and payload types
 └── utils/                    # Pure shared utilities and tests
 ```
 

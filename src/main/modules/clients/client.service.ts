@@ -1,8 +1,8 @@
-import type { Client } from "../../../shared/types/Client.ts";
+import type { Client } from "../../../shared/models/client.model.ts";
 import type {
   ClientNotesAction,
   SaveClientInput,
-} from "../../../shared/types/clientApiTypes.ts";
+} from "../../../shared/contracts/client.contract.ts";
 import { clientIdRepo } from "./client-id.repo.ts";
 import { clientRepo } from "./client.repo.ts";
 import { employeeService } from "../employees/employee.service.ts";

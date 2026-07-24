@@ -1,11 +1,9 @@
+import type { HolidayDate } from "../../../shared/models/holiday-date.model.ts";
+import type { Location } from "../../../shared/models/location.model.ts";
 import type {
-  HolidayDate,
   SaveHolidayInput,
-} from "../../../shared/types/holidayDate.ts";
-import type {
-  Location,
   SaveLocationInput,
-} from "../../../shared/types/location.ts";
+} from "../../../shared/contracts/ticket.contract.ts";
 import { holidayDateRepo } from "./holiday-date.repo.ts";
 import { ticketLocationRepo } from "./ticket-location.repo.ts";
 import { ticketInput } from "./ticket.input.ts";
@@ -58,8 +56,8 @@ export const ticketAdminService = {
     return ticketLocationRepo.loadLocations();
   },
 
-  loadAdminLocations: async (): Promise<Location[]> => {
-    return ticketLocationRepo.loadAdminLocations();
+  loadLocationsForAdmin: async (): Promise<Location[]> => {
+    return ticketLocationRepo.loadLocationsForAdmin();
   },
 
   addLocation: async (input: SaveLocationInput): Promise<Location> => {

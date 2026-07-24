@@ -9,10 +9,10 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import type { HairColor } from "../../../../../shared/types/hairColor";
+import type { HairColor } from "../../../../../shared/models/hair-color.model";
 import { clientService } from "../../../clients/client.api";
-import MenuWindowLayout from "../../../../shared/layout/MenuWindowLayout";
-import type { WindowHostScreenProps } from "../../../../app/window-host/windowHostRegistry";
+import WindowLayout from "../../../../windows/WindowLayout";
+import type { WindowScreenProps } from "../../../../windows/windowRegistry";
 import ColorAddDialog from "../color/ColorAddDialog";
 
 const sortHairColors = (colors: HairColor[]) =>
@@ -22,7 +22,7 @@ const sortHairColors = (colors: HairColor[]) =>
       a.color.localeCompare(b.color),
   );
 
-const HairColorAdminWindow: React.FC<WindowHostScreenProps> = () => {
+const HairColorAdminWindow: React.FC<WindowScreenProps> = () => {
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const [searchInput, setSearchInput] = React.useState("");
   const [searchedColor, setSearchedColor] = React.useState("");
@@ -44,7 +44,7 @@ const HairColorAdminWindow: React.FC<WindowHostScreenProps> = () => {
     setError("");
 
     try {
-      const results = sortHairColors(await clientService.loadAdminHairColors());
+      const results = sortHairColors(await clientService.loadHairColorsForAdmin());
       setAllColors(results);
       setColors(results);
       setSearchInput("");
@@ -149,7 +149,7 @@ const HairColorAdminWindow: React.FC<WindowHostScreenProps> = () => {
   const activeCount = colors.filter((color) => color.is_active).length;
 
   return (
-    <MenuWindowLayout
+    <WindowLayout
       title="Hair Color"
       description="Search, add, or deactivate hair color options."
     >
@@ -299,7 +299,7 @@ const HairColorAdminWindow: React.FC<WindowHostScreenProps> = () => {
           }}
         />
       </Stack>
-    </MenuWindowLayout>
+    </WindowLayout>
   );
 };
 

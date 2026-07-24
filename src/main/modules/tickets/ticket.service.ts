@@ -1,4 +1,4 @@
-import type { Ticket } from "../../../shared/types/Ticket.ts";
+import type { Ticket } from "../../../shared/models/ticket.model.ts";
 import { calculation } from "../../../shared/utils/calculation.ts";
 import type {
   ConvertTicketInput,
@@ -10,7 +10,7 @@ import type {
   TransferTicketInput,
   TransferTicketPreview,
   UpdateTicketInput,
-} from "../../../shared/types/ticketApiTypes.ts";
+} from "../../../shared/contracts/ticket.contract.ts";
 import { clientRepo } from "../clients/client.repo.ts";
 import { ticketRepo } from "./ticket.repo.ts";
 import { employeeService } from "../employees/employee.service.ts";
@@ -27,7 +27,7 @@ export const ticketService = {
     return ticketRepo.loadByClientNumber(clientNumber);
   },
 
-  searchTicket: async (
+  searchTicketByNumber: async (
     ticketNumber: number,
   ): Promise<TicketSearchResult | null> => {
     const normalizedTicketNumber = Number(ticketNumber);
@@ -54,10 +54,10 @@ export const ticketService = {
     return { ticket, client };
   },
 
-  searchPaymentTicket: async (
+  searchPaymentTicketByNumber: async (
     ticketNumber: number,
   ): Promise<TicketSearchResult | null> => {
-    return ticketService.searchTicket(ticketNumber);
+    return ticketService.searchTicketByNumber(ticketNumber);
   },
 
   loadTransferTicketPreview: async (

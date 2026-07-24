@@ -1,9 +1,9 @@
-import type { Item } from "../../../shared/types/Item.ts";
+import type { Item } from "../../../shared/models/item.model.ts";
 import type {
   ItemSearchInput,
   ItemCategoryOption,
   SaveItemInput,
-} from "../../../shared/types/itemApiTypes.ts";
+} from "../../../shared/contracts/item.contract.ts";
 import { itemRepo } from "./item.repo.ts";
 import { runInTransaction } from "../../shared/runInTransaction.ts";
 import { imageStorage } from "../../shared/imageStorage.ts";
@@ -18,7 +18,7 @@ export const itemService = {
     return itemRepo.loadByTicketNumber(ticketNumber);
   },
 
-  loadCategories: async (): Promise<ItemCategoryOption[]> => {
+  loadItemCategories: async (): Promise<ItemCategoryOption[]> => {
     return itemRepo.loadCategories();
   },
 

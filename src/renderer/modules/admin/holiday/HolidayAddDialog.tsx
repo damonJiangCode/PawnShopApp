@@ -9,10 +9,8 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-import type {
-  HolidayDate,
-  SaveHolidayInput,
-} from "../../../../shared/types/holidayDate";
+import type { HolidayDate } from "../../../../shared/models/holiday-date.model";
+import type { SaveHolidayInput } from "../../../../shared/contracts/ticket.contract";
 import { ticketService } from "../../tickets/ticket.api";
 
 type HolidayAddDialogProps = {

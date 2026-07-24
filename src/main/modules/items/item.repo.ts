@@ -4,9 +4,9 @@ import type {
   ItemCategoryOption,
   ItemSearchInput,
   SaveItemInput,
-} from "../../../shared/types/itemApiTypes.ts";
-import type { Item } from "../../../shared/types/Item.ts";
-import type { Ticket } from "../../../shared/types/Ticket.ts";
+} from "../../../shared/contracts/item.contract.ts";
+import type { Item } from "../../../shared/models/item.model.ts";
+import type { Ticket } from "../../../shared/models/ticket.model.ts";
 
 const mapItemRow = (row: Record<string, unknown>): Item => {
   const latestTicketStatus = row.latest_ticket_status

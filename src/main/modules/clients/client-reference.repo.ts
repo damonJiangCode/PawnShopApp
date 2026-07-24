@@ -1,7 +1,7 @@
 import { connect } from "../../database/connection.ts";
-import type { CitiesResponse } from "../../../shared/types/clientApiTypes.ts";
-import type { EyeColor } from "../../../shared/types/eyeColor.ts";
-import type { HairColor } from "../../../shared/types/hairColor.ts";
+import type { CitiesResponse } from "../../../shared/contracts/client.contract.ts";
+import type { EyeColor } from "../../../shared/models/eye-color.model.ts";
+import type { HairColor } from "../../../shared/models/hair-color.model.ts";
 
 type ColorOption = EyeColor | HairColor;
 
@@ -27,7 +27,7 @@ const loadActiveColors = async (tableName: "eye_color" | "hair_color") => {
   }
 };
 
-const loadAdminColors = async (
+const loadColorsForAdmin = async (
   tableName: "eye_color" | "hair_color",
 ): Promise<ColorOption[]> => {
   const client = await connect();
@@ -117,8 +117,8 @@ export const clientReferenceRepo = {
 
   loadHairColors: (): Promise<string[]> => loadActiveColors("hair_color"),
 
-  loadAdminHairColors: (): Promise<HairColor[]> =>
-    loadAdminColors("hair_color") as Promise<HairColor[]>,
+  loadHairColorsForAdmin: (): Promise<HairColor[]> =>
+    loadColorsForAdmin("hair_color") as Promise<HairColor[]>,
 
   addHairColor: (color: string): Promise<string | null> =>
     addColor("hair_color", color),
@@ -131,8 +131,8 @@ export const clientReferenceRepo = {
 
   loadEyeColors: (): Promise<string[]> => loadActiveColors("eye_color"),
 
-  loadAdminEyeColors: (): Promise<EyeColor[]> =>
-    loadAdminColors("eye_color") as Promise<EyeColor[]>,
+  loadEyeColorsForAdmin: (): Promise<EyeColor[]> =>
+    loadColorsForAdmin("eye_color") as Promise<EyeColor[]>,
 
   addEyeColor: (color: string): Promise<string | null> =>
     addColor("eye_color", color),

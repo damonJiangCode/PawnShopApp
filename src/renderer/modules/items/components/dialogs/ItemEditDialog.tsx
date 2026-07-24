@@ -8,7 +8,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import type { Item } from "../../../../../shared/types/Item";
+import type { Item } from "../../../../../shared/models/item.model";
 import {
   itemService,
   type ItemCategoryOption,

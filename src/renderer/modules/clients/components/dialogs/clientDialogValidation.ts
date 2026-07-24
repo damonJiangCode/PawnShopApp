@@ -1,4 +1,4 @@
-import type { Client, ID } from "../../../../../shared/types/Client";
+import type { Client, ID } from "../../../../../shared/models/client.model";
 import { formatLocalIsoDatePart, resolveDate } from "../../../../shared/utils/formatters";
 import type { ClientNotesAction } from "../../client.api";
 

@@ -17,15 +17,15 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import MenuWindowLayout from "../../../shared/layout/MenuWindowLayout";
-import type { WindowHostScreenProps } from "../../../app/window-host/windowHostRegistry";
-import type { TicketSearchResult } from "../../../../shared/types/ticketApiTypes";
+import WindowLayout from "../../../windows/WindowLayout";
+import type { WindowScreenProps } from "../../../windows/windowRegistry";
+import type { TicketSearchResult } from "../../../../shared/contracts/ticket.contract";
 import type { TicketFormError } from "../ticket.api";
 import { ticketService } from "../ticket.api";
 import { calculation } from "../../../../shared/utils/calculation";
 import { formatIsoDate, formatUppercase } from "../../../shared/utils/formatters";
 
-const TicketExpireWindow: React.FC<WindowHostScreenProps> = () => {
+const TicketExpireWindow: React.FC<WindowScreenProps> = () => {
   const ticketInputRef = React.useRef<HTMLInputElement>(null);
   const passwordInputRef = React.useRef<HTMLInputElement>(null);
   const [ticketNumber, setTicketNumber] = React.useState("");
@@ -88,7 +88,7 @@ const TicketExpireWindow: React.FC<WindowHostScreenProps> = () => {
     setSearchResult(null);
 
     try {
-      const result = await ticketService.searchTicket(normalizedTicketNumber);
+      const result = await ticketService.searchTicketByNumber(normalizedTicketNumber);
 
       if (!result) {
         setError("No ticket was found for that number.");
@@ -180,7 +180,7 @@ const TicketExpireWindow: React.FC<WindowHostScreenProps> = () => {
   };
 
   return (
-    <MenuWindowLayout
+    <WindowLayout
       title="Expire Ticket"
       description="Search tickets, confirm the details, then expire them."
     >
@@ -325,7 +325,7 @@ const TicketExpireWindow: React.FC<WindowHostScreenProps> = () => {
           </DialogActions>
         </Dialog>
       </Stack>
-    </MenuWindowLayout>
+    </WindowLayout>
   );
 };
 

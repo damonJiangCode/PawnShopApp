@@ -8,16 +8,16 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import type { Employee } from "../../../../shared/types/Employee";
+import type { Employee } from "../../../../shared/models/employee.model";
 import {
   employeeService,
   type EmployeeSearchInput,
 } from "../employee.api";
-import MenuWindowLayout from "../../../shared/layout/MenuWindowLayout";
-import type { WindowHostScreenProps } from "../../../app/window-host/windowHostRegistry";
+import WindowLayout from "../../../windows/WindowLayout";
+import type { WindowScreenProps } from "../../../windows/windowRegistry";
 import EmployeeAddEditDialog from "./EmployeeAddEditDialog";
 
-const EmployeeAdminWindow: React.FC<WindowHostScreenProps> = () => {
+const EmployeeAdminWindow: React.FC<WindowScreenProps> = () => {
   const lastNameInputRef = React.useRef<HTMLInputElement>(null);
   const [searchInput, setSearchInput] = React.useState<EmployeeSearchInput>({
     last_name: "",
@@ -133,7 +133,7 @@ const EmployeeAdminWindow: React.FC<WindowHostScreenProps> = () => {
   };
 
   return (
-    <MenuWindowLayout
+    <WindowLayout
       title="Edit Employee"
       description="Search employees by first name and last name, then update employee information."
     >
@@ -316,7 +316,7 @@ const EmployeeAdminWindow: React.FC<WindowHostScreenProps> = () => {
           }}
         />
       </Stack>
-    </MenuWindowLayout>
+    </WindowLayout>
   );
 };
 

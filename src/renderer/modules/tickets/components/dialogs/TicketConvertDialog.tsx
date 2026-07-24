@@ -10,7 +10,7 @@ import {
   DialogTitle,
   TextField,
 } from "@mui/material";
-import type { Ticket } from "../../../../../shared/types/Ticket";
+import type { Ticket } from "../../../../../shared/models/ticket.model";
 import type {
   ConvertTicketInput,
   TicketFormError,
