@@ -10,13 +10,11 @@ import {
   DialogTitle,
   TextField,
 } from "@mui/material";
-import type {
-  CreateSellTicketInput,
-  TicketFormError,
-} from "../../ticket.api";
+import type { CreateSellTicketInput, TicketFormError } from "../../ticket.api";
 import { ticketService } from "../../ticket.api";
 import { resolveFormFieldError } from "../../../../shared/utils/formError";
 import { confirmZeroTicketAmount } from "./confirmZeroTicketAmount";
+import { preventNumberInputWheel } from "./preventNumberInputWheel";
 
 const DEFAULT_SELL_LOCATION = "BIWK";
 
@@ -198,6 +196,9 @@ const TicketSellDialog: React.FC<TicketSellDialogProps> = (props) => {
             value={`${clientLastName.toUpperCase()}, ${formattedClientName}`}
             disabled
             fullWidth
+            sx={{
+              mb: 2,
+            }}
           />
 
           <TextField
@@ -263,6 +264,11 @@ const TicketSellDialog: React.FC<TicketSellDialogProps> = (props) => {
             label="Amount"
             type="number"
             value={amount}
+            slotProps={{
+              htmlInput: {
+                onWheel: preventNumberInputWheel,
+              },
+            }}
             onChange={(e) => {
               const nextValue = e.target.value;
               setAmount(nextValue === "" ? "" : Number(nextValue));

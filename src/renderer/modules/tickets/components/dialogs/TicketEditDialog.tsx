@@ -12,15 +12,13 @@ import {
   FormControlLabel,
 } from "@mui/material";
 import type { Ticket } from "../../../../../shared/models/ticket.model";
-import type {
-  TicketFormError,
-  UpdateTicketInput,
-} from "../../ticket.api";
+import type { TicketFormError, UpdateTicketInput } from "../../ticket.api";
 import { ticketService } from "../../ticket.api";
 import { calculation } from "../../../../../shared/utils/calculation";
 import Autocomplete from "@mui/material/Autocomplete";
 import { resolveFormFieldError } from "../../../../shared/utils/formError";
 import { confirmZeroTicketAmount } from "./confirmZeroTicketAmount";
+import { preventNumberInputWheel } from "./preventNumberInputWheel";
 
 interface TicketEditDialogProps {
   open: boolean;
@@ -67,6 +65,18 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
   const [employeePasswordError, setEmployeePasswordError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [saving, setSaving] = useState(false);
+  const compactFieldSx = {
+    "& .MuiFormHelperText-root": {
+      mt: 0.25,
+      lineHeight: 1.2,
+    },
+  };
+  const disabledFieldSx = {
+    ...compactFieldSx,
+    "& .MuiInputBase-input.Mui-disabled": {
+      WebkitTextFillColor: "text.primary",
+    },
+  };
 
   useEffect(() => {
     let active = true;
@@ -192,9 +202,7 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
         location: trimmedLocation,
         amount: normalizedAmount,
         onetime_fee:
-          isPawnedTicket && typeof oneTimeFee === "number"
-            ? oneTimeFee
-            : 0,
+          isPawnedTicket && typeof oneTimeFee === "number" ? oneTimeFee : 0,
         partial_payment:
           isPawnedTicket && typeof partialPayment === "number"
             ? partialPayment
@@ -225,9 +233,15 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Edit Ticket</DialogTitle>
-      <DialogContent>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
+      <DialogTitle sx={{ pb: 1 }}>Edit Ticket</DialogTitle>
+      <DialogContent sx={{ pt: 1 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+          }}
+        >
           {submitError && <Alert severity="error">{submitError}</Alert>}
 
           <TextField
@@ -235,17 +249,40 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
             value={`${clientLastName.toUpperCase()}, ${formattedClientName}`}
             disabled
             fullWidth
+            size="small"
+            sx={{ ...disabledFieldSx, mt: 0.75 }}
           />
           <TextField
             label="Ticket #"
             value={ticket?.ticket_number ?? ""}
             disabled
             fullWidth
+            size="small"
+            sx={disabledFieldSx}
           />
           {isPawnedTicket && (
             <FormControlLabel
+              sx={{
+                my: -0.5,
+                alignSelf: "center",
+                color: "error.main",
+                "& .MuiFormControlLabel-label": {
+                  fontSize: 15,
+                },
+              }}
               control={
                 <Checkbox
+                  size="small"
+                  sx={{
+                    p: 0.5,
+                    color: "error.main",
+                    "&.Mui-checked": {
+                      color: "error.main",
+                    },
+                    "& .MuiSvgIcon-root": {
+                      fontSize: 18,
+                    },
+                  }}
                   checked={isLost}
                   onChange={(_event, checked) => {
                     setIsLost(checked);
@@ -269,8 +306,10 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
             }}
             fullWidth
             required
+            size="small"
             error={Boolean(descriptionError)}
-            helperText={descriptionError || " "}
+            helperText={descriptionError || undefined}
+            sx={compactFieldSx}
           />
           <Autocomplete
             value={location}
@@ -305,8 +344,10 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
                 label="Location"
                 required
                 fullWidth
+                size="small"
                 error={Boolean(locationError)}
-                helperText={locationError || " "}
+                helperText={locationError || undefined}
+                sx={compactFieldSx}
               />
             )}
           />
@@ -315,6 +356,11 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
             label="Amount"
             type="number"
             value={amount}
+            slotProps={{
+              htmlInput: {
+                onWheel: preventNumberInputWheel,
+              },
+            }}
             onChange={(e) => {
               const nextValue = e.target.value;
               setAmount(nextValue === "" ? "" : Number(nextValue));
@@ -328,15 +374,23 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
             fullWidth
             required
             autoFocus
+            size="small"
             error={Boolean(amountError)}
-            helperText={amountError || " "}
+            helperText={amountError || undefined}
+            sx={compactFieldSx}
           />
+
           {isPawnedTicket && (
             <>
               <TextField
                 label="One Time Fee"
                 type="number"
                 value={oneTimeFee}
+                slotProps={{
+                  htmlInput: {
+                    onWheel: preventNumberInputWheel,
+                  },
+                }}
                 onChange={(e) => {
                   const nextValue = e.target.value;
                   setOneTimeFee(nextValue === "" ? "" : Number(nextValue));
@@ -348,15 +402,20 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
                   }
                 }}
                 fullWidth
+                size="small"
                 error={Boolean(oneTimeFeeError)}
-                helperText={
-                  oneTimeFeeError || "Optional. Leave blank to use 0."
-                }
+                helperText={oneTimeFeeError || undefined}
+                sx={compactFieldSx}
               />
               <TextField
                 label="Partial Payment"
                 type="number"
                 value={partialPayment}
+                slotProps={{
+                  htmlInput: {
+                    onWheel: preventNumberInputWheel,
+                  },
+                }}
                 onChange={(e) => {
                   const nextValue = e.target.value;
                   setPartialPayment(nextValue === "" ? "" : Number(nextValue));
@@ -368,45 +427,57 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
                   }
                 }}
                 fullWidth
+                size="small"
                 error={Boolean(partialPaymentError)}
-                helperText={
-                  partialPaymentError || "Optional. Leave blank to use 0."
-                }
+                helperText={partialPaymentError || undefined}
+                sx={compactFieldSx}
               />
-              <Box sx={{ display: "flex", gap: 2 }}>
+              <TextField
+                label="Employee Password"
+                value={employeePassword}
+                onChange={(e) => {
+                  setEmployeePassword(e.target.value);
+                  if (submitError) {
+                    setSubmitError("");
+                  }
+                  if (employeePasswordError) {
+                    setEmployeePasswordError("");
+                  }
+                }}
+                fullWidth
+                required
+                type="password"
+                size="small"
+                error={Boolean(employeePasswordError)}
+                helperText={employeePasswordError || undefined}
+                sx={compactFieldSx}
+              />
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                  gap: 1,
+                }}
+              >
                 <TextField
                   label="Early Claim Amount"
                   value={earlyClaimAmount.toFixed(2)}
                   disabled
                   fullWidth
+                  size="small"
+                  sx={disabledFieldSx}
                 />
                 <TextField
                   label="Pickup Amount"
                   value={pickupAmount.toFixed(2)}
                   disabled
                   fullWidth
+                  size="small"
+                  sx={disabledFieldSx}
                 />
               </Box>
             </>
           )}
-          <TextField
-            label="Employee Password"
-            value={employeePassword}
-            onChange={(e) => {
-              setEmployeePassword(e.target.value);
-              if (submitError) {
-                setSubmitError("");
-              }
-              if (employeePasswordError) {
-                setEmployeePasswordError("");
-              }
-            }}
-            fullWidth
-            required
-            type="password"
-            error={Boolean(employeePasswordError)}
-            helperText={employeePasswordError || " "}
-          />
         </Box>
       </DialogContent>
       <DialogActions>

@@ -10,14 +10,12 @@ import {
   Box,
   Alert,
 } from "@mui/material";
-import type {
-  CreatePawnTicketInput,
-  TicketFormError,
-} from "../../ticket.api";
+import type { CreatePawnTicketInput, TicketFormError } from "../../ticket.api";
 import { ticketService } from "../../ticket.api";
 import { calculation } from "../../../../../shared/utils/calculation";
 import { resolveFormFieldError } from "../../../../shared/utils/formError";
 import { confirmZeroTicketAmount } from "./confirmZeroTicketAmount";
+import { preventNumberInputWheel } from "./preventNumberInputWheel";
 
 interface TicketPawnDialogProps {
   open: boolean;
@@ -72,6 +70,13 @@ const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
   const [employeePasswordError, setEmployeePasswordError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [saving, setSaving] = useState(false);
+  const compactFieldSx = {
+    "& .MuiFormHelperText-root": {
+      mt: 0.25,
+      minHeight: 16,
+      lineHeight: 1.2,
+    },
+  };
 
   useEffect(() => {
     let active = true;
@@ -211,9 +216,15 @@ const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{dialogTitle}</DialogTitle>
-      <DialogContent>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
+      <DialogTitle sx={{ pb: 1 }}>{dialogTitle}</DialogTitle>
+      <DialogContent sx={{ pt: 1 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 0.75,
+          }}
+        >
           {submitError && <Alert severity="error">{submitError}</Alert>}
 
           <TextField
@@ -221,6 +232,15 @@ const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
             value={`${clientLastName.toUpperCase()}, ${formattedClientName}`}
             disabled
             fullWidth
+            size="small"
+            sx={{
+              ...compactFieldSx,
+              mt: 0.75,
+              mb: 2,
+              "& .MuiInputBase-input.Mui-disabled": {
+                WebkitTextFillColor: "text.primary",
+              },
+            }}
           />
 
           <TextField
@@ -238,8 +258,10 @@ const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
             }}
             fullWidth
             required
+            size="small"
             error={Boolean(descriptionError)}
             helperText={descriptionError || " "}
+            sx={compactFieldSx}
           />
 
           <Autocomplete
@@ -275,8 +297,10 @@ const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
                 label="Location"
                 required
                 fullWidth
+                size="small"
                 error={Boolean(locationError)}
                 helperText={locationError || " "}
+                sx={compactFieldSx}
               />
             )}
           />
@@ -285,6 +309,11 @@ const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
             label="Amount"
             type="number"
             value={amount}
+            slotProps={{
+              htmlInput: {
+                onWheel: preventNumberInputWheel,
+              },
+            }}
             onChange={(e) => {
               const nextValue = e.target.value;
               setAmount(nextValue === "" ? "" : Number(nextValue));
@@ -297,43 +326,11 @@ const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
             }}
             fullWidth
             required
+            size="small"
             error={Boolean(amountError)}
             helperText={amountError || " "}
+            sx={compactFieldSx}
           />
-
-          <TextField
-            label="One Time Fee"
-            type="number"
-            value={oneTimeFee}
-            onChange={(e) => {
-              const nextValue = e.target.value;
-              setOneTimeFee(nextValue === "" ? "" : Number(nextValue));
-              if (submitError) {
-                setSubmitError("");
-              }
-              if (oneTimeFeeError) {
-                setOneTimeFeeError("");
-              }
-            }}
-            fullWidth
-            error={Boolean(oneTimeFeeError)}
-            helperText={oneTimeFeeError || "Optional. Leave blank to use 0."}
-          />
-
-          <Box sx={{ display: "flex", gap: 2 }}>
-            <TextField
-              label="Early Claim Amount"
-              value={earlyClaimAmount.toFixed(2)}
-              disabled
-              fullWidth
-            />
-            <TextField
-              label="Pickup Amount"
-              value={pickupAmount.toFixed(2)}
-              disabled
-              fullWidth
-            />
-          </Box>
 
           <TextField
             label="Employee Password"
@@ -350,9 +347,63 @@ const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
             fullWidth
             required
             type="password"
+            size="small"
             error={Boolean(employeePasswordError)}
             helperText={employeePasswordError || " "}
+            sx={compactFieldSx}
           />
+
+          <TextField
+            label="One Time Fee"
+            type="number"
+            value={oneTimeFee}
+            slotProps={{
+              htmlInput: {
+                onWheel: preventNumberInputWheel,
+              },
+            }}
+            onChange={(e) => {
+              const nextValue = e.target.value;
+              setOneTimeFee(nextValue === "" ? "" : Number(nextValue));
+              if (submitError) {
+                setSubmitError("");
+              }
+              if (oneTimeFeeError) {
+                setOneTimeFeeError("");
+              }
+            }}
+            fullWidth
+            size="small"
+            error={Boolean(oneTimeFeeError)}
+            helperText={oneTimeFeeError || " "}
+            sx={compactFieldSx}
+          />
+
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+              gap: 1,
+            }}
+          >
+            <TextField
+              label="Early Claim Amount"
+              value={earlyClaimAmount.toFixed(2)}
+              disabled
+              fullWidth
+              size="small"
+              sx={compactFieldSx}
+            />
+
+            <TextField
+              label="Pickup Amount"
+              value={pickupAmount.toFixed(2)}
+              disabled
+              fullWidth
+              size="small"
+              sx={compactFieldSx}
+            />
+          </Box>
         </Box>
       </DialogContent>
       <DialogActions>
