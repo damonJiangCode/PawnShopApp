@@ -49,6 +49,7 @@ const CHANNELS = {
   OPEN_ITEM_SEARCH_WINDOW: "open-item-search-window",
   OPEN_ITEM_LOAD_WINDOW: "open-item-load-window",
   GET_ITEM_LOAD_WINDOW_PAYLOAD: "get-item-load-window-payload",
+  ITEM_LOAD_WINDOW_PAYLOAD_UPDATED: "item-load-window-payload-updated",
   SUBMIT_ITEM_LOAD_WINDOW: "submit-item-load-window",
   CANCEL_ITEM_LOAD_WINDOW: "cancel-item-load-window",
   ADD_PAWN_TICKET: "add-pawn-ticket",
@@ -66,15 +67,15 @@ const CHANNELS = {
 const invoke = (channel, ...args) => ipcRenderer.invoke(channel, ...args);
 
 const clientApi = {
-  search: (firstName, lastName) =>
+  searchClients: (firstName, lastName) =>
     invoke(CHANNELS.SEARCH_CLIENTS, firstName, lastName),
-  searchByDob: (dateOfBirth) =>
+  searchClientsByDob: (dateOfBirth) =>
     invoke(CHANNELS.SEARCH_CLIENTS_BY_DOB, dateOfBirth),
   loadCities: () => invoke(CHANNELS.GET_CITIES),
   loadHairColors: () => invoke(CHANNELS.GET_HAIR_COLORS),
-  loadAdminHairColors: () => invoke(CHANNELS.GET_ADMIN_HAIR_COLORS),
+  loadHairColorsForAdmin: () => invoke(CHANNELS.GET_ADMIN_HAIR_COLORS),
   loadEyeColors: () => invoke(CHANNELS.GET_EYE_COLORS),
-  loadAdminEyeColors: () => invoke(CHANNELS.GET_ADMIN_EYE_COLORS),
+  loadEyeColorsForAdmin: () => invoke(CHANNELS.GET_ADMIN_EYE_COLORS),
   addHairColor: (color) => invoke(CHANNELS.ADD_HAIR_COLOR, color),
   activateHairColor: (color) => invoke(CHANNELS.ACTIVATE_HAIR_COLOR, color),
   deactivateHairColor: (color) => invoke(CHANNELS.DEACTIVATE_HAIR_COLOR, color),
@@ -82,63 +83,65 @@ const clientApi = {
   activateEyeColor: (color) => invoke(CHANNELS.ACTIVATE_EYE_COLOR, color),
   deactivateEyeColor: (color) => invoke(CHANNELS.DEACTIVATE_EYE_COLOR, color),
   loadIdTypes: () => invoke(CHANNELS.GET_ID_TYPES),
-  create: (payload) => invoke(CHANNELS.ADD_CLIENT, payload),
-  update: (payload) => invoke(CHANNELS.UPDATE_CLIENT, payload),
-  delete: (clientNumber) => invoke(CHANNELS.DELETE_CLIENT, clientNumber),
-  saveImage: (fileName, base64) =>
+  createClient: (payload) => invoke(CHANNELS.ADD_CLIENT, payload),
+  updateClient: (payload) => invoke(CHANNELS.UPDATE_CLIENT, payload),
+  deleteClient: (clientNumber) => invoke(CHANNELS.DELETE_CLIENT, clientNumber),
+  saveClientImage: (fileName, base64) =>
     invoke(CHANNELS.SAVE_CLIENT_IMAGE, fileName, base64),
-  loadImage: (imagePath) => invoke(CHANNELS.GET_CLIENT_IMAGE, imagePath),
+  loadClientImage: (imagePath) => invoke(CHANNELS.GET_CLIENT_IMAGE, imagePath),
 };
 
 const ticketApi = {
-  loadByClient: (clientNumber) => invoke(CHANNELS.GET_TICKETS, clientNumber),
+  loadTicketsByClient: (clientNumber) =>
+    invoke(CHANNELS.GET_TICKETS, clientNumber),
   loadHolidayDates: () => invoke(CHANNELS.GET_HOLIDAY_DATES),
   addHolidayDate: (input) => invoke(CHANNELS.ADD_HOLIDAY_DATE, input),
   deleteHolidayDate: (holidayDate) =>
     invoke(CHANNELS.DELETE_HOLIDAY_DATE, holidayDate),
   loadLocations: () => invoke(CHANNELS.GET_LOCATIONS),
-  loadAdminLocations: () => invoke(CHANNELS.GET_ADMIN_LOCATIONS),
+  loadLocationsForAdmin: () => invoke(CHANNELS.GET_ADMIN_LOCATIONS),
   addLocation: (input) => invoke(CHANNELS.ADD_LOCATION, input),
   deactivateLocation: (location) =>
     invoke(CHANNELS.DEACTIVATE_LOCATION, location),
-  searchTicket: (ticketNumber) => invoke(CHANNELS.SEARCH_TICKET, ticketNumber),
-  searchPaymentTicket: (ticketNumber) =>
+  searchTicketByNumber: (ticketNumber) =>
+    invoke(CHANNELS.SEARCH_TICKET, ticketNumber),
+  searchPaymentTicketByNumber: (ticketNumber) =>
     invoke(CHANNELS.SEARCH_PAYMENT_TICKET, ticketNumber),
   loadBuybackReport: (input) => invoke(CHANNELS.LOAD_BUYBACK_REPORT, input),
   loadInterestReport: (input) => invoke(CHANNELS.LOAD_INTEREST_REPORT, input),
-  createPawn: (payload) => invoke(CHANNELS.ADD_PAWN_TICKET, payload),
-  createSell: (payload) => invoke(CHANNELS.ADD_SELL_TICKET, payload),
-  update: (payload) => invoke(CHANNELS.UPDATE_TICKET, payload),
-  convert: (payload) => invoke(CHANNELS.CONVERT_TICKET, payload),
-  expire: (payload) => invoke(CHANNELS.EXPIRE_TICKET, payload),
-  markStolen: (payload) => invoke(CHANNELS.MARK_TICKET_STOLEN, payload),
-  pickup: (payload) => invoke(CHANNELS.PICKUP_TICKETS, payload),
-  extend: (payload) => invoke(CHANNELS.EXTEND_TICKETS, payload),
-  loadTransferPreview: (ticketNumber) =>
+  createPawnTicket: (payload) => invoke(CHANNELS.ADD_PAWN_TICKET, payload),
+  createSellTicket: (payload) => invoke(CHANNELS.ADD_SELL_TICKET, payload),
+  updateTicket: (payload) => invoke(CHANNELS.UPDATE_TICKET, payload),
+  convertTicket: (payload) => invoke(CHANNELS.CONVERT_TICKET, payload),
+  expireTicket: (payload) => invoke(CHANNELS.EXPIRE_TICKET, payload),
+  markTicketStolen: (payload) => invoke(CHANNELS.MARK_TICKET_STOLEN, payload),
+  pickupTickets: (payload) => invoke(CHANNELS.PICKUP_TICKETS, payload),
+  extendTickets: (payload) => invoke(CHANNELS.EXTEND_TICKETS, payload),
+  loadTransferTicketPreview: (ticketNumber) =>
     invoke(CHANNELS.GET_TRANSFER_TICKET_PREVIEW, ticketNumber),
-  transfer: (payload) => invoke(CHANNELS.TRANSFER_TICKET, payload),
+  transferTicket: (payload) => invoke(CHANNELS.TRANSFER_TICKET, payload),
 };
 
 const employeeApi = {
-  create: (payload) => invoke(CHANNELS.ADD_EMPLOYEE, payload),
-  search: (payload) => invoke(CHANNELS.SEARCH_EMPLOYEES, payload),
-  update: (employeeNumber, payload) =>
+  createEmployee: (payload) => invoke(CHANNELS.ADD_EMPLOYEE, payload),
+  searchEmployees: (payload) => invoke(CHANNELS.SEARCH_EMPLOYEES, payload),
+  updateEmployee: (employeeNumber, payload) =>
     invoke(CHANNELS.UPDATE_EMPLOYEE, employeeNumber, payload),
 };
 
 const itemApi = {
-  loadByTicket: (ticketNumber) => invoke(CHANNELS.GET_ITEMS, ticketNumber),
-  loadCategories: () => invoke(CHANNELS.GET_ITEM_CATEGORIES),
-  search: (payload) => invoke(CHANNELS.SEARCH_ITEMS, payload),
-  create: (payload) => invoke(CHANNELS.ADD_ITEM, payload),
-  update: (payload) => invoke(CHANNELS.UPDATE_ITEM, payload),
-  delete: (ticketNumber, itemNumber) =>
+  loadItemsByTicket: (ticketNumber) => invoke(CHANNELS.GET_ITEMS, ticketNumber),
+  loadItemCategories: () => invoke(CHANNELS.GET_ITEM_CATEGORIES),
+  searchItems: (payload) => invoke(CHANNELS.SEARCH_ITEMS, payload),
+  createItem: (payload) => invoke(CHANNELS.ADD_ITEM, payload),
+  updateItem: (payload) => invoke(CHANNELS.UPDATE_ITEM, payload),
+  deleteItem: (ticketNumber, itemNumber) =>
     invoke(CHANNELS.DELETE_ITEM, ticketNumber, itemNumber),
-  linkToTicket: (ticketNumber, itemNumbers) =>
+  linkItemsToTicket: (ticketNumber, itemNumbers) =>
     invoke(CHANNELS.LINK_ITEMS_TO_TICKET, ticketNumber, itemNumbers),
-  saveImage: (fileName, base64) =>
+  saveItemImage: (fileName, base64) =>
     invoke(CHANNELS.SAVE_ITEM_IMAGE, fileName, base64),
-  loadImage: (imagePath) => invoke(CHANNELS.GET_ITEM_IMAGE, imagePath),
+  loadItemImage: (imagePath) => invoke(CHANNELS.GET_ITEM_IMAGE, imagePath),
 };
 
 const windowApi = {
@@ -149,13 +152,22 @@ const windowApi = {
     invoke(CHANNELS.OPEN_ITEM_LOAD_WINDOW, payload),
   loadItemLoadWindowData: (requestId) =>
     invoke(CHANNELS.GET_ITEM_LOAD_WINDOW_PAYLOAD, requestId),
+  subscribeToItemLoadWindowDataUpdated: (callback) => {
+    const listener = (_event, requestId) => callback(requestId);
+    ipcRenderer.on(CHANNELS.ITEM_LOAD_WINDOW_PAYLOAD_UPDATED, listener);
+    return () =>
+      ipcRenderer.removeListener(
+        CHANNELS.ITEM_LOAD_WINDOW_PAYLOAD_UPDATED,
+        listener,
+      );
+  },
   submitItemLoadWindow: (requestId, selectedItemIds) =>
     invoke(CHANNELS.SUBMIT_ITEM_LOAD_WINDOW, requestId, selectedItemIds),
   cancelItemLoadWindow: (requestId) =>
     invoke(CHANNELS.CANCEL_ITEM_LOAD_WINDOW, requestId),
 };
 
-contextBridge.exposeInMainWorld("electronAPI", {
+contextBridge.exposeInMainWorld("appAPI", {
   client: clientApi,
   employee: employeeApi,
   ticket: ticketApi,
