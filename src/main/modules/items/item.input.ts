@@ -42,6 +42,10 @@ const validateItem = (item: SaveItemInput) => {
 
 const normalizeItemSearch = (input: ItemSearchInput): ItemSearchInput => ({
   item_number: input.item_number ? Number(input.item_number) : undefined,
+  category_id: input.category_id ? Number(input.category_id) : undefined,
+  subcategory_id: input.subcategory_id
+    ? Number(input.subcategory_id)
+    : undefined,
   brand_name: trimUpper(input.brand_name),
   model_number: trimUpper(input.model_number),
   serial_number: trimUpper(input.serial_number),

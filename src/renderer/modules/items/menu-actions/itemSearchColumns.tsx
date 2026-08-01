@@ -3,8 +3,25 @@ import type { Item } from "../../../../shared/models/item.model";
 import CellTooltip from "../../../shared/components/CellTooltip";
 import { formatCurrency, formatUppercase } from "../../../shared/utils/formatters";
 
-const formatTicketStatus = (status?: string) =>
-  status ? status.replaceAll("_", " ").toUpperCase() : "---";
+const formatTicketStatus = (status?: string) => {
+  if (status === "pawned") {
+    return "PAWNED";
+  }
+
+  if (status === "pawned_picked_up") {
+    return "PICKEDUP";
+  }
+
+  if (status === "sold") {
+    return "SOLD";
+  }
+
+  if (status === "pawned_expired" || status === "sold_expired") {
+    return "EXPIRED";
+  }
+
+  return "---";
+};
 
 export const itemSearchColumns: GridColDef<Item>[] = [
   {

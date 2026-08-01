@@ -59,6 +59,10 @@ export const itemService = {
 
     return api.searchItems({
       item_number: input.item_number ? Number(input.item_number) : undefined,
+      category_id: input.category_id ? Number(input.category_id) : undefined,
+      subcategory_id: input.subcategory_id
+        ? Number(input.subcategory_id)
+        : undefined,
       brand_name: input.brand_name?.trim() ?? "",
       model_number: input.model_number?.trim() ?? "",
       serial_number: input.serial_number?.trim() ?? "",

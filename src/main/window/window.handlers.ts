@@ -125,8 +125,7 @@ export const registerWindowHandlers = () => {
       openWindowHost({
         screen: "item-search",
         title: "Search Item",
-        description:
-          "Search by item number, brand name, model number, or serial number.",
+        description: "Search by item number or item detail.",
         width: 1100,
         height: 640,
       });

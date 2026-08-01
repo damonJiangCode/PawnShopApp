@@ -128,9 +128,23 @@ export const itemRepo = {
       values.push(payload.item_number);
       conditions.push(`iws.item_number = $${values.length}`);
     } else {
+      const categoryId = payload.category_id;
+      const subcategoryId = payload.subcategory_id;
       const brandName = payload.brand_name?.trim();
       const modelNumber = payload.model_number?.trim();
       const serialNumber = payload.serial_number?.trim();
+
+      if (categoryId) {
+        values.push(categoryId);
+        conditions.push(
+          `iws.category_name = (SELECT name FROM item_category WHERE id = $${values.length})`,
+        );
+      }
+
+      if (subcategoryId) {
+        values.push(subcategoryId);
+        conditions.push(`iws.subcategory_id = $${values.length}`);
+      }
 
       if (brandName) {
         values.push(`%${brandName}%`);
@@ -158,7 +172,6 @@ export const itemRepo = {
       FROM item_with_status iws
       WHERE ${conditions.join(" AND ")}
       ORDER BY iws.item_number DESC
-      LIMIT 100
     `;
 
     try {
@@ -357,6 +370,5 @@ export const itemRepo = {
       `,
       [ticketNumber, itemNumber],
     );
-
   },
 };
