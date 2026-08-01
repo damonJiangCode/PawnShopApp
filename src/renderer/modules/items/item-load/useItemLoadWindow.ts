@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { GridRowSelectionModel } from "@mui/x-data-grid";
-import type { ItemLoadWindowData } from "../../../../shared/contracts/window.contract";
+import type { ItemLoadWindowData } from "../../../../shared/payload-contracts/window.contract";
 import { getTransactionItemRowId } from "../components/transaction/TransactionItemsTable";
 import { getAppApi } from "../../../shared/api/app.api";
 

@@ -2,7 +2,7 @@ import type { IpcMainInvokeEvent } from "electron";
 import type {
   ItemSearchInput,
   SaveItemInput,
-} from "../../../shared/contracts/item.contract.ts";
+} from "../../../shared/payload-contracts/item.contract.ts";
 import { itemService } from "./item.service.ts";
 import { CHANNELS } from "../../ipc/channels.ts";
 

@@ -3,7 +3,7 @@ import type {
   ItemSearchInput,
   ItemCategoryOption,
   SaveItemInput,
-} from "../../../shared/contracts/item.contract";
+} from "../../../shared/payload-contracts/item.contract";
 import { getAppApi } from "../../shared/api/app.api";
 
 let categoryCache: ItemCategoryOption[] | null = null;

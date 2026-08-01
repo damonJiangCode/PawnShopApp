@@ -1,5 +1,5 @@
 import { connect } from "../../database/connection.ts";
-import type { CitiesResponse } from "../../../shared/contracts/client.contract.ts";
+import type { CitiesResponse } from "../../../shared/payload-contracts/client.contract.ts";
 import type { EyeColor } from "../../../shared/models/eye-color.model.ts";
 import type { HairColor } from "../../../shared/models/hair-color.model.ts";
 

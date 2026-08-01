@@ -4,7 +4,7 @@ import type { EyeColor } from "../models/eye-color.model.ts";
 import type {
   CitiesResponse,
   SaveClientInput,
-} from "../contracts/client.contract.ts";
+} from "../payload-contracts/client.contract.ts";
 
 export type ClientApi = {
   searchClients: (firstName: string, lastName: string) => Promise<Client[]>;

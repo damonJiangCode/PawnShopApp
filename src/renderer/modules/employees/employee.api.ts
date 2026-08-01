@@ -2,7 +2,7 @@ import type { Employee } from "../../../shared/models/employee.model";
 import type {
   EmployeeSearchInput,
   SaveEmployeeInput,
-} from "../../../shared/contracts/employee.contract";
+} from "../../../shared/payload-contracts/employee.contract";
 import { getAppApi } from "../../shared/api/app.api";
 
 const normalizeEmployeeInput = (

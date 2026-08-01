@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { ClientNotesAction } from "../../../../shared/contracts/client.contract";
+import type { ClientNotesAction } from "../../../../shared/payload-contracts/client.contract";
 import type { Client, ID } from "../../../../shared/models/client.model";
 import { useClientSearch } from "../hooks/useClientSearch";
 import { clientService } from "../client.api";

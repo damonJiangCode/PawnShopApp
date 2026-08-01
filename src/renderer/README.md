@@ -143,8 +143,8 @@ Renderer code imports app-wide data shapes from `src/shared`, not from
 `renderer/shared`.
 
 - `src/shared/models/`: app data models such as `Client`, `Ticket`, `Item`.
-- `src/shared/contracts/`: IPC/API inputs and response shapes.
-- `src/shared/api/`: shape of `AppApi`, including `client`, `ticket`, `item`, `window`.
+- `src/shared/payload-contracts/`: method payloads such as inputs and response shapes.
+- `src/shared/api-contracts/`: method shapes such as `AppApi`, `ClientApi`, `TicketApi`.
 
 Renderer `shared/` is only for renderer helpers. App-wide model/API contracts
 belong in `src/shared`.

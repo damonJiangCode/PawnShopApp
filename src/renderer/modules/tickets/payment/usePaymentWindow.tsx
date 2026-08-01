@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { GridRowSelectionModel } from "@mui/x-data-grid";
-import type { TicketSearchResult } from "../../../../shared/contracts/ticket.contract";
+import type { TicketSearchResult } from "../../../../shared/payload-contracts/ticket.contract";
 import { clientService } from "../../clients/client.api";
 import { getClientImageDataUrl } from "../../clients/hooks/useClientImage";
 import { ticketService } from "../ticket.api";

@@ -3,7 +3,7 @@ import type { Employee } from "../../../shared/models/employee.model.ts";
 import type {
   EmployeeSearchInput,
   SaveEmployeeInput,
-} from "../../../shared/contracts/employee.contract.ts";
+} from "../../../shared/payload-contracts/employee.contract.ts";
 
 type DbClient = Awaited<ReturnType<typeof connect>>;
 

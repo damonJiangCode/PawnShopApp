@@ -21,7 +21,7 @@ import { DataGrid } from "@mui/x-data-grid";
 import type { GridPaginationModel } from "@mui/x-data-grid";
 import WindowLayout from "../../../windows/WindowLayout";
 import type { WindowScreenProps } from "../../../windows/windowRegistry";
-import type { ItemCategoryOption } from "../../../../shared/contracts/item.contract";
+import type { ItemCategoryOption } from "../../../../shared/payload-contracts/item.contract";
 import type { Item } from "../../../../shared/models/item.model";
 import TransactionItemImage from "../components/transaction/TransactionItemImage";
 import { itemService } from "../item.api";

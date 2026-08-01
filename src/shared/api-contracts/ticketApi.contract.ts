@@ -18,7 +18,7 @@ import type {
   UpdateTicketInput,
   SaveHolidayInput,
   SaveLocationInput,
-} from "../contracts/ticket.contract.ts";
+} from "../payload-contracts/ticket.contract.ts";
 
 export type TicketApi = {
   loadTicketsByClient: (clientNumber: number) => Promise<Ticket[]>;

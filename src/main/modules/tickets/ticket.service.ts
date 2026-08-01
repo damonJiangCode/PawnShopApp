@@ -10,7 +10,7 @@ import type {
   TransferTicketInput,
   TransferTicketPreview,
   UpdateTicketInput,
-} from "../../../shared/contracts/ticket.contract.ts";
+} from "../../../shared/payload-contracts/ticket.contract.ts";
 import { clientRepo } from "../clients/client.repo.ts";
 import { ticketRepo } from "./ticket.repo.ts";
 import { employeeService } from "../employees/employee.service.ts";

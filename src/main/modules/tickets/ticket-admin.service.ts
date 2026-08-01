@@ -3,7 +3,7 @@ import type { Location } from "../../../shared/models/location.model.ts";
 import type {
   SaveHolidayInput,
   SaveLocationInput,
-} from "../../../shared/contracts/ticket.contract.ts";
+} from "../../../shared/payload-contracts/ticket.contract.ts";
 import { holidayDateRepo } from "./holiday-date.repo.ts";
 import { ticketLocationRepo } from "./ticket-location.repo.ts";
 import { ticketInput } from "./ticket.input.ts";

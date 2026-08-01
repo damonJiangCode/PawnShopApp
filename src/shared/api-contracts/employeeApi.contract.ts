@@ -2,7 +2,7 @@ import type { Employee } from "../models/employee.model.ts";
 import type {
   EmployeeSearchInput,
   SaveEmployeeInput,
-} from "../contracts/employee.contract.ts";
+} from "../payload-contracts/employee.contract.ts";
 
 export type EmployeeApi = {
   createEmployee: (input: SaveEmployeeInput) => Promise<Employee>;

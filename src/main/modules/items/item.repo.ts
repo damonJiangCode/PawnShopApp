@@ -4,7 +4,7 @@ import type {
   ItemCategoryOption,
   ItemSearchInput,
   SaveItemInput,
-} from "../../../shared/contracts/item.contract.ts";
+} from "../../../shared/payload-contracts/item.contract.ts";
 import type { Item } from "../../../shared/models/item.model.ts";
 import type { Ticket } from "../../../shared/models/ticket.model.ts";
 

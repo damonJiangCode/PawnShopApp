@@ -9,7 +9,7 @@ import type {
   ReportDateInput,
   TransferTicketInput,
   UpdateTicketInput,
-} from "../../../shared/contracts/ticket.contract";
+} from "../../../shared/payload-contracts/ticket.contract";
 import { extractBackendFieldError } from "../../shared/utils/formError";
 
 export type TicketFormField =

@@ -4,7 +4,7 @@ import type { Employee } from "../../../shared/models/employee.model.ts";
 import type {
   EmployeeSearchInput,
   SaveEmployeeInput,
-} from "../../../shared/contracts/employee.contract.ts";
+} from "../../../shared/payload-contracts/employee.contract.ts";
 import { employeeInput } from "./employee.input.ts";
 
 export const employeeService = {

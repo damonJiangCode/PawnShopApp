@@ -1,7 +1,7 @@
 import type {
   ItemSearchInput,
   SaveItemInput,
-} from "../../../shared/contracts/item.contract.ts";
+} from "../../../shared/payload-contracts/item.contract.ts";
 
 const trimUpper = (value?: string) => value?.trim().toUpperCase() ?? "";
 

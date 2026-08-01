@@ -3,7 +3,7 @@ import type {
   ItemCategoryOption,
   ItemSearchInput,
   SaveItemInput,
-} from "../contracts/item.contract.ts";
+} from "../payload-contracts/item.contract.ts";
 
 export type ItemApi = {
   loadItemsByTicket: (ticketNumber: number) => Promise<Item[]>;

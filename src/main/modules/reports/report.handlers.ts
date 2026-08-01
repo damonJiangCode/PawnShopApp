@@ -1,5 +1,5 @@
 import type { IpcMainInvokeEvent } from "electron";
-import type { ReportDateInput } from "../../../shared/contracts/ticket.contract.ts";
+import type { ReportDateInput } from "../../../shared/payload-contracts/ticket.contract.ts";
 import { CHANNELS } from "../../ipc/channels.ts";
 import { reportService } from "./report.service.ts";
 

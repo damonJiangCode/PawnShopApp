@@ -1,4 +1,4 @@
-import type { AppApi } from "../../../shared/api/appApi";
+import type { AppApi } from "../../../shared/api-contracts/appApi.contract";
 
 declare global {
   interface Window {

@@ -2,7 +2,7 @@ import type { IpcMainInvokeEvent } from "electron";
 import type {
   ItemLoadWindowData,
   OpenPaymentWindowInput,
-} from "../../shared/contracts/window.contract.ts";
+} from "../../shared/payload-contracts/window.contract.ts";
 import type { Item } from "../../shared/models/item.model.ts";
 import { CHANNELS } from "../ipc/channels.ts";
 import { openWindowHost } from "./openWindowHost.ts";

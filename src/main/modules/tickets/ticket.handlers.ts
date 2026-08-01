@@ -9,11 +9,11 @@ import type {
   CreateSellTicketInput,
   TransferTicketInput,
   UpdateTicketInput,
-} from "../../../shared/contracts/ticket.contract.ts";
+} from "../../../shared/payload-contracts/ticket.contract.ts";
 import type {
   SaveHolidayInput,
   SaveLocationInput,
-} from "../../../shared/contracts/ticket.contract.ts";
+} from "../../../shared/payload-contracts/ticket.contract.ts";
 import { ticketAdminService } from "./ticket-admin.service.ts";
 import { ticketPaymentService } from "./ticket-payment.service.ts";
 import { ticketService } from "./ticket.service.ts";

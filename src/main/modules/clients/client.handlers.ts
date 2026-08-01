@@ -1,5 +1,5 @@
 import type { IpcMainInvokeEvent } from "electron";
-import type { SaveClientInput } from "../../../shared/contracts/client.contract.ts";
+import type { SaveClientInput } from "../../../shared/payload-contracts/client.contract.ts";
 import { clientReferenceService } from "./client-reference.service.ts";
 import { clientService } from "./client.service.ts";
 import { CHANNELS } from "../../ipc/channels.ts";

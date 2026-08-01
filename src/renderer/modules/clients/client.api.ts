@@ -5,7 +5,7 @@ import type {
   CitiesResponse,
   ClientNotesAction,
   SaveClientInput,
-} from "../../../shared/contracts/client.contract";
+} from "../../../shared/payload-contracts/client.contract";
 import { getAppApi } from "../../shared/api/app.api";
 import { extractBackendFieldError } from "../../shared/utils/formError";
 

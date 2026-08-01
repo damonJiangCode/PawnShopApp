@@ -18,7 +18,7 @@ import type {
   UpdateTicketInput,
   SaveHolidayInput,
   SaveLocationInput,
-} from "../../../shared/contracts/ticket.contract";
+} from "../../../shared/payload-contracts/ticket.contract";
 import { getAppApi } from "../../shared/api/app.api";
 import {
   mapBackendError,

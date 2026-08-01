@@ -2,7 +2,7 @@ import type { Item } from "../models/item.model.ts";
 import type {
   ItemLoadWindowData,
   OpenPaymentWindowInput,
-} from "../contracts/window.contract.ts";
+} from "../payload-contracts/window.contract.ts";
 
 export type WindowApi = {
   openPaymentWindow: (input: OpenPaymentWindowInput) => Promise<void>;

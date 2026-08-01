@@ -2,7 +2,7 @@ import type {
   BuybackReportResult,
   InterestReportResult,
   ReportDateInput,
-} from "../../../shared/contracts/ticket.contract.ts";
+} from "../../../shared/payload-contracts/ticket.contract.ts";
 import { reportRepo } from "./report.repo.ts";
 import { createFieldError } from "../../shared/createFieldError.ts";
 import { ticketInput } from "../tickets/ticket.input.ts";

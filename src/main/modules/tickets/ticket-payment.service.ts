@@ -2,7 +2,7 @@ import type { Ticket } from "../../../shared/models/ticket.model.ts";
 import type {
   ExtendTicketsInput,
   PickupTicketsInput,
-} from "../../../shared/contracts/ticket.contract.ts";
+} from "../../../shared/payload-contracts/ticket.contract.ts";
 import { calculation } from "../../../shared/utils/calculation.ts";
 import { interestPaymentRepo } from "./interest-payment.repo.ts";
 import { ticketRepo } from "./ticket.repo.ts";

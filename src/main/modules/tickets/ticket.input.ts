@@ -9,7 +9,7 @@ import type {
   ReportDateInput,
   TransferTicketInput,
   UpdateTicketInput,
-} from "../../../shared/contracts/ticket.contract.ts";
+} from "../../../shared/payload-contracts/ticket.contract.ts";
 
 const trimText = (value?: string) => value?.trim() ?? "";
 
