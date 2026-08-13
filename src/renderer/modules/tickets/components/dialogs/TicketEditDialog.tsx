@@ -380,6 +380,27 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
             sx={compactFieldSx}
           />
 
+          <TextField
+            label="Employee Password"
+            value={employeePassword}
+            onChange={(e) => {
+              setEmployeePassword(e.target.value);
+              if (submitError) {
+                setSubmitError("");
+              }
+              if (employeePasswordError) {
+                setEmployeePasswordError("");
+              }
+            }}
+            fullWidth
+            required
+            type="password"
+            size="small"
+            error={Boolean(employeePasswordError)}
+            helperText={employeePasswordError || undefined}
+            sx={compactFieldSx}
+          />
+
           {isPawnedTicket && (
             <>
               <TextField
@@ -430,26 +451,6 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
                 size="small"
                 error={Boolean(partialPaymentError)}
                 helperText={partialPaymentError || undefined}
-                sx={compactFieldSx}
-              />
-              <TextField
-                label="Employee Password"
-                value={employeePassword}
-                onChange={(e) => {
-                  setEmployeePassword(e.target.value);
-                  if (submitError) {
-                    setSubmitError("");
-                  }
-                  if (employeePasswordError) {
-                    setEmployeePasswordError("");
-                  }
-                }}
-                fullWidth
-                required
-                type="password"
-                size="small"
-                error={Boolean(employeePasswordError)}
-                helperText={employeePasswordError || undefined}
                 sx={compactFieldSx}
               />
               <Box
