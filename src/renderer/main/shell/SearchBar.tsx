@@ -25,6 +25,8 @@ interface SearchBarProps {
   onClear?: () => void;
 }
 
+const uppercaseSearchName = (value: string) => value.toUpperCase();
+
 const SearchBar: React.FC<SearchBarProps> = ({
   onSearch,
   onBirthdaySearch,
@@ -49,9 +51,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const formData = new FormData(event.currentTarget);
-    const trimmedFirstName = String(formData.get("firstName") ?? "").trim();
-    const trimmedLastName = String(formData.get("lastName") ?? "").trim();
+    const trimmedFirstName = firstName.trim();
+    const trimmedLastName = lastName.trim();
 
     if (!trimmedFirstName && !trimmedLastName) {
       alert("Please enter a first name or last name to search.");
@@ -118,7 +119,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
             label="Last Name"
             value={lastName}
             sx={{ width: { xs: 140, sm: 170, md: 190 } }}
-            onChange={(e) => setLastName(e.target.value)}
+            onChange={(e) => setLastName(uppercaseSearchName(e.target.value))}
           />
           <TextField
             name="firstName"
@@ -126,7 +127,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
             label="First Name"
             value={firstName}
             sx={{ width: { xs: 140, sm: 170, md: 190 } }}
-            onChange={(e) => setFirstName(e.target.value)}
+            onChange={(e) => setFirstName(uppercaseSearchName(e.target.value))}
           />
 
           <Button
@@ -206,7 +207,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setBirthdayDialogOpen(false)}>Cancel</Button>
-            <Button type="submit" variant="contained" startIcon={<SearchIcon />}>
+            <Button
+              type="submit"
+              variant="contained"
+              startIcon={<SearchIcon />}
+            >
               Search
             </Button>
           </DialogActions>
