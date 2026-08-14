@@ -360,6 +360,7 @@ const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
             slotProps={{
               htmlInput: {
                 onWheel: preventNumberInputWheel,
+                tabIndex: -1,
               },
             }}
             onChange={(e) => {

@@ -409,6 +409,7 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
                 value={oneTimeFee}
                 slotProps={{
                   htmlInput: {
+                    tabIndex: -1,
                     onWheel: preventNumberInputWheel,
                   },
                 }}
@@ -434,6 +435,7 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
                 value={partialPayment}
                 slotProps={{
                   htmlInput: {
+                    tabIndex: -1,
                     onWheel: preventNumberInputWheel,
                   },
                 }}
