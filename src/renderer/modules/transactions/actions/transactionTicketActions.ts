@@ -104,16 +104,18 @@ export const createTransactionTicketActions = ({
     }
 
     const updatedTicket = await ticketService.updateTicket(data);
+    const updatedTicketNumber = updatedTicket.ticket_number;
 
     setTickets((prev) =>
       prev.map((ticket) =>
-        ticket.ticket_number === selectedTicket.ticket_number
-          ? updatedTicket
-          : ticket,
+        ticket.ticket_number === updatedTicketNumber ? updatedTicket : ticket,
       ),
     );
     setSelectedTicket(updatedTicket);
     setOpenTicketEditDialog(false);
+    requestAnimationFrame(() => {
+      setSelectedTicket(updatedTicket);
+    });
     setStatusMessage(`Ticket #${updatedTicket.ticket_number} updated.`);
   };
 
