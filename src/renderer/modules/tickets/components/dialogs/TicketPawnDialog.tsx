@@ -54,6 +54,7 @@ const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
     .join(" ");
 
   const descriptionRef = useRef<HTMLInputElement>(null);
+  const employeePasswordRef = useRef<HTMLInputElement>(null);
   const [description, setDescription] = useState<string>("");
   const [location, setLocation] = useState<string>("");
   const [locationList, setLocationList] = useState<string[]>([]);
@@ -76,6 +77,13 @@ const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
       minHeight: 16,
       lineHeight: 1.2,
     },
+  };
+
+  const focusEmployeePassword = () => {
+    requestAnimationFrame(() => {
+      employeePasswordRef.current?.focus();
+      employeePasswordRef.current?.select();
+    });
   };
 
   useEffect(() => {
@@ -176,6 +184,9 @@ const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
       nextOneTimeFeeError ||
       nextEmployeePasswordError
     ) {
+      if (nextEmployeePasswordError) {
+        focusEmployeePassword();
+      }
       return;
     }
 
@@ -205,6 +216,7 @@ const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
 
       if (nextEmployeePasswordError) {
         setEmployeePasswordError(nextEmployeePasswordError);
+        focusEmployeePassword();
         return;
       }
 
@@ -333,6 +345,7 @@ const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
           />
 
           <TextField
+            inputRef={employeePasswordRef}
             label="Employee Password"
             value={employeePassword}
             onChange={(e) => {

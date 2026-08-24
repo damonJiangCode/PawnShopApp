@@ -44,6 +44,7 @@ const TicketSellDialog: React.FC<TicketSellDialogProps> = (props) => {
     .join(" ");
 
   const descriptionRef = useRef<HTMLInputElement>(null);
+  const employeePasswordRef = useRef<HTMLInputElement>(null);
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [locationList, setLocationList] = useState<string[]>([]);
@@ -56,6 +57,13 @@ const TicketSellDialog: React.FC<TicketSellDialogProps> = (props) => {
   const [employeePasswordError, setEmployeePasswordError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const focusEmployeePassword = () => {
+    requestAnimationFrame(() => {
+      employeePasswordRef.current?.focus();
+      employeePasswordRef.current?.select();
+    });
+  };
 
   useEffect(() => {
     let active = true;
@@ -147,6 +155,9 @@ const TicketSellDialog: React.FC<TicketSellDialogProps> = (props) => {
       nextAmountError ||
       nextEmployeePasswordError
     ) {
+      if (nextEmployeePasswordError) {
+        focusEmployeePassword();
+      }
       return;
     }
 
@@ -175,6 +186,7 @@ const TicketSellDialog: React.FC<TicketSellDialogProps> = (props) => {
 
       if (nextEmployeePasswordError) {
         setEmployeePasswordError(nextEmployeePasswordError);
+        focusEmployeePassword();
         return;
       }
 
@@ -286,6 +298,7 @@ const TicketSellDialog: React.FC<TicketSellDialogProps> = (props) => {
           />
 
           <TextField
+            inputRef={employeePasswordRef}
             label="Employee Password"
             value={employeePassword}
             onChange={(e) => {
