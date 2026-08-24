@@ -17,7 +17,7 @@ import {
   Typography,
 } from "@mui/material";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ticketService } from "../../tickets/ticket.api";
+import { ticketApi } from "../../tickets/ticket.api";
 import {
   formatCurrency,
   formatIsoDate,
@@ -30,7 +30,7 @@ const InterestReportWindow: React.FC<WindowScreenProps> = () => {
   const today = useMemo(() => formatIsoDate(new Date()), []);
   const [selectedDate, setSelectedDate] = useState(today);
   const [report, setReport] =
-    useState<Awaited<ReturnType<typeof ticketService.loadInterestReport>>>();
+    useState<Awaited<ReturnType<typeof ticketApi.loadInterestReport>>>();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -44,7 +44,7 @@ const InterestReportWindow: React.FC<WindowScreenProps> = () => {
     setErrorMessage("");
 
     try {
-      const nextReport = await ticketService.loadInterestReport({
+      const nextReport = await ticketApi.loadInterestReport({
         date: selectedDate,
       });
       setReport(nextReport);

@@ -4,13 +4,13 @@ import type { Ticket } from "../../../../shared/models/ticket.model";
 import type { Client } from "../../../../shared/models/client.model";
 import {
   type ConvertTicketInput,
-  ticketService,
+  ticketApi,
   type CreatePawnTicketInput,
   type CreateSellTicketInput,
   type TransferTicketPreview,
   type UpdateTicketInput,
 } from "../../tickets/ticket.api";
-import { itemService } from "../../items/item.api";
+import { itemApi } from "../../items/item.api";
 import { filterVisibleTickets, sortTickets } from "../transaction.helpers";
 
 type TransactionTicketActionDeps = {
@@ -51,7 +51,7 @@ export const createTransactionTicketActions = ({
       return;
     }
 
-    ticketService.printEnvelopeTicket(selectedTicket, client);
+    ticketApi.printEnvelopeTicket(selectedTicket, client);
     setStatusMessage(
       `Envelope print ready for ticket #${selectedTicket.ticket_number}.`,
     );
@@ -64,7 +64,7 @@ export const createTransactionTicketActions = ({
       throw new Error("Please select a client first.");
     }
 
-    const newTicket = await ticketService.createPawnTicket({
+    const newTicket = await ticketApi.createPawnTicket({
       ...ticketData,
       client_number: clientNumber,
     });
@@ -74,7 +74,7 @@ export const createTransactionTicketActions = ({
     setItems([]);
     setSelectedItem(null);
     setOpenTicketPawnDialog(false);
-    ticketService.printEnvelopeTicket(newTicket, client);
+    ticketApi.printEnvelopeTicket(newTicket, client);
     setStatusMessage(`Ticket #${newTicket.ticket_number} pawned.`);
   };
 
@@ -85,7 +85,7 @@ export const createTransactionTicketActions = ({
       throw new Error("Please select a client first.");
     }
 
-    const newTicket = await ticketService.createSellTicket({
+    const newTicket = await ticketApi.createSellTicket({
       ...ticketData,
       client_number: clientNumber,
     });
@@ -96,7 +96,7 @@ export const createTransactionTicketActions = ({
     setSelectedItem(null);
     setOpenTicketSellDialog(false);
     onClientSoldTicket?.();
-    ticketService.printEnvelopeTicket(newTicket, client);
+    ticketApi.printEnvelopeTicket(newTicket, client);
     setStatusMessage(`Ticket #${newTicket.ticket_number} sold.`);
   };
 
@@ -105,7 +105,7 @@ export const createTransactionTicketActions = ({
       throw new Error("Please select a ticket first.");
     }
 
-    const updatedTicket = await ticketService.updateTicket(data);
+    const updatedTicket = await ticketApi.updateTicket(data);
     const updatedTicketNumber = updatedTicket.ticket_number;
 
     setTickets((prev) =>
@@ -124,7 +124,7 @@ export const createTransactionTicketActions = ({
   const handleLoadTransferTicketPreview = async (
     ticketNumber: number,
   ): Promise<TransferTicketPreview | null> => {
-    return ticketService.loadTransferTicketPreview(ticketNumber);
+    return ticketApi.loadTransferTicketPreview(ticketNumber);
   };
 
   const handleConvertTicketConfirmed = async (
@@ -134,7 +134,7 @@ export const createTransactionTicketActions = ({
       throw new Error("Please select a ticket first.");
     }
 
-    const convertedTicket = await ticketService.convertTicket(data);
+    const convertedTicket = await ticketApi.convertTicket(data);
     const fromStatus = selectedTicket.status;
 
     setTickets((prev) =>
@@ -146,7 +146,7 @@ export const createTransactionTicketActions = ({
     );
     setSelectedTicket(convertedTicket);
     const refreshedItems = convertedTicket.ticket_number
-      ? await itemService.loadItems(convertedTicket.ticket_number)
+      ? await itemApi.loadItems(convertedTicket.ticket_number)
       : [];
     setItems(refreshedItems);
     setSelectedItem((prev) => {
@@ -172,12 +172,12 @@ export const createTransactionTicketActions = ({
       throw new Error("Please select a client first.");
     }
 
-    const transferredTicket = await ticketService.transferTicket({
+    const transferredTicket = await ticketApi.transferTicket({
       ticket_number: ticketNumber,
       client_number: clientNumber,
     });
     const refreshedTickets = filterVisibleTickets(
-      await ticketService.loadTickets(clientNumber),
+      await ticketApi.loadTickets(clientNumber),
     );
 
     setTickets(refreshedTickets);

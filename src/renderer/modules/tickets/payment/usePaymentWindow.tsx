@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { GridRowSelectionModel } from "@mui/x-data-grid";
 import type { TicketSearchResult } from "../../../../shared/payload-contracts/ticket.contract";
-import { clientService } from "../../clients/client.api";
+import { clientApi } from "../../clients/client.api";
 import { getClientImageDataUrl } from "../../clients/hooks/useClientImage";
-import { ticketService } from "../ticket.api";
+import { ticketApi } from "../ticket.api";
 import { createPaymentColumns } from "./payment.columns";
 import {
   loadAvailablePaymentRows,
@@ -142,8 +142,8 @@ export const usePaymentWindow = () => {
 
     try {
       const [preview, holidays] = await Promise.all([
-        ticketService.searchPaymentTicketByNumber(ticketNumber),
-        ticketService.loadHolidayDates(),
+        ticketApi.searchPaymentTicketByNumber(ticketNumber),
+        ticketApi.loadHolidayDates(),
       ]);
 
       if (!preview) {
@@ -159,7 +159,7 @@ export const usePaymentWindow = () => {
 
       setHolidayDateKeys(holidays.map((holiday) => holiday.holiday_date));
       setTicketSearchPreview(preview);
-      const clientImageBase64 = await clientService.loadClientImage(
+      const clientImageBase64 = await clientApi.loadClientImage(
         preview.client.image_path,
       );
       setTicketSearchClientImage(

@@ -2,7 +2,7 @@ import React from "react";
 import { Alert, Box, Button, Stack, TextField } from "@mui/material";
 import WindowLayout from "../../../windows/WindowLayout";
 import type { WindowScreenProps } from "../../../windows/windowRegistry";
-import { ticketService } from "../ticket.api";
+import { ticketApi } from "../ticket.api";
 
 const ticketSearchHistoryStatuses = new Set([
   "pawned_expired",
@@ -47,7 +47,7 @@ const TicketSearchWindow: React.FC<WindowScreenProps> = () => {
     setError("");
 
     try {
-      const result = await ticketService.searchTicketByNumber(normalizedTicketNumber);
+      const result = await ticketApi.searchTicketByNumber(normalizedTicketNumber);
 
       if (!result) {
         setError("No ticket was found for that number.");

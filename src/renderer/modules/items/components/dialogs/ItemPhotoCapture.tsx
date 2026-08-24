@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Button, Typography } from "@mui/material";
 import { getImageDataUrl } from "../../../../shared/utils/imageDataUrl";
-import { itemService } from "../../item.api";
+import { itemApi } from "../../item.api";
 
 interface ItemPhotoCaptureProps {
   imagePath?: string;
@@ -58,7 +58,7 @@ const ItemPhotoCapture: React.FC<ItemPhotoCaptureProps> = ({
 
     let mounted = true;
 
-    itemService.loadItemImage(imagePath).then((base64) => {
+    itemApi.loadItemImage(imagePath).then((base64) => {
       if (mounted && base64) {
         setPhotoData(getImageDataUrl(base64, imagePath));
       }

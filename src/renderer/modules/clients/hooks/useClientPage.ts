@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ClientNotesAction } from "../../../../shared/payload-contracts/client.contract";
 import type { Client, ID } from "../../../../shared/models/client.model";
 import { useClientSearch } from "../hooks/useClientSearch";
-import { clientService } from "../client.api";
+import { clientApi } from "../client.api";
 import { formatIsoDate } from "../../../shared/utils/formatters";
 
 interface UseClientPageParams {
@@ -326,7 +326,7 @@ export const useClientPage = ({
     employeePassword: string;
     notesAction: ClientNotesAction;
   }) => {
-    const updatedClient = await clientService.updateClient({
+    const updatedClient = await clientApi.updateClient({
       client: {
         ...client,
         notes,

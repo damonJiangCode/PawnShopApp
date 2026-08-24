@@ -76,7 +76,7 @@ const normalizeSaveClientInput = (input: SaveClientInput): SaveClientInput => ({
   notes_action: input.notes_action ?? "keep",
 });
 
-export const clientService = {
+export const clientApi = {
   searchClients: async (
     firstName: string,
     lastName: string,

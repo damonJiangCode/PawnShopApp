@@ -1,15 +1,15 @@
 import React from "react";
-import { clientService } from "../../../clients/client.api";
+import { clientApi } from "../../../clients/client.api";
 import type { WindowScreenProps } from "../../../../windows/windowRegistry";
 import ColorAdminWindow from "../color/ColorAdminWindow";
 
 const EyeColorAdminWindow: React.FC<WindowScreenProps> = () => (
   <ColorAdminWindow
     colorType="Eye"
-    loadColors={clientService.loadEyeColorsForAdmin}
-    addColor={clientService.addEyeColor}
-    activateColor={clientService.activateEyeColor}
-    deactivateColor={clientService.deactivateEyeColor}
+    loadColors={clientApi.loadEyeColorsForAdmin}
+    addColor={clientApi.addEyeColor}
+    activateColor={clientApi.activateEyeColor}
+    deactivateColor={clientApi.deactivateEyeColor}
   />
 );
 

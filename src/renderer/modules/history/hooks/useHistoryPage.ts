@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import type { Item } from "../../../../shared/models/item.model";
 import type { Ticket } from "../../../../shared/models/ticket.model";
 import {
-  itemService,
+  itemApi,
   type ItemCategoryOption,
 } from "../../items/item.api";
 import {
-  ticketService,
+  ticketApi,
   type CreatePawnTicketInput,
 } from "../../tickets/ticket.api";
 import { getAppApi } from "../../../shared/api/app.api";
@@ -87,7 +87,7 @@ export const useHistoryPage = ({
   useEffect(() => {
     let active = true;
 
-    itemService
+    itemApi
       .preloadCategories()
       .then((categories) => {
         if (active) {
@@ -117,7 +117,7 @@ export const useHistoryPage = ({
       }
 
       setTicketsLoading(true);
-      const fetchedTickets = await ticketService.loadTickets(clientNumber);
+      const fetchedTickets = await ticketApi.loadTickets(clientNumber);
       const historyTickets = sortHistoryTickets(
         fetchedTickets.filter((ticket) =>
           historyTicketStatuses.has(ticket.status),
@@ -188,7 +188,7 @@ export const useHistoryPage = ({
       }
 
       setItemsLoading(true);
-      const fetchedItems = await itemService.loadItems(
+      const fetchedItems = await itemApi.loadItems(
         selectedTicket.ticket_number,
       );
 
@@ -225,7 +225,7 @@ export const useHistoryPage = ({
       throw new Error("Please select a client and ticket first.");
     }
 
-    const newTicket = await ticketService.createPawnTicket({
+    const newTicket = await ticketApi.createPawnTicket({
       ...ticketData,
       client_number: clientNumber,
     });

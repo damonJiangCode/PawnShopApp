@@ -24,8 +24,8 @@ import type { WindowScreenProps } from "../../../windows/windowRegistry";
 import type { ItemCategoryOption } from "../../../../shared/payload-contracts/item.contract";
 import type { Item } from "../../../../shared/models/item.model";
 import TransactionItemImage from "../components/transaction/TransactionItemImage";
-import { itemService } from "../item.api";
-import { ticketService } from "../../tickets/ticket.api";
+import { itemApi } from "../item.api";
+import { ticketApi } from "../../tickets/ticket.api";
 import { itemSearchColumns } from "./itemSearchColumns";
 
 type ItemSearchMode = "item-number" | "details";
@@ -206,7 +206,7 @@ const ItemSearchWindow: React.FC<WindowScreenProps> = () => {
     let active = true;
 
     const loadCategories = async () => {
-      const loadedCategories = await itemService.preloadCategories();
+      const loadedCategories = await itemApi.preloadCategories();
 
       if (!active) {
         return;
@@ -306,7 +306,7 @@ const ItemSearchWindow: React.FC<WindowScreenProps> = () => {
     setSearching(true);
 
     try {
-      const results = await itemService.searchItems(
+      const results = await itemApi.searchItems(
         mode === "item-number"
           ? { item_number: normalizedItemNumber }
           : {
@@ -342,7 +342,7 @@ const ItemSearchWindow: React.FC<WindowScreenProps> = () => {
     setError("");
 
     try {
-      const result = await ticketService.searchTicketByNumber(
+      const result = await ticketApi.searchTicketByNumber(
         selectedItem.latest_ticket_number,
       );
 

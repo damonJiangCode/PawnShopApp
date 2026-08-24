@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getImageDataUrl } from "../../../shared/utils/imageDataUrl";
-import { clientService } from "../client.api";
+import { clientApi } from "../client.api";
 
 export const getClientImageDataUrl = (
   base64: string,
@@ -20,7 +20,7 @@ export const useClientImage = (imagePath?: string) => {
         return;
       }
       try {
-        const base64 = await clientService.loadClientImage(imagePath);
+        const base64 = await clientApi.loadClientImage(imagePath);
         if (!active) {
           return;
         }

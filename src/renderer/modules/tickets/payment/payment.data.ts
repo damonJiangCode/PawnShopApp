@@ -1,4 +1,4 @@
-import { ticketService } from "../ticket.api";
+import { ticketApi } from "../ticket.api";
 import type {
   PaymentMode,
   PaymentRowsByMode,
@@ -21,8 +21,8 @@ export const loadAvailablePaymentRows = async ({
   selectedRowsByMode,
 }: LoadPaymentRowsInput) => {
   const [tickets, holidays] = await Promise.all([
-    ticketService.loadTickets(clientNumber),
-    ticketService.loadHolidayDates(),
+    ticketApi.loadTickets(clientNumber),
+    ticketApi.loadHolidayDates(),
   ]);
   const holidayDateKeys = holidays.map((holiday) => holiday.holiday_date);
   const oppositeSelectedTicketNumbers = new Set(
@@ -69,7 +69,7 @@ export const processPaymentRows = async ({
   );
   const [pickedUpTickets, extendedTickets] = await Promise.all([
     pickupRows.length
-      ? ticketService.pickupTickets({
+      ? ticketApi.pickupTickets({
           tickets: pickupRows.map((row) => ({
             ticket_number: row.ticketNumber,
             pickup_amount_paid: Number(row.pickupAmount ?? 0),
@@ -77,7 +77,7 @@ export const processPaymentRows = async ({
         })
       : Promise.resolve([]),
     extensionMonthCounts.size
-      ? ticketService.extendTickets({
+      ? ticketApi.extendTickets({
           extensions: [...extensionMonthCounts.entries()].map(
             ([ticketNumber, months]) => ({
               ticket_number: ticketNumber,

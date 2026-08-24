@@ -21,7 +21,7 @@ import WindowLayout from "../../../windows/WindowLayout";
 import type { WindowScreenProps } from "../../../windows/windowRegistry";
 import type { TicketSearchResult } from "../../../../shared/payload-contracts/ticket.contract";
 import type { TicketFormError } from "../ticket.api";
-import { ticketService } from "../ticket.api";
+import { ticketApi } from "../ticket.api";
 import { formatIsoDate, formatUppercase } from "../../../shared/utils/formatters";
 
 const TicketStolenWindow: React.FC<WindowScreenProps> = () => {
@@ -87,7 +87,7 @@ const TicketStolenWindow: React.FC<WindowScreenProps> = () => {
     setSearchResult(null);
 
     try {
-      const result = await ticketService.searchTicketByNumber(normalizedTicketNumber);
+      const result = await ticketApi.searchTicketByNumber(normalizedTicketNumber);
 
       if (!result) {
         setError("No ticket was found for that number.");
@@ -134,7 +134,7 @@ const TicketStolenWindow: React.FC<WindowScreenProps> = () => {
     setMessage("");
 
     try {
-      const stolenTicket = await ticketService.markTicketStolen({
+      const stolenTicket = await ticketApi.markTicketStolen({
         ticket_number: searchResult.ticket.ticket_number,
         employee_password: employeePassword,
       });

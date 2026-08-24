@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Box, TextField, MenuItem } from "@mui/material";
-import { clientService } from "../../../client.api";
+import { clientApi } from "../../../client.api";
 
 interface AddressFieldsProps {
   client_address?: string;
@@ -42,7 +42,7 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
 
   useEffect(() => {
     const fetchCities = async () => {
-      const data = await clientService.loadCities();
+      const data = await clientApi.loadCities();
       setProvinces(data.provinces);
       setCitiesByProvince(data.citiesByProvince);
       setLoading(false);

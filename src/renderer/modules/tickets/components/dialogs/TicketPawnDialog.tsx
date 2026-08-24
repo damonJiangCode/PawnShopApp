@@ -11,7 +11,7 @@ import {
   Alert,
 } from "@mui/material";
 import type { CreatePawnTicketInput, TicketFormError } from "../../ticket.api";
-import { ticketService } from "../../ticket.api";
+import { ticketApi } from "../../ticket.api";
 import { calculation } from "../../../../../shared/utils/calculation";
 import { resolveFormFieldError } from "../../../../shared/utils/formError";
 import { confirmZeroTicketAmount } from "./confirmZeroTicketAmount";
@@ -83,7 +83,7 @@ const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
 
     const fetchLocations = async () => {
       setLoading(true);
-      const locations = await ticketService.loadLocations();
+      const locations = await ticketApi.loadLocations();
 
       if (!active) {
         return;

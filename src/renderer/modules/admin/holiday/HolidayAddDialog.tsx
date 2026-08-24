@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import type { HolidayDate } from "../../../../shared/models/holiday-date.model";
 import type { SaveHolidayInput } from "../../../../shared/payload-contracts/ticket.contract";
-import { ticketService } from "../../tickets/ticket.api";
+import { ticketApi } from "../../tickets/ticket.api";
 
 type HolidayAddDialogProps = {
   open: boolean;
@@ -80,7 +80,7 @@ const HolidayAddDialog: React.FC<HolidayAddDialogProps> = ({
     setSubmitError("");
 
     try {
-      const holiday = await ticketService.addHolidayDate(input);
+      const holiday = await ticketApi.addHolidayDate(input);
       onSave(holiday);
       onClose();
     } catch (err) {

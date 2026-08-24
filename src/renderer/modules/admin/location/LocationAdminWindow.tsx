@@ -10,7 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import type { Location } from "../../../../shared/models/location.model";
-import { ticketService } from "../../tickets/ticket.api";
+import { ticketApi } from "../../tickets/ticket.api";
 import WindowLayout from "../../../windows/WindowLayout";
 import type { WindowScreenProps } from "../../../windows/windowRegistry";
 import LocationAddDialog from "./LocationAddDialog";
@@ -47,7 +47,7 @@ const LocationAdminWindow: React.FC<WindowScreenProps> = () => {
     setError("");
 
     try {
-      const results = sortLocations(await ticketService.loadLocationsForAdmin());
+      const results = sortLocations(await ticketApi.loadLocationsForAdmin());
       setAllLocations(results);
       setLocations(results);
       setSearchInput("");
@@ -107,7 +107,7 @@ const LocationAdminWindow: React.FC<WindowScreenProps> = () => {
     setMessage("");
 
     try {
-      const deactivated = await ticketService.deactivateLocation(
+      const deactivated = await ticketApi.deactivateLocation(
         location.location,
       );
       const updateLocation = (existingLocation: Location) =>

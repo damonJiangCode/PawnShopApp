@@ -15,7 +15,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import type { ID } from "../../../../../../shared/models/client.model";
-import { clientService } from "../../../client.api";
+import { clientApi } from "../../../client.api";
 
 export interface IDFieldsRef {
   getIDs: () => ID[];
@@ -38,7 +38,7 @@ const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(
 
     useEffect(() => {
       const fetchIdTypes = async () => {
-        const types = await clientService.loadIdTypes();
+        const types = await clientApi.loadIdTypes();
         setIdTypes(types);
       };
       fetchIdTypes();

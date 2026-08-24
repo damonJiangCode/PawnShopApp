@@ -51,7 +51,7 @@ const openPrintWindow = (html: string) => {
   printWindow.document.close();
 };
 
-export const ticketService = {
+export const ticketApi = {
   printEnvelopeTicket: (ticket: Ticket, client?: PrintClient) => {
     openPrintWindow(createEnvelopePrintHtml(ticket, client));
   },
@@ -203,7 +203,7 @@ export const ticketService = {
 
     if (!api) {
       throw new Error(
-        "[ticketService] createPawnTicket(): Cannot get api from Electron",
+        "[ticketApi] createPawnTicket(): Cannot get api from Electron",
       );
     }
 
@@ -220,7 +220,7 @@ export const ticketService = {
 
     if (!api) {
       throw new Error(
-        "[ticketService] createSellTicket(): Cannot get api from Electron",
+        "[ticketApi] createSellTicket(): Cannot get api from Electron",
       );
     }
 
@@ -237,7 +237,7 @@ export const ticketService = {
 
     if (!api) {
       throw new Error(
-        "[ticketService] updateTicket(): Cannot get api from Electron",
+        "[ticketApi] updateTicket(): Cannot get api from Electron",
       );
     }
 
@@ -254,7 +254,7 @@ export const ticketService = {
 
     if (!api) {
       throw new Error(
-        "[ticketService] convertTicket(): Cannot get api from Electron",
+        "[ticketApi] convertTicket(): Cannot get api from Electron",
       );
     }
 
@@ -271,7 +271,7 @@ export const ticketService = {
 
     if (!api) {
       throw new Error(
-        "[ticketService] expireTicket(): Cannot get api from Electron",
+        "[ticketApi] expireTicket(): Cannot get api from Electron",
       );
     }
 
@@ -288,7 +288,7 @@ export const ticketService = {
 
     if (!api) {
       throw new Error(
-        "[ticketService] markTicketStolen(): Cannot get api from Electron",
+        "[ticketApi] markTicketStolen(): Cannot get api from Electron",
       );
     }
 
@@ -305,7 +305,7 @@ export const ticketService = {
 
     if (!api) {
       throw new Error(
-        "[ticketService] pickupTickets(): Cannot get api from Electron",
+        "[ticketApi] pickupTickets(): Cannot get api from Electron",
       );
     }
 
@@ -326,7 +326,7 @@ export const ticketService = {
 
     if (!api) {
       throw new Error(
-        "[ticketService] extendTickets(): Cannot get api from Electron",
+        "[ticketApi] extendTickets(): Cannot get api from Electron",
       );
     }
 
@@ -349,7 +349,7 @@ export const ticketService = {
 
     if (!api) {
       throw new Error(
-        "[ticketService] loadBuybackReport(): Cannot get api from Electron",
+        "[ticketApi] loadBuybackReport(): Cannot get api from Electron",
       );
     }
 
@@ -368,7 +368,7 @@ export const ticketService = {
 
     if (!api) {
       throw new Error(
-        "[ticketService] loadInterestReport(): Cannot get api from Electron",
+        "[ticketApi] loadInterestReport(): Cannot get api from Electron",
       );
     }
 
@@ -406,7 +406,7 @@ export const ticketService = {
 
     if (!api) {
       throw new Error(
-        "[ticketService] transferTicket(): Cannot get api from Electron",
+        "[ticketApi] transferTicket(): Cannot get api from Electron",
       );
     }
 

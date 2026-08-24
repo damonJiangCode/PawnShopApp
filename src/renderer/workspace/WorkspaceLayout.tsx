@@ -7,7 +7,7 @@ import TopBar from "./shell/TopBar";
 import ClientPage from "../modules/clients/pages/ClientPage";
 import TransactionPage from "../modules/transactions/pages/TransactionPage";
 import HistoryPage from "../modules/history/pages/HistoryPage";
-import { useMainLayout } from "./useMainLayout";
+import { useWorkspaceLayout } from "./useWorkspaceLayout";
 
 interface MainTabPanelProps {
   active: boolean;
@@ -30,8 +30,8 @@ const MainTabPanel: React.FC<MainTabPanelProps> = ({ active, children }) => {
   );
 };
 
-const MainLayout: React.FC = () => {
-  const { state, actions } = useMainLayout();
+const WorkspaceLayout: React.FC = () => {
+  const { state, actions } = useWorkspaceLayout();
   const {
     currentTab,
     searchFirstName,
@@ -185,4 +185,4 @@ const MainLayout: React.FC = () => {
   );
 };
 
-export default MainLayout;
+export default WorkspaceLayout;

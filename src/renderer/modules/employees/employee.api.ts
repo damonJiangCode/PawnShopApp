@@ -27,7 +27,7 @@ const normalizeEmployeeSearchInput = (
   last_name: input.last_name?.trim() ?? "",
 });
 
-export const employeeService = {
+export const employeeApi = {
   createEmployee: async (input: SaveEmployeeInput): Promise<Employee> => {
     const api = getAppApi()?.employee;
 

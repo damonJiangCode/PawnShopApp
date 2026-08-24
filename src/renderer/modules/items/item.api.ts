@@ -9,7 +9,7 @@ import { getAppApi } from "../../shared/api/app.api";
 let categoryCache: ItemCategoryOption[] | null = null;
 let categoryPromise: Promise<ItemCategoryOption[]> | null = null;
 
-export const itemService = {
+export const itemApi = {
   loadItems: async (ticketNumber?: number): Promise<Item[]> => {
     try {
       if (!ticketNumber) {

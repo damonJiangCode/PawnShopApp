@@ -11,7 +11,7 @@ import {
   TextField,
 } from "@mui/material";
 import type { CreateSellTicketInput, TicketFormError } from "../../ticket.api";
-import { ticketService } from "../../ticket.api";
+import { ticketApi } from "../../ticket.api";
 import { resolveFormFieldError } from "../../../../shared/utils/formError";
 import { confirmZeroTicketAmount } from "./confirmZeroTicketAmount";
 import { preventNumberInputWheel } from "./preventNumberInputWheel";
@@ -62,7 +62,7 @@ const TicketSellDialog: React.FC<TicketSellDialogProps> = (props) => {
 
     const fetchLocations = async () => {
       setLoading(true);
-      const locations = await ticketService.loadLocations();
+      const locations = await ticketApi.loadLocations();
 
       if (!active) {
         return;

@@ -9,7 +9,7 @@ import {
   Typography,
 } from "@mui/material";
 import type { HolidayDate } from "../../../../shared/models/holiday-date.model";
-import { ticketService } from "../../tickets/ticket.api";
+import { ticketApi } from "../../tickets/ticket.api";
 import WindowLayout from "../../../windows/WindowLayout";
 import type { WindowScreenProps } from "../../../windows/windowRegistry";
 import HolidayAddDialog from "./HolidayAddDialog";
@@ -56,7 +56,7 @@ const HolidayAdminWindow: React.FC<WindowScreenProps> = () => {
       setMessage("");
 
       try {
-        const results = await ticketService.loadHolidayDates();
+        const results = await ticketApi.loadHolidayDates();
         const yearHolidays = results.filter((holiday) =>
           holiday.holiday_date.startsWith(`${year}-`),
         );
@@ -117,7 +117,7 @@ const HolidayAdminWindow: React.FC<WindowScreenProps> = () => {
     setMessage("");
 
     try {
-      await ticketService.deleteHolidayDate(holiday.holiday_date);
+      await ticketApi.deleteHolidayDate(holiday.holiday_date);
       setHolidays((prev) =>
         prev.filter(
           (existingHoliday) =>

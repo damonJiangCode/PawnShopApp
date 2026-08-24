@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import type { Employee } from "../../../../shared/models/employee.model";
 import {
-  employeeService,
+  employeeApi,
   type SaveEmployeeInput,
 } from "../employee.api";
 
@@ -177,11 +177,11 @@ const EmployeeAddEditDialog: React.FC<EmployeeAddEditDialogProps> = ({
     try {
       const savedEmployee =
         mode === "edit" && initialEmployee
-          ? await employeeService.updateEmployee(
+          ? await employeeApi.updateEmployee(
               initialEmployee.employee_number,
               employee,
             )
-          : await employeeService.createEmployee(employee);
+          : await employeeApi.createEmployee(employee);
 
       if (mode === "add") {
         setEmployee(emptyEmployeeInput());

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { Item } from "../../../../shared/models/item.model";
 import type { Ticket } from "../../../../shared/models/ticket.model";
-import { itemService, type ItemCategoryOption } from "../../items/item.api";
-import { ticketService } from "../../tickets/ticket.api";
+import { itemApi, type ItemCategoryOption } from "../../items/item.api";
+import { ticketApi } from "../../tickets/ticket.api";
 import { getAppApi } from "../../../shared/api/app.api";
 import { filterVisibleTickets, sortTickets } from "../transaction.helpers";
 import type { Client } from "../../../../shared/models/client.model";
@@ -107,7 +107,7 @@ export const useTransactionPage = ({
       setStatusMessage("");
 
       try {
-        const fetchedTickets = await ticketService.loadTickets(clientNumber);
+        const fetchedTickets = await ticketApi.loadTickets(clientNumber);
         const visibleTickets = filterVisibleTickets(fetchedTickets);
         if (!active) {
           return;
@@ -237,7 +237,7 @@ export const useTransactionPage = ({
   useEffect(() => {
     let active = true;
 
-    itemService
+    itemApi
       .preloadCategories()
       .then((categories) => {
         if (active) {
@@ -268,7 +268,7 @@ export const useTransactionPage = ({
       setItemsError("");
 
       try {
-        const fetchedItems = await itemService.loadItems(
+        const fetchedItems = await itemApi.loadItems(
           selectedTicket.ticket_number,
         );
         if (!active) {

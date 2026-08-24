@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import type { Employee } from "../../../../shared/models/employee.model";
 import {
-  employeeService,
+  employeeApi,
   type EmployeeSearchInput,
 } from "../employee.api";
 import WindowLayout from "../../../windows/WindowLayout";
@@ -50,7 +50,7 @@ const EmployeeAdminWindow: React.FC<WindowScreenProps> = () => {
       setMessage("");
 
       try {
-        const results = await employeeService.searchEmployees(input);
+        const results = await employeeApi.searchEmployees(input);
         setEmployees(results);
         setSelectedEmployee(null);
 

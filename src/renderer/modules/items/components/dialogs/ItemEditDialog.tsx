@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import type { Item } from "../../../../../shared/models/item.model";
 import {
-  itemService,
+  itemApi,
   type ItemCategoryOption,
   type SaveItemInput,
 } from "../../item.api";
@@ -100,7 +100,7 @@ const ItemEditDialog: React.FC<ItemEditDialogProps> = ({
   }, [categories, item, mode, open]);
 
   const handleCapture = async (fileName: string, base64: string) => {
-    const savedPath = await itemService.saveItemImage(fileName, base64);
+    const savedPath = await itemApi.saveItemImage(fileName, base64);
     setImagePath(savedPath);
     setPhotoError("");
     setSubmitError("");
@@ -178,8 +178,8 @@ const ItemEditDialog: React.FC<ItemEditDialogProps> = ({
     try {
       const savedItem =
         mode === "add"
-          ? await itemService.createItem(payload)
-          : await itemService.updateItem(payload);
+          ? await itemApi.createItem(payload)
+          : await itemApi.updateItem(payload);
 
       onSave({
         ...savedItem,

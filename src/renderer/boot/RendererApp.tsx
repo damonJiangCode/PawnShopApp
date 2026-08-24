@@ -1,5 +1,5 @@
 import React from "react";
-import MainApp from "../main/MainApp";
+import WorkspaceApp from "../workspace/WorkspaceApp";
 import WindowView from "../windows/WindowView";
 
 const WINDOW_QUERY_PARAM = "window";
@@ -9,7 +9,7 @@ const isWindowView = (search = window.location.search): boolean => {
 };
 
 const RendererApp: React.FC = () => {
-  return isWindowView() ? <WindowView /> : <MainApp />;
+  return isWindowView() ? <WindowView /> : <WorkspaceApp />;
 };
 
 export default RendererApp;

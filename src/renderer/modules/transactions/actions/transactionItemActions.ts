@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { Item } from "../../../../shared/models/item.model";
 import type { Ticket } from "../../../../shared/models/ticket.model";
-import { itemService } from "../../items/item.api";
+import { itemApi } from "../../items/item.api";
 import type { TransactionItemLoadRequest } from "../transactionItemLoadRequest";
 
 type TransactionItemActionDeps = {
@@ -89,7 +89,7 @@ export const createTransactionItemActions = ({
       return;
     }
 
-    await itemService.deleteItem(
+    await itemApi.deleteItem(
       selectedTicket.ticket_number,
       removeItemTarget.item_number,
     );
@@ -124,7 +124,7 @@ export const createTransactionItemActions = ({
     }
 
     try {
-      const linkedItems = await itemService.linkItemsToTicket(
+      const linkedItems = await itemApi.linkItemsToTicket(
         loadRequest.targetTicketNumber,
         selectedItems.map((item) => item.item_number),
       );

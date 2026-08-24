@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import type { Location } from "../../../../shared/models/location.model";
 import type { SaveLocationInput } from "../../../../shared/payload-contracts/ticket.contract";
-import { ticketService } from "../../tickets/ticket.api";
+import { ticketApi } from "../../tickets/ticket.api";
 
 type LocationAddDialogProps = {
   open: boolean;
@@ -93,7 +93,7 @@ const LocationAddDialog: React.FC<LocationAddDialogProps> = ({
     setSubmitError("");
 
     try {
-      const location = await ticketService.addLocation(input);
+      const location = await ticketApi.addLocation(input);
       onSave(location);
       onClose();
     } catch (err) {

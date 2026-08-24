@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Client } from "../../../../shared/models/client.model";
-import { clientService } from "../client.api";
+import { clientApi } from "../client.api";
 
 export const useClientSearch = (
   firstName: string,
@@ -38,8 +38,8 @@ export const useClientSearch = (
       setLoading(true);
       try {
         const data = normalizedDob
-          ? await clientService.searchClientsByDob(normalizedDob)
-          : await clientService.searchClients(normalizedFirst, normalizedLast);
+          ? await clientApi.searchClientsByDob(normalizedDob)
+          : await clientApi.searchClients(normalizedFirst, normalizedLast);
         if (latestRequestIdRef.current !== requestId) return;
         setResults(data);
         setCompletedQueryKey(queryKey);

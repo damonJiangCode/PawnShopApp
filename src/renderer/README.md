@@ -9,14 +9,14 @@ is working with.
 ```text
 renderer/
   boot/
-  main/
+  workspace/
   windows/
   modules/
   shared/
 ```
 
 - `boot/` starts the renderer and chooses whether to show the main app or a window view.
-- `main/` owns the main app shell.
+- `workspace/` owns the main work area shell.
 - `windows/` chooses which non-main window view to show.
 - `modules/` contains feature and workflow code.
 - `shared/` contains only renderer utilities that are truly reused across modules.
@@ -32,26 +32,26 @@ boot/
 ```
 
 - `index.tsx`: mounts React into the DOM.
-- `RendererApp.tsx`: chooses `MainApp` or `WindowView` from the URL.
+- `RendererApp.tsx`: chooses `WorkspaceApp` or `WindowView` from the URL.
 
-## `main/`
+## `workspace/`
 
-`main/` owns the main app shell.
+`workspace/` owns the main work area shell.
 
 ```text
-main/
-  MainApp.tsx
-  MainLayout.tsx
-  useMainLayout.ts
+workspace/
+  WorkspaceApp.tsx
+  WorkspaceLayout.tsx
+  useWorkspaceLayout.ts
   shell/
 ```
 
-- `MainApp.tsx`: main window entry.
-- `MainLayout.tsx`: tabs, top bar, and main page layout.
-- `useMainLayout.ts`: main app state and actions.
+- `WorkspaceApp.tsx`: main window work area entry.
+- `WorkspaceLayout.tsx`: tabs, top bar, and workspace page layout.
+- `useWorkspaceLayout.ts`: workspace state and actions.
 - `shell/`: top-bar and shell-only controls.
 
-Do not put feature business logic in `boot/` or `main/`. If logic belongs to clients,
+Do not put feature business logic in `boot/` or `workspace/`. If logic belongs to clients,
 tickets, items, payment, history, or admin, put it in the matching module.
 
 ## `windows/`
@@ -153,8 +153,9 @@ belong in `src/shared`.
 
 - API methods should be action-first: `searchClients`, `createPawnTicket`, `loadItemsByTicket`.
 - Renderer API files should use `*.api.ts`: `client.api.ts`, `ticket.api.ts`.
+- Renderer API files should export `clientApi`, `ticketApi`, `itemApi`, or `employeeApi`, not `clientService`/`ticketService`; `service` is reserved for main-process business logic.
 - Window frame layout belongs in `windows/WindowLayout.tsx`, not `shared/`.
-- Top-level apps end in `App`: `RendererApp`, `MainApp`.
+- Top-level apps end in `App`: `RendererApp`, `WorkspaceApp`.
 - Domain components should keep domain words when ambiguity is likely:
   `TransactionTicketsTable`, `HistoryTicketsTable`, `ItemActionsLayout`.
 - If a layout belongs to one module, keep it in that module:

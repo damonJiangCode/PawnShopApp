@@ -3,7 +3,7 @@ import type { Client } from "../../shared/models/client.model";
 import type { Item } from "../../shared/models/item.model";
 import type { Ticket } from "../../shared/models/ticket.model";
 import type { TransactionItemLoadRequest } from "../modules/transactions/transactionItemLoadRequest";
-import { itemService } from "../modules/items/item.api";
+import { itemApi } from "../modules/items/item.api";
 import { getAppApi } from "../shared/api/app.api";
 
 type SearchParams = {
@@ -94,7 +94,7 @@ const isPaymentCompletedEvent = (
   return (value as { type?: string }).type === "payment-completed";
 };
 
-export const useMainLayout = () => {
+export const useWorkspaceLayout = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const [searchFirstName, setSearchFirstName] = useState("");
   const [searchLastName, setSearchLastName] = useState("");
@@ -184,7 +184,7 @@ export const useMainLayout = () => {
           return;
         }
 
-        void itemService
+        void itemApi
           .linkItemsToTicket(targetTicket.ticket_number, [itemNumber])
           .then(([linkedItem]) => {
             setTransactionRefreshKey((prev) => prev + 1);

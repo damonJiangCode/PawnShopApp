@@ -3,7 +3,7 @@ import { Box, CircularProgress, Typography } from "@mui/material";
 import type { SxProps, Theme } from "@mui/material/styles";
 import type { Item } from "../../../../../shared/models/item.model";
 import { getImageDataUrl } from "../../../../shared/utils/imageDataUrl";
-import { itemService } from "../../item.api";
+import { itemApi } from "../../item.api";
 
 interface TransactionItemImageProps {
   selectedItem?: Item;
@@ -32,7 +32,7 @@ const TransactionItemImage: React.FC<TransactionItemImageProps> = (props) => {
 
     let active = true;
 
-    itemService.loadItemImage(selectedItem.image_path).then((base64) => {
+    itemApi.loadItemImage(selectedItem.image_path).then((base64) => {
       if (active && base64) {
         setImageSrc(getImageDataUrl(base64, selectedItem.image_path));
       }

@@ -15,7 +15,7 @@ import type {
   ConvertTicketInput,
   TicketFormError,
 } from "../../ticket.api";
-import { ticketService } from "../../ticket.api";
+import { ticketApi } from "../../ticket.api";
 import { resolveFormFieldError } from "../../../../shared/utils/formError";
 import { calculation } from "../../../../../shared/utils/calculation";
 import { confirmZeroTicketAmount } from "./confirmZeroTicketAmount";
@@ -84,7 +84,7 @@ const TicketConvertDialog: React.FC<TicketConvertDialogProps> = ({
 
     const fetchLocations = async () => {
       setLoading(true);
-      const locations = await ticketService.loadLocations();
+      const locations = await ticketApi.loadLocations();
 
       if (!active) {
         return;

@@ -20,7 +20,7 @@ import IDFields from "./fields/IDFields";
 import type { IDFieldsRef } from "./fields/IDFields";
 import defaultClient from "../../defaultClient";
 import {
-  clientService,
+  clientApi,
   type ClientFormError,
   type SaveClientInput,
 } from "../../client.api";
@@ -132,7 +132,7 @@ const ClientAddEditDialog: React.FC<ClientAddEditDialogProps> = (props) => {
     base64: string,
   ): Promise<void> {
     try {
-      const relPath = await clientService.saveClientImage(fileName, base64);
+      const relPath = await clientApi.saveClientImage(fileName, base64);
       setClient((prev) => ({
         ...prev,
         image_path: relPath,
@@ -173,8 +173,8 @@ const ClientAddEditDialog: React.FC<ClientAddEditDialogProps> = (props) => {
       setSavingClient(true);
       setSubmitError("");
       const savedClient: Client = isEditMode
-        ? await clientService.updateClient(payload)
-        : await clientService.createClient(payload);
+        ? await clientApi.updateClient(payload)
+        : await clientApi.createClient(payload);
 
       setShowPasswordDialog(false);
       setEmployeePassword("");
