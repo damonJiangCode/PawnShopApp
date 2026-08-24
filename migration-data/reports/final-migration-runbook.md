@@ -126,6 +126,7 @@ Known rules:
 - Missing client for legacy tickets maps to `Unknown Legacy Client`.
 - Legacy apartment/unit field is merged into the front of `address`.
 - Legacy disabled flag is ignored.
+- After commit, reset `client.client_number` sequence to `MAX(client_number)` so new app-created clients continue after migrated client numbers.
 
 ### 4. Client Photo Export
 

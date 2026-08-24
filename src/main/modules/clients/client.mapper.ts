@@ -2,11 +2,11 @@ import type { Client } from "../../../shared/models/client.model.ts";
 
 export const mapRowToClient = (row: Record<string, unknown>): Client => ({
   client_number: Number(row.client_number),
-  first_name: String(row.first_name ?? ""),
-  last_name: String(row.last_name ?? ""),
-  middle_name: String(row.middle_name ?? ""),
+  first_name: row.first_name ? String(row.first_name).toUpperCase() : "",
+  last_name: row.last_name ? String(row.last_name).toUpperCase() : "",
+  middle_name: row.middle_name ? String(row.middle_name).toUpperCase() : "",
   date_of_birth: row.date_of_birth as Date,
-  gender: String(row.gender ?? ""),
+  gender: row.gender ? String(row.gender).toUpperCase() : "",
   hair_color: row.hair_color ? String(row.hair_color).toUpperCase() : "",
   eye_color: row.eye_color ? String(row.eye_color).toUpperCase() : "",
   height_cm: row.height_cm === null ? undefined : Number(row.height_cm),

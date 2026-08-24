@@ -21,6 +21,7 @@ const emptyCities = (): CitiesResponse => ({
 });
 
 const normalizeSearchInput = (value?: string) => value?.trim() ?? "";
+const normalizeNameInput = (value?: string) => value?.trim().toUpperCase() ?? "";
 
 const createFieldError = (
   field: ClientFormField,
@@ -51,10 +52,10 @@ const mapBackendError = (error: unknown): Error => {
 const normalizeSaveClientInput = (input: SaveClientInput): SaveClientInput => ({
   client: {
     ...input.client,
-    first_name: input.client.first_name?.trim() ?? "",
-    last_name: input.client.last_name?.trim() ?? "",
-    middle_name: input.client.middle_name?.trim() ?? "",
-    gender: input.client.gender?.trim() ?? "",
+    first_name: normalizeNameInput(input.client.first_name),
+    last_name: normalizeNameInput(input.client.last_name),
+    middle_name: normalizeNameInput(input.client.middle_name),
+    gender: input.client.gender?.trim().toUpperCase() ?? "",
     hair_color: input.client.hair_color?.trim().toUpperCase() ?? "",
     eye_color: input.client.eye_color?.trim().toUpperCase() ?? "",
     address: input.client.address?.trim() ?? "",

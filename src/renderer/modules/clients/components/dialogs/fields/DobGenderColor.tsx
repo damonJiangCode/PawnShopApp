@@ -80,16 +80,16 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
         required
         name="gender"
         label="Gender"
-        value={gender}
+        value={gender?.trim().toUpperCase() ?? ""}
         onChange={onChange}
         size="small"
         error={Boolean(genderError)}
         helperText={genderError || " "}
       >
         <MenuItem value=""></MenuItem>
-        <MenuItem value="male">Male</MenuItem>
-        <MenuItem value="female">Female</MenuItem>
-        <MenuItem value="other">Other</MenuItem>
+        <MenuItem value="MALE">MALE</MenuItem>
+        <MenuItem value="FEMALE">FEMALE</MenuItem>
+        <MenuItem value="OTHER">OTHER</MenuItem>
       </TextField>
 
       <TextField

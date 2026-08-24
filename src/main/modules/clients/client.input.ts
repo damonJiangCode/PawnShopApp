@@ -11,12 +11,14 @@ type NormalizedSaveClientInput = {
   notes_action: ClientNotesAction;
 };
 
+const normalizeName = (value?: string) => value?.trim().toUpperCase() ?? "";
+
 const normalizeClient = (client: Client): Client => ({
   ...client,
-  first_name: client.first_name?.trim() ?? "",
-  last_name: client.last_name?.trim() ?? "",
-  middle_name: client.middle_name?.trim() ?? "",
-  gender: client.gender?.trim() ?? "",
+  first_name: normalizeName(client.first_name),
+  last_name: normalizeName(client.last_name),
+  middle_name: normalizeName(client.middle_name),
+  gender: client.gender?.trim().toUpperCase() ?? "",
   hair_color: client.hair_color?.trim().toUpperCase() ?? "",
   eye_color: client.eye_color?.trim().toUpperCase() ?? "",
   address: client.address?.trim() ?? "",

@@ -200,7 +200,7 @@ const ClientProfile: React.FC<ClientProfileProps> = ({
             Physical
           </Typography>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 0 }}>
-            <InfoRow label="Gender:" value={display.text(client.gender)} />
+            <InfoRow label="Gender:" value={display.uppercase(client.gender)} />
             <InfoRow
               label="Hair Color:"
               value={display.text(client.hair_color)}

@@ -1,4 +1,8 @@
-import { formatDisplayValue, formatShortDate } from "../../../../shared/utils/formatters";
+import {
+  formatDisplayValue,
+  formatShortDate,
+  formatUppercase,
+} from "../../../../shared/utils/formatters";
 
 export const clientProfilePanelSx = {
   minWidth: 0,
@@ -16,6 +20,8 @@ export const clientProfilePanelSx = {
 export const createClientProfileDisplay = (placeholder: boolean) => ({
   text: (value: unknown) =>
     placeholder ? "-" : formatDisplayValue(value, "-"),
+  uppercase: (value?: string | null) =>
+    placeholder ? "-" : formatUppercase(value, "-"),
   count: (value: number | undefined) =>
     placeholder ? "-" : String(value ?? 0),
   date: (value: unknown) => {

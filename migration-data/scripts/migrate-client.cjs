@@ -795,6 +795,9 @@ const main = async () => {
       try {
         await insertClients(pool, clientsToInsert);
         await insertClientIds(pool, clientIdsToInsert);
+        await pool.query(
+          "SELECT setval(pg_get_serial_sequence('client', 'client_number'), (SELECT COALESCE(MAX(client_number), 1) FROM client), true)",
+        );
         const clientCount = await pool.query("SELECT count(*)::int AS count FROM client");
         const idCount = await pool.query("SELECT count(*)::int AS count FROM client_id");
         insertedClients = clientsToInsert.length;

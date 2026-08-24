@@ -60,6 +60,17 @@ const ClientAddEditDialog: React.FC<ClientAddEditDialogProps> = (props) => {
   const [validationErrors, setValidationErrors] =
     useState<ClientValidationErrors>(emptyValidationErrors());
 
+  const getSaveErrorMessage = (error: unknown) => {
+    if (!(error instanceof Error)) {
+      return "";
+    }
+
+    return error.message
+      .replace(/^Error invoking remote method '[^']+':\s*/i, "")
+      .replace(/^Error:\s*/i, "")
+      .trim();
+  };
+
   useEffect(() => {
     if (!open) {
       return;
@@ -111,13 +122,17 @@ const ClientAddEditDialog: React.FC<ClientAddEditDialogProps> = (props) => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
+    const nextValue =
+      name === "last_name" || name === "first_name" || name === "middle_name"
+        ? value.toUpperCase()
+        : value;
     if (submitError) {
       setSubmitError("");
     }
     if (name in emptyValidationErrors()) {
       clearValidationError(name as keyof ClientValidationErrors);
     }
-    setClient((prev) => ({ ...prev, [name]: value }));
+    setClient((prev) => ({ ...prev, [name]: nextValue }));
   };
 
   const handleDateOfBirthBlur = () => {
@@ -200,10 +215,12 @@ const ClientAddEditDialog: React.FC<ClientAddEditDialogProps> = (props) => {
         isEditMode ? "Failed to update client:" : "Failed to add client:",
         err,
       );
+      const errorMessage = getSaveErrorMessage(err);
       setSubmitError(
-        isEditMode
-          ? "Couldn't update this client right now. Please try again."
-          : "Couldn't add this client right now. Please try again.",
+        errorMessage ||
+          (isEditMode
+            ? "Couldn't update this client right now. Please try again."
+            : "Couldn't add this client right now. Please try again."),
       );
     } finally {
       setSavingClient(false);

@@ -31,6 +31,7 @@ const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(
   ({ ids, error, onIdsChange }, ref) => {
     const [identifications, setIdentifications] = useState<ID[]>(ids);
     const [idTypes, setIdTypes] = useState<string[]>([]);
+    const showFieldErrors = Boolean(error);
 
     useImperativeHandle(ref, () => ({
       getIDs: () => identifications,
@@ -78,6 +79,12 @@ const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(
       );
     };
 
+    const getTypeError = (id: ID) =>
+      showFieldErrors && !id.id_type?.trim() ? "ID type is required." : "";
+
+    const getNumberError = (id: ID) =>
+      showFieldErrors && !id.id_value?.trim() ? "ID number is required." : "";
+
     return (
       <Box sx={{ mt: 3 }}>
         <Box
@@ -121,12 +128,16 @@ const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(
             </TableHead>
             <TableBody>
               {identifications.length > 0 &&
-                identifications.map((element, i) => (
-                  <TableRow key={i}>
-                    <TableCell sx={{ borderBottom: "none", width: 180 }}>
-                      <TextField
-                        select
-                        fullWidth
+                identifications.map((element, i) => {
+                  const typeError = getTypeError(element);
+                  const numberError = getNumberError(element);
+
+                  return (
+                    <TableRow key={i}>
+                      <TableCell sx={{ borderBottom: "none", width: 180 }}>
+                        <TextField
+                          select
+                          fullWidth
                         size="small"
                         name="id_type"
                         label="ID Type"
@@ -135,6 +146,8 @@ const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(
                             ? element.id_type
                             : ""
                         }
+                        error={Boolean(typeError)}
+                        helperText={typeError || " "}
                         onChange={(e) =>
                           handleUpdate(i, "id_type", e.target.value)
                         }
@@ -143,38 +156,41 @@ const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(
                         {idTypes.map((type, type_idx) => (
                           <MenuItem key={type_idx} value={type}>
                             {type}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    </TableCell>
-                    <TableCell sx={{ borderBottom: "none" }}>
-                      <TextField
-                        fullWidth
-                        size="small"
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      </TableCell>
+                      <TableCell sx={{ borderBottom: "none" }}>
+                        <TextField
+                          fullWidth
+                          size="small"
                         name="id_value"
                         label="ID Number"
                         value={element.id_value || ""}
+                        error={Boolean(numberError)}
+                        helperText={numberError || " "}
                         onChange={(e) =>
-                          handleUpdate(i, "id_value", e.target.value)
-                        }
-                      />
-                    </TableCell>
-                    <TableCell
-                      align="center"
-                      sx={{ borderBottom: "none", width: 88 }}
-                    >
-                      {identifications.length > 2 && (
-                        <Button
-                          size="small"
-                          color="error"
-                          onClick={() => handleRemove(i)}
-                        >
-                          <DeleteIcon />
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                            handleUpdate(i, "id_value", e.target.value)
+                          }
+                        />
+                      </TableCell>
+                      <TableCell
+                        align="center"
+                        sx={{ borderBottom: "none", width: 88 }}
+                      >
+                        {identifications.length > 2 && (
+                          <Button
+                            size="small"
+                            color="error"
+                            onClick={() => handleRemove(i)}
+                          >
+                            <DeleteIcon />
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
             </TableBody>
           </Table>
         </TableContainer>
