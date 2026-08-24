@@ -1,5 +1,5 @@
-import React from "react";
-import { DataGrid } from "@mui/x-data-grid";
+import React, { useEffect } from "react";
+import { DataGrid, useGridApiRef } from "@mui/x-data-grid";
 import type { GridColDef } from "@mui/x-data-grid";
 import { Box, Tooltip } from "@mui/material";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
@@ -24,6 +24,33 @@ const TransactionTicketsTable: React.FC<TransactionTicketsTableProps> = ({
   selectedTicket,
   onSelectTicket,
 }) => {
+  const apiRef = useGridApiRef();
+
+  useEffect(() => {
+    if (!tickets.length) {
+      return;
+    }
+
+    const targetTicketNumber =
+      selectedTicket?.ticket_number ?? tickets[tickets.length - 1].ticket_number;
+    const targetRowIndex = tickets.findIndex(
+      (ticket) => ticket.ticket_number === targetTicketNumber,
+    );
+
+    if (targetRowIndex < 0) {
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => {
+      apiRef.current.scrollToIndexes({
+        rowIndex: targetRowIndex,
+        colIndex: 0,
+      });
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [apiRef, selectedTicket?.ticket_number, tickets]);
+
   const getDueDate = (ticket: Ticket) => {
     if (ticket.due_date) return formatIsoDate(ticket.due_date);
     if (!ticket.transaction_datetime) return "";
@@ -184,6 +211,7 @@ const TransactionTicketsTable: React.FC<TransactionTicketsTableProps> = ({
   return (
     <Box sx={{ height: "100%", width: "100%" }}>
       <DataGrid
+        apiRef={apiRef}
         columnHeaderHeight={34}
         rowHeight={30}
         rows={tickets}
