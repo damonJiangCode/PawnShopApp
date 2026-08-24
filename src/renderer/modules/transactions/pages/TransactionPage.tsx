@@ -10,7 +10,8 @@ import {
   Typography,
 } from "@mui/material";
 import type { Ticket } from "../../../../shared/models/ticket.model";
-import type { TransactionItemLoadRequest } from "../hooks/useTransactionPage";
+import type { Client } from "../../../../shared/models/client.model";
+import type { TransactionItemLoadRequest } from "../transactionItemLoadRequest";
 import { useTransactionPage } from "../hooks/useTransactionPage";
 import ClientBar from "../../../shared/components/ClientBar";
 import TransactionTicketsPanel from "../../tickets/components/transaction/TransactionTicketsPanel";
@@ -22,13 +23,8 @@ import TicketTransferDialog from "../../tickets/components/dialogs/TicketTransfe
 import TicketConvertDialog from "../../tickets/components/dialogs/TicketConvertDialog";
 import ItemEditDialog from "../../items/components/dialogs/ItemEditDialog";
 
-export type { TransactionItemLoadRequest };
-
 interface TransactionPageProps {
-  clientNumber?: number;
-  clientLastName?: string;
-  clientFirstName?: string;
-  clientMiddleName?: string;
+  client?: Client;
   focusTicketNumber?: number;
   focusRequestId?: number;
   refreshKey?: number;
@@ -39,10 +35,7 @@ interface TransactionPageProps {
 }
 
 const TransactionPage: React.FC<TransactionPageProps> = ({
-  clientNumber,
-  clientLastName,
-  clientFirstName,
-  clientMiddleName,
+  client,
   focusTicketNumber,
   focusRequestId,
   refreshKey,
@@ -51,8 +44,12 @@ const TransactionPage: React.FC<TransactionPageProps> = ({
   onSelectedTicketChange,
   onClientSoldTicket,
 }) => {
+  const clientNumber = client?.client_number;
+  const clientFirstName = client?.first_name ?? "";
+  const clientLastName = client?.last_name ?? "";
+  const clientMiddleName = client?.middle_name;
   const { state, actions } = useTransactionPage({
-    clientNumber,
+    client,
     focusTicketNumber,
     focusRequestId,
     refreshKey,
@@ -196,8 +193,8 @@ const TransactionPage: React.FC<TransactionPageProps> = ({
       {openTicketPawnDialog && (
         <TicketPawnDialog
           open={openTicketPawnDialog}
-          clientFirstName={clientFirstName || ""}
-          clientLastName={clientLastName || ""}
+          clientFirstName={clientFirstName}
+          clientLastName={clientLastName}
           clientMiddleName={clientMiddleName}
           onClose={() => actions.setOpenTicketPawnDialog(false)}
           onSave={actions.handlePawnTicket}
@@ -207,8 +204,8 @@ const TransactionPage: React.FC<TransactionPageProps> = ({
       {openTicketSellDialog && (
         <TicketSellDialog
           open={openTicketSellDialog}
-          clientFirstName={clientFirstName || ""}
-          clientLastName={clientLastName || ""}
+          clientFirstName={clientFirstName}
+          clientLastName={clientLastName}
           clientMiddleName={clientMiddleName}
           onClose={() => actions.setOpenTicketSellDialog(false)}
           onSave={actions.handleSellTicket}
@@ -218,8 +215,8 @@ const TransactionPage: React.FC<TransactionPageProps> = ({
       {openTicketEditDialog && (
         <TicketEditDialog
           open={openTicketEditDialog}
-          clientFirstName={clientFirstName || ""}
-          clientLastName={clientLastName || ""}
+          clientFirstName={clientFirstName}
+          clientLastName={clientLastName}
           clientMiddleName={clientMiddleName}
           ticket={selectedTicket}
           onClose={() => actions.setOpenTicketEditDialog(false)}
@@ -231,8 +228,8 @@ const TransactionPage: React.FC<TransactionPageProps> = ({
         <TicketTransferDialog
           open={openTicketTransferDialog}
           clientNumber={clientNumber}
-          clientFirstName={clientFirstName || ""}
-          clientLastName={clientLastName || ""}
+          clientFirstName={clientFirstName}
+          clientLastName={clientLastName}
           clientMiddleName={clientMiddleName}
           onClose={() => actions.setOpenTicketTransferDialog(false)}
           onLoadPreview={actions.handleLoadTransferTicketPreview}
@@ -244,8 +241,8 @@ const TransactionPage: React.FC<TransactionPageProps> = ({
         <TicketConvertDialog
           open={openTicketConvertDialog}
           ticket={selectedTicket}
-          clientFirstName={clientFirstName || ""}
-          clientLastName={clientLastName || ""}
+          clientFirstName={clientFirstName}
+          clientLastName={clientLastName}
           clientMiddleName={clientMiddleName}
           onClose={() => actions.setOpenTicketConvertDialog(false)}
           onSave={actions.handleConvertTicketConfirmed}

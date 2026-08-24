@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Client } from "../../shared/models/client.model";
 import type { Item } from "../../shared/models/item.model";
 import type { Ticket } from "../../shared/models/ticket.model";
-import type { TransactionItemLoadRequest } from "../modules/transactions/pages/TransactionPage";
+import type { TransactionItemLoadRequest } from "../modules/transactions/transactionItemLoadRequest";
 import { itemService } from "../modules/items/item.api";
 import { getAppApi } from "../shared/api/app.api";
 

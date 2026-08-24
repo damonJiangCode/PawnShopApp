@@ -153,10 +153,7 @@ const MainLayout: React.FC = () => {
 
           <MainTabPanel active={currentTab === 1}>
             <TransactionPage
-              clientNumber={selectedClient?.client_number}
-              clientLastName={selectedClient?.last_name}
-              clientFirstName={selectedClient?.first_name}
-              clientMiddleName={selectedClient?.middle_name}
+              client={selectedClient ?? undefined}
               focusTicketNumber={focusTicketNumber}
               focusRequestId={focusRequestId}
               refreshKey={transactionRefreshKey}

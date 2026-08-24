@@ -1,21 +1,28 @@
 import { useEffect, useRef, useState } from "react";
 import type { Item } from "../../../../shared/models/item.model";
 import type { Ticket } from "../../../../shared/models/ticket.model";
-import {
-  itemService,
-  type ItemCategoryOption,
-} from "../../items/item.api";
+import { itemService, type ItemCategoryOption } from "../../items/item.api";
 import { ticketService } from "../../tickets/ticket.api";
 import { getAppApi } from "../../../shared/api/app.api";
 import { filterVisibleTickets, sortTickets } from "../transaction.helpers";
-import type { TransactionItemLoadRequest, UseTransactionPageParams } from "../transaction.types";
+import type { Client } from "../../../../shared/models/client.model";
+import type { TransactionItemLoadRequest } from "../transactionItemLoadRequest";
 import { createTransactionItemActions } from "../actions/transactionItemActions";
 import { createTransactionTicketActions } from "../actions/transactionTicketActions";
 
-export type { TransactionItemLoadRequest } from "../transaction.types";
+interface UseTransactionPageParams {
+  client?: Client;
+  focusTicketNumber?: number;
+  focusRequestId?: number;
+  refreshKey?: number;
+  incomingTicket?: Ticket | null;
+  incomingItemLoadRequest?: TransactionItemLoadRequest | null;
+  onSelectedTicketChange?: (ticket: Ticket | null) => void;
+  onClientSoldTicket?: () => void;
+}
 
 export const useTransactionPage = ({
-  clientNumber,
+  client,
   focusTicketNumber,
   focusRequestId,
   refreshKey = 0,
@@ -24,6 +31,7 @@ export const useTransactionPage = ({
   onSelectedTicketChange,
   onClientSoldTicket,
 }: UseTransactionPageParams) => {
+  const clientNumber = client?.client_number;
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
@@ -51,7 +59,7 @@ export const useTransactionPage = ({
   const loading = ticketsLoading || itemsLoading;
   const displayedItems = selectedTicket?.ticket_number ? items : [];
   const ticketActions = createTransactionTicketActions({
-    clientNumber,
+    client,
     selectedTicket,
     setTickets,
     setItems,
@@ -310,7 +318,10 @@ export const useTransactionPage = ({
       ) ?? null;
 
     if (!matchedTicket) {
-      if (selectedTicket.status === "pawned" || selectedTicket.status === "sold") {
+      if (
+        selectedTicket.status === "pawned" ||
+        selectedTicket.status === "sold"
+      ) {
         return;
       }
 

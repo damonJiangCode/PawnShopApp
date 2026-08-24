@@ -2,7 +2,7 @@ import type { Dispatch, SetStateAction } from "react";
 import type { Item } from "../../../../shared/models/item.model";
 import type { Ticket } from "../../../../shared/models/ticket.model";
 import { itemService } from "../../items/item.api";
-import type { TransactionItemLoadRequest } from "../transaction.types";
+import type { TransactionItemLoadRequest } from "../transactionItemLoadRequest";
 
 type TransactionItemActionDeps = {
   items: Item[];

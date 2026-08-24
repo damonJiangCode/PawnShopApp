@@ -21,6 +21,10 @@ import type {
 } from "../../../shared/payload-contracts/ticket.contract";
 import { getAppApi } from "../../shared/api/app.api";
 import {
+  createEnvelopePrintHtml,
+  type PrintClient,
+} from "./ticketPrintTemplate";
+import {
   mapBackendError,
   normalizeConvertTicketInput,
   normalizeCreatePawnTicketInput,
@@ -34,7 +38,24 @@ import {
   normalizeUpdateTicketInput,
 } from "./ticketApiUtils";
 
+const openPrintWindow = (html: string) => {
+  const printWindow = window.open("", "_blank", "width=445,height=900");
+
+  if (!printWindow) {
+    window.alert("Unable to open print window.");
+    return;
+  }
+
+  printWindow.document.open();
+  printWindow.document.write(html);
+  printWindow.document.close();
+};
+
 export const ticketService = {
+  printEnvelopeTicket: (ticket: Ticket, client?: PrintClient) => {
+    openPrintWindow(createEnvelopePrintHtml(ticket, client));
+  },
+
   loadTickets: async (clientNumber?: number): Promise<Ticket[]> => {
     try {
       if (!clientNumber) {

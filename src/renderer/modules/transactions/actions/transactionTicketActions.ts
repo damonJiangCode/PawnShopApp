@@ -1,6 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { Item } from "../../../../shared/models/item.model";
 import type { Ticket } from "../../../../shared/models/ticket.model";
+import type { Client } from "../../../../shared/models/client.model";
 import {
   type ConvertTicketInput,
   ticketService,
@@ -9,12 +10,11 @@ import {
   type TransferTicketPreview,
   type UpdateTicketInput,
 } from "../../tickets/ticket.api";
-import { ticketPrintService } from "../../tickets/ticket-print.service";
 import { itemService } from "../../items/item.api";
 import { filterVisibleTickets, sortTickets } from "../transaction.helpers";
 
 type TransactionTicketActionDeps = {
-  clientNumber?: number;
+  client?: Client;
   selectedTicket: Ticket | null;
   setTickets: Dispatch<SetStateAction<Ticket[]>>;
   setItems: Dispatch<SetStateAction<Item[]>>;
@@ -30,7 +30,7 @@ type TransactionTicketActionDeps = {
 };
 
 export const createTransactionTicketActions = ({
-  clientNumber,
+  client,
   selectedTicket,
   setTickets,
   setItems,
@@ -44,14 +44,16 @@ export const createTransactionTicketActions = ({
   setStatusMessage,
   onClientSoldTicket,
 }: TransactionTicketActionDeps) => {
+  const clientNumber = client?.client_number;
+
   const handleTicketPrint = () => {
     if (!selectedTicket) {
       return;
     }
 
-    ticketPrintService.printEnvelopeTicket(selectedTicket);
+    ticketService.printEnvelopeTicket(selectedTicket, client);
     setStatusMessage(
-      `Print placeholder ready for ticket #${selectedTicket.ticket_number}.`,
+      `Envelope print ready for ticket #${selectedTicket.ticket_number}.`,
     );
   };
 
@@ -72,7 +74,7 @@ export const createTransactionTicketActions = ({
     setItems([]);
     setSelectedItem(null);
     setOpenTicketPawnDialog(false);
-    ticketPrintService.printEnvelopeTicket(newTicket);
+    ticketService.printEnvelopeTicket(newTicket, client);
     setStatusMessage(`Ticket #${newTicket.ticket_number} pawned.`);
   };
 
@@ -94,7 +96,7 @@ export const createTransactionTicketActions = ({
     setSelectedItem(null);
     setOpenTicketSellDialog(false);
     onClientSoldTicket?.();
-    ticketPrintService.printEnvelopeTicket(newTicket);
+    ticketService.printEnvelopeTicket(newTicket, client);
     setStatusMessage(`Ticket #${newTicket.ticket_number} sold.`);
   };
 
