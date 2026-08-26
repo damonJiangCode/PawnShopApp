@@ -1,11 +1,9 @@
 import type { Item } from "../models/item.model.ts";
 
-export type ItemLoadWindowData = {
-  title: string;
-  description?: string;
-  actionLabel: string;
+export type OpenItemSearchWindowInput = {
+  sourceTicketNumber?: number;
   items: Item[];
-  mode?: "repawn" | "load";
+  mode?: "repawn" | "load" | "search";
 };
 
 export type OpenPaymentWindowInput = {

@@ -47,11 +47,9 @@ const CHANNELS = {
   OPEN_PAYMENT_WINDOW: "open-payment-window",
   OPEN_TICKET_SEARCH_WINDOW: "open-ticket-search-window",
   OPEN_ITEM_SEARCH_WINDOW: "open-item-search-window",
-  OPEN_ITEM_LOAD_WINDOW: "open-item-load-window",
-  GET_ITEM_LOAD_WINDOW_PAYLOAD: "get-item-load-window-payload",
-  ITEM_LOAD_WINDOW_PAYLOAD_UPDATED: "item-load-window-payload-updated",
-  SUBMIT_ITEM_LOAD_WINDOW: "submit-item-load-window",
-  CANCEL_ITEM_LOAD_WINDOW: "cancel-item-load-window",
+  GET_ITEM_SEARCH_WINDOW_INPUT: "get-item-search-window-input",
+  NOTIFY_ITEM_SEARCH_WINDOW_INPUT_UPDATED:
+    "notify-item-search-window-input-updated",
   ADD_PAWN_TICKET: "add-pawn-ticket",
   ADD_SELL_TICKET: "add-sell-ticket",
   UPDATE_TICKET: "update-ticket",
@@ -147,24 +145,18 @@ const itemApi = {
 const windowApi = {
   openPaymentWindow: (payload) => invoke(CHANNELS.OPEN_PAYMENT_WINDOW, payload),
   openTicketSearchWindow: () => invoke(CHANNELS.OPEN_TICKET_SEARCH_WINDOW),
-  openItemSearchWindow: () => invoke(CHANNELS.OPEN_ITEM_SEARCH_WINDOW),
-  openItemLoadWindow: (payload) =>
-    invoke(CHANNELS.OPEN_ITEM_LOAD_WINDOW, payload),
-  loadItemLoadWindowData: (requestId) =>
-    invoke(CHANNELS.GET_ITEM_LOAD_WINDOW_PAYLOAD, requestId),
-  subscribeToItemLoadWindowDataUpdated: (callback) => {
-    const listener = (_event, requestId) => callback(requestId);
-    ipcRenderer.on(CHANNELS.ITEM_LOAD_WINDOW_PAYLOAD_UPDATED, listener);
+  openItemSearchWindow: (input) =>
+    invoke(CHANNELS.OPEN_ITEM_SEARCH_WINDOW, input),
+  getItemSearchWindowInput: () => invoke(CHANNELS.GET_ITEM_SEARCH_WINDOW_INPUT),
+  onItemSearchWindowInputUpdated: (callback) => {
+    const listener = () => callback();
+    ipcRenderer.on(CHANNELS.NOTIFY_ITEM_SEARCH_WINDOW_INPUT_UPDATED, listener);
     return () =>
       ipcRenderer.removeListener(
-        CHANNELS.ITEM_LOAD_WINDOW_PAYLOAD_UPDATED,
+        CHANNELS.NOTIFY_ITEM_SEARCH_WINDOW_INPUT_UPDATED,
         listener,
       );
   },
-  submitItemLoadWindow: (requestId, selectedItemIds) =>
-    invoke(CHANNELS.SUBMIT_ITEM_LOAD_WINDOW, requestId, selectedItemIds),
-  cancelItemLoadWindow: (requestId) =>
-    invoke(CHANNELS.CANCEL_ITEM_LOAD_WINDOW, requestId),
 };
 
 contextBridge.exposeInMainWorld("appAPI", {

@@ -71,7 +71,8 @@ windows/
 
 The actual window content stays in the owning module. For example, ticket
 search lives in `modules/tickets/menu-actions`, payment lives in
-`modules/tickets/payment`, and item load lives in `modules/items/item-load`.
+`modules/tickets/payment`, and item search/load lives in
+`modules/items/menu-actions/item-search-window`.
 
 ## `modules/`
 
@@ -81,7 +82,7 @@ Domain modules:
 
 - `clients/`: client API wrapper, client page, dialogs, profile/results UI, client image/search hooks.
 - `tickets/`: ticket API wrapper, ticket dialogs, ticket tables, ticket menu windows, payment workflow, print helper.
-- `items/`: item API wrapper, item dialogs, item tables, item load window, item search window.
+- `items/`: item API wrapper, item dialogs, item tables, and item search/load window.
 - `employees/`: employee API wrapper and employee admin window.
 - `admin/`: color, holiday, and location admin windows.
 - `reports/`: report secondary windows.

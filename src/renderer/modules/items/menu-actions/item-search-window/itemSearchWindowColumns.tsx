@@ -1,7 +1,10 @@
 import type { GridColDef } from "@mui/x-data-grid";
-import type { Item } from "../../../../shared/models/item.model";
-import CellTooltip from "../../../shared/components/CellTooltip";
-import { formatCurrency, formatUppercase } from "../../../shared/utils/formatters";
+import type { Item } from "../../../../../shared/models/item.model";
+import CellTooltip from "../../../../shared/components/CellTooltip";
+import {
+  formatCurrency,
+  formatUppercase,
+} from "../../../../shared/utils/formatters";
 
 const formatTicketStatus = (status?: string) => {
   if (status === "pawned") {
@@ -23,7 +26,7 @@ const formatTicketStatus = (status?: string) => {
   return "---";
 };
 
-export const itemSearchColumns: GridColDef<Item>[] = [
+export const itemSearchWindowColumns: GridColDef<Item>[] = [
   {
     field: "item_number",
     headerName: "ITEM #",

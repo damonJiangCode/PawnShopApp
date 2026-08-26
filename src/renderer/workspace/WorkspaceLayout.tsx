@@ -40,9 +40,7 @@ const WorkspaceLayout: React.FC = () => {
     searchRequestKey,
     selectedClient,
     forcedClient,
-    selectedTransactionTicket,
     incomingTransactionTicket,
-    incomingItemLoadRequest,
     focusTicketNumber,
     focusRequestId,
     historyRefreshKey,
@@ -158,7 +156,6 @@ const WorkspaceLayout: React.FC = () => {
               focusRequestId={focusRequestId}
               refreshKey={transactionRefreshKey}
               incomingTicket={incomingTransactionTicket}
-              incomingItemLoadRequest={incomingItemLoadRequest}
               onSelectedTicketChange={actions.setSelectedTransactionTicket}
               onClientSoldTicket={actions.handleClientSoldTicket}
             />
@@ -166,6 +163,7 @@ const WorkspaceLayout: React.FC = () => {
 
           <MainTabPanel active={currentTab === 2}>
             <HistoryPage
+              client={selectedClient ?? undefined}
               clientNumber={selectedClient?.client_number}
               clientLastName={selectedClient?.last_name}
               clientFirstName={selectedClient?.first_name}
@@ -174,7 +172,6 @@ const WorkspaceLayout: React.FC = () => {
               focusRequestId={focusRequestId}
               refreshKey={historyRefreshKey}
               activationKey={historyActivationKey}
-              transactionTargetTicket={selectedTransactionTicket}
               onRepawnCreated={actions.handleRepawnCreated}
               onLoadItemsToTransaction={actions.handleLoadHistoryItems}
             />

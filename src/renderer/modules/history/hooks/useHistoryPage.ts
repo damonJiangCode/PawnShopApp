@@ -1,23 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import type { Item } from "../../../../shared/models/item.model";
 import type { Ticket } from "../../../../shared/models/ticket.model";
-import {
-  itemApi,
-  type ItemCategoryOption,
-} from "../../items/item.api";
+import { itemApi, type ItemCategoryOption } from "../../items/item.api";
 import {
   ticketApi,
   type CreatePawnTicketInput,
 } from "../../tickets/ticket.api";
-import { getAppApi } from "../../../shared/api/app.api";
+import type { PrintClient } from "../../tickets/ticketPrintTemplate";
 
 interface UseHistoryPageParams {
   clientNumber?: number;
+  printClient?: PrintClient;
   focusTicketNumber?: number;
   focusRequestId?: number;
   refreshKey?: number;
   activationKey?: number;
-  transactionTargetTicket?: Ticket | null;
   onRepawnCreated?: (
     ticket: Ticket,
     sourceTicket: Ticket,
@@ -49,11 +46,11 @@ const sortHistoryTickets = (tickets: Ticket[]) =>
 
 export const useHistoryPage = ({
   clientNumber,
+  printClient,
   focusTicketNumber,
   focusRequestId,
   refreshKey = 0,
   activationKey = 0,
-  transactionTargetTicket,
   onRepawnCreated,
   onLoadItemsToTransaction,
 }: UseHistoryPageParams) => {
@@ -70,15 +67,8 @@ export const useHistoryPage = ({
   const [itemCategories, setItemCategories] = useState<ItemCategoryOption[]>(
     [],
   );
-  const transactionTargetTicketRef = useRef<Ticket | null>(
-    transactionTargetTicket ?? null,
-  );
   const selectedTicketRef = useRef<Ticket | null>(null);
   const handledActivationKeyRef = useRef(0);
-
-  useEffect(() => {
-    transactionTargetTicketRef.current = transactionTargetTicket ?? null;
-  }, [transactionTargetTicket]);
 
   useEffect(() => {
     selectedTicketRef.current = selectedTicket;
@@ -128,11 +118,10 @@ export const useHistoryPage = ({
 
       setTickets(historyTickets);
       const nextSelected = historyTickets.length
-        ? historyTickets.find(
+        ? (historyTickets.find(
             (ticket) =>
-              ticket.ticket_number ===
-              selectedTicketRef.current?.ticket_number,
-          ) ?? historyTickets[historyTickets.length - 1]
+              ticket.ticket_number === selectedTicketRef.current?.ticket_number,
+          ) ?? historyTickets[historyTickets.length - 1])
         : null;
       setSelectedTicket(nextSelected);
       setTicketScrollRequestKey((prev) => prev + 1);
@@ -231,39 +220,21 @@ export const useHistoryPage = ({
     });
 
     setOpenRepawnDialog(false);
+    ticketApi.printEnvelopeTicket(newTicket, printClient);
     setStatusMessage(`Ticket #${newTicket.ticket_number} repawned.`);
     onRepawnCreated?.(newTicket, selectedTicket, items);
   };
 
-  const handleLoad = async () => {
+  const handleLoad = () => {
     if (!selectedTicket) return;
     setStatusMessage("");
 
-    try {
-      const windowApi = getAppApi()?.window;
-
-      if (!windowApi) {
-        throw new Error("Window API is unavailable.");
-      }
-
-      const selectedItems = await windowApi.openItemLoadWindow({
-        title: `Load Ticket #${selectedTicket.ticket_number} Items`,
-        description: `Select items from ticket #${selectedTicket.ticket_number}.`,
-        actionLabel: "Add to Ticket",
-        items,
-      });
-
-      handleConfirmLoad(selectedTicket, selectedItems ?? []);
-    } catch (err) {
-      console.error(err);
-      setStatusMessage("Unable to open item load window.");
+    if (!items.length) {
+      setStatusMessage("This ticket does not have any items to load.");
+      return;
     }
-  };
 
-  const handleEditItem = (item: Item) => {
-    setSelectedItem(item);
-    setOpenItemEditDialog(true);
-    setStatusMessage("");
+    onLoadItemsToTransaction?.(selectedTicket, items);
   };
 
   const handleItemSaved = (savedItem: Item) => {
@@ -277,19 +248,10 @@ export const useHistoryPage = ({
     setStatusMessage(`Item #${savedItem.item_number} updated.`);
   };
 
-  const handleConfirmLoad = (sourceTicket: Ticket, selectedItems: Item[]) => {
-    if (!selectedItems.length) {
-      return;
-    }
-
-    if (!transactionTargetTicketRef.current?.ticket_number) {
-      setStatusMessage(
-        "Select or create a transaction ticket before loading items.",
-      );
-      return;
-    }
-
-    onLoadItemsToTransaction?.(sourceTicket, selectedItems);
+  const handleEditItem = (item: Item) => {
+    setSelectedItem(item);
+    setOpenItemEditDialog(true);
+    setStatusMessage("");
   };
 
   return {

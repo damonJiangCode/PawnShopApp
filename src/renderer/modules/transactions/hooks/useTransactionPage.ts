@@ -1,12 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { Item } from "../../../../shared/models/item.model";
 import type { Ticket } from "../../../../shared/models/ticket.model";
 import { itemApi, type ItemCategoryOption } from "../../items/item.api";
 import { ticketApi } from "../../tickets/ticket.api";
-import { getAppApi } from "../../../shared/api/app.api";
 import { filterVisibleTickets, sortTickets } from "../transaction.helpers";
 import type { Client } from "../../../../shared/models/client.model";
-import type { TransactionItemLoadRequest } from "../transactionItemLoadRequest";
 import { createTransactionItemActions } from "../actions/transactionItemActions";
 import { createTransactionTicketActions } from "../actions/transactionTicketActions";
 
@@ -16,7 +14,6 @@ interface UseTransactionPageParams {
   focusRequestId?: number;
   refreshKey?: number;
   incomingTicket?: Ticket | null;
-  incomingItemLoadRequest?: TransactionItemLoadRequest | null;
   onSelectedTicketChange?: (ticket: Ticket | null) => void;
   onClientSoldTicket?: () => void;
 }
@@ -27,7 +24,6 @@ export const useTransactionPage = ({
   focusRequestId,
   refreshKey = 0,
   incomingTicket,
-  incomingItemLoadRequest,
   onSelectedTicketChange,
   onClientSoldTicket,
 }: UseTransactionPageParams) => {
@@ -52,10 +48,7 @@ export const useTransactionPage = ({
   const [itemCategories, setItemCategories] = useState<ItemCategoryOption[]>(
     [],
   );
-  const [pendingLoadRequest, setPendingLoadRequest] =
-    useState<TransactionItemLoadRequest | null>(null);
   const [statusMessage, setStatusMessage] = useState("");
-  const lastItemLoadRequestIdRef = useRef<number | null>(null);
   const loading = ticketsLoading || itemsLoading;
   const displayedItems = selectedTicket?.ticket_number ? items : [];
   const ticketActions = createTransactionTicketActions({
@@ -77,13 +70,11 @@ export const useTransactionPage = ({
     items,
     selectedTicket,
     removeItemTarget,
-    pendingLoadRequest,
     setItems,
     setSelectedItem,
     setOpenItemDialog,
     setItemDialogMode,
     setRemoveItemTarget,
-    setPendingLoadRequest,
     setStatusMessage,
   });
 
@@ -181,60 +172,6 @@ export const useTransactionPage = ({
   }, [incomingTicket]);
 
   useEffect(() => {
-    if (!incomingItemLoadRequest) {
-      return;
-    }
-
-    if (
-      lastItemLoadRequestIdRef.current === incomingItemLoadRequest.requestId
-    ) {
-      return;
-    }
-
-    lastItemLoadRequestIdRef.current = incomingItemLoadRequest.requestId;
-    setPendingLoadRequest(incomingItemLoadRequest);
-    setStatusMessage("");
-
-    const openItemLoadWindow = async (request: TransactionItemLoadRequest) => {
-      try {
-        const windowApi = getAppApi()?.window;
-
-        if (!windowApi) {
-          throw new Error("Window API is unavailable.");
-        }
-
-        const selectedItems = await windowApi.openItemLoadWindow({
-          title:
-            request.mode === "repawn"
-              ? `Repawn Ticket #${request.sourceTicketNumber} Items`
-              : `Load Ticket #${request.sourceTicketNumber} Items`,
-          description: `Select the items from ticket #${request.sourceTicketNumber} (${request.sourceTicketDescription}) and add them to ticket #${request.targetTicketNumber}.`,
-          actionLabel: "Add to Ticket",
-          items: request.items,
-          mode: request.mode,
-        });
-
-        if (!selectedItems?.length) {
-          setPendingLoadRequest((prev) =>
-            prev?.requestId === request.requestId ? null : prev,
-          );
-          return;
-        }
-
-        await itemActions.handleConfirmLoadedItems(selectedItems, request);
-      } catch (err) {
-        console.error(err);
-        setStatusMessage("Unable to open item load window.");
-        setPendingLoadRequest((prev) =>
-          prev?.requestId === request.requestId ? null : prev,
-        );
-      }
-    };
-
-    void openItemLoadWindow(incomingItemLoadRequest);
-  }, [incomingItemLoadRequest]);
-
-  useEffect(() => {
     let active = true;
 
     itemApi
@@ -305,7 +242,7 @@ export const useTransactionPage = ({
     return () => {
       active = false;
     };
-  }, [selectedTicket?.ticket_number]);
+  }, [selectedTicket?.ticket_number, refreshKey]);
 
   useEffect(() => {
     if (!selectedTicket) {

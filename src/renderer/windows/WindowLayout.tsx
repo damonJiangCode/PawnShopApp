@@ -4,12 +4,14 @@ import { Box, Button, Paper, Stack, Typography } from "@mui/material";
 export type WindowLayoutProps = {
   title: string;
   description: string;
+  denseFooter?: boolean;
   children?: React.ReactNode;
 };
 
 const WindowLayout: React.FC<WindowLayoutProps> = ({
   title,
   description,
+  denseFooter = false,
   children,
 }) => {
   return (
@@ -20,7 +22,7 @@ const WindowLayout: React.FC<WindowLayoutProps> = ({
         p: 2,
         display: "flex",
         flexDirection: "column",
-        gap: 2,
+        gap: denseFooter ? 0.75 : 2,
         borderRadius: 2,
         boxSizing: "border-box",
         overflow: "hidden",
@@ -35,7 +37,14 @@ const WindowLayout: React.FC<WindowLayoutProps> = ({
         </Typography>
       </Box>
 
-      <Box sx={{ flex: 1, minHeight: 0, overflow: "auto", pt: 1 }}>
+      <Box
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          overflow: "auto",
+          pt: denseFooter ? 0.5 : 1,
+        }}
+      >
         {children}
       </Box>
 
@@ -44,9 +53,14 @@ const WindowLayout: React.FC<WindowLayoutProps> = ({
         spacing={1}
         justifyContent="flex-end"
         className="no-print"
-        sx={{ displayPrint: "none" }}
+        sx={{ displayPrint: "none", minHeight: denseFooter ? 28 : undefined }}
       >
-        <Button variant="outlined" onClick={() => window.close()}>
+        <Button
+          variant="outlined"
+          size={denseFooter ? "small" : "medium"}
+          sx={denseFooter ? { minHeight: 26, py: 0.25 } : undefined}
+          onClick={() => window.close()}
+        >
           Close
         </Button>
       </Stack>

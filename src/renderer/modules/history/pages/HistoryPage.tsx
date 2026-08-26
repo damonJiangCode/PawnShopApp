@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, Paper, Typography } from "@mui/material";
+import type { Client } from "../../../../shared/models/client.model";
 import type { Ticket } from "../../../../shared/models/ticket.model";
 import type { Item } from "../../../../shared/models/item.model";
 import ClientBar from "../../../shared/components/ClientBar";
@@ -10,6 +11,7 @@ import ItemEditDialog from "../../items/components/dialogs/ItemEditDialog";
 import { useHistoryPage } from "../hooks/useHistoryPage";
 
 interface HistoryPageProps {
+  client?: Client;
   clientNumber?: number;
   clientLastName?: string;
   clientFirstName?: string;
@@ -18,7 +20,6 @@ interface HistoryPageProps {
   focusRequestId?: number;
   refreshKey?: number;
   activationKey?: number;
-  transactionTargetTicket?: Ticket | null;
   onRepawnCreated?: (
     ticket: Ticket,
     sourceTicket: Ticket,
@@ -31,6 +32,7 @@ interface HistoryPageProps {
 }
 
 const HistoryPage: React.FC<HistoryPageProps> = ({
+  client,
   clientNumber,
   clientLastName,
   clientFirstName,
@@ -39,17 +41,20 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
   focusRequestId,
   refreshKey = 0,
   activationKey = 0,
-  transactionTargetTicket,
   onRepawnCreated,
   onLoadItemsToTransaction,
 }) => {
+  const resolvedClientNumber = client?.client_number ?? clientNumber;
+  const resolvedClientLastName = client?.last_name ?? clientLastName;
+  const resolvedClientFirstName = client?.first_name ?? clientFirstName;
+  const resolvedClientMiddleName = client?.middle_name ?? clientMiddleName;
   const { state, actions } = useHistoryPage({
-    clientNumber,
+    clientNumber: resolvedClientNumber,
+    printClient: client,
     focusTicketNumber,
     focusRequestId,
     refreshKey,
     activationKey,
-    transactionTargetTicket,
     onRepawnCreated,
     onLoadItemsToTransaction,
   });
@@ -66,7 +71,7 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
     itemCategories,
   } = state;
 
-  if (!clientNumber) {
+  if (!resolvedClientNumber) {
     return (
       <Paper elevation={0} sx={{ p: 2, height: "100%" }}>
         <Typography color="text.secondary">
@@ -93,9 +98,9 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
       }}
     >
       <ClientBar
-        client_last_name={clientLastName}
-        client_first_name={clientFirstName}
-        client_middle_name={clientMiddleName}
+        client_last_name={resolvedClientLastName}
+        client_first_name={resolvedClientFirstName}
+        client_middle_name={resolvedClientMiddleName}
         sx={{ mb: 1 }}
       />
 
@@ -140,9 +145,9 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
       {openRepawnDialog && selectedTicket && (
         <TicketPawnDialog
           open={openRepawnDialog}
-          clientFirstName={clientFirstName || ""}
-          clientLastName={clientLastName || ""}
-          clientMiddleName={clientMiddleName}
+          clientFirstName={resolvedClientFirstName || ""}
+          clientLastName={resolvedClientLastName || ""}
+          clientMiddleName={resolvedClientMiddleName}
           dialogTitle={`Repawn Ticket #${selectedTicket.ticket_number}`}
           saveLabel="Repawn"
           initialValues={{

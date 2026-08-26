@@ -214,11 +214,11 @@ export const itemRepo = {
       : "";
 
     if (
-      latestTicketStatus === "pawned" &&
+      (latestTicketStatus === "pawned" || latestTicketStatus === "sold") &&
       latestTicketNumber !== targetTicketNumber
     ) {
       throw new Error(
-        `Item #${itemNumber} is already active on pawn ticket #${latestTicketNumber}.`,
+        `Item #${itemNumber} is already active on ticket #${latestTicketNumber}.`,
       );
     }
   },

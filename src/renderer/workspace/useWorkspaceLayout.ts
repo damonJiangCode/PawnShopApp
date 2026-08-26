@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import type { Client } from "../../shared/models/client.model";
 import type { Item } from "../../shared/models/item.model";
 import type { Ticket } from "../../shared/models/ticket.model";
-import type { TransactionItemLoadRequest } from "../modules/transactions/transactionItemLoadRequest";
 import { itemApi } from "../modules/items/item.api";
 import { getAppApi } from "../shared/api/app.api";
 
@@ -15,7 +14,7 @@ type BirthdaySearchParams = {
   dateOfBirth: string;
 };
 
-type ItemLoadMode = "repawn" | "load";
+type ItemSearchPayloadMode = "repawn" | "load";
 
 type TicketSearchSelectedEvent = {
   type: "ticket-search-selected";
@@ -39,7 +38,13 @@ type TicketStolenEvent = {
 type ItemSearchAddToTicketEvent = {
   type: "item-search-add-to-ticket";
   requestId: string;
-  itemNumber: number;
+  itemNumber?: number;
+  itemNumbers?: number[];
+};
+
+type ItemSearchTargetStatusRequestEvent = {
+  type: "item-search-target-status-request";
+  requestId: string;
 };
 
 type PaymentCompletedEvent = {
@@ -84,6 +89,18 @@ const isItemSearchAddToTicketEvent = (
   return (value as { type?: string }).type === "item-search-add-to-ticket";
 };
 
+const isItemSearchTargetStatusRequestEvent = (
+  value: unknown,
+): value is ItemSearchTargetStatusRequestEvent => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  return (
+    (value as { type?: string }).type === "item-search-target-status-request"
+  );
+};
+
 const isPaymentCompletedEvent = (
   value: unknown,
 ): value is PaymentCompletedEvent => {
@@ -106,13 +123,10 @@ export const useWorkspaceLayout = () => {
     useState<Ticket | null>(null);
   const [incomingTransactionTicket, setIncomingTransactionTicket] =
     useState<Ticket | null>(null);
-  const [incomingItemLoadRequest, setIncomingItemLoadRequest] =
-    useState<TransactionItemLoadRequest | null>(null);
   const [focusTicketNumber, setFocusTicketNumber] = useState<
     number | undefined
   >();
   const [focusRequestId, setFocusRequestId] = useState(0);
-  const [itemLoadRequestId, setItemLoadRequestId] = useState(0);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [historyActivationKey, setHistoryActivationKey] = useState(0);
   const [transactionRefreshKey, setTransactionRefreshKey] = useState(0);
@@ -170,9 +184,26 @@ export const useWorkspaceLayout = () => {
   useEffect(() => {
     const channel = new BroadcastChannel("menu-events");
 
+    const postItemSearchTargetStatus = (requestId?: string) => {
+      const targetTicket = selectedTransactionTicketRef.current;
+
+      channel.postMessage({
+        type: "item-search-target-status",
+        requestId,
+        canAddToTicket:
+          currentTabRef.current === 1 && Boolean(targetTicket?.ticket_number),
+        targetTicketNumber: targetTicket?.ticket_number,
+      });
+    };
+
     channel.onmessage = (event: MessageEvent) => {
       if (isItemSearchAddToTicketEvent(event.data)) {
-        const { itemNumber, requestId } = event.data;
+        const { requestId } = event.data;
+        const itemNumbers = event.data.itemNumbers?.length
+          ? event.data.itemNumbers
+          : event.data.itemNumber
+            ? [event.data.itemNumber]
+            : [];
         const targetTicket = selectedTransactionTicketRef.current;
 
         if (currentTabRef.current !== 1 || !targetTicket?.ticket_number) {
@@ -184,15 +215,24 @@ export const useWorkspaceLayout = () => {
           return;
         }
 
+        if (!itemNumbers.length) {
+          channel.postMessage({
+            type: "item-search-add-to-ticket-result",
+            requestId,
+            error: "Select at least one item first.",
+          });
+          return;
+        }
+
         void itemApi
-          .linkItemsToTicket(targetTicket.ticket_number, [itemNumber])
-          .then(([linkedItem]) => {
+          .linkItemsToTicket(targetTicket.ticket_number, itemNumbers)
+          .then((linkedItems) => {
             setTransactionRefreshKey((prev) => prev + 1);
             channel.postMessage({
               type: "item-search-add-to-ticket-result",
               requestId,
-              item: linkedItem,
-              message: `Item #${itemNumber} added to ticket #${targetTicket.ticket_number}.`,
+              items: linkedItems,
+              message: `${linkedItems.length} item(s) added to ticket #${targetTicket.ticket_number}.`,
             });
           })
           .catch((err) => {
@@ -206,6 +246,11 @@ export const useWorkspaceLayout = () => {
                   : "Unable to add the selected item to the ticket.",
             });
           });
+        return;
+      }
+
+      if (isItemSearchTargetStatusRequestEvent(event.data)) {
+        postItemSearchTargetStatus(event.data.requestId);
         return;
       }
 
@@ -248,6 +293,18 @@ export const useWorkspaceLayout = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const channel = new BroadcastChannel("menu-events");
+
+    channel.postMessage({
+      type: "item-search-target-status",
+      canAddToTicket:
+        currentTab === 1 && Boolean(selectedTransactionTicket?.ticket_number),
+      targetTicketNumber: selectedTransactionTicket?.ticket_number,
+    });
+    channel.close();
+  }, [currentTab, selectedTransactionTicket?.ticket_number]);
+
   const handleSearch = ({ firstName, lastName }: SearchParams) => {
     setForcedClient(null);
     setSearchFirstName(firstName);
@@ -275,7 +332,6 @@ export const useWorkspaceLayout = () => {
     setSelectedClient(null);
     setSelectedTransactionTicket(null);
     setIncomingTransactionTicket(null);
-    setIncomingItemLoadRequest(null);
     setFocusTicketNumber(undefined);
     setHistoryRefreshKey((prev) => prev + 1);
   };
@@ -317,23 +373,17 @@ export const useWorkspaceLayout = () => {
     }));
   };
 
-  const sendItemsToTransaction = (
-    targetTicket: Ticket,
+  const openItemSearchWithItems = (
     sourceTicket: Ticket,
     sourceItems: Item[],
-    mode: ItemLoadMode,
+    mode: ItemSearchPayloadMode,
   ) => {
-    if (!targetTicket.ticket_number || !sourceTicket.ticket_number) {
+    if (!sourceTicket.ticket_number) {
       return;
     }
 
-    const nextRequestId = itemLoadRequestId + 1;
-    setItemLoadRequestId(nextRequestId);
-    setIncomingItemLoadRequest({
-      requestId: nextRequestId,
-      targetTicketNumber: targetTicket.ticket_number,
+    void getAppApi()?.window.openItemSearchWindow({
       sourceTicketNumber: sourceTicket.ticket_number,
-      sourceTicketDescription: sourceTicket.description,
       items: sourceItems,
       mode,
     });
@@ -348,25 +398,15 @@ export const useWorkspaceLayout = () => {
     setFocusTicketNumber(ticket.ticket_number);
     setFocusRequestId((prev) => prev + 1);
     setCurrentTab(1);
-    sendItemsToTransaction(ticket, sourceTicket, sourceItems, "repawn");
+    openItemSearchWithItems(sourceTicket, sourceItems, "repawn");
   };
 
   const handleLoadHistoryItems = (
     sourceTicket: Ticket,
     sourceItems: Item[],
   ) => {
-    if (!selectedTransactionTicket) {
-      setCurrentTab(1);
-      return;
-    }
-
     setCurrentTab(1);
-    sendItemsToTransaction(
-      selectedTransactionTicket,
-      sourceTicket,
-      sourceItems,
-      "load",
-    );
+    openItemSearchWithItems(sourceTicket, sourceItems, "load");
   };
 
   return {
@@ -380,7 +420,6 @@ export const useWorkspaceLayout = () => {
       forcedClient,
       selectedTransactionTicket,
       incomingTransactionTicket,
-      incomingItemLoadRequest,
       focusTicketNumber,
       focusRequestId,
       historyRefreshKey,

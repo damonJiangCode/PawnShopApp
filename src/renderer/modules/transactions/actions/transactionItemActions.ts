@@ -2,21 +2,16 @@ import type { Dispatch, SetStateAction } from "react";
 import type { Item } from "../../../../shared/models/item.model";
 import type { Ticket } from "../../../../shared/models/ticket.model";
 import { itemApi } from "../../items/item.api";
-import type { TransactionItemLoadRequest } from "../transactionItemLoadRequest";
 
 type TransactionItemActionDeps = {
   items: Item[];
   selectedTicket: Ticket | null;
   removeItemTarget: Item | null;
-  pendingLoadRequest: TransactionItemLoadRequest | null;
   setItems: Dispatch<SetStateAction<Item[]>>;
   setSelectedItem: Dispatch<SetStateAction<Item | null>>;
   setOpenItemDialog: Dispatch<SetStateAction<boolean>>;
   setItemDialogMode: Dispatch<SetStateAction<"add" | "edit">>;
   setRemoveItemTarget: Dispatch<SetStateAction<Item | null>>;
-  setPendingLoadRequest: Dispatch<
-    SetStateAction<TransactionItemLoadRequest | null>
-  >;
   setStatusMessage: Dispatch<SetStateAction<string>>;
 };
 
@@ -24,13 +19,11 @@ export const createTransactionItemActions = ({
   items,
   selectedTicket,
   removeItemTarget,
-  pendingLoadRequest,
   setItems,
   setSelectedItem,
   setOpenItemDialog,
   setItemDialogMode,
   setRemoveItemTarget,
-  setPendingLoadRequest,
   setStatusMessage,
 }: TransactionItemActionDeps) => {
   const handleItemClick = (item: Item) => {
@@ -112,51 +105,6 @@ export const createTransactionItemActions = ({
     setStatusMessage(`Item #${removeItemTarget.item_number} removed.`);
   };
 
-  const handleConfirmLoadedItems = async (
-    selectedItems: Item[],
-    loadRequest: TransactionItemLoadRequest | null = pendingLoadRequest,
-  ) => {
-    if (!loadRequest || !selectedItems.length) {
-      setPendingLoadRequest((prev) =>
-        prev?.requestId === loadRequest?.requestId ? null : prev,
-      );
-      return;
-    }
-
-    try {
-      const linkedItems = await itemApi.linkItemsToTicket(
-        loadRequest.targetTicketNumber,
-        selectedItems.map((item) => item.item_number),
-      );
-
-      setItems((prev) => {
-        const existingItemNumbers = new Set(
-          prev.map((item) => item.item_number),
-        );
-        const newItems = linkedItems.filter(
-          (item) => !existingItemNumbers.has(item.item_number),
-        );
-
-        return [...newItems, ...prev];
-      });
-      setSelectedItem((prev) => prev ?? linkedItems[0] ?? null);
-      setStatusMessage(
-        `${linkedItems.length} item(s) loaded from ticket #${loadRequest.sourceTicketNumber} into ticket #${loadRequest.targetTicketNumber}.`,
-      );
-    } catch (err) {
-      console.error(err);
-      setStatusMessage(
-        err instanceof Error
-          ? err.message
-          : "Unable to load the selected item(s).",
-      );
-    } finally {
-      setPendingLoadRequest((prev) =>
-        prev?.requestId === loadRequest.requestId ? null : prev,
-      );
-    }
-  };
-
   return {
     handleItemClick,
     handleAddItem,
@@ -164,6 +112,5 @@ export const createTransactionItemActions = ({
     handleRemoveItem,
     handleItemSaved,
     handleConfirmRemoveItem,
-    handleConfirmLoadedItems,
   };
 };

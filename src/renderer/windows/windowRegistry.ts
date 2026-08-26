@@ -4,8 +4,7 @@ import EyeColorAdminWindow from "../modules/admin/colors/eye-color/EyeColorAdmin
 import HairColorAdminWindow from "../modules/admin/colors/hair-color/HairColorAdminWindow";
 import HolidayAdminWindow from "../modules/admin/holiday/HolidayAdminWindow";
 import LocationAdminWindow from "../modules/admin/location/LocationAdminWindow";
-import ItemLoadWindow from "../modules/items/item-load/ItemLoadWindow";
-import ItemSearchWindow from "../modules/items/menu-actions/ItemSearchWindow";
+import ItemSearchWindow from "../modules/items/menu-actions/item-search-window/ItemSearchWindow";
 import BuybackReportWindow from "../modules/reports/menu-actions/BuybackReportWindow";
 import DailyReportWindow from "../modules/reports/menu-actions/DailyReportWindow";
 import InterestReportWindow from "../modules/reports/menu-actions/InterestReportWindow";
@@ -23,8 +22,7 @@ export const windowRegistry: Record<
   string,
   ComponentType<WindowScreenProps>
 > = {
-  "payment": PaymentWindow,
-  "item-load": ItemLoadWindow,
+  payment: PaymentWindow,
   "ticket-search": TicketSearchWindow,
   "ticket-expire": TicketExpireWindow,
   "ticket-stolen": TicketStolenWindow,

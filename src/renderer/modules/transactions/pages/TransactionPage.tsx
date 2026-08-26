@@ -11,7 +11,6 @@ import {
 } from "@mui/material";
 import type { Ticket } from "../../../../shared/models/ticket.model";
 import type { Client } from "../../../../shared/models/client.model";
-import type { TransactionItemLoadRequest } from "../transactionItemLoadRequest";
 import { useTransactionPage } from "../hooks/useTransactionPage";
 import ClientBar from "../../../shared/components/ClientBar";
 import TransactionTicketsPanel from "../../tickets/components/transaction/TransactionTicketsPanel";
@@ -29,7 +28,6 @@ interface TransactionPageProps {
   focusRequestId?: number;
   refreshKey?: number;
   incomingTicket?: Ticket | null;
-  incomingItemLoadRequest?: TransactionItemLoadRequest | null;
   onSelectedTicketChange?: (ticket: Ticket | null) => void;
   onClientSoldTicket?: () => void;
 }
@@ -40,7 +38,6 @@ const TransactionPage: React.FC<TransactionPageProps> = ({
   focusRequestId,
   refreshKey,
   incomingTicket,
-  incomingItemLoadRequest,
   onSelectedTicketChange,
   onClientSoldTicket,
 }) => {
@@ -54,7 +51,6 @@ const TransactionPage: React.FC<TransactionPageProps> = ({
     focusRequestId,
     refreshKey,
     incomingTicket,
-    incomingItemLoadRequest,
     onSelectedTicketChange,
     onClientSoldTicket,
   });
