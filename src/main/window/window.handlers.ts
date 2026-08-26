@@ -9,6 +9,9 @@ import { openWindowHost } from "./openWindowHost.ts";
 
 const { ipcMain } = require("electron/main") as typeof import("electron");
 
+const ITEM_SEARCH_WINDOW_X = 24;
+const ITEM_SEARCH_WINDOW_Y = 24;
+
 let activeItemSearchWindow: Electron.BrowserWindow | null = null;
 let itemSearchWindowInput: OpenItemSearchWindowInput | null = null;
 
@@ -83,6 +86,10 @@ export const registerWindowHandlers = () => {
       );
 
       if (activeItemSearchWindow && !activeItemSearchWindow.isDestroyed()) {
+        activeItemSearchWindow.setPosition(
+          ITEM_SEARCH_WINDOW_X,
+          ITEM_SEARCH_WINDOW_Y,
+        );
         activeItemSearchWindow.show();
         activeItemSearchWindow.focus();
         activeItemSearchWindow.webContents.send(
@@ -97,6 +104,8 @@ export const registerWindowHandlers = () => {
         description: "Search by item number or item detail.",
         width: 1180,
         height: 660,
+        x: ITEM_SEARCH_WINDOW_X,
+        y: ITEM_SEARCH_WINDOW_Y,
         minWidth: 1040,
         minHeight: 520,
       });

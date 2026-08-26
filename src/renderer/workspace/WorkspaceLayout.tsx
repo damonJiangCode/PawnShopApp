@@ -173,6 +173,7 @@ const WorkspaceLayout: React.FC = () => {
               refreshKey={historyRefreshKey}
               activationKey={historyActivationKey}
               onRepawnCreated={actions.handleRepawnCreated}
+              onRepawnPreview={actions.handleRepawnPreview}
               onLoadItemsToTransaction={actions.handleLoadHistoryItems}
             />
           </MainTabPanel>

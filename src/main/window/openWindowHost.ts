@@ -7,6 +7,8 @@ export type OpenWindowHostInput = {
   description?: string;
   width?: number;
   height?: number;
+  x?: number;
+  y?: number;
   minWidth?: number;
   minHeight?: number;
   params?: Record<string, string | number | boolean | undefined>;
@@ -18,6 +20,8 @@ export const openWindowHost = ({
   description,
   width = 720,
   height = 420,
+  x,
+  y,
   minWidth = 560,
   minHeight = 320,
   params = {},
@@ -25,6 +29,8 @@ export const openWindowHost = ({
   return createAppWindow({
     width,
     height,
+    x,
+    y,
     minWidth,
     minHeight,
     title,

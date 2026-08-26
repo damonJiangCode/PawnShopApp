@@ -9,6 +9,8 @@ const preloadPath = path.resolve(process.cwd(), "src/preload/index.cjs");
 type CreateAppWindowInput = {
   width: number;
   height: number;
+  x?: number;
+  y?: number;
   minWidth?: number;
   minHeight?: number;
   title?: string;
@@ -20,6 +22,8 @@ type CreateAppWindowInput = {
 export const createAppWindow = ({
   width,
   height,
+  x,
+  y,
   minWidth,
   minHeight,
   title,
@@ -30,9 +34,11 @@ export const createAppWindow = ({
   const window = new BrowserWindow({
     width,
     height,
+    x,
+    y,
     minWidth,
     minHeight,
-    center: true,
+    center: x === undefined && y === undefined,
     show: false,
     title,
     webPreferences: {

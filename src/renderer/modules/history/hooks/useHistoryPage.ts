@@ -20,6 +20,7 @@ interface UseHistoryPageParams {
     sourceTicket: Ticket,
     sourceItems: Item[],
   ) => void;
+  onRepawnPreview?: (sourceTicket: Ticket, sourceItems: Item[]) => void;
   onLoadItemsToTransaction?: (
     sourceTicket: Ticket,
     sourceItems: Item[],
@@ -52,6 +53,7 @@ export const useHistoryPage = ({
   refreshKey = 0,
   activationKey = 0,
   onRepawnCreated,
+  onRepawnPreview,
   onLoadItemsToTransaction,
 }: UseHistoryPageParams) => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -203,6 +205,9 @@ export const useHistoryPage = ({
 
   const handleRepawn = () => {
     if (!selectedTicket) return;
+    if (items.length) {
+      onRepawnPreview?.(selectedTicket, items);
+    }
     setOpenRepawnDialog(true);
     setStatusMessage("");
   };

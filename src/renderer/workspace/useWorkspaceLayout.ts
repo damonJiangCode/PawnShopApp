@@ -401,6 +401,13 @@ export const useWorkspaceLayout = () => {
     openItemSearchWithItems(sourceTicket, sourceItems, "repawn");
   };
 
+  const handleRepawnPreview = (
+    sourceTicket: Ticket,
+    sourceItems: Item[],
+  ) => {
+    openItemSearchWithItems(sourceTicket, sourceItems, "repawn");
+  };
+
   const handleLoadHistoryItems = (
     sourceTicket: Ticket,
     sourceItems: Item[],
@@ -440,6 +447,7 @@ export const useWorkspaceLayout = () => {
       handleClientSoldTicket,
       requestHistoryRefresh,
       handleRepawnCreated,
+      handleRepawnPreview,
       handleLoadHistoryItems,
     },
   };
