@@ -6,7 +6,7 @@ import {
   ticketApi,
   type CreatePawnTicketInput,
 } from "../../tickets/ticket.api";
-import type { PrintClient } from "../../tickets/ticketPrintTemplate";
+import type { PrintClient } from "../../tickets/print/ticketPrintTemplate";
 
 interface UseHistoryPageParams {
   clientNumber?: number;

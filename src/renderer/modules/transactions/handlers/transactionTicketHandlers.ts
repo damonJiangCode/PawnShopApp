@@ -11,9 +11,12 @@ import {
   type UpdateTicketInput,
 } from "../../tickets/ticket.api";
 import { itemApi } from "../../items/item.api";
-import { filterVisibleTickets, sortTickets } from "../transaction.helpers";
+import {
+  filterVisibleTickets,
+  sortTickets,
+} from "../helpers/transaction.helpers";
 
-type TransactionTicketActionDeps = {
+type TransactionTicketHandlerDeps = {
   client?: Client;
   selectedTicket: Ticket | null;
   setTickets: Dispatch<SetStateAction<Ticket[]>>;
@@ -29,7 +32,7 @@ type TransactionTicketActionDeps = {
   onClientSoldTicket?: () => void;
 };
 
-export const createTransactionTicketActions = ({
+export const createTransactionTicketHandlers = ({
   client,
   selectedTicket,
   setTickets,
@@ -43,7 +46,7 @@ export const createTransactionTicketActions = ({
   setOpenTicketTransferDialog,
   setStatusMessage,
   onClientSoldTicket,
-}: TransactionTicketActionDeps) => {
+}: TransactionTicketHandlerDeps) => {
   const clientNumber = client?.client_number;
 
   const handleTicketPrint = () => {

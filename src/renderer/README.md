@@ -4,6 +4,12 @@ This folder is the React side of the app. The structure is feature-first:
 most code should live in the module that owns the screen, workflow, or data it
 is working with.
 
+For full project-level tracing, start with:
+
+- `docs/architecture.md`
+- `docs/flows.md`
+- `docs/review-guide.md`
+
 ## Top Level
 
 ```text
@@ -89,12 +95,40 @@ Domain modules:
 
 Workflow modules:
 
-- `transactions/`: active pawn/sell page, transaction hook, transaction actions.
+- `transactions/`: active pawn/sell page, transaction hook, transaction handlers.
 - `history/`: history page and history hook.
+
+Recommended module shape:
+
+```text
+module/
+  README.md
+  module.api.ts
+  pages/
+  components/
+  hooks/
+  handlers/
+  helpers/
+```
+
+Add more folders only when the name explains the purpose better than
+`helpers/`:
+
+```text
+layout/ = layout constants or layout-only helpers
+styles/ = module-owned visual constants
+data/ = static/default module data
+print/ = print template or print-only helpers
+menu-actions/ = windows opened from menu/action buttons
+```
+
+The module root should stay quiet. Prefer keeping only `README.md`, the module
+API wrapper, and a few clearly named folders at the root.
 
 Common local file roles:
 
 - `*.api.ts`: renderer wrapper around `getAppApi()?.domain`.
+- `handlers/`: page-owned event handlers. Handlers can call APIs and set React state.
 - `*.helpers.ts`: pure local helpers for that module.
 - `*.types.ts`: local UI/workflow types, not database models.
 - `*Layout.ts`: module-owned layout constants or layout components.
@@ -105,6 +139,63 @@ Common local file roles:
 
 If a component is only used by one module, keep it in that module. Do not move
 it into `shared/` just because it looks reusable.
+
+### Hook, Handler, Helper
+
+Use this standard when splitting renderer workflow code:
+
+```text
+hook
+  owns React state
+  loads data
+  creates handlers
+  returns state and actions to the page
+
+handler
+  handles user events
+  can call renderer APIs
+  can set React state
+  can open/close dialogs
+
+helper
+  pure function
+  no React state setter
+  no API call
+  no window/appAPI side effect
+```
+
+The page can still receive an `actions` object from a hook because that is the
+page's event surface. Files that implement those event functions should be named
+`handlers` when they call APIs or set state.
+
+### Renderer API Wrapper vs Shared API Contract
+
+Renderer module files named `*.api.ts` are wrappers for UI code.
+
+They are different from `src/shared/api-contracts`.
+
+```text
+src/shared/api-contracts
+  defines the appAPI method shape
+  shared by renderer, preload, and main
+  no implementation
+
+src/renderer/modules/*/*.api.ts
+  gives UI code a simple module-owned call point
+  calls getAppApi()?.client / ticket / item / employee / window
+  may do renderer-side formatting or helper work
+```
+
+Example:
+
+```text
+shared/api-contracts/ticketApi.contract.ts
+  defines createPawnTicket(input): Promise<Ticket>
+
+renderer/modules/tickets/ticket.api.ts
+  exports ticketApi.createPawnTicket(input)
+  calls getAppApi()?.ticket.createPawnTicket(input)
+```
 
 ## `shared/`
 
@@ -155,6 +246,7 @@ belong in `src/shared`.
 - API methods should be action-first: `searchClients`, `createPawnTicket`, `loadItemsByTicket`.
 - Renderer API files should use `*.api.ts`: `client.api.ts`, `ticket.api.ts`.
 - Renderer API files should export `clientApi`, `ticketApi`, `itemApi`, or `employeeApi`, not `clientService`/`ticketService`; `service` is reserved for main-process business logic.
+- `src/shared/api-contracts` is the contract for the app API shape; renderer `*.api.ts` is the wrapper used by UI code.
 - Window frame layout belongs in `windows/WindowLayout.tsx`, not `shared/`.
 - Top-level apps end in `App`: `RendererApp`, `WorkspaceApp`.
 - Domain components should keep domain words when ambiguity is likely:
@@ -169,7 +261,7 @@ belong in `src/shared`.
 2. If it belongs to one workflow, put it in that workflow module.
 3. If it is used by multiple modules and has no domain ownership, put it in `renderer/shared`.
 4. If it defines app data shape or IPC/API shape, put it in `src/shared`, not `renderer/shared`.
-5. If a file grows too large, split local helpers, actions, columns, dialog sections, or hooks next to the owner.
+5. If a file grows too large, split local helpers, handlers, columns, dialog sections, or hooks next to the owner.
 
 The goal is that review usually starts in one module and only leaves it for
 `src/shared` contracts/models or small renderer helpers.

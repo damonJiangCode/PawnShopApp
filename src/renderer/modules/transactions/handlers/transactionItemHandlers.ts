@@ -3,7 +3,7 @@ import type { Item } from "../../../../shared/models/item.model";
 import type { Ticket } from "../../../../shared/models/ticket.model";
 import { itemApi } from "../../items/item.api";
 
-type TransactionItemActionDeps = {
+type TransactionItemHandlerDeps = {
   items: Item[];
   selectedTicket: Ticket | null;
   removeItemTarget: Item | null;
@@ -15,7 +15,7 @@ type TransactionItemActionDeps = {
   setStatusMessage: Dispatch<SetStateAction<string>>;
 };
 
-export const createTransactionItemActions = ({
+export const createTransactionItemHandlers = ({
   items,
   selectedTicket,
   removeItemTarget,
@@ -25,7 +25,7 @@ export const createTransactionItemActions = ({
   setItemDialogMode,
   setRemoveItemTarget,
   setStatusMessage,
-}: TransactionItemActionDeps) => {
+}: TransactionItemHandlerDeps) => {
   const handleItemClick = (item: Item) => {
     setSelectedItem(item);
     setStatusMessage("");

@@ -18,7 +18,7 @@ import AddressFields from "./fields/AddressFields";
 import ContactNotesFields from "./fields/ContactNotesFields";
 import IDFields from "./fields/IDFields";
 import type { IDFieldsRef } from "./fields/IDFields";
-import defaultClient from "../../defaultClient";
+import defaultClient from "../../data/defaultClient";
 import {
   clientApi,
   type ClientFormError,

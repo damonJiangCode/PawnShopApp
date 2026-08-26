@@ -23,7 +23,7 @@ import { getAppApi } from "../../shared/api/app.api";
 import {
   createEnvelopePrintHtml,
   type PrintClient,
-} from "./ticketPrintTemplate";
+} from "./print/ticketPrintTemplate";
 import {
   mapBackendError,
   normalizeConvertTicketInput,
@@ -36,7 +36,7 @@ import {
   normalizeReportDateInput,
   normalizeTransferTicketInput,
   normalizeUpdateTicketInput,
-} from "./ticketApiUtils";
+} from "./helpers/ticketApiUtils";
 
 const openPrintWindow = (html: string) => {
   const printWindow = window.open("", "_blank", "width=445,height=900");
@@ -433,4 +433,4 @@ export type {
   TransferTicketPreview,
   UpdateTicketInput,
 };
-export type { TicketFormError, TicketFormField } from "./ticketApiUtils";
+export type { TicketFormError, TicketFormField } from "./helpers/ticketApiUtils";

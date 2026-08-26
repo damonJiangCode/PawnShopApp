@@ -3,10 +3,13 @@ import type { Item } from "../../../../shared/models/item.model";
 import type { Ticket } from "../../../../shared/models/ticket.model";
 import { itemApi, type ItemCategoryOption } from "../../items/item.api";
 import { ticketApi } from "../../tickets/ticket.api";
-import { filterVisibleTickets, sortTickets } from "../transaction.helpers";
+import {
+  filterVisibleTickets,
+  sortTickets,
+} from "../helpers/transaction.helpers";
 import type { Client } from "../../../../shared/models/client.model";
-import { createTransactionItemActions } from "../actions/transactionItemActions";
-import { createTransactionTicketActions } from "../actions/transactionTicketActions";
+import { createTransactionItemHandlers } from "../handlers/transactionItemHandlers";
+import { createTransactionTicketHandlers } from "../handlers/transactionTicketHandlers";
 
 interface UseTransactionPageParams {
   client?: Client;
@@ -51,7 +54,7 @@ export const useTransactionPage = ({
   const [statusMessage, setStatusMessage] = useState("");
   const loading = ticketsLoading || itemsLoading;
   const displayedItems = selectedTicket?.ticket_number ? items : [];
-  const ticketActions = createTransactionTicketActions({
+  const ticketHandlers = createTransactionTicketHandlers({
     client,
     selectedTicket,
     setTickets,
@@ -66,7 +69,7 @@ export const useTransactionPage = ({
     setStatusMessage,
     onClientSoldTicket,
   });
-  const itemActions = createTransactionItemActions({
+  const itemHandlers = createTransactionItemHandlers({
     items,
     selectedTicket,
     removeItemTarget,
@@ -358,23 +361,23 @@ export const useTransactionPage = ({
       handlePawnButtonClick,
       handleEditButtonClick,
       handleSellButtonClick,
-      handleTicketPrint: ticketActions.handleTicketPrint,
+      handleTicketPrint: ticketHandlers.handleTicketPrint,
       handleConvertTicket,
       handleTransferTicket,
-      handlePawnTicket: ticketActions.handlePawnTicket,
-      handleSellTicket: ticketActions.handleSellTicket,
-      handleEditTicket: ticketActions.handleEditTicket,
+      handlePawnTicket: ticketHandlers.handlePawnTicket,
+      handleSellTicket: ticketHandlers.handleSellTicket,
+      handleEditTicket: ticketHandlers.handleEditTicket,
       handleLoadTransferTicketPreview:
-        ticketActions.handleLoadTransferTicketPreview,
-      handleConvertTicketConfirmed: ticketActions.handleConvertTicketConfirmed,
+        ticketHandlers.handleLoadTransferTicketPreview,
+      handleConvertTicketConfirmed: ticketHandlers.handleConvertTicketConfirmed,
       handleTransferTicketConfirmed:
-        ticketActions.handleTransferTicketConfirmed,
-      handleItemClick: itemActions.handleItemClick,
-      handleAddItem: itemActions.handleAddItem,
-      handleEditItem: itemActions.handleEditItem,
-      handleRemoveItem: itemActions.handleRemoveItem,
-      handleItemSaved: itemActions.handleItemSaved,
-      handleConfirmRemoveItem: itemActions.handleConfirmRemoveItem,
+        ticketHandlers.handleTransferTicketConfirmed,
+      handleItemClick: itemHandlers.handleItemClick,
+      handleAddItem: itemHandlers.handleAddItem,
+      handleEditItem: itemHandlers.handleEditItem,
+      handleRemoveItem: itemHandlers.handleRemoveItem,
+      handleItemSaved: itemHandlers.handleItemSaved,
+      handleConfirmRemoveItem: itemHandlers.handleConfirmRemoveItem,
     },
   };
 };

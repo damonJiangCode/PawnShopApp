@@ -12,7 +12,7 @@ import type {
   PaymentTicketRow,
 } from "./payment.types";
 
-type PaymentRowActionDeps = {
+type PaymentRowHandlerDeps = {
   mode: PaymentMode;
   availableRows: PaymentTicketRow[];
   selectedRows: PaymentTicketRow[];
@@ -31,7 +31,7 @@ type PaymentRowActionDeps = {
   setStatusMessage: Dispatch<SetStateAction<string>>;
 };
 
-export const createPaymentRowActions = ({
+export const createPaymentRowHandlers = ({
   mode,
   availableRows,
   selectedRows,
@@ -44,7 +44,7 @@ export const createPaymentRowActions = ({
   setSelectedSelectionByMode,
   setStatusSeverity,
   setStatusMessage,
-}: PaymentRowActionDeps) => {
+}: PaymentRowHandlerDeps) => {
   const confirmBlockedPickupRows = (rows: PaymentTicketRow[]) => {
     if (mode !== "pickup") {
       return true;

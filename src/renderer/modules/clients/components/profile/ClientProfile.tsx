@@ -12,7 +12,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import type { ClientNotesAction } from "../../../../../shared/payload-contracts/client.contract";
 import InfoRow from "./InfoRow";
-import statColors from "../../statColors";
+import statColors from "../../styles/statColors";
 import type { Client, ID } from "../../../../../shared/models/client.model";
 import { resolveFormFieldError } from "../../../../shared/utils/formError";
 import {

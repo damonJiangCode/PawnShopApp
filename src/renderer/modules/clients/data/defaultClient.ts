@@ -1,10 +1,10 @@
-import type { Client } from "../../../shared/models/client.model";
+import type { Client } from "../../../../shared/models/client.model";
 
 const today = new Date();
 const defaultDob = new Date(
   today.getFullYear() - 18,
   today.getMonth(),
-  today.getDate()
+  today.getDate(),
 );
 
 const defaultClient: Client = {

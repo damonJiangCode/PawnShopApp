@@ -5,17 +5,14 @@ import { clientApi } from "../../clients/client.api";
 import { getClientImageDataUrl } from "../../clients/hooks/useClientImage";
 import { ticketApi } from "../ticket.api";
 import { createPaymentColumns } from "./payment.columns";
-import {
-  loadAvailablePaymentRows,
-  processPaymentRows,
-} from "./payment.data";
+import { loadAvailablePaymentRows, processPaymentRows } from "./payment.data";
 import {
   createEmptyRowsByMode,
   createEmptySelectionByMode,
   getOppositeMode,
   mapTicketToPaymentRow,
 } from "./payment.helpers";
-import { createPaymentRowActions } from "./payment.rowActions";
+import { createPaymentRowHandlers } from "./payment.rowHandlers";
 import type {
   PaymentCompletedEvent,
   PaymentMode,
@@ -67,7 +64,7 @@ export const usePaymentWindow = () => {
     0,
   );
   const totalSummaryAmount = pickupSummaryAmount + extensionSummaryAmount;
-  const rowActions = createPaymentRowActions({
+  const rowHandlers = createPaymentRowHandlers({
     mode,
     availableRows,
     selectedRows,
@@ -398,10 +395,10 @@ export const usePaymentWindow = () => {
           ...prev,
           [mode]: selectionModel,
         })),
-      moveSelectedToSelected: () => rowActions.moveRowsToSelected(false),
-      moveAllToSelected: () => rowActions.moveRowsToSelected(true),
-      moveSelectedToAvailable: () => rowActions.moveRowsToAvailable(false),
-      moveAllToAvailable: () => rowActions.moveRowsToAvailable(true),
+      moveSelectedToSelected: () => rowHandlers.moveRowsToSelected(false),
+      moveAllToSelected: () => rowHandlers.moveRowsToSelected(true),
+      moveSelectedToAvailable: () => rowHandlers.moveRowsToAvailable(false),
+      moveAllToAvailable: () => rowHandlers.moveRowsToAvailable(true),
     },
   };
 };
