@@ -7,13 +7,35 @@ import type { Item } from "../../shared/models/item.model.ts";
 import { CHANNELS } from "../ipc/channels.ts";
 import { openWindowHost } from "./openWindowHost.ts";
 
-const { ipcMain } = require("electron/main") as typeof import("electron");
+const { BrowserWindow, ipcMain } =
+  require("electron/main") as typeof import("electron");
 
 const ITEM_SEARCH_WINDOW_X = 24;
 const ITEM_SEARCH_WINDOW_Y = 24;
 
 let activeItemSearchWindow: Electron.BrowserWindow | null = null;
 let itemSearchWindowInput: OpenItemSearchWindowInput | null = null;
+
+const focusWindowIfAvailable = (window: Electron.BrowserWindow | null) => {
+  if (!window || window.isDestroyed()) {
+    return;
+  }
+
+  if (window.isMinimized()) {
+    window.restore();
+  }
+
+  window.focus();
+};
+
+const restoreFocusAfterInactiveShow = (
+  window: Electron.BrowserWindow | null,
+) => {
+  focusWindowIfAvailable(window);
+  setTimeout(() => focusWindowIfAvailable(window), 50);
+  setTimeout(() => focusWindowIfAvailable(window), 250);
+  setTimeout(() => focusWindowIfAvailable(window), 750);
+};
 
 const getItemRowId = (item: Item): number | string | undefined =>
   item.draft_id ?? item.item_number;
@@ -79,19 +101,26 @@ export const registerWindowHandlers = () => {
 
   ipcMain.handle(
     CHANNELS.OPEN_ITEM_SEARCH_WINDOW,
-    async (_event: IpcMainInvokeEvent, input?: OpenItemSearchWindowInput) => {
+    async (event: IpcMainInvokeEvent, input?: OpenItemSearchWindowInput) => {
       itemSearchWindowInput = mergeItemSearchInput(
         itemSearchWindowInput,
         input,
       );
+      const focusWindow = input?.focusWindow !== false;
+      const requesterWindow = BrowserWindow.fromWebContents(event.sender);
 
       if (activeItemSearchWindow && !activeItemSearchWindow.isDestroyed()) {
         activeItemSearchWindow.setPosition(
           ITEM_SEARCH_WINDOW_X,
           ITEM_SEARCH_WINDOW_Y,
         );
-        activeItemSearchWindow.show();
-        activeItemSearchWindow.focus();
+        if (focusWindow) {
+          activeItemSearchWindow.show();
+          activeItemSearchWindow.focus();
+        } else {
+          activeItemSearchWindow.showInactive();
+          restoreFocusAfterInactiveShow(requesterWindow);
+        }
         activeItemSearchWindow.webContents.send(
           CHANNELS.NOTIFY_ITEM_SEARCH_WINDOW_INPUT_UPDATED,
         );
@@ -106,6 +135,7 @@ export const registerWindowHandlers = () => {
         height: 660,
         x: ITEM_SEARCH_WINDOW_X,
         y: ITEM_SEARCH_WINDOW_Y,
+        focusOnShow: focusWindow,
         minWidth: 1040,
         minHeight: 520,
       });
@@ -114,6 +144,16 @@ export const registerWindowHandlers = () => {
         activeItemSearchWindow = null;
         itemSearchWindowInput = null;
       });
+
+      if (!focusWindow) {
+        restoreFocusAfterInactiveShow(requesterWindow);
+        activeItemSearchWindow.once("ready-to-show", () => {
+          restoreFocusAfterInactiveShow(requesterWindow);
+        });
+        activeItemSearchWindow.webContents.once("did-finish-load", () => {
+          restoreFocusAfterInactiveShow(requesterWindow);
+        });
+      }
     },
   );
 

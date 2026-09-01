@@ -377,6 +377,7 @@ export const useWorkspaceLayout = () => {
     sourceTicket: Ticket,
     sourceItems: Item[],
     mode: ItemSearchPayloadMode,
+    focusWindow = false,
   ) => {
     if (!sourceTicket.ticket_number) {
       return;
@@ -386,34 +387,26 @@ export const useWorkspaceLayout = () => {
       sourceTicketNumber: sourceTicket.ticket_number,
       items: sourceItems,
       mode,
+      focusWindow,
     });
   };
 
-  const handleRepawnCreated = (
-    ticket: Ticket,
-    sourceTicket: Ticket,
-    sourceItems: Item[],
-  ) => {
+  const handleRepawnCreated = (ticket: Ticket) => {
     setIncomingTransactionTicket(ticket);
     setFocusTicketNumber(ticket.ticket_number);
     setFocusRequestId((prev) => prev + 1);
     setCurrentTab(1);
-    openItemSearchWithItems(sourceTicket, sourceItems, "repawn");
   };
 
-  const handleRepawnPreview = (
-    sourceTicket: Ticket,
-    sourceItems: Item[],
-  ) => {
-    openItemSearchWithItems(sourceTicket, sourceItems, "repawn");
+  const handleRepawnPreview = (sourceTicket: Ticket, sourceItems: Item[]) => {
+    openItemSearchWithItems(sourceTicket, sourceItems, "repawn", false);
   };
 
   const handleLoadHistoryItems = (
     sourceTicket: Ticket,
     sourceItems: Item[],
   ) => {
-    setCurrentTab(1);
-    openItemSearchWithItems(sourceTicket, sourceItems, "load");
+    openItemSearchWithItems(sourceTicket, sourceItems, "load", true);
   };
 
   return {

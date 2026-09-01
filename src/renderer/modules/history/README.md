@@ -69,6 +69,7 @@ Important rule:
 ```text
 Load click
   -> open or reuse Item Search window
+  -> focus Item Search window
   -> append source ticket items without duplicates
 ```
 

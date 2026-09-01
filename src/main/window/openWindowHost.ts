@@ -7,6 +7,7 @@ export type OpenWindowHostInput = {
   description?: string;
   width?: number;
   height?: number;
+  focusOnShow?: boolean;
   x?: number;
   y?: number;
   minWidth?: number;
@@ -20,6 +21,7 @@ export const openWindowHost = ({
   description,
   width = 720,
   height = 420,
+  focusOnShow,
   x,
   y,
   minWidth = 560,
@@ -35,6 +37,7 @@ export const openWindowHost = ({
     minHeight,
     title,
     showMenu: false,
+    focusOnShow,
     url: buildRendererUrl({
       window: "host",
       screen,

@@ -1,8 +1,7 @@
 import path from "path";
 import type { Event as ElectronEvent } from "electron";
 
-const { BrowserWindow } =
-  require("electron/main") as typeof import("electron");
+const { BrowserWindow } = require("electron/main") as typeof import("electron");
 
 const preloadPath = path.resolve(process.cwd(), "src/preload/index.cjs");
 
@@ -15,6 +14,7 @@ type CreateAppWindowInput = {
   minHeight?: number;
   title?: string;
   showMenu?: boolean;
+  focusOnShow?: boolean;
   url: string;
   failLogLabel?: string;
 };
@@ -28,6 +28,7 @@ export const createAppWindow = ({
   minHeight,
   title,
   showMenu = true,
+  focusOnShow = true,
   url,
   failLogLabel = "window",
 }: CreateAppWindowInput): Electron.BrowserWindow => {
@@ -53,8 +54,13 @@ export const createAppWindow = ({
   }
 
   window.once("ready-to-show", () => {
-    window.show();
-    window.focus();
+    if (focusOnShow) {
+      window.show();
+      window.focus();
+      return;
+    }
+
+    window.showInactive();
   });
 
   window.webContents.on(
@@ -74,7 +80,12 @@ export const createAppWindow = ({
   );
 
   window.webContents.on("did-finish-load", () => {
-    window.show();
+    if (focusOnShow) {
+      window.show();
+      return;
+    }
+
+    window.showInactive();
   });
 
   void window.loadURL(url);

@@ -203,7 +203,6 @@ Important rules:
 - Item Search opens before the new ticket is created so staff can check item availability.
 - Item Search opens near the top-left of the desktop, not centered.
 - Add To Ticket stays disabled unless the main workspace is on Transaction and a transaction ticket is selected.
-- Opening the same source items again should not duplicate rows in Item Search.
 
 Important files:
 
@@ -219,6 +218,7 @@ Important files:
 HistoryTicketsPanel Load button
   -> useHistoryPage.handleLoad
   -> Workspace opens/reuses Item Search window
+  -> Item Search window receives focus
   -> source ticket items are appended without duplicates
   -> Add To Ticket waits for Transaction page + selected ticket
 ```

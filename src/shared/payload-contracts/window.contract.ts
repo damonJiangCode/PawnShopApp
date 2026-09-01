@@ -4,6 +4,7 @@ export type OpenItemSearchWindowInput = {
   sourceTicketNumber?: number;
   items: Item[];
   mode?: "repawn" | "load" | "search";
+  focusWindow?: boolean;
 };
 
 export type OpenPaymentWindowInput = {
