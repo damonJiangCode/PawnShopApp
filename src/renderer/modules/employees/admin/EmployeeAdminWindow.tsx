@@ -9,10 +9,7 @@ import {
   Typography,
 } from "@mui/material";
 import type { Employee } from "../../../../shared/models/employee.model";
-import {
-  employeeApi,
-  type EmployeeSearchInput,
-} from "../employee.api";
+import { employeeApi, type EmployeeSearchInput } from "../employee.api";
 import WindowLayout from "../../../windows/WindowLayout";
 import type { WindowScreenProps } from "../../../windows/windowRegistry";
 import EmployeeAddEditDialog from "./EmployeeAddEditDialog";
@@ -82,7 +79,7 @@ const EmployeeAdminWindow: React.FC<WindowScreenProps> = () => {
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = event.target;
-    setSearchInput((prev) => ({ ...prev, [name]: value }));
+    setSearchInput((prev) => ({ ...prev, [name]: value.toUpperCase() }));
     setSelectedEmployee(null);
     setError("");
     setMessage("");
@@ -124,6 +121,9 @@ const EmployeeAdminWindow: React.FC<WindowScreenProps> = () => {
   const handleClear = () => {
     setSearchInput({ last_name: "", first_name: "" });
     void loadEmployees({}, false);
+    requestAnimationFrame(() => {
+      lastNameInputRef.current?.focus();
+    });
   };
 
   const handleAddEmployee = () => {
@@ -235,7 +235,8 @@ const EmployeeAdminWindow: React.FC<WindowScreenProps> = () => {
                 >
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography variant="body2" fontWeight={700} noWrap>
-                      {employee.first_name} {employee.last_name}
+                      {employee.first_name.toUpperCase()}{" "}
+                      {employee.last_name.toUpperCase()}
                       {employee.nickname
                         ? ` (${employee.nickname.toUpperCase()})`
                         : ""}
@@ -252,13 +253,16 @@ const EmployeeAdminWindow: React.FC<WindowScreenProps> = () => {
                         Employee #{employee.employee_number}
                       </Typography>
                       <Typography variant="caption" noWrap>
-                        Gender: {employee.gender || "-"}
+                        Gender: {employee.gender?.toUpperCase() || "-"}
                       </Typography>
                       <Typography variant="caption" noWrap>
                         DOB: {employee.date_of_birth || "-"}
                       </Typography>
                       <Typography variant="caption" noWrap>
-                        {employee.is_terminated ? "Terminated" : "Active"}
+                        {[
+                          employee.is_manager ? "Manager" : "Employee",
+                          employee.is_terminated ? "Terminated" : "Active",
+                        ].join(" | ")}
                       </Typography>
                     </Box>
                     {(employee.phone || employee.email || employee.address) && (

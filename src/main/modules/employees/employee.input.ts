@@ -3,16 +3,18 @@ import type {
   EmployeeSearchInput,
   UpdateEmployeeInput,
 } from "../../../shared/payload-contracts/employee.contract.ts";
+import { createFieldError } from "../../shared/createFieldError.ts";
 
 const normalizeEmployeeDetails = (
   input: CreateEmployeeInput | UpdateEmployeeInput,
 ) => ({
-  first_name: input.first_name?.trim() ?? "",
-  last_name: input.last_name?.trim() ?? "",
-  nickname: input.nickname?.trim() ?? "",
+  first_name: input.first_name?.trim().toUpperCase() ?? "",
+  last_name: input.last_name?.trim().toUpperCase() ?? "",
+  nickname: input.nickname?.trim().toUpperCase() ?? "",
   date_of_birth: input.date_of_birth?.trim() ?? "",
   gender: input.gender?.trim() ?? "",
   is_terminated: Boolean(input.is_terminated),
+  is_manager: Boolean(input.is_manager),
   address: input.address?.trim() ?? "",
   phone: input.phone?.trim() ?? "",
   email: input.email?.trim() ?? "",
@@ -23,6 +25,7 @@ const normalizeCreateEmployee = (
 ): CreateEmployeeInput => ({
   ...normalizeEmployeeDetails(input),
   password: input.password?.trim() ?? "",
+  manager_password: input.manager_password?.trim() ?? "",
 });
 
 const normalizeUpdateEmployee = (
@@ -30,6 +33,7 @@ const normalizeUpdateEmployee = (
 ): UpdateEmployeeInput => ({
   ...normalizeEmployeeDetails(input),
   password: input.password?.trim() || undefined,
+  manager_password: input.manager_password?.trim() ?? "",
 });
 
 const normalizeEmployeeSearch = (
@@ -43,19 +47,23 @@ const validateEmployeeDetails = (
   input: CreateEmployeeInput | UpdateEmployeeInput,
 ) => {
   if (!input.last_name) {
-    throw new Error("Last name is required.");
+    throw createFieldError("last_name", "Last name is required.");
   }
 
   if (!input.first_name) {
-    throw new Error("First name is required.");
+    throw createFieldError("first_name", "First name is required.");
   }
 
   if (!input.date_of_birth) {
-    throw new Error("Date of birth is required.");
+    throw createFieldError("date_of_birth", "Date of birth is required.");
   }
 
   if (!input.gender) {
-    throw new Error("Gender is required.");
+    throw createFieldError("gender", "Gender is required.");
+  }
+
+  if (!input.manager_password) {
+    throw createFieldError("manager_password", "Manager password is required.");
   }
 };
 
@@ -63,7 +71,7 @@ const validateCreateEmployee = (input: CreateEmployeeInput) => {
   validateEmployeeDetails(input);
 
   if (!input.password) {
-    throw new Error("Password is required.");
+    throw createFieldError("password", "Password is required.");
   }
 };
 

@@ -6,6 +6,7 @@ export interface Employee {
   date_of_birth: string;
   gender: string;
   is_terminated: boolean;
+  is_manager: boolean;
   address: string;
   phone: string;
   email: string;

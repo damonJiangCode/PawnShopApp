@@ -7,6 +7,8 @@ import type {
 } from "../../../shared/payload-contracts/employee.contract.ts";
 
 type DbClient = Awaited<ReturnType<typeof connect>>;
+type CreateEmployeeRecord = Omit<CreateEmployeeInput, "manager_password">;
+type UpdateEmployeeRecord = Omit<UpdateEmployeeInput, "manager_password">;
 
 export type EmployeeMatch = Pick<
   Employee,
@@ -21,6 +23,7 @@ const employeeSelectColumns = `
   date_of_birth,
   gender,
   is_terminated,
+  is_manager,
   address,
   phone,
   email,
@@ -48,6 +51,7 @@ const mapEmployeeRow = (row: Record<string, unknown>): Employee => ({
   date_of_birth: formatDateOnly(row.date_of_birth),
   gender: row.gender ? String(row.gender) : "",
   is_terminated: Boolean(row.is_terminated),
+  is_manager: Boolean(row.is_manager),
   address: row.address ? String(row.address) : "",
   phone: row.phone ? String(row.phone) : "",
   email: row.email ? String(row.email) : "",
@@ -80,6 +84,30 @@ export const employeeRepo = {
       if (!dbClient) {
         client.release();
       }
+    }
+  },
+
+  findActiveManagerByPassword: async (
+    password: string,
+  ): Promise<EmployeeMatch | null> => {
+    const client = await connect();
+
+    try {
+      const result = await client.query(
+        `
+          SELECT employee_number, first_name, last_name, nickname
+          FROM employee
+          WHERE password = $1
+            AND is_manager = TRUE
+            AND is_terminated = FALSE
+          LIMIT 1
+        `,
+        [password],
+      );
+
+      return result.rows[0] ?? null;
+    } finally {
+      client.release();
     }
   },
 
@@ -137,7 +165,30 @@ export const employeeRepo = {
     }
   },
 
-  create: async (payload: CreateEmployeeInput): Promise<Employee> => {
+  hasOtherActiveManager: async (employeeNumber: number): Promise<boolean> => {
+    const client = await connect();
+
+    try {
+      const result = await client.query(
+        `
+          SELECT EXISTS (
+            SELECT 1
+            FROM employee
+            WHERE employee_number <> $1
+              AND is_manager = TRUE
+              AND is_terminated = FALSE
+          ) AS has_other_manager
+        `,
+        [employeeNumber],
+      );
+
+      return Boolean(result.rows[0]?.has_other_manager);
+    } finally {
+      client.release();
+    }
+  },
+
+  create: async (payload: CreateEmployeeRecord): Promise<Employee> => {
     const client = await connect();
 
     try {
@@ -151,11 +202,12 @@ export const employeeRepo = {
             gender,
             password,
             is_terminated,
+            is_manager,
             address,
             phone,
             email
           )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
           RETURNING ${employeeSelectColumns}
         `,
         [
@@ -166,6 +218,7 @@ export const employeeRepo = {
           payload.gender,
           payload.password,
           payload.is_terminated,
+          payload.is_manager,
           payload.address,
           payload.phone,
           payload.email,
@@ -180,7 +233,7 @@ export const employeeRepo = {
 
   update: async (
     employeeNumber: number,
-    payload: UpdateEmployeeInput,
+    payload: UpdateEmployeeRecord,
   ): Promise<Employee> => {
     const client = await connect();
 
@@ -196,9 +249,10 @@ export const employeeRepo = {
             gender = $6,
             password = COALESCE($7, password),
             is_terminated = $8,
-            address = $9,
-            phone = $10,
-            email = $11,
+            is_manager = $9,
+            address = $10,
+            phone = $11,
+            email = $12,
             updated_at = CURRENT_TIMESTAMP
           WHERE employee_number = $1
           RETURNING ${employeeSelectColumns}
@@ -212,6 +266,7 @@ export const employeeRepo = {
           payload.gender,
           payload.password ?? null,
           payload.is_terminated,
+          payload.is_manager,
           payload.address,
           payload.phone,
           payload.email,

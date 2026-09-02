@@ -13,7 +13,11 @@ import {
   TextField,
 } from "@mui/material";
 import type { Employee } from "../../../../shared/models/employee.model";
-import { employeeApi, type CreateEmployeeInput } from "../employee.api";
+import {
+  employeeApi,
+  type CreateEmployeeInput,
+  type EmployeeFormError,
+} from "../employee.api";
 
 type EmployeeFormErrors = Record<keyof CreateEmployeeInput, string>;
 
@@ -32,7 +36,9 @@ const emptyEmployeeInput = (): CreateEmployeeInput => ({
   date_of_birth: "",
   gender: "",
   password: "",
+  manager_password: "",
   is_terminated: false,
+  is_manager: false,
   address: "",
   phone: "",
   email: "",
@@ -45,7 +51,9 @@ const emptyErrors = (): EmployeeFormErrors => ({
   date_of_birth: "",
   gender: "",
   password: "",
+  manager_password: "",
   is_terminated: "",
+  is_manager: "",
   address: "",
   phone: "",
   email: "",
@@ -58,7 +66,9 @@ const employeeToInput = (employee: Employee): CreateEmployeeInput => ({
   date_of_birth: employee.date_of_birth,
   gender: employee.gender,
   password: "",
+  manager_password: "",
   is_terminated: employee.is_terminated,
+  is_manager: employee.is_manager,
   address: employee.address,
   phone: employee.phone,
   email: employee.email,
@@ -96,6 +106,8 @@ const EmployeeAddEditDialog: React.FC<EmployeeAddEditDialogProps> = ({
   onSave,
 }) => {
   const lastNameInputRef = React.useRef<HTMLInputElement>(null);
+  const employeePasswordInputRef = React.useRef<HTMLInputElement>(null);
+  const managerPasswordInputRef = React.useRef<HTMLInputElement>(null);
   const [employee, setEmployee] =
     React.useState<CreateEmployeeInput>(emptyEmployeeInput());
   const [errors, setErrors] = React.useState<EmployeeFormErrors>(emptyErrors());
@@ -129,8 +141,14 @@ const EmployeeAddEditDialog: React.FC<EmployeeAddEditDialogProps> = ({
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, type, value } = event.target;
+    const shouldUppercase =
+      name === "last_name" || name === "first_name" || name === "nickname";
     const nextValue =
-      type === "checkbox" ? (event.target as HTMLInputElement).checked : value;
+      type === "checkbox"
+        ? (event.target as HTMLInputElement).checked
+        : shouldUppercase
+          ? value.toUpperCase()
+          : value;
     setEmployee((prev) => ({ ...prev, [name]: nextValue }));
     setErrors((prev) => ({ ...prev, [name]: "" }));
     setMessage("");
@@ -158,8 +176,20 @@ const EmployeeAddEditDialog: React.FC<EmployeeAddEditDialogProps> = ({
       nextErrors.password = "Password is required.";
     }
 
+    if (!employee.manager_password.trim()) {
+      nextErrors.manager_password = "Manager password is required.";
+    }
+
     setErrors(nextErrors);
-    return !Object.values(nextErrors).some(Boolean);
+    const isValid = !Object.values(nextErrors).some(Boolean);
+
+    if (!isValid && nextErrors.manager_password) {
+      requestAnimationFrame(() => {
+        managerPasswordInputRef.current?.focus();
+      });
+    }
+
+    return isValid;
   };
 
   const handleSave = async () => {
@@ -182,23 +212,55 @@ const EmployeeAddEditDialog: React.FC<EmployeeAddEditDialogProps> = ({
 
       if (mode === "add") {
         setEmployee(emptyEmployeeInput());
+      } else {
+        setEmployee((current) => ({
+          ...current,
+          password: "",
+          manager_password: "",
+        }));
       }
 
       setErrors(emptyErrors());
-      setMessage(
-        `Employee #${savedEmployee.employee_number} ${savedEmployee.first_name} ${savedEmployee.last_name} ${
-          mode === "edit" ? "updated" : "saved"
-        }.`,
-      );
       onSave?.(savedEmployee);
+
+      if (mode === "edit") {
+        onClose();
+        return;
+      }
+
+      setMessage(
+        `Employee #${savedEmployee.employee_number} ${savedEmployee.first_name} ${savedEmployee.last_name} saved.`,
+      );
       requestAnimationFrame(() => {
         lastNameInputRef.current?.focus();
       });
     } catch (err) {
-      console.error(err);
-      setSubmitError(
-        err instanceof Error ? err.message : "Unable to save employee.",
-      );
+      const errorMessage =
+        err instanceof Error ? err.message : "Unable to save employee.";
+      const errorField = (err as EmployeeFormError)?.field;
+
+      if (errorField && errorField !== "form") {
+        setSubmitError("");
+        setErrors((current) => ({
+          ...current,
+          [errorField]: errorMessage,
+        }));
+
+        requestAnimationFrame(() => {
+          if (errorField === "password") {
+            employeePasswordInputRef.current?.focus();
+            employeePasswordInputRef.current?.select();
+          }
+
+          if (errorField === "manager_password") {
+            managerPasswordInputRef.current?.focus();
+            managerPasswordInputRef.current?.select();
+          }
+        });
+        return;
+      }
+
+      setSubmitError(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -278,13 +340,14 @@ const EmployeeAddEditDialog: React.FC<EmployeeAddEditDialogProps> = ({
               size="small"
             >
               <MenuItem value=""></MenuItem>
-              <MenuItem value="male">Male</MenuItem>
-              <MenuItem value="female">Female</MenuItem>
-              <MenuItem value="unknown">Unknown</MenuItem>
+              <MenuItem value="male">MALE</MenuItem>
+              <MenuItem value="female">FEMALE</MenuItem>
+              <MenuItem value="unknown">UNKNOWN</MenuItem>
             </TextField>
           </Stack>
 
           <TextField
+            inputRef={employeePasswordInputRef}
             name="password"
             type="password"
             label={mode === "edit" ? "New Password" : "Password"}
@@ -297,16 +360,43 @@ const EmployeeAddEditDialog: React.FC<EmployeeAddEditDialogProps> = ({
             size="small"
           />
 
-          <FormControlLabel
-            control={
-              <Checkbox
-                name="is_terminated"
-                checked={employee.is_terminated}
-                onChange={handleChange}
-              />
-            }
-            label="Terminated"
+          <TextField
+            inputRef={managerPasswordInputRef}
+            name="manager_password"
+            type="password"
+            label="Manager Password"
+            value={employee.manager_password}
+            onChange={handleChange}
+            error={Boolean(errors.manager_password)}
+            helperText={errors.manager_password || " "}
+            required
+            fullWidth
+            size="small"
+            autoComplete="off"
           />
+
+          <Stack direction="row" spacing={2}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  name="is_manager"
+                  checked={employee.is_manager}
+                  onChange={handleChange}
+                />
+              }
+              label="Manager"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  name="is_terminated"
+                  checked={employee.is_terminated}
+                  onChange={handleChange}
+                />
+              }
+              label="Terminated"
+            />
+          </Stack>
 
           <TextField
             name="address"

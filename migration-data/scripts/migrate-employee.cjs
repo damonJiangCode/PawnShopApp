@@ -22,6 +22,7 @@ const dbConfig = {
 
 const DEFAULT_DOB = "1900-01-01";
 const DEFAULT_GENDER = "unknown";
+const MANAGER_EMPLOYEE_NUMBER = 69;
 
 const normalizeText = (value) => String(value ?? "").trim();
 
@@ -105,6 +106,8 @@ const mapEmployee = (row) => ({
   gender: DEFAULT_GENDER,
   password: normalizeText(row.EM200Password),
   is_terminated: normalizeText(row.EM200Terminated) === "1",
+  is_manager:
+    Number(normalizeText(row.EM200EmployeeID)) === MANAGER_EMPLOYEE_NUMBER,
   address: buildAddress(row),
   phone: buildPhone(row),
   email: normalizeText(row.EM200EMAILADDRESS),
@@ -120,6 +123,7 @@ const buildInsert = (employees) => {
     "gender",
     "password",
     "is_terminated",
+    "is_manager",
     "address",
     "phone",
     "email",
@@ -157,6 +161,7 @@ const main = async () => {
     gender: DEFAULT_GENDER,
     password: "legacy-999",
     is_terminated: true,
+    is_manager: false,
     address: "",
     phone: "",
     email: "",
@@ -173,7 +178,9 @@ const main = async () => {
   );
 
   if (invalidRows.length) {
-    throw new Error(`Employee migration has ${invalidRows.length} invalid rows`);
+    throw new Error(
+      `Employee migration has ${invalidRows.length} invalid rows`,
+    );
   }
 
   const duplicatePasswords = new Map();
@@ -183,9 +190,13 @@ const main = async () => {
       (duplicatePasswords.get(employee.password) || 0) + 1,
     );
   }
-  const passwordConflicts = [...duplicatePasswords].filter(([, count]) => count > 1);
+  const passwordConflicts = [...duplicatePasswords].filter(
+    ([, count]) => count > 1,
+  );
   if (passwordConflicts.length) {
-    throw new Error(`Duplicate employee passwords: ${passwordConflicts.map(([password]) => password).join(", ")}`);
+    throw new Error(
+      `Duplicate employee passwords: ${passwordConflicts.map(([password]) => password).join(", ")}`,
+    );
   }
 
   const pool = new Pool(dbConfig);
@@ -213,7 +224,10 @@ const main = async () => {
       source: rows.length,
       prepared: employees.length,
       terminated: employees.filter((employee) => employee.is_terminated).length,
-      defaultDob: employees.filter((employee) => employee.date_of_birth === DEFAULT_DOB).length,
+      managers: employees.filter((employee) => employee.is_manager).length,
+      defaultDob: employees.filter(
+        (employee) => employee.date_of_birth === DEFAULT_DOB,
+      ).length,
       withAddress: employees.filter((employee) => employee.address).length,
       withPhone: employees.filter((employee) => employee.phone).length,
       withEmail: employees.filter((employee) => employee.email).length,
@@ -225,7 +239,9 @@ const main = async () => {
       await client.query("ROLLBACK");
     }
 
-    console.log(`Employee migration ${shouldCommit ? "committed" : "previewed"}`);
+    console.log(
+      `Employee migration ${shouldCommit ? "committed" : "previewed"}`,
+    );
     console.table(counts);
 
     const report = `# Employee Migration
@@ -245,6 +261,7 @@ Mode: ${shouldCommit ? "commit" : "preview"}
 | Legacy employee rows | ${counts.source.toLocaleString()} |
 | Employees prepared | ${counts.prepared.toLocaleString()} |
 | Terminated employees | ${counts.terminated.toLocaleString()} |
+| Managers | ${counts.managers.toLocaleString()} |
 | Default DOB rows | ${counts.defaultDob.toLocaleString()} |
 | Employees with address | ${counts.withAddress.toLocaleString()} |
 | Employees with phone | ${counts.withPhone.toLocaleString()} |
@@ -253,9 +270,10 @@ Mode: ${shouldCommit ? "commit" : "preview"}
 ## Rules
 
 - Add placeholder employee \`999 / Legacy Employee\` for legacy tickets that used employee number 999.
-- Set \`gender\` to \`unknown\` for all migrated employees.
+- Set \`gender\` to \`unknown\` because the legacy employee table has no gender column.
 - Set missing or invalid birth dates to \`${DEFAULT_DOB}\`.
 - Map \`EM200Terminated = 1\` to \`is_terminated = true\`; terminated employee passwords cannot authorize app actions.
+- Set employee \`${MANAGER_EMPLOYEE_NUMBER} / WEI FENG\` as manager.
 - No employee photo field is migrated because \`EM200PICTURE\` has no usable photo rows.
 - After commit, ticket \`employee_name\` placeholders are backfilled from migrated employee nicknames.
 `;
