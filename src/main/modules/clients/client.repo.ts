@@ -172,12 +172,13 @@ export const clientRepo = {
     clientData: Client,
     dbClient?: DbClient,
   ): Promise<{ updated_at: Date }> => {
-    const client = await getDbClient(dbClient);
     const clientNumber = clientData.client_number;
 
     if (!clientNumber) {
       throw new Error("Missing client_number for update");
     }
+
+    const client = await getDbClient(dbClient);
 
     const query = `
       UPDATE client
@@ -345,5 +346,4 @@ export const clientRepo = {
       }
     }
   },
-
 };
