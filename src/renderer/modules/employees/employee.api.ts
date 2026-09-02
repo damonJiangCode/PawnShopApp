@@ -1,23 +1,37 @@
 import type { Employee } from "../../../shared/models/employee.model";
 import type {
+  CreateEmployeeInput,
   EmployeeSearchInput,
-  SaveEmployeeInput,
+  UpdateEmployeeInput,
 } from "../../../shared/payload-contracts/employee.contract";
 import { getAppApi } from "../../shared/api/app.api";
 
-const normalizeEmployeeInput = (
-  input: SaveEmployeeInput,
-): SaveEmployeeInput => ({
+const normalizeEmployeeDetails = (
+  input: CreateEmployeeInput | UpdateEmployeeInput,
+) => ({
   first_name: input.first_name?.trim() ?? "",
   last_name: input.last_name?.trim() ?? "",
   nickname: input.nickname?.trim() ?? "",
   date_of_birth: input.date_of_birth?.trim() ?? "",
   gender: input.gender?.trim() ?? "",
-  password: input.password?.trim() ?? "",
   is_terminated: Boolean(input.is_terminated),
   address: input.address?.trim() ?? "",
   phone: input.phone?.trim() ?? "",
   email: input.email?.trim() ?? "",
+});
+
+const normalizeCreateEmployeeInput = (
+  input: CreateEmployeeInput,
+): CreateEmployeeInput => ({
+  ...normalizeEmployeeDetails(input),
+  password: input.password?.trim() ?? "",
+});
+
+const normalizeUpdateEmployeeInput = (
+  input: UpdateEmployeeInput,
+): UpdateEmployeeInput => ({
+  ...normalizeEmployeeDetails(input),
+  password: input.password?.trim() || undefined,
 });
 
 const normalizeEmployeeSearchInput = (
@@ -28,14 +42,14 @@ const normalizeEmployeeSearchInput = (
 });
 
 export const employeeApi = {
-  createEmployee: async (input: SaveEmployeeInput): Promise<Employee> => {
+  createEmployee: async (input: CreateEmployeeInput): Promise<Employee> => {
     const api = getAppApi()?.employee;
 
     if (!api) {
       throw new Error("Employee API is unavailable.");
     }
 
-    return api.createEmployee(normalizeEmployeeInput(input));
+    return api.createEmployee(normalizeCreateEmployeeInput(input));
   },
 
   searchEmployees: async (input: EmployeeSearchInput): Promise<Employee[]> => {
@@ -50,7 +64,7 @@ export const employeeApi = {
 
   updateEmployee: async (
     employeeNumber: number,
-    input: SaveEmployeeInput,
+    input: UpdateEmployeeInput,
   ): Promise<Employee> => {
     const api = getAppApi()?.employee;
 
@@ -58,8 +72,16 @@ export const employeeApi = {
       throw new Error("Employee API is unavailable.");
     }
 
-    return api.updateEmployee(employeeNumber, normalizeEmployeeInput(input));
+    return api.updateEmployee(
+      employeeNumber,
+      normalizeUpdateEmployeeInput(input),
+    );
   },
 };
 
-export type { Employee, EmployeeSearchInput, SaveEmployeeInput };
+export type {
+  CreateEmployeeInput,
+  Employee,
+  EmployeeSearchInput,
+  UpdateEmployeeInput,
+};

@@ -1,14 +1,15 @@
 import type { Employee } from "../models/employee.model.ts";
 import type {
+  CreateEmployeeInput,
   EmployeeSearchInput,
-  SaveEmployeeInput,
+  UpdateEmployeeInput,
 } from "../payload-contracts/employee.contract.ts";
 
 export type EmployeeApi = {
-  createEmployee: (input: SaveEmployeeInput) => Promise<Employee>;
+  createEmployee: (input: CreateEmployeeInput) => Promise<Employee>;
   searchEmployees: (input: EmployeeSearchInput) => Promise<Employee[]>;
   updateEmployee: (
     employeeNumber: number,
-    input: SaveEmployeeInput,
+    input: UpdateEmployeeInput,
   ) => Promise<Employee>;
 };

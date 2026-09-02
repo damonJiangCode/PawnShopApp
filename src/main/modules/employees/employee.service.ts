@@ -2,8 +2,9 @@ import { employeeRepo } from "./employee.repo.ts";
 import type { DbClient } from "../../database/connection.ts";
 import type { Employee } from "../../../shared/models/employee.model.ts";
 import type {
+  CreateEmployeeInput,
   EmployeeSearchInput,
-  SaveEmployeeInput,
+  UpdateEmployeeInput,
 } from "../../../shared/payload-contracts/employee.contract.ts";
 import { employeeInput } from "./employee.input.ts";
 
@@ -37,10 +38,10 @@ export const employeeService = {
     return employeeRepo.search(normalizedInput);
   },
 
-  createEmployee: async (input: SaveEmployeeInput): Promise<Employee> => {
-    const normalizedInput = employeeInput.normalizeEmployee(input);
+  createEmployee: async (input: CreateEmployeeInput): Promise<Employee> => {
+    const normalizedInput = employeeInput.normalizeCreateEmployee(input);
 
-    employeeInput.validateEmployee(normalizedInput);
+    employeeInput.validateCreateEmployee(normalizedInput);
 
     const existingEmployee = await employeeRepo.findByPassword(
       normalizedInput.password,
@@ -57,14 +58,14 @@ export const employeeService = {
 
   updateEmployee: async (
     employeeNumber: number,
-    input: SaveEmployeeInput,
+    input: UpdateEmployeeInput,
   ): Promise<Employee> => {
     if (!Number.isInteger(employeeNumber) || employeeNumber <= 0) {
       throw new Error("Enter a valid employee number.");
     }
 
-    const normalizedInput = employeeInput.normalizeEmployee(input);
-    employeeInput.validateEmployee(normalizedInput);
+    const normalizedInput = employeeInput.normalizeUpdateEmployee(input);
+    employeeInput.validateEmployeeDetails(normalizedInput);
 
     const existingEmployee =
       await employeeRepo.findByEmployeeNumber(employeeNumber);
@@ -73,11 +74,13 @@ export const employeeService = {
       throw new Error("No employee was found for that number.");
     }
 
-    const employeeWithPassword = await employeeRepo.findByPassword(
-      normalizedInput.password,
-      undefined,
-      true,
-    );
+    const employeeWithPassword = normalizedInput.password
+      ? await employeeRepo.findByPassword(
+          normalizedInput.password,
+          undefined,
+          true,
+        )
+      : null;
 
     if (
       employeeWithPassword &&

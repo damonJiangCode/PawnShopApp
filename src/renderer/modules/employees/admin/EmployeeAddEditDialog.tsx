@@ -13,12 +13,9 @@ import {
   TextField,
 } from "@mui/material";
 import type { Employee } from "../../../../shared/models/employee.model";
-import {
-  employeeApi,
-  type SaveEmployeeInput,
-} from "../employee.api";
+import { employeeApi, type CreateEmployeeInput } from "../employee.api";
 
-type EmployeeFormErrors = Record<keyof SaveEmployeeInput, string>;
+type EmployeeFormErrors = Record<keyof CreateEmployeeInput, string>;
 
 type EmployeeAddEditDialogProps = {
   open: boolean;
@@ -28,7 +25,7 @@ type EmployeeAddEditDialogProps = {
   onSave?: (employee: Employee) => void;
 };
 
-const emptyEmployeeInput = (): SaveEmployeeInput => ({
+const emptyEmployeeInput = (): CreateEmployeeInput => ({
   first_name: "",
   last_name: "",
   nickname: "",
@@ -54,13 +51,13 @@ const emptyErrors = (): EmployeeFormErrors => ({
   email: "",
 });
 
-const employeeToInput = (employee: Employee): SaveEmployeeInput => ({
+const employeeToInput = (employee: Employee): CreateEmployeeInput => ({
   first_name: employee.first_name,
   last_name: employee.last_name,
   nickname: employee.nickname,
   date_of_birth: employee.date_of_birth,
   gender: employee.gender,
-  password: employee.password ?? "",
+  password: "",
   is_terminated: employee.is_terminated,
   address: employee.address,
   phone: employee.phone,
@@ -100,7 +97,7 @@ const EmployeeAddEditDialog: React.FC<EmployeeAddEditDialogProps> = ({
 }) => {
   const lastNameInputRef = React.useRef<HTMLInputElement>(null);
   const [employee, setEmployee] =
-    React.useState<SaveEmployeeInput>(emptyEmployeeInput());
+    React.useState<CreateEmployeeInput>(emptyEmployeeInput());
   const [errors, setErrors] = React.useState<EmployeeFormErrors>(emptyErrors());
   const [message, setMessage] = React.useState("");
   const [submitError, setSubmitError] = React.useState("");
@@ -157,7 +154,7 @@ const EmployeeAddEditDialog: React.FC<EmployeeAddEditDialogProps> = ({
       nextErrors.gender = "Gender is required.";
     }
 
-    if (!employee.password.trim()) {
+    if (mode === "add" && !employee.password.trim()) {
       nextErrors.password = "Password is required.";
     }
 
@@ -290,12 +287,12 @@ const EmployeeAddEditDialog: React.FC<EmployeeAddEditDialogProps> = ({
           <TextField
             name="password"
             type="password"
-            label="Password"
+            label={mode === "edit" ? "New Password" : "Password"}
             value={employee.password}
             onChange={handleChange}
             error={Boolean(errors.password)}
             helperText={errors.password || " "}
-            required
+            required={mode === "add"}
             fullWidth
             size="small"
           />
@@ -343,7 +340,6 @@ const EmployeeAddEditDialog: React.FC<EmployeeAddEditDialogProps> = ({
               size="small"
             />
           </Stack>
-
         </Stack>
       </DialogContent>
       <DialogActions>

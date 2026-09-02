@@ -1,8 +1,9 @@
 import { connect } from "../../database/connection.ts";
 import type { Employee } from "../../../shared/models/employee.model.ts";
 import type {
+  CreateEmployeeInput,
   EmployeeSearchInput,
-  SaveEmployeeInput,
+  UpdateEmployeeInput,
 } from "../../../shared/payload-contracts/employee.contract.ts";
 
 type DbClient = Awaited<ReturnType<typeof connect>>;
@@ -19,7 +20,6 @@ const employeeSelectColumns = `
   nickname,
   date_of_birth,
   gender,
-  password,
   is_terminated,
   address,
   phone,
@@ -47,7 +47,6 @@ const mapEmployeeRow = (row: Record<string, unknown>): Employee => ({
   nickname: row.nickname ? String(row.nickname) : "",
   date_of_birth: formatDateOnly(row.date_of_birth),
   gender: row.gender ? String(row.gender) : "",
-  password: row.password ? String(row.password) : "",
   is_terminated: Boolean(row.is_terminated),
   address: row.address ? String(row.address) : "",
   phone: row.phone ? String(row.phone) : "",
@@ -138,7 +137,7 @@ export const employeeRepo = {
     }
   },
 
-  create: async (payload: SaveEmployeeInput): Promise<Employee> => {
+  create: async (payload: CreateEmployeeInput): Promise<Employee> => {
     const client = await connect();
 
     try {
@@ -181,7 +180,7 @@ export const employeeRepo = {
 
   update: async (
     employeeNumber: number,
-    payload: SaveEmployeeInput,
+    payload: UpdateEmployeeInput,
   ): Promise<Employee> => {
     const client = await connect();
 
@@ -195,7 +194,7 @@ export const employeeRepo = {
             nickname = $4,
             date_of_birth = $5,
             gender = $6,
-            password = $7,
+            password = COALESCE($7, password),
             is_terminated = $8,
             address = $9,
             phone = $10,
@@ -211,7 +210,7 @@ export const employeeRepo = {
           payload.nickname,
           payload.date_of_birth,
           payload.gender,
-          payload.password,
+          payload.password ?? null,
           payload.is_terminated,
           payload.address,
           payload.phone,

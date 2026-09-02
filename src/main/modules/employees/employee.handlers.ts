@@ -1,7 +1,8 @@
 import type { IpcMainInvokeEvent } from "electron";
 import type {
+  CreateEmployeeInput,
   EmployeeSearchInput,
-  SaveEmployeeInput,
+  UpdateEmployeeInput,
 } from "../../../shared/payload-contracts/employee.contract.ts";
 import { employeeService } from "./employee.service.ts";
 import { CHANNELS } from "../../ipc/channels.ts";
@@ -11,7 +12,7 @@ const { ipcMain } = require("electron/main") as typeof import("electron");
 export const registerEmployeeHandlers = () => {
   ipcMain.handle(
     CHANNELS.ADD_EMPLOYEE,
-    async (_event: IpcMainInvokeEvent, payload: SaveEmployeeInput) => {
+    async (_event: IpcMainInvokeEvent, payload: CreateEmployeeInput) => {
       return employeeService.createEmployee(payload);
     },
   );
@@ -28,7 +29,7 @@ export const registerEmployeeHandlers = () => {
     async (
       _event: IpcMainInvokeEvent,
       employeeNumber: number,
-      payload: SaveEmployeeInput,
+      payload: UpdateEmployeeInput,
     ) => {
       return employeeService.updateEmployee(employeeNumber, payload);
     },
