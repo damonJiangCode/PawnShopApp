@@ -18,14 +18,26 @@ const ClientPhotoCapture: React.FC<ClientPhotoCaptureProps> = (props) => {
   const streamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
+    // check whether the dialog is closed already
+    let disposed = false;
+
     if (active) {
       navigator.mediaDevices
         .getUserMedia({ video: true })
         .then((stream) => {
+          if (disposed) {
+            stream.getTracks().forEach((track) => track.stop());
+            return;
+          }
+
           streamRef.current = stream;
           if (videoRef.current) videoRef.current.srcObject = stream;
         })
         .catch((err) => {
+          if (disposed) {
+            return;
+          }
+
           console.error("Failed to access camera", err);
           alert("Failed to access camera (ClientPhotoCapture.tsx).");
         });
@@ -38,6 +50,8 @@ const ClientPhotoCapture: React.FC<ClientPhotoCaptureProps> = (props) => {
     }
 
     return () => {
+      disposed = true;
+
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
         streamRef.current = null;

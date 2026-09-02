@@ -26,24 +26,36 @@ const ItemPhotoCapture: React.FC<ItemPhotoCaptureProps> = ({
   const streamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
-    if (!active) {
+    // check whether the dialog is closed already or not
+    let disposed = false;
+
+    if (active) {
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
+        .then((stream) => {
+          if (disposed) {
+            stream.getTracks().forEach((track) => track.stop());
+            return;
+          }
+
+          streamRef.current = stream;
+          if (videoRef.current) videoRef.current.srcObject = stream;
+        })
+        .catch((err) => {
+          if (disposed) {
+            return;
+          }
+
+          console.error("Failed to access camera", err);
+        });
+    } else {
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
       if (videoRef.current) videoRef.current.srcObject = null;
-      return;
     }
 
-    navigator.mediaDevices
-      .getUserMedia({ video: true })
-      .then((stream) => {
-        streamRef.current = stream;
-        if (videoRef.current) videoRef.current.srcObject = stream;
-      })
-      .catch((err) => {
-        console.error("Failed to access camera", err);
-      });
-
     return () => {
+      disposed = true;
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
       if (videoRef.current) videoRef.current.srcObject = null;
@@ -58,13 +70,16 @@ const ItemPhotoCapture: React.FC<ItemPhotoCaptureProps> = ({
 
     let mounted = true;
 
-    itemApi.loadItemImage(imagePath).then((base64) => {
-      if (mounted && base64) {
-        setPhotoData(getImageDataUrl(base64, imagePath));
-      }
-    }).catch((err) => {
-      console.error("Failed to load item image", err);
-    });
+    itemApi
+      .loadItemImage(imagePath)
+      .then((base64) => {
+        if (mounted && base64) {
+          setPhotoData(getImageDataUrl(base64, imagePath));
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load item image", err);
+      });
 
     return () => {
       mounted = false;
@@ -96,7 +111,9 @@ const ItemPhotoCapture: React.FC<ItemPhotoCaptureProps> = ({
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
-      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <Box
+        sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+      >
         <Box
           sx={{
             width: previewSize,
