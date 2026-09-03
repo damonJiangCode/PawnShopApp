@@ -38,7 +38,8 @@ boot/
 ```
 
 - `index.tsx`: mounts React into the DOM.
-- `RendererApp.tsx`: chooses `WorkspaceApp` or `WindowView` from the URL.
+- `RendererApp.tsx`: lazily loads either `WorkspaceApp` or `WindowView` from the URL.
+- `RendererLoading.tsx`: displays the shared animated loading state while a renderer chunk loads.
 
 ## `workspace/`
 
@@ -73,7 +74,7 @@ windows/
 
 - `WindowLayout.tsx`: common frame for non-main app windows.
 - `WindowView.tsx`: reads the URL `screen` value and renders the matching window component.
-- `windowRegistry.ts`: maps each screen key to its component.
+- `windowRegistry.ts`: maps each screen key to its lazily loaded component.
 
 The actual window content stays in the owning module. For example, ticket
 search lives in `modules/tickets/menu-actions`, payment lives in

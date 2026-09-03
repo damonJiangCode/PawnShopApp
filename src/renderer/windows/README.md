@@ -16,7 +16,7 @@ windows/
 ## Responsibilities
 
 - `WindowView.tsx`: reads the `screen` value from the URL.
-- `windowRegistry.ts`: maps screen keys to window components.
+- `windowRegistry.ts`: maps screen keys to lazily loaded window components.
 - `WindowLayout.tsx`: provides a common window frame.
 
 ## Flow

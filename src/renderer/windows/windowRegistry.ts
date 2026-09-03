@@ -1,18 +1,48 @@
-import type { ComponentType } from "react";
-import EmployeeAdminWindow from "../modules/employees/admin/EmployeeAdminWindow";
-import EyeColorAdminWindow from "../modules/admin/colors/eye-color/EyeColorAdminWindow";
-import HairColorAdminWindow from "../modules/admin/colors/hair-color/HairColorAdminWindow";
-import HolidayAdminWindow from "../modules/admin/holiday/HolidayAdminWindow";
-import LocationAdminWindow from "../modules/admin/location/LocationAdminWindow";
-import ItemSearchWindow from "../modules/items/menu-actions/item-search-window/ItemSearchWindow";
-import BuybackReportWindow from "../modules/reports/menu-actions/BuybackReportWindow";
-import DailyReportWindow from "../modules/reports/menu-actions/DailyReportWindow";
-import InterestReportWindow from "../modules/reports/menu-actions/InterestReportWindow";
-import PoliceXmlWindow from "../modules/reports/menu-actions/PoliceXmlWindow";
-import TicketExpireWindow from "../modules/tickets/menu-actions/TicketExpireWindow";
-import TicketSearchWindow from "../modules/tickets/menu-actions/TicketSearchWindow";
-import TicketStolenWindow from "../modules/tickets/menu-actions/TicketStolenWindow";
-import PaymentWindow from "../modules/tickets/payment/PaymentWindow";
+import { lazy, type ComponentType } from "react";
+
+const EmployeeAdminWindow = lazy(
+  () => import("../modules/employees/admin/EmployeeAdminWindow"),
+);
+const EyeColorAdminWindow = lazy(
+  () => import("../modules/admin/colors/eye-color/EyeColorAdminWindow"),
+);
+const HairColorAdminWindow = lazy(
+  () => import("../modules/admin/colors/hair-color/HairColorAdminWindow"),
+);
+const HolidayAdminWindow = lazy(
+  () => import("../modules/admin/holiday/HolidayAdminWindow"),
+);
+const LocationAdminWindow = lazy(
+  () => import("../modules/admin/location/LocationAdminWindow"),
+);
+const ItemSearchWindow = lazy(
+  () =>
+    import("../modules/items/menu-actions/item-search-window/ItemSearchWindow"),
+);
+const BuybackReportWindow = lazy(
+  () => import("../modules/reports/menu-actions/BuybackReportWindow"),
+);
+const DailyReportWindow = lazy(
+  () => import("../modules/reports/menu-actions/DailyReportWindow"),
+);
+const InterestReportWindow = lazy(
+  () => import("../modules/reports/menu-actions/InterestReportWindow"),
+);
+const PoliceXmlWindow = lazy(
+  () => import("../modules/reports/menu-actions/PoliceXmlWindow"),
+);
+const TicketExpireWindow = lazy(
+  () => import("../modules/tickets/menu-actions/TicketExpireWindow"),
+);
+const TicketSearchWindow = lazy(
+  () => import("../modules/tickets/menu-actions/TicketSearchWindow"),
+);
+const TicketStolenWindow = lazy(
+  () => import("../modules/tickets/menu-actions/TicketStolenWindow"),
+);
+const PaymentWindow = lazy(
+  () => import("../modules/tickets/payment/PaymentWindow"),
+);
 
 export type WindowScreenProps = {
   screen: string;
