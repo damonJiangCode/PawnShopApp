@@ -282,7 +282,7 @@ const EmployeeAddEditDialog: React.FC<EmployeeAddEditDialogProps> = ({
               inputRef={lastNameInputRef}
               name="last_name"
               label="Last Name"
-              value={employee.last_name}
+              value={employee.last_name.toLocaleUpperCase()}
               onChange={handleChange}
               error={Boolean(errors.last_name)}
               helperText={errors.last_name || " "}
@@ -293,7 +293,7 @@ const EmployeeAddEditDialog: React.FC<EmployeeAddEditDialogProps> = ({
             <TextField
               name="first_name"
               label="First Name"
-              value={employee.first_name}
+              value={employee.first_name.toUpperCase()}
               onChange={handleChange}
               error={Boolean(errors.first_name)}
               helperText={errors.first_name || " "}
