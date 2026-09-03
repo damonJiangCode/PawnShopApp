@@ -5,7 +5,12 @@ import type {
 } from "../../shared/payload-contracts/window.contract.ts";
 import type { Item } from "../../shared/models/item.model.ts";
 import { CHANNELS } from "../ipc/channels.ts";
-import { openWindowHost } from "./openWindowHost.ts";
+import { openFeatureWindow } from "./window.feature.ts";
+import {
+  getManagedWindow,
+  openManagedWindow,
+  registerManagedWindow,
+} from "./window.manager.ts";
 
 const { BrowserWindow, ipcMain } =
   require("electron/main") as typeof import("electron");
@@ -13,7 +18,6 @@ const { BrowserWindow, ipcMain } =
 const ITEM_SEARCH_WINDOW_X = 24;
 const ITEM_SEARCH_WINDOW_Y = 24;
 
-let activeItemSearchWindow: Electron.BrowserWindow | null = null;
 let itemSearchWindowInput: OpenItemSearchWindowInput | null = null;
 
 const focusWindowIfAvailable = (window: Electron.BrowserWindow | null) => {
@@ -70,7 +74,7 @@ export const registerWindowHandlers = () => {
   ipcMain.handle(
     CHANNELS.OPEN_PAYMENT_WINDOW,
     async (_event: IpcMainInvokeEvent, payload: OpenPaymentWindowInput) => {
-      openWindowHost({
+      const { window, created } = openManagedWindow({
         screen: "payment",
         title: "Payment",
         width: 1180,
@@ -83,13 +87,20 @@ export const registerWindowHandlers = () => {
           clientFirstName: payload.clientFirstName,
         },
       });
+
+      if (!created) {
+        window.webContents.send(
+          CHANNELS.NOTIFY_PAYMENT_WINDOW_INPUT_UPDATED,
+          payload,
+        );
+      }
     },
   );
 
   ipcMain.handle(
     CHANNELS.OPEN_TICKET_SEARCH_WINDOW,
     async (_event: IpcMainInvokeEvent) => {
-      openWindowHost({
+      openManagedWindow({
         screen: "ticket-search",
         title: "Search Ticket",
         description: "Search tickets by ticket number.",
@@ -109,7 +120,9 @@ export const registerWindowHandlers = () => {
       const focusWindow = input?.focusWindow !== false;
       const requesterWindow = BrowserWindow.fromWebContents(event.sender);
 
-      if (activeItemSearchWindow && !activeItemSearchWindow.isDestroyed()) {
+      const activeItemSearchWindow = getManagedWindow("item-search");
+
+      if (activeItemSearchWindow) {
         activeItemSearchWindow.setPosition(
           ITEM_SEARCH_WINDOW_X,
           ITEM_SEARCH_WINDOW_Y,
@@ -127,30 +140,32 @@ export const registerWindowHandlers = () => {
         return;
       }
 
-      activeItemSearchWindow = openWindowHost({
-        screen: "item-search",
-        title: "Search Item",
-        description: "Search by item number or item detail.",
-        width: 1180,
-        height: 660,
-        x: ITEM_SEARCH_WINDOW_X,
-        y: ITEM_SEARCH_WINDOW_Y,
-        focusOnShow: focusWindow,
-        minWidth: 1040,
-        minHeight: 520,
-      });
+      const itemSearchWindow = registerManagedWindow(
+        "item-search",
+        openFeatureWindow({
+          screen: "item-search",
+          title: "Search Item",
+          description: "Search by item number or item detail.",
+          width: 1180,
+          height: 660,
+          x: ITEM_SEARCH_WINDOW_X,
+          y: ITEM_SEARCH_WINDOW_Y,
+          focusOnShow: focusWindow,
+          minWidth: 1040,
+          minHeight: 520,
+        }),
+      );
 
-      activeItemSearchWindow.on("closed", () => {
-        activeItemSearchWindow = null;
+      itemSearchWindow.on("closed", () => {
         itemSearchWindowInput = null;
       });
 
       if (!focusWindow) {
         restoreFocusAfterInactiveShow(requesterWindow);
-        activeItemSearchWindow.once("ready-to-show", () => {
+        itemSearchWindow.once("ready-to-show", () => {
           restoreFocusAfterInactiveShow(requesterWindow);
         });
-        activeItemSearchWindow.webContents.once("did-finish-load", () => {
+        itemSearchWindow.webContents.once("did-finish-load", () => {
           restoreFocusAfterInactiveShow(requesterWindow);
         });
       }

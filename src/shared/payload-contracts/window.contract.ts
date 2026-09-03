@@ -12,3 +12,11 @@ export type OpenPaymentWindowInput = {
   clientLastName?: string;
   clientFirstName?: string;
 };
+
+export type PaymentCompletedEvent = {
+  type: "payment-completed";
+  pickedUpCounts: Array<{
+    clientNumber: number;
+    count: number;
+  }>;
+};

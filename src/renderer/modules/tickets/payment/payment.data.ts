@@ -4,10 +4,7 @@ import type {
   PaymentRowsByMode,
   PaymentTicketRow,
 } from "./payment.types";
-import {
-  getOppositeMode,
-  mapTicketToPaymentRow,
-} from "./payment.helpers";
+import { getOppositeMode, mapTicketToPaymentRow } from "./payment.helpers";
 
 type LoadPaymentRowsInput = {
   clientNumber: number;
@@ -94,6 +91,16 @@ export const processPaymentRows = async ({
         Number.isFinite(ticketNumber),
       ),
   );
+  const pickedUpCountByClient = pickedUpTickets.reduce<Map<number, number>>(
+    (counts, ticket) => {
+      counts.set(
+        ticket.client_number,
+        (counts.get(ticket.client_number) ?? 0) + 1,
+      );
+      return counts;
+    },
+    new Map<number, number>(),
+  );
   const extendedRowByTicketNumber = new Map(
     extendedTickets
       .map((ticket) => mapTicketToPaymentRow(ticket, holidayDateKeys))
@@ -103,7 +110,9 @@ export const processPaymentRows = async ({
 
   return {
     pickedUpIds,
-    pickedUpCount: pickedUpTickets.length,
+    pickedUpCounts: [...pickedUpCountByClient.entries()].map(
+      ([clientNumber, count]) => ({ clientNumber, count }),
+    ),
     replaceExtendedRow: (row: PaymentTicketRow) =>
       extendedRowByTicketNumber.get(row.ticketNumber) ?? row,
   };

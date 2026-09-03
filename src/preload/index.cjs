@@ -45,6 +45,7 @@ const CHANNELS = {
   SAVE_ITEM_IMAGE: "save-item-image",
   GET_ITEM_IMAGE: "get-item-image",
   OPEN_PAYMENT_WINDOW: "open-payment-window",
+  NOTIFY_PAYMENT_WINDOW_INPUT_UPDATED: "notify-payment-window-input-updated",
   OPEN_TICKET_SEARCH_WINDOW: "open-ticket-search-window",
   OPEN_ITEM_SEARCH_WINDOW: "open-item-search-window",
   GET_ITEM_SEARCH_WINDOW_INPUT: "get-item-search-window-input",
@@ -144,6 +145,15 @@ const itemApi = {
 
 const windowApi = {
   openPaymentWindow: (payload) => invoke(CHANNELS.OPEN_PAYMENT_WINDOW, payload),
+  onPaymentWindowInputUpdated: (callback) => {
+    const listener = (_event, input) => callback(input);
+    ipcRenderer.on(CHANNELS.NOTIFY_PAYMENT_WINDOW_INPUT_UPDATED, listener);
+    return () =>
+      ipcRenderer.removeListener(
+        CHANNELS.NOTIFY_PAYMENT_WINDOW_INPUT_UPDATED,
+        listener,
+      );
+  },
   openTicketSearchWindow: () => invoke(CHANNELS.OPEN_TICKET_SEARCH_WINDOW),
   openItemSearchWindow: (input) =>
     invoke(CHANNELS.OPEN_ITEM_SEARCH_WINDOW, input),

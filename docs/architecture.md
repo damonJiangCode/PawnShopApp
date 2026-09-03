@@ -161,7 +161,7 @@ renderer button
   -> getAppApi().window.openSomeWindow(...)
   -> preload/index.cjs
   -> main/window/window.handlers.ts
-  -> main/window/openWindowHost.ts
+  -> main/window/window.feature.ts
   -> renderer/windows/WindowView.tsx
   -> renderer/windows/windowRegistry.ts
   -> owning module window component

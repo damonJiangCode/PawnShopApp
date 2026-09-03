@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Client } from "../../shared/models/client.model";
 import type { Item } from "../../shared/models/item.model";
 import type { Ticket } from "../../shared/models/ticket.model";
+import type { PaymentCompletedEvent } from "../../shared/payload-contracts/window.contract";
 import { itemApi } from "../modules/items/item.api";
 import { getAppApi } from "../shared/api/app.api";
 
@@ -45,12 +46,6 @@ type ItemSearchAddToTicketEvent = {
 type ItemSearchTargetStatusRequestEvent = {
   type: "item-search-target-status-request";
   requestId: string;
-};
-
-type PaymentCompletedEvent = {
-  type: "payment-completed";
-  clientNumber: number;
-  pickedUpCount?: number;
 };
 
 const isTicketSearchSelectedEvent = (
@@ -108,7 +103,10 @@ const isPaymentCompletedEvent = (
     return false;
   }
 
-  return (value as { type?: string }).type === "payment-completed";
+  const event = value as { type?: string; pickedUpCounts?: unknown };
+  return (
+    event.type === "payment-completed" && Array.isArray(event.pickedUpCounts)
+  );
 };
 
 export const useWorkspaceLayout = () => {
@@ -166,11 +164,10 @@ export const useWorkspaceLayout = () => {
 
       setTransactionRefreshKey((prev) => prev + 1);
       setHistoryRefreshKey((prev) => prev + 1);
-      if (event.data.pickedUpCount) {
-        updateCurrentClient(event.data.clientNumber, (client) => ({
+      for (const { clientNumber, count } of event.data.pickedUpCounts) {
+        updateCurrentClient(clientNumber, (client) => ({
           ...client,
-          redeem_count:
-            Number(client.redeem_count ?? 0) + (event.data.pickedUpCount ?? 0),
+          redeem_count: Number(client.redeem_count ?? 0) + count,
           updated_at: new Date(),
         }));
       }

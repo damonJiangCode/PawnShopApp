@@ -1,5 +1,5 @@
-import { buildRendererUrl } from "./windowUrl.ts";
-import { createAppWindow } from "./createAppWindow.ts";
+import { createAppWindow } from "./window.create.ts";
+import { buildRendererUrl } from "./window.url.ts";
 
 const { screen } = require("electron/main") as typeof import("electron");
 

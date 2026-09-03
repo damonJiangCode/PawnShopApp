@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { GridRowSelectionModel } from "@mui/x-data-grid";
 import type { TicketSearchResult } from "../../../../shared/payload-contracts/ticket.contract";
+import type {
+  OpenPaymentWindowInput,
+  PaymentCompletedEvent,
+} from "../../../../shared/payload-contracts/window.contract";
+import { getAppApi } from "../../../shared/api/app.api";
 import { clientApi } from "../../clients/client.api";
 import { getClientImageDataUrl } from "../../clients/hooks/useClientImage";
 import { ticketApi } from "../ticket.api";
@@ -14,7 +19,6 @@ import {
 } from "./payment.helpers";
 import { createPaymentRowHandlers } from "./payment.rowHandlers";
 import type {
-  PaymentCompletedEvent,
   PaymentMode,
   PaymentRowsByMode,
   PaymentSelectionByMode,
@@ -23,9 +27,20 @@ import type {
 
 export type { PaymentMode } from "./payment.types";
 
-export const usePaymentWindow = () => {
+const getInitialPaymentWindowInput = (): OpenPaymentWindowInput => {
   const params = new URLSearchParams(window.location.search);
+
+  return {
+    clientNumber: Number(params.get("clientNumber")) || undefined,
+    clientLastName: params.get("clientLastName") || "",
+    clientFirstName: params.get("clientFirstName") || "",
+  };
+};
+
+export const usePaymentWindow = () => {
   const ticketSearchInputRef = useRef<HTMLInputElement>(null);
+  const [paymentWindowInput, setPaymentWindowInput] =
+    useState<OpenPaymentWindowInput>(getInitialPaymentWindowInput);
   const [mode, setMode] = useState<PaymentMode>("pickup");
   const [availableRowsByMode, setAvailableRowsByMode] =
     useState<PaymentRowsByMode>(createEmptyRowsByMode);
@@ -48,9 +63,9 @@ export const usePaymentWindow = () => {
   const [ticketSearchDialogOpen, setTicketSearchDialogOpen] = useState(false);
   const [statusSeverity, setStatusSeverity] =
     useState<PaymentStatusSeverity>("info");
-  const clientNumber = Number(params.get("clientNumber"));
-  const clientLastName = params.get("clientLastName") || "";
-  const clientFirstName = params.get("clientFirstName") || "";
+  const clientNumber = Number(paymentWindowInput.clientNumber);
+  const clientLastName = paymentWindowInput.clientLastName || "";
+  const clientFirstName = paymentWindowInput.clientFirstName || "";
   const availableRows = availableRowsByMode[mode];
   const selectedRows = selectedRowsByMode[mode];
   const availableSelectionModel = availableSelectionByMode[mode];
@@ -87,6 +102,16 @@ export const usePaymentWindow = () => {
     });
 
     return () => cancelAnimationFrame(frame);
+  }, []);
+
+  useEffect(() => {
+    const windowApi = getAppApi()?.window;
+
+    if (!windowApi) {
+      return;
+    }
+
+    return windowApi.onPaymentWindowInputUpdated(setPaymentWindowInput);
   }, []);
 
   const handleLoad = async () => {
@@ -315,7 +340,7 @@ export const usePaymentWindow = () => {
         return;
       }
 
-      const { pickedUpIds, pickedUpCount, replaceExtendedRow } =
+      const { pickedUpIds, pickedUpCounts, replaceExtendedRow } =
         await processPaymentRows({
           pickupRows,
           extensionRows,
@@ -338,12 +363,11 @@ export const usePaymentWindow = () => {
       }));
       setAvailableSelectionByMode(createEmptySelectionByMode());
       setSelectedSelectionByMode(createEmptySelectionByMode());
-      if (Number.isFinite(clientNumber) && clientNumber > 0) {
+      if (pickedUpCounts.length) {
         const channel = new BroadcastChannel("payment-events");
         channel.postMessage({
           type: "payment-completed",
-          clientNumber,
-          pickedUpCount,
+          pickedUpCounts,
         } satisfies PaymentCompletedEvent);
         channel.close();
       }

@@ -1,7 +1,7 @@
-import { buildRendererUrl } from "./windowUrl.ts";
-import { createAppWindow } from "./createAppWindow.ts";
+import { createAppWindow } from "./window.create.ts";
+import { buildRendererUrl } from "./window.url.ts";
 
-export type OpenWindowHostInput = {
+export type OpenFeatureWindowInput = {
   screen: string;
   title: string;
   description?: string;
@@ -15,7 +15,7 @@ export type OpenWindowHostInput = {
   params?: Record<string, string | number | boolean | undefined>;
 };
 
-export const openWindowHost = ({
+export const openFeatureWindow = ({
   screen,
   title,
   description,
@@ -27,7 +27,7 @@ export const openWindowHost = ({
   minWidth = 560,
   minHeight = 320,
   params = {},
-}: OpenWindowHostInput): Electron.BrowserWindow => {
+}: OpenFeatureWindowInput): Electron.BrowserWindow => {
   return createAppWindow({
     width,
     height,

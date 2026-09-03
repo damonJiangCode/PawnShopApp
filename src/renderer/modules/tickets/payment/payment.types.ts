@@ -22,9 +22,3 @@ export type PaymentTicketRow = {
 
 export type PaymentRowsByMode = Record<PaymentMode, PaymentTicketRow[]>;
 export type PaymentSelectionByMode = Record<PaymentMode, GridRowSelectionModel>;
-
-export type PaymentCompletedEvent = {
-  type: "payment-completed";
-  clientNumber: number;
-  pickedUpCount: number;
-};

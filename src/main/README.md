@@ -17,7 +17,7 @@ main/
 
 - `index.ts`: starts Electron and opens the main window.
 - `ipc/`: channel names and handler registration.
-- `window/`: app window creation and secondary-window handlers.
+- `window/`: app window creation, reuse, and window-action handlers.
 - `database/`: schema, seed data, views, and initializer.
 - `modules/`: domain handlers, services, repos, inputs, mappers.
 - `shared/`: main-process helpers used by more than one module.
@@ -40,9 +40,22 @@ Window actions arrive here:
 ```text
 preload/index.cjs
   -> window/window.handlers.ts
-  -> window/openWindowHost.ts
-  -> window/createAppWindow.ts
+  -> window/window.manager.ts
+  -> window/window.feature.ts
+  -> window/window.create.ts
 ```
+
+`window.manager.ts` keeps one `BrowserWindow` per screen. Reopening a screen
+focuses its existing window; closing it removes that entry from the map.
+
+## Window Files
+
+- `window.handlers.ts`: receives window requests from the renderer.
+- `window.manager.ts`: finds, registers, focuses, and reuses feature windows.
+- `window.feature.ts`: defines how non-main feature windows are opened.
+- `window.main.ts`: owns the main window lifecycle.
+- `window.create.ts`: creates and configures a `BrowserWindow`.
+- `window.url.ts`: builds renderer URLs and query parameters.
 
 ## File Roles
 

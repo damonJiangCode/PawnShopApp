@@ -1,6 +1,6 @@
 import { registerHandlers } from "./ipc/register.ts";
-import { hasMainWindow, openMainWindow } from "./window/openMainWindow.ts";
-import { openWindowHost } from "./window/openWindowHost.ts";
+import { hasMainWindow, openMainWindow } from "./window/window.main.ts";
+import { openManagedWindow } from "./window/window.manager.ts";
 
 const { app, BrowserWindow, Menu } =
   require("electron/main") as typeof import("electron");
@@ -22,7 +22,7 @@ const openMenuActionWindow = ({
   width = 720,
   height = 420,
 }: MenuActionConfig) => {
-  openWindowHost({
+  openManagedWindow({
     screen: id,
     title,
     description,

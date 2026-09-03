@@ -237,7 +237,7 @@ Side button Item
   -> appAPI.window.openItemSearchWindow
   -> preload OPEN_ITEM_SEARCH_WINDOW
   -> window.handlers.ts
-  -> openWindowHost screen=item-search
+  -> openFeatureWindow screen=item-search
   -> WindowView
   -> windowRegistry
   -> ItemSearchWindow
@@ -267,7 +267,7 @@ Side button Payment
   -> appAPI.window.openPaymentWindow
   -> preload OPEN_PAYMENT_WINDOW
   -> window.handlers.ts
-  -> openWindowHost screen=payment
+  -> openFeatureWindow screen=payment
   -> WindowView
   -> PaymentWindow
   -> usePaymentWindow

@@ -22,7 +22,7 @@ windows/
 ## Flow
 
 ```text
-main/window/openWindowHost.ts
+main/window/window.feature.ts
   -> renderer URL with window=host and screen=...
   -> RendererApp
   -> WindowView
