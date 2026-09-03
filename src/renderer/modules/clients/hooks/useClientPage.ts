@@ -45,7 +45,7 @@ export const useClientPage = ({
   const [selectedClient, setSelectedClient] = useState<Client | null>(
     forcedClient ?? activeClient ?? null,
   );
-  const { results, loading, hasCompletedSearch, completedQueryKey } =
+  const { results, loading, error, hasCompletedSearch, completedQueryKey } =
     useClientSearch(
       searchFirstName,
       searchLastName,
@@ -66,7 +66,7 @@ export const useClientPage = ({
     if (forcedClient) {
       setSelectedClient(
         forcedClient.client_number
-          ? clientOverrides[forcedClient.client_number] ?? forcedClient
+          ? (clientOverrides[forcedClient.client_number] ?? forcedClient)
           : forcedClient,
       );
       return;
@@ -76,7 +76,7 @@ export const useClientPage = ({
       setSelectedClient((prev) =>
         !prev || prev.client_number === activeClient.client_number
           ? activeClient.client_number
-            ? clientOverrides[activeClient.client_number] ?? activeClient
+            ? (clientOverrides[activeClient.client_number] ?? activeClient)
             : activeClient
           : prev,
       );
@@ -98,7 +98,9 @@ export const useClientPage = ({
     const normalizedLast = searchLastName.trim().toLowerCase();
     const normalizedDob = searchDateOfBirth.trim();
     const queryKey = `${normalizedFirst}|${normalizedLast}|${normalizedDob}`;
-    const hasQuery = Boolean(normalizedFirst || normalizedLast || normalizedDob);
+    const hasQuery = Boolean(
+      normalizedFirst || normalizedLast || normalizedDob,
+    );
     const forcedClientNumber = forcedClient?.client_number;
 
     if (createdClient?.client_number) {
@@ -207,6 +209,12 @@ export const useClientPage = ({
       return;
     }
 
+    if (error) {
+      setSelectedClient(null);
+      lastNoResultPromptKeyRef.current = "";
+      return;
+    }
+
     if (loading || !hasCompletedSearch || completedQueryKey !== queryKey) {
       return;
     }
@@ -256,6 +264,7 @@ export const useClientPage = ({
     loading,
     hasCompletedSearch,
     completedQueryKey,
+    error,
     forcedClient,
     activeClient,
   ]);
@@ -345,6 +354,7 @@ export const useClientPage = ({
       selectedClient,
       displayResults,
       loading,
+      error,
     },
     actions: {
       setSelectedClient,

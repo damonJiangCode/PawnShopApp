@@ -2,10 +2,8 @@ import { useEffect, useState } from "react";
 import { getImageDataUrl } from "../../../shared/utils/imageDataUrl";
 import { clientApi } from "../client.api";
 
-export const getClientImageDataUrl = (
-  base64: string,
-  imagePath?: string,
-) => getImageDataUrl(base64, imagePath);
+export const getClientImageDataUrl = (base64: string, imagePath?: string) =>
+  getImageDataUrl(base64, imagePath);
 
 export const useClientImage = (imagePath?: string) => {
   const [src, setSrc] = useState<string | null>(null);
@@ -25,10 +23,11 @@ export const useClientImage = (imagePath?: string) => {
           return;
         }
         setSrc(base64 ? getClientImageDataUrl(base64, imagePath) : null);
-      } catch {
+      } catch (err) {
         if (!active) {
           return;
         }
+        console.error("Failed to load client image", err);
         setSrc(null);
       }
     };

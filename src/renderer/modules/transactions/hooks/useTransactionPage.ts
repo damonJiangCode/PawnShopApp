@@ -39,6 +39,7 @@ export const useTransactionPage = ({
   const [itemsLoading, setItemsLoading] = useState(false);
   const [ticketsError, setTicketsError] = useState<string>("");
   const [itemsError, setItemsError] = useState<string>("");
+  const [itemCategoriesError, setItemCategoriesError] = useState<string>("");
   const [openTicketPawnDialog, setOpenTicketPawnDialog] = useState(false);
   const [openTicketSellDialog, setOpenTicketSellDialog] = useState(false);
   const [openTicketEditDialog, setOpenTicketEditDialog] = useState(false);
@@ -123,6 +124,19 @@ export const useTransactionPage = ({
             ) ?? visibleTickets[visibleTickets.length - 1]
           );
         });
+      } catch (err) {
+        if (!active) {
+          return;
+        }
+
+        console.error("Failed to load tickets", err);
+        setTickets([]);
+        setItems([]);
+        setSelectedTicket(null);
+        setSelectedItem(null);
+        setTicketsError(
+          err instanceof Error ? err.message : "Unable to load tickets.",
+        );
       } finally {
         if (!active) {
           return;
@@ -185,7 +199,14 @@ export const useTransactionPage = ({
         }
       })
       .catch((err) => {
-        console.error(err);
+        if (active) {
+          console.error("Failed to load item categories", err);
+          setItemCategoriesError(
+            err instanceof Error
+              ? err.message
+              : "Unable to load item categories.",
+          );
+        }
       });
 
     return () => {
@@ -231,6 +252,17 @@ export const useTransactionPage = ({
             ) ?? fetchedItems[0]
           );
         });
+      } catch (err) {
+        if (!active) {
+          return;
+        }
+
+        console.error("Failed to load items", err);
+        setItems([]);
+        setSelectedItem(null);
+        setItemsError(
+          err instanceof Error ? err.message : "Unable to load items.",
+        );
       } finally {
         if (!active) {
           return;
@@ -337,7 +369,7 @@ export const useTransactionPage = ({
       loading,
       itemsLoading,
       ticketsError,
-      itemsError,
+      itemsError: itemsError || itemCategoriesError,
       statusMessage,
       openTicketPawnDialog,
       openTicketSellDialog,

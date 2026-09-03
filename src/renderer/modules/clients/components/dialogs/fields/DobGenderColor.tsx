@@ -35,17 +35,34 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
 }) => {
   const [hairColors, setHairColors] = useState<string[]>([]);
   const [eyeColors, setEyeColors] = useState<string[]>([]);
+  const [colorLoadError, setColorLoadError] = useState("");
 
   useEffect(() => {
-    const fetchColors = async () => {
-      const hair = await clientApi.loadHairColors();
-      setHairColors(hair);
+    let active = true;
 
-      const eye = await clientApi.loadEyeColors();
-      setEyeColors(eye);
+    const fetchColors = async () => {
+      try {
+        const [hair, eye] = await Promise.all([
+          clientApi.loadHairColors(),
+          clientApi.loadEyeColors(),
+        ]);
+        if (!active) return;
+        setHairColors(hair);
+        setEyeColors(eye);
+      } catch (err) {
+        if (!active) return;
+        console.error("Failed to load client colors", err);
+        setColorLoadError(
+          err instanceof Error ? err.message : "Unable to load colors.",
+        );
+      }
     };
 
-    fetchColors();
+    void fetchColors();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const isValidDate = (d: unknown) =>
@@ -109,8 +126,8 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
         }
         onChange={onChange}
         size="small"
-        error={Boolean(hairColorError)}
-        helperText={hairColorError || " "}
+        error={Boolean(hairColorError || colorLoadError)}
+        helperText={hairColorError || colorLoadError || " "}
       >
         {hairColors.map((color) => (
           <MenuItem key={color} value={color}>
@@ -135,8 +152,8 @@ const DobGenderColor: React.FC<DobGenderColorProps> = ({
         }
         onChange={onChange}
         size="small"
-        error={Boolean(eyeColorError)}
-        helperText={eyeColorError || " "}
+        error={Boolean(eyeColorError || colorLoadError)}
+        helperText={eyeColorError || colorLoadError || " "}
       >
         {eyeColors.map((color) => (
           <MenuItem key={color} value={color}>

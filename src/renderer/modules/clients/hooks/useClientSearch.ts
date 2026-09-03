@@ -10,6 +10,7 @@ export const useClientSearch = (
 ) => {
   const [results, setResults] = useState<Client[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [hasCompletedSearch, setHasCompletedSearch] = useState(false);
   const [completedQueryKey, setCompletedQueryKey] = useState("");
   const latestRequestIdRef = useRef(0);
@@ -19,11 +20,14 @@ export const useClientSearch = (
     const normalizedLast = lastName.trim().toLowerCase();
     const normalizedDob = dateOfBirth.trim();
     const queryKey = `${normalizedFirst}|${normalizedLast}|${normalizedDob}`;
-    const hasQuery = Boolean(normalizedFirst || normalizedLast || normalizedDob);
+    const hasQuery = Boolean(
+      normalizedFirst || normalizedLast || normalizedDob,
+    );
 
     if (!hasQuery) {
       setResults([]);
       setLoading(false);
+      setError("");
       setHasCompletedSearch(false);
       setCompletedQueryKey("");
       return;
@@ -34,6 +38,7 @@ export const useClientSearch = (
 
     const run = async () => {
       setResults([]);
+      setError("");
       setHasCompletedSearch(false);
       setLoading(true);
       try {
@@ -43,6 +48,12 @@ export const useClientSearch = (
         if (latestRequestIdRef.current !== requestId) return;
         setResults(data);
         setCompletedQueryKey(queryKey);
+      } catch (err) {
+        if (latestRequestIdRef.current !== requestId) return;
+        console.error("Failed to search clients", err);
+        setError(
+          err instanceof Error ? err.message : "Unable to search clients.",
+        );
       } finally {
         if (latestRequestIdRef.current !== requestId) return;
         setLoading(false);
@@ -52,5 +63,5 @@ export const useClientSearch = (
     run();
   }, [firstName, lastName, dateOfBirth, searchRequestKey]);
 
-  return { results, loading, hasCompletedSearch, completedQueryKey };
+  return { results, loading, error, hasCompletedSearch, completedQueryKey };
 };

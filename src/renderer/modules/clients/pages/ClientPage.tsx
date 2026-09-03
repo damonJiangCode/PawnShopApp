@@ -35,7 +35,7 @@ const ClientPage: React.FC<ClientPageProps> = ({
     activeClient,
     onClientSelected,
   });
-  const { selectedClient, displayResults, loading } = state;
+  const { selectedClient, displayResults, loading, error } = state;
 
   return (
     <Paper
@@ -89,6 +89,11 @@ const ClientPage: React.FC<ClientPageProps> = ({
           {loading && (
             <Typography color="text.secondary" sx={{ mb: 1 }}>
               Searching...
+            </Typography>
+          )}
+          {error && (
+            <Typography color="error" sx={{ mb: 1 }}>
+              {error}
             </Typography>
           )}
           <Box sx={{ flex: 1, minHeight: 0 }}>

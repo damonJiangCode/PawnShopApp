@@ -62,6 +62,9 @@ export const useHistoryPage = ({
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [ticketsLoading, setTicketsLoading] = useState(false);
   const [itemsLoading, setItemsLoading] = useState(false);
+  const [ticketsError, setTicketsError] = useState("");
+  const [itemsError, setItemsError] = useState("");
+  const [itemCategoriesError, setItemCategoriesError] = useState("");
   const [ticketScrollRequestKey, setTicketScrollRequestKey] = useState(0);
   const [statusMessage, setStatusMessage] = useState("");
   const [openRepawnDialog, setOpenRepawnDialog] = useState(false);
@@ -87,7 +90,14 @@ export const useHistoryPage = ({
         }
       })
       .catch((err) => {
-        console.error(err);
+        if (active) {
+          console.error("Failed to load item categories", err);
+          setItemCategoriesError(
+            err instanceof Error
+              ? err.message
+              : "Unable to load item categories.",
+          );
+        }
       });
 
     return () => {
@@ -104,30 +114,50 @@ export const useHistoryPage = ({
         setSelectedTicket(null);
         setItems([]);
         setSelectedItem(null);
+        setTicketsError("");
+        setItemsError("");
         setStatusMessage("");
         return;
       }
 
       setTicketsLoading(true);
-      const fetchedTickets = await ticketApi.loadTickets(clientNumber);
-      const historyTickets = sortHistoryTickets(
-        fetchedTickets.filter((ticket) =>
-          historyTicketStatuses.has(ticket.status),
-        ),
-      );
+      setTicketsError("");
 
-      if (!active) return;
+      try {
+        const fetchedTickets = await ticketApi.loadTickets(clientNumber);
+        const historyTickets = sortHistoryTickets(
+          fetchedTickets.filter((ticket) =>
+            historyTicketStatuses.has(ticket.status),
+          ),
+        );
 
-      setTickets(historyTickets);
-      const nextSelected = historyTickets.length
-        ? (historyTickets.find(
-            (ticket) =>
-              ticket.ticket_number === selectedTicketRef.current?.ticket_number,
-          ) ?? historyTickets[historyTickets.length - 1])
-        : null;
-      setSelectedTicket(nextSelected);
-      setTicketScrollRequestKey((prev) => prev + 1);
-      setTicketsLoading(false);
+        if (!active) return;
+
+        setTickets(historyTickets);
+        const nextSelected = historyTickets.length
+          ? (historyTickets.find(
+              (ticket) =>
+                ticket.ticket_number ===
+                selectedTicketRef.current?.ticket_number,
+            ) ?? historyTickets[historyTickets.length - 1])
+          : null;
+        setSelectedTicket(nextSelected);
+        setTicketScrollRequestKey((prev) => prev + 1);
+      } catch (err) {
+        if (!active) return;
+        console.error("Failed to load ticket history", err);
+        setTickets([]);
+        setSelectedTicket(null);
+        setItems([]);
+        setSelectedItem(null);
+        setTicketsError(
+          err instanceof Error ? err.message : "Unable to load ticket history.",
+        );
+      } finally {
+        if (active) {
+          setTicketsLoading(false);
+        }
+      }
     };
 
     void loadTickets();
@@ -175,25 +205,42 @@ export const useHistoryPage = ({
       if (!selectedTicket?.ticket_number) {
         setItems([]);
         setSelectedItem(null);
+        setItemsError("");
         return;
       }
 
       setItemsLoading(true);
-      const fetchedItems = await itemApi.loadItems(
-        selectedTicket.ticket_number,
-      );
+      setItemsError("");
 
-      if (!active) return;
-
-      setItems(fetchedItems);
-      setSelectedItem((prev) => {
-        if (!fetchedItems.length) return null;
-        return (
-          fetchedItems.find((item) => item.item_number === prev?.item_number) ??
-          fetchedItems[0]
+      try {
+        const fetchedItems = await itemApi.loadItems(
+          selectedTicket.ticket_number,
         );
-      });
-      setItemsLoading(false);
+
+        if (!active) return;
+
+        setItems(fetchedItems);
+        setSelectedItem((prev) => {
+          if (!fetchedItems.length) return null;
+          return (
+            fetchedItems.find(
+              (item) => item.item_number === prev?.item_number,
+            ) ?? fetchedItems[0]
+          );
+        });
+      } catch (err) {
+        if (!active) return;
+        console.error("Failed to load ticket items", err);
+        setItems([]);
+        setSelectedItem(null);
+        setItemsError(
+          err instanceof Error ? err.message : "Unable to load ticket items.",
+        );
+      } finally {
+        if (active) {
+          setItemsLoading(false);
+        }
+      }
     };
 
     void loadItems();
@@ -267,6 +314,8 @@ export const useHistoryPage = ({
       selectedItem,
       ticketsLoading,
       itemsLoading,
+      ticketsError,
+      itemsError: itemsError || itemCategoriesError,
       ticketScrollRequestKey,
       statusMessage,
       openRepawnDialog,

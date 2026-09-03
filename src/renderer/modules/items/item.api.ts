@@ -11,20 +11,16 @@ let categoryPromise: Promise<ItemCategoryOption[]> | null = null;
 
 export const itemApi = {
   loadItems: async (ticketNumber?: number): Promise<Item[]> => {
-    try {
-      if (!ticketNumber) {
-        return [];
-      }
-
-      const api = getAppApi()?.item;
-      if (!api) {
-        return [];
-      }
-
-      return await api.loadItemsByTicket(ticketNumber);
-    } catch {
+    if (!ticketNumber) {
       return [];
     }
+
+    const api = getAppApi()?.item;
+    if (!api) {
+      throw new Error("Item API is unavailable.");
+    }
+
+    return api.loadItemsByTicket(ticketNumber);
   },
 
   preloadCategories: async (): Promise<ItemCategoryOption[]> => {
@@ -38,15 +34,18 @@ export const itemApi = {
 
     const api = getAppApi()?.item;
     if (!api) {
-      categoryCache = [];
-      return categoryCache;
+      throw new Error("Item API is unavailable.");
     }
 
-    categoryPromise = api.loadItemCategories().then((categories) => {
-      categoryCache = categories;
-      categoryPromise = null;
-      return categories;
-    });
+    categoryPromise = api
+      .loadItemCategories()
+      .then((categories) => {
+        categoryCache = categories;
+        return categories;
+      })
+      .finally(() => {
+        categoryPromise = null;
+      });
 
     return categoryPromise;
   },
@@ -54,7 +53,7 @@ export const itemApi = {
   searchItems: async (input: ItemSearchInput): Promise<Item[]> => {
     const api = getAppApi()?.item;
     if (!api) {
-      return [];
+      throw new Error("Item API is unavailable.");
     }
 
     return api.searchItems({
@@ -123,7 +122,7 @@ export const itemApi = {
   loadItemImage: async (imagePath: string): Promise<string> => {
     const api = getAppApi()?.item;
     if (!api) {
-      return "";
+      throw new Error("Item API is unavailable.");
     }
 
     return api.loadItemImage(imagePath);

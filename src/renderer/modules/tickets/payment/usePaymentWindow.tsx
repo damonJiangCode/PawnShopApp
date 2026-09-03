@@ -115,6 +115,12 @@ export const usePaymentWindow = () => {
           ? `${rows.length} pawned ticket(s) loaded.`
           : "No pawned tickets found.",
       );
+    } catch (err) {
+      console.error("Failed to load payment tickets", err);
+      setStatusSeverity("warning");
+      setStatusMessage(
+        err instanceof Error ? err.message : "Unable to load payment tickets.",
+      );
     } finally {
       setLoading(false);
     }

@@ -160,8 +160,13 @@ export const useItemSearchWindow = () => {
   };
 
   const appendLoadedItems = React.useCallback(async () => {
-    const input =
-      (await getAppApi()?.window.getItemSearchWindowInput()) ?? null;
+    const windowApi = getAppApi()?.window;
+    if (!windowApi) {
+      setError("Item search window is unavailable.");
+      return;
+    }
+
+    const input = await windowApi.getItemSearchWindowInput();
 
     if (!input?.items.length) {
       return;
@@ -211,10 +216,20 @@ export const useItemSearchWindow = () => {
     let active = true;
 
     const loadCategories = async () => {
-      const loadedCategories = await itemApi.preloadCategories();
+      try {
+        const loadedCategories = await itemApi.preloadCategories();
 
-      if (active) {
-        setCategories(loadedCategories);
+        if (active) {
+          setCategories(loadedCategories);
+        }
+      } catch (err) {
+        if (!active) return;
+        console.error("Failed to load item categories", err);
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unable to load item categories.",
+        );
       }
     };
 
@@ -299,12 +314,33 @@ export const useItemSearchWindow = () => {
       type: "item-search-target-status-request",
       requestId: targetStatusRequestId,
     });
-    void appendLoadedItems();
+    void appendLoadedItems().catch((err) => {
+      console.error("Failed to load items into the item search window", err);
+      setError(
+        err instanceof Error ? err.message : "Unable to load selected items.",
+      );
+    });
 
-    const unsubscribe =
-      getAppApi()?.window.onItemSearchWindowInputUpdated(() => {
-        void appendLoadedItems();
-      }) ?? (() => {});
+    const windowApi = getAppApi()?.window;
+    const unsubscribe = windowApi
+      ? windowApi.onItemSearchWindowInputUpdated(() => {
+          void appendLoadedItems().catch((err) => {
+            console.error(
+              "Failed to update items in the item search window",
+              err,
+            );
+            setError(
+              err instanceof Error
+                ? err.message
+                : "Unable to load selected items.",
+            );
+          });
+        })
+      : () => {};
+
+    if (!windowApi) {
+      setError("Item search window is unavailable.");
+    }
 
     return () => {
       menuEventsChannelRef.current = null;

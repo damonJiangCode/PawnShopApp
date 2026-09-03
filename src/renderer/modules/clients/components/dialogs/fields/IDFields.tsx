@@ -31,6 +31,7 @@ const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(
   ({ ids, error, onIdsChange }, ref) => {
     const [identifications, setIdentifications] = useState<ID[]>(ids);
     const [idTypes, setIdTypes] = useState<string[]>([]);
+    const [idTypeLoadError, setIdTypeLoadError] = useState("");
     const showFieldErrors = Boolean(error);
 
     useImperativeHandle(ref, () => ({
@@ -38,11 +39,28 @@ const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(
     }));
 
     useEffect(() => {
+      let active = true;
+
       const fetchIdTypes = async () => {
-        const types = await clientApi.loadIdTypes();
-        setIdTypes(types);
+        try {
+          const types = await clientApi.loadIdTypes();
+          if (active) {
+            setIdTypes(types);
+          }
+        } catch (err) {
+          if (!active) return;
+          console.error("Failed to load ID types", err);
+          setIdTypeLoadError(
+            err instanceof Error ? err.message : "Unable to load ID types.",
+          );
+        }
       };
-      fetchIdTypes();
+
+      void fetchIdTypes();
+
+      return () => {
+        active = false;
+      };
     }, []);
 
     useEffect(() => {
@@ -138,24 +156,24 @@ const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(
                         <TextField
                           select
                           fullWidth
-                        size="small"
-                        name="id_type"
-                        label="ID Type"
-                        value={
-                          idTypes.includes(element.id_type)
-                            ? element.id_type
-                            : ""
-                        }
-                        error={Boolean(typeError)}
-                        helperText={typeError || " "}
-                        onChange={(e) =>
-                          handleUpdate(i, "id_type", e.target.value)
-                        }
-                      >
-                        <MenuItem value="">Select an ID Type</MenuItem>
-                        {idTypes.map((type, type_idx) => (
-                          <MenuItem key={type_idx} value={type}>
-                            {type}
+                          size="small"
+                          name="id_type"
+                          label="ID Type"
+                          value={
+                            idTypes.includes(element.id_type)
+                              ? element.id_type
+                              : ""
+                          }
+                          error={Boolean(typeError)}
+                          helperText={typeError || " "}
+                          onChange={(e) =>
+                            handleUpdate(i, "id_type", e.target.value)
+                          }
+                        >
+                          <MenuItem value="">Select an ID Type</MenuItem>
+                          {idTypes.map((type, type_idx) => (
+                            <MenuItem key={type_idx} value={type}>
+                              {type}
                             </MenuItem>
                           ))}
                         </TextField>
@@ -164,12 +182,12 @@ const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(
                         <TextField
                           fullWidth
                           size="small"
-                        name="id_value"
-                        label="ID Number"
-                        value={element.id_value || ""}
-                        error={Boolean(numberError)}
-                        helperText={numberError || " "}
-                        onChange={(e) =>
+                          name="id_value"
+                          label="ID Number"
+                          value={element.id_value || ""}
+                          error={Boolean(numberError)}
+                          helperText={numberError || " "}
+                          onChange={(e) =>
                             handleUpdate(i, "id_value", e.target.value)
                           }
                         />
@@ -196,10 +214,10 @@ const IDFields = forwardRef<IDFieldsRef, IDFieldsProps>(
         </TableContainer>
         <Typography
           variant="body2"
-          color={error ? "error" : "text.secondary"}
+          color={error || idTypeLoadError ? "error" : "text.secondary"}
           sx={{ mt: 1, minHeight: 20 }}
         >
-          {error || " "}
+          {error || idTypeLoadError || " "}
         </Typography>
       </Box>
     );

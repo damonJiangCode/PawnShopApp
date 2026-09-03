@@ -57,33 +57,25 @@ export const ticketApi = {
   },
 
   loadTickets: async (clientNumber?: number): Promise<Ticket[]> => {
-    try {
-      if (!clientNumber) {
-        return [];
-      }
-
-      const api = getAppApi()?.ticket;
-      if (!api) {
-        return [];
-      }
-
-      return await api.loadTicketsByClient(clientNumber);
-    } catch {
+    if (!clientNumber) {
       return [];
     }
+
+    const api = getAppApi()?.ticket;
+    if (!api) {
+      throw new Error("Ticket API is unavailable.");
+    }
+
+    return api.loadTicketsByClient(clientNumber);
   },
 
   loadHolidayDates: async (): Promise<HolidayDate[]> => {
     const api = getAppApi()?.ticket;
     if (!api) {
-      return [];
+      throw new Error("Ticket API is unavailable.");
     }
 
-    try {
-      return await api.loadHolidayDates();
-    } catch {
-      return [];
-    }
+    return api.loadHolidayDates();
   },
 
   addHolidayDate: async (input: SaveHolidayInput): Promise<HolidayDate> => {
@@ -112,14 +104,10 @@ export const ticketApi = {
   loadLocations: async (): Promise<string[]> => {
     const api = getAppApi()?.ticket;
     if (!api) {
-      return [];
+      throw new Error("Ticket API is unavailable.");
     }
 
-    try {
-      return await api.loadLocations();
-    } catch {
-      return [];
-    }
+    return api.loadLocations();
   },
 
   loadLocationsForAdmin: async (): Promise<Location[]> => {
@@ -162,11 +150,14 @@ export const ticketApi = {
     const api = getAppApi()?.ticket;
 
     if (
-      !api ||
       !Number.isFinite(normalizedTicketNumber) ||
       normalizedTicketNumber <= 0
     ) {
       return null;
+    }
+
+    if (!api) {
+      throw new Error("Ticket API is unavailable.");
     }
 
     try {
@@ -183,11 +174,14 @@ export const ticketApi = {
     const api = getAppApi()?.ticket;
 
     if (
-      !api ||
       !Number.isFinite(normalizedTicketNumber) ||
       normalizedTicketNumber <= 0
     ) {
       return null;
+    }
+
+    if (!api) {
+      throw new Error("Ticket API is unavailable.");
     }
 
     try {
@@ -386,11 +380,14 @@ export const ticketApi = {
     const api = getAppApi()?.ticket;
 
     if (
-      !api ||
       !Number.isFinite(normalizedTicketNumber) ||
       normalizedTicketNumber <= 0
     ) {
       return null;
+    }
+
+    if (!api) {
+      throw new Error("Ticket API is unavailable.");
     }
 
     try {
@@ -433,4 +430,7 @@ export type {
   TransferTicketPreview,
   UpdateTicketInput,
 };
-export type { TicketFormError, TicketFormField } from "./helpers/ticketApiUtils";
+export type {
+  TicketFormError,
+  TicketFormField,
+} from "./helpers/ticketApiUtils";

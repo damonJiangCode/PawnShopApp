@@ -71,7 +71,6 @@ const ClientPhotoCapture: React.FC<ClientPhotoCaptureProps> = (props) => {
         } catch (err) {
           console.error("Failed to load client image", err);
           alert("Failed to load client image (ClientPhotoCapture.tsx).");
-          throw err;
         }
       })();
     }

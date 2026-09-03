@@ -13,7 +13,7 @@ interface AddressFieldsProps {
   provinceError?: string;
   countryError?: string;
   onChange: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => void;
 }
 
@@ -30,6 +30,7 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
   onChange,
 }) => {
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   const [city, setCity] = useState(client_city);
   const [province, setProvince] = useState(client_province);
@@ -40,37 +41,58 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
     Record<string, string[]>
   >({});
 
+  // fetch cities and provinces
   useEffect(() => {
+    let active = true;
+
     const fetchCities = async () => {
-      const data = await clientApi.loadCities();
-      setProvinces(data.provinces);
-      setCitiesByProvince(data.citiesByProvince);
-      setLoading(false);
+      try {
+        const data = await clientApi.loadCities();
+        if (!active) return;
 
-      const hasProvince = data.provinces.includes(province);
-      const nextProvince = hasProvince
-        ? province
-        : data.provinces.includes("Saskatchewan")
-          ? "Saskatchewan"
-          : data.provinces[0] || "";
+        setProvinces(data.provinces);
+        setCitiesByProvince(data.citiesByProvince);
 
-      if (nextProvince && nextProvince !== province) {
-        setProvince(nextProvince);
-      }
+        const hasProvince = data.provinces.includes(province);
+        const nextProvince = hasProvince
+          ? province
+          : data.provinces.includes("Saskatchewan")
+            ? "Saskatchewan"
+            : data.provinces[0] || "";
 
-      const available = data.citiesByProvince[nextProvince] || [];
-      const hasCity = available.includes(city);
-      const nextCity = hasCity
-        ? city
-        : available.includes("Saskatoon")
-          ? "Saskatoon"
-          : available[0] || "";
+        if (nextProvince && nextProvince !== province) {
+          setProvince(nextProvince);
+        }
 
-      if (nextCity && nextCity !== city) {
-        setCity(nextCity);
+        const available = data.citiesByProvince[nextProvince] || [];
+        const hasCity = available.includes(city);
+        const nextCity = hasCity
+          ? city
+          : available.includes("Saskatoon")
+            ? "Saskatoon"
+            : available[0] || "";
+
+        if (nextCity && nextCity !== city) {
+          setCity(nextCity);
+        }
+      } catch (err) {
+        if (!active) return;
+        console.error("Failed to load cities", err);
+        setLoadError(
+          err instanceof Error ? err.message : "Unable to load cities.",
+        );
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
       }
     };
-    fetchCities();
+
+    void fetchCities();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleCityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -127,8 +149,8 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
           onChange={handleCityChange}
           size="small"
           disabled={!province}
-          error={Boolean(cityError)}
-          helperText={cityError || " "}
+          error={Boolean(cityError || loadError)}
+          helperText={cityError || loadError || " "}
         >
           {availableCities.length === 0 ? (
             <MenuItem disabled>Loading cities...</MenuItem>
@@ -151,8 +173,8 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
           onChange={handleProvinceChange}
           size="small"
           disabled={!country}
-          error={Boolean(provinceError)}
-          helperText={provinceError || " "}
+          error={Boolean(provinceError || loadError)}
+          helperText={provinceError || loadError || " "}
         >
           {provinces.length === 0 ? (
             <MenuItem disabled>Loading provinces...</MenuItem>

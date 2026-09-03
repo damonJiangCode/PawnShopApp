@@ -91,14 +91,24 @@ const TicketPawnDialog: React.FC<TicketPawnDialogProps> = (props) => {
 
     const fetchLocations = async () => {
       setLoading(true);
-      const locations = await ticketApi.loadLocations();
+      try {
+        const locations = await ticketApi.loadLocations();
 
-      if (!active) {
-        return;
+        if (active) {
+          setLocationList(locations);
+        }
+      } catch (err) {
+        if (active) {
+          console.error("Failed to load locations", err);
+          setSubmitError(
+            err instanceof Error ? err.message : "Unable to load locations.",
+          );
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
       }
-
-      setLocationList(locations);
-      setLoading(false);
     };
 
     void fetchLocations();

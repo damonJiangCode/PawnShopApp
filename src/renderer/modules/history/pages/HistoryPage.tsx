@@ -68,6 +68,8 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
     selectedItem,
     ticketsLoading,
     itemsLoading,
+    ticketsError,
+    itemsError,
     statusMessage,
     openRepawnDialog,
     openItemEditDialog,
@@ -130,10 +132,19 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
           onLoad={actions.handleLoad}
         />
 
-        {statusMessage && (
-          <Typography variant="body2" color="text.secondary" sx={{ px: 0.5 }}>
-            {statusMessage}
-          </Typography>
+        {(ticketsError || itemsError || statusMessage) && (
+          <Box sx={{ px: 0.5 }}>
+            {(ticketsError || itemsError) && (
+              <Typography variant="body2" color="error">
+                {ticketsError || itemsError}
+              </Typography>
+            )}
+            {statusMessage && (
+              <Typography variant="body2" color="text.secondary">
+                {statusMessage}
+              </Typography>
+            )}
+          </Box>
         )}
 
         <HistoryItemsPanel

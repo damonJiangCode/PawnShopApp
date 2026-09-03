@@ -70,23 +70,35 @@ const TicketSellDialog: React.FC<TicketSellDialogProps> = (props) => {
 
     const fetchLocations = async () => {
       setLoading(true);
-      const locations = await ticketApi.loadLocations();
+      try {
+        const locations = await ticketApi.loadLocations();
 
-      if (!active) {
-        return;
-      }
-
-      setLocationList(locations);
-      setLocation((prev) => {
-        if (prev.trim()) {
-          return prev;
+        if (!active) {
+          return;
         }
 
-        return locations.includes(DEFAULT_SELL_LOCATION)
-          ? DEFAULT_SELL_LOCATION
-          : "";
-      });
-      setLoading(false);
+        setLocationList(locations);
+        setLocation((prev) => {
+          if (prev.trim()) {
+            return prev;
+          }
+
+          return locations.includes(DEFAULT_SELL_LOCATION)
+            ? DEFAULT_SELL_LOCATION
+            : "";
+        });
+      } catch (err) {
+        if (active) {
+          console.error("Failed to load locations", err);
+          setSubmitError(
+            err instanceof Error ? err.message : "Unable to load locations.",
+          );
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
     };
 
     void fetchLocations();

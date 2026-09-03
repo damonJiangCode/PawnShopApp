@@ -15,13 +15,9 @@ export type ClientFormError = Error & {
   field?: ClientFormField;
 };
 
-const emptyCities = (): CitiesResponse => ({
-  provinces: [],
-  citiesByProvince: {},
-});
-
 const normalizeSearchInput = (value?: string) => value?.trim() ?? "";
-const normalizeNameInput = (value?: string) => value?.trim().toUpperCase() ?? "";
+const normalizeNameInput = (value?: string) =>
+  value?.trim().toUpperCase() ?? "";
 
 const createFieldError = (
   field: ClientFormField,
@@ -91,14 +87,10 @@ export const clientApi = {
 
     const api = getAppApi()?.client;
     if (!api) {
-      return [];
+      throw new Error("Client API is unavailable.");
     }
 
-    try {
-      return await api.searchClients(normalizedFirstName, normalizedLastName);
-    } catch {
-      return [];
-    }
+    return api.searchClients(normalizedFirstName, normalizedLastName);
   },
 
   searchClientsByDob: async (dateOfBirth: string): Promise<Client[]> => {
@@ -110,40 +102,28 @@ export const clientApi = {
 
     const api = getAppApi()?.client;
     if (!api) {
-      return [];
+      throw new Error("Client API is unavailable.");
     }
 
-    try {
-      return await api.searchClientsByDob(normalizedDob);
-    } catch {
-      return [];
-    }
+    return api.searchClientsByDob(normalizedDob);
   },
 
   loadCities: async (): Promise<CitiesResponse> => {
     const api = getAppApi()?.client;
     if (!api) {
-      return emptyCities();
+      throw new Error("Client API is unavailable.");
     }
 
-    try {
-      return await api.loadCities();
-    } catch {
-      return emptyCities();
-    }
+    return api.loadCities();
   },
 
   loadHairColors: async (): Promise<string[]> => {
     const api = getAppApi()?.client;
     if (!api) {
-      return [];
+      throw new Error("Client API is unavailable.");
     }
 
-    try {
-      return await api.loadHairColors();
-    } catch {
-      return [];
-    }
+    return api.loadHairColors();
   },
 
   loadHairColorsForAdmin: async (): Promise<HairColor[]> => {
@@ -189,14 +169,10 @@ export const clientApi = {
   loadEyeColors: async (): Promise<string[]> => {
     const api = getAppApi()?.client;
     if (!api) {
-      return [];
+      throw new Error("Client API is unavailable.");
     }
 
-    try {
-      return await api.loadEyeColors();
-    } catch {
-      return [];
-    }
+    return api.loadEyeColors();
   },
 
   loadEyeColorsForAdmin: async (): Promise<EyeColor[]> => {
@@ -242,14 +218,10 @@ export const clientApi = {
   loadIdTypes: async (): Promise<string[]> => {
     const api = getAppApi()?.client;
     if (!api) {
-      return [];
+      throw new Error("Client API is unavailable.");
     }
 
-    try {
-      return await api.loadIdTypes();
-    } catch {
-      return [];
-    }
+    return api.loadIdTypes();
   },
 
   saveClientImage: async (
@@ -267,15 +239,15 @@ export const clientApi = {
   loadClientImage: async (imagePath?: string): Promise<string | null> => {
     const api = getAppApi()?.client;
 
-    if (!imagePath || !api) {
+    if (!imagePath) {
       return null;
     }
 
-    try {
-      return await api.loadClientImage(imagePath);
-    } catch {
-      return null;
+    if (!api) {
+      throw new Error("Client API is unavailable.");
     }
+
+    return api.loadClientImage(imagePath);
   },
 
   createClient: async (input: SaveClientInput): Promise<Client> => {
@@ -307,14 +279,10 @@ export const clientApi = {
   deleteClient: async (clientNumber: number): Promise<boolean> => {
     const api = getAppApi()?.client;
     if (!api) {
-      return false;
+      throw new Error("Client API is unavailable.");
     }
 
-    try {
-      return await api.deleteClient(clientNumber);
-    } catch {
-      return false;
-    }
+    return api.deleteClient(clientNumber);
   },
 };
 
