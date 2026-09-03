@@ -9,6 +9,7 @@ import {
 import type { PrintClient } from "../../tickets/print/ticketPrintTemplate";
 
 interface UseHistoryPageParams {
+  isActive?: boolean;
   clientNumber?: number;
   printClient?: PrintClient;
   focusTicketNumber?: number;
@@ -46,6 +47,7 @@ const sortHistoryTickets = (tickets: Ticket[]) =>
   });
 
 export const useHistoryPage = ({
+  isActive = true,
   clientNumber,
   printClient,
   focusTicketNumber,
@@ -80,6 +82,20 @@ export const useHistoryPage = ({
   }, [selectedTicket]);
 
   useEffect(() => {
+    setTickets([]);
+    setSelectedTicket(null);
+    setItems([]);
+    setSelectedItem(null);
+    setTicketsError("");
+    setItemsError("");
+    setStatusMessage("");
+  }, [clientNumber]);
+
+  useEffect(() => {
+    if (!isActive) {
+      return;
+    }
+
     let active = true;
 
     itemApi
@@ -103,9 +119,13 @@ export const useHistoryPage = ({
     return () => {
       active = false;
     };
-  }, []);
+  }, [isActive]);
 
   useEffect(() => {
+    if (!isActive) {
+      return;
+    }
+
     let active = true;
 
     const loadTickets = async () => {
@@ -165,7 +185,7 @@ export const useHistoryPage = ({
     return () => {
       active = false;
     };
-  }, [clientNumber, refreshKey]);
+  }, [clientNumber, refreshKey, isActive]);
 
   useEffect(() => {
     if (!focusRequestId || !focusTicketNumber) {
@@ -199,10 +219,17 @@ export const useHistoryPage = ({
   }, [activationKey, tickets]);
 
   useEffect(() => {
+    if (!isActive) {
+      return;
+    }
+
     let active = true;
 
     const loadItems = async () => {
-      if (!selectedTicket?.ticket_number) {
+      if (
+        !selectedTicket?.ticket_number ||
+        selectedTicket.client_number !== clientNumber
+      ) {
         setItems([]);
         setSelectedItem(null);
         setItemsError("");
@@ -248,7 +275,12 @@ export const useHistoryPage = ({
     return () => {
       active = false;
     };
-  }, [selectedTicket?.ticket_number]);
+  }, [
+    selectedTicket?.ticket_number,
+    selectedTicket?.client_number,
+    clientNumber,
+    isActive,
+  ]);
 
   const handleRepawn = () => {
     if (!selectedTicket) return;

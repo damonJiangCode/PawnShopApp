@@ -6,6 +6,7 @@ import { clientApi } from "../client.api";
 import { formatIsoDate } from "../../../shared/utils/formatters";
 
 interface UseClientPageParams {
+  isActive?: boolean;
   searchFirstName: string;
   searchLastName: string;
   searchDateOfBirth?: string;
@@ -34,6 +35,7 @@ const matchesSearch = (
 };
 
 export const useClientPage = ({
+  isActive = true,
   searchFirstName,
   searchLastName,
   searchDateOfBirth = "",
@@ -51,6 +53,7 @@ export const useClientPage = ({
       searchLastName,
       searchDateOfBirth,
       searchRequestKey,
+      isActive,
     );
   const [displayResults, setDisplayResults] = useState<Client[]>([]);
   const [clientOverrides, setClientOverrides] = useState<
@@ -63,6 +66,10 @@ export const useClientPage = ({
   const lastNoResultPromptKeyRef = useRef<string>("");
 
   useEffect(() => {
+    if (!isActive) {
+      return;
+    }
+
     if (forcedClient) {
       setSelectedClient(
         forcedClient.client_number
@@ -81,7 +88,7 @@ export const useClientPage = ({
           : prev,
       );
     }
-  }, [forcedClient, activeClient, clientOverrides]);
+  }, [forcedClient, activeClient, clientOverrides, isActive]);
 
   useEffect(() => {
     setCreatedClient(null);
@@ -94,6 +101,10 @@ export const useClientPage = ({
   ]);
 
   useEffect(() => {
+    if (!isActive) {
+      return;
+    }
+
     const normalizedFirst = searchFirstName.trim().toLowerCase();
     const normalizedLast = searchLastName.trim().toLowerCase();
     const normalizedDob = searchDateOfBirth.trim();
@@ -267,6 +278,7 @@ export const useClientPage = ({
     error,
     forcedClient,
     activeClient,
+    isActive,
   ]);
 
   useEffect(() => {

@@ -7,6 +7,7 @@ export const useClientSearch = (
   lastName: string,
   dateOfBirth = "",
   searchRequestKey = 0,
+  isActive = true,
 ) => {
   const [results, setResults] = useState<Client[]>([]);
   const [loading, setLoading] = useState(false);
@@ -16,6 +17,12 @@ export const useClientSearch = (
   const latestRequestIdRef = useRef(0);
 
   useEffect(() => {
+    if (!isActive) {
+      latestRequestIdRef.current += 1;
+      setLoading(false);
+      return;
+    }
+
     const normalizedFirst = firstName.trim().toLowerCase();
     const normalizedLast = lastName.trim().toLowerCase();
     const normalizedDob = dateOfBirth.trim();
@@ -60,8 +67,8 @@ export const useClientSearch = (
         setHasCompletedSearch(true);
       }
     };
-    run();
-  }, [firstName, lastName, dateOfBirth, searchRequestKey]);
+    void run();
+  }, [firstName, lastName, dateOfBirth, searchRequestKey, isActive]);
 
   return { results, loading, error, hasCompletedSearch, completedQueryKey };
 };

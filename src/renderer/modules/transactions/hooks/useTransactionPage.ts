@@ -12,6 +12,7 @@ import { createTransactionItemHandlers } from "../handlers/transactionItemHandle
 import { createTransactionTicketHandlers } from "../handlers/transactionTicketHandlers";
 
 interface UseTransactionPageParams {
+  isActive?: boolean;
   client?: Client;
   focusTicketNumber?: number;
   focusRequestId?: number;
@@ -22,6 +23,7 @@ interface UseTransactionPageParams {
 }
 
 export const useTransactionPage = ({
+  isActive = true,
   client,
   focusTicketNumber,
   focusRequestId,
@@ -83,6 +85,20 @@ export const useTransactionPage = ({
   });
 
   useEffect(() => {
+    setTickets([]);
+    setItems([]);
+    setSelectedTicket(null);
+    setSelectedItem(null);
+    setTicketsError("");
+    setItemsError("");
+    setStatusMessage("");
+  }, [clientNumber]);
+
+  useEffect(() => {
+    if (!isActive) {
+      return;
+    }
+
     let active = true;
 
     const fetchTickets = async () => {
@@ -151,7 +167,7 @@ export const useTransactionPage = ({
     return () => {
       active = false;
     };
-  }, [clientNumber, refreshKey]);
+  }, [clientNumber, refreshKey, isActive]);
 
   useEffect(() => {
     if (!focusRequestId || !focusTicketNumber) {
@@ -189,6 +205,10 @@ export const useTransactionPage = ({
   }, [incomingTicket]);
 
   useEffect(() => {
+    if (!isActive) {
+      return;
+    }
+
     let active = true;
 
     itemApi
@@ -212,13 +232,20 @@ export const useTransactionPage = ({
     return () => {
       active = false;
     };
-  }, []);
+  }, [isActive]);
 
   useEffect(() => {
+    if (!isActive) {
+      return;
+    }
+
     let active = true;
 
     const fetchItems = async () => {
-      if (!selectedTicket?.ticket_number) {
+      if (
+        !selectedTicket?.ticket_number ||
+        selectedTicket.client_number !== clientNumber
+      ) {
         setItems([]);
         setSelectedItem(null);
         setItemsError("");
@@ -277,7 +304,13 @@ export const useTransactionPage = ({
     return () => {
       active = false;
     };
-  }, [selectedTicket?.ticket_number, refreshKey]);
+  }, [
+    selectedTicket?.ticket_number,
+    selectedTicket?.client_number,
+    clientNumber,
+    refreshKey,
+    isActive,
+  ]);
 
   useEffect(() => {
     if (!selectedTicket) {

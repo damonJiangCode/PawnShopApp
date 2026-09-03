@@ -11,6 +11,7 @@ import ItemEditDialog from "../../items/components/dialogs/ItemEditDialog";
 import { useHistoryPage } from "../hooks/useHistoryPage";
 
 interface HistoryPageProps {
+  isActive?: boolean;
   client?: Client;
   clientNumber?: number;
   clientLastName?: string;
@@ -33,6 +34,7 @@ interface HistoryPageProps {
 }
 
 const HistoryPage: React.FC<HistoryPageProps> = ({
+  isActive = true,
   client,
   clientNumber,
   clientLastName,
@@ -51,6 +53,7 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
   const resolvedClientFirstName = client?.first_name ?? clientFirstName;
   const resolvedClientMiddleName = client?.middle_name ?? clientMiddleName;
   const { state, actions } = useHistoryPage({
+    isActive,
     clientNumber: resolvedClientNumber,
     printClient: client,
     focusTicketNumber,

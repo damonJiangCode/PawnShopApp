@@ -23,6 +23,7 @@ import TicketConvertDialog from "../../tickets/components/dialogs/TicketConvertD
 import ItemEditDialog from "../../items/components/dialogs/ItemEditDialog";
 
 interface TransactionPageProps {
+  isActive?: boolean;
   client?: Client;
   focusTicketNumber?: number;
   focusRequestId?: number;
@@ -33,6 +34,7 @@ interface TransactionPageProps {
 }
 
 const TransactionPage: React.FC<TransactionPageProps> = ({
+  isActive = true,
   client,
   focusTicketNumber,
   focusRequestId,
@@ -46,6 +48,7 @@ const TransactionPage: React.FC<TransactionPageProps> = ({
   const clientLastName = client?.last_name ?? "";
   const clientMiddleName = client?.middle_name;
   const { state, actions } = useTransactionPage({
+    isActive,
     client,
     focusTicketNumber,
     focusRequestId,

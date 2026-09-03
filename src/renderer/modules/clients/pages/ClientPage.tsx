@@ -8,6 +8,7 @@ import type { Client } from "../../../../shared/models/client.model";
 import { useClientPage } from "../hooks/useClientPage";
 
 interface ClientPageProps {
+  isActive?: boolean;
   searchFirstName: string;
   searchLastName: string;
   searchDateOfBirth?: string;
@@ -18,6 +19,7 @@ interface ClientPageProps {
 }
 
 const ClientPage: React.FC<ClientPageProps> = ({
+  isActive = true,
   searchFirstName,
   searchLastName,
   searchDateOfBirth = "",
@@ -27,6 +29,7 @@ const ClientPage: React.FC<ClientPageProps> = ({
   onClientSelected,
 }) => {
   const { state, actions } = useClientPage({
+    isActive,
     searchFirstName,
     searchLastName,
     searchDateOfBirth,

@@ -139,6 +139,7 @@ const WorkspaceLayout: React.FC = () => {
         >
           <MainTabPanel active={currentTab === 0}>
             <ClientPage
+              isActive={currentTab === 0}
               searchFirstName={searchFirstName}
               searchLastName={searchLastName}
               searchDateOfBirth={searchDateOfBirth}
@@ -151,6 +152,7 @@ const WorkspaceLayout: React.FC = () => {
 
           <MainTabPanel active={currentTab === 1}>
             <TransactionPage
+              isActive={currentTab === 1}
               client={selectedClient ?? undefined}
               focusTicketNumber={focusTicketNumber}
               focusRequestId={focusRequestId}
@@ -163,6 +165,7 @@ const WorkspaceLayout: React.FC = () => {
 
           <MainTabPanel active={currentTab === 2}>
             <HistoryPage
+              isActive={currentTab === 2}
               client={selectedClient ?? undefined}
               clientNumber={selectedClient?.client_number}
               clientLastName={selectedClient?.last_name}
