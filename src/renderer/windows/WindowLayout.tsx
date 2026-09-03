@@ -15,56 +15,79 @@ const WindowLayout: React.FC<WindowLayoutProps> = ({
   children,
 }) => {
   return (
-    <Paper
-      elevation={2}
+    <Box
       sx={{
-        height: "calc(100vh - 32px)",
-        p: 2,
-        display: "flex",
-        flexDirection: "column",
-        gap: denseFooter ? 0.75 : 2,
-        borderRadius: 2,
+        position: "fixed",
+        inset: 0,
+        p: 1,
         boxSizing: "border-box",
-        overflow: "hidden",
+        bgcolor: "#f7f9fc",
+        "@media print": {
+          position: "static",
+          width: "100%",
+          height: "auto",
+          p: 0,
+          bgcolor: "#ffffff",
+        },
       }}
     >
-      <Box className="no-print" sx={{ displayPrint: "none" }}>
-        <Typography variant="h6" fontWeight={800}>
-          {title}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {description}
-        </Typography>
-      </Box>
-
-      <Box
+      <Paper
+        elevation={2}
         sx={{
-          flex: 1,
-          minHeight: 0,
-          overflow: "auto",
-          pt: denseFooter ? 0.5 : 1,
+          width: "100%",
+          height: "100%",
+          p: 2,
+          display: "flex",
+          flexDirection: "column",
+          gap: denseFooter ? 0.75 : 2,
+          borderRadius: 2,
+          boxSizing: "border-box",
+          overflow: "hidden",
+          "@media print": {
+            height: "auto",
+            overflow: "visible",
+            boxShadow: "none",
+          },
         }}
       >
-        {children}
-      </Box>
+        <Box className="no-print" sx={{ displayPrint: "none" }}>
+          <Typography variant="h6" fontWeight={800}>
+            {title}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {description}
+          </Typography>
+        </Box>
 
-      <Stack
-        direction="row"
-        spacing={1}
-        justifyContent="flex-end"
-        className="no-print"
-        sx={{ displayPrint: "none", minHeight: denseFooter ? 28 : undefined }}
-      >
-        <Button
-          variant="outlined"
-          size={denseFooter ? "small" : "medium"}
-          sx={denseFooter ? { minHeight: 26, py: 0.25 } : undefined}
-          onClick={() => window.close()}
+        <Box
+          sx={{
+            flex: 1,
+            minHeight: 0,
+            overflow: "auto",
+            pt: denseFooter ? 0.5 : 1,
+          }}
         >
-          Close
-        </Button>
-      </Stack>
-    </Paper>
+          {children}
+        </Box>
+
+        <Stack
+          direction="row"
+          spacing={1}
+          justifyContent="flex-end"
+          className="no-print"
+          sx={{ displayPrint: "none", minHeight: denseFooter ? 28 : undefined }}
+        >
+          <Button
+            variant="outlined"
+            size={denseFooter ? "small" : "medium"}
+            sx={denseFooter ? { minHeight: 26, py: 0.25 } : undefined}
+            onClick={() => window.close()}
+          >
+            Close
+          </Button>
+        </Stack>
+      </Paper>
+    </Box>
   );
 };
 
