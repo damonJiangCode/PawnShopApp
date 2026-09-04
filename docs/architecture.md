@@ -12,6 +12,10 @@ src/
   shared/    models and API/payload contracts used by both sides
 ```
 
+Local images are displayed through the controlled `pawn-image://` protocol.
+The renderer receives a URL while the main process validates and resolves the
+stored path.
+
 ## Mental Model
 
 Use this path when tracing most user actions:

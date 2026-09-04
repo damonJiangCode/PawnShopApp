@@ -85,10 +85,6 @@ export const clientService = {
     return imageStorage.saveClientImage(fileName, base64);
   },
 
-  loadClientImage: async (imagePath: string): Promise<string> => {
-    return imageStorage.loadClientImage(imagePath);
-  },
-
   createClient: async (input: SaveClientInput): Promise<Client> => {
     const normalizedInput = clientInput.normalizeSaveClient(input);
     clientInput.validateClient(

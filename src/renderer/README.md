@@ -215,13 +215,13 @@ shared/
   utils/
     formError.ts
     formatters.ts
-    imageDataUrl.ts
+    imageUrl.ts
 ```
 
 - `api/app.api.ts`: declares `window.appAPI` on the renderer side and exposes `getAppApi()`.
 - `components/`: small cross-module React components.
 - `styles/`: shared sizing and style helpers used by more than one module.
-- `utils/`: pure formatting, image, and form-error helpers.
+- `utils/`: pure formatting, controlled image URL, and form-error helpers.
 
 Avoid calling `window.appAPI` directly from components. Use module API files or
 `getAppApi()` inside module-level code:

@@ -66,7 +66,8 @@ ClientPage
 Important details:
 
 - client photo capture is in `ClientPhotoCapture.tsx`
-- client image save/load uses `main/shared/imageStorage.ts`
+- client image saving uses `main/shared/imageStorage.ts`
+- client image display uses the controlled `pawn-image://` protocol
 - app-wide client shape is `shared/models/client.model.ts`
 - create/update inputs are in `shared/payload-contracts/client.contract.ts`
 
@@ -325,7 +326,7 @@ ClientPhotoCapture
   -> preload SAVE_CLIENT_IMAGE
   -> client.handlers.ts
   -> imageStorage.ts
-  -> client.image path in database
+  -> client.image_path in database
 ```
 
 Item photo:
@@ -336,13 +337,25 @@ ItemPhotoCapture
   -> preload SAVE_ITEM_IMAGE
   -> item.handlers.ts
   -> imageStorage.ts
-  -> item.image path in database
+  -> item.image_path in database
+```
+
+Photo display:
+
+```text
+stored image_path
+  -> renderer getImageUrl
+  -> pawn-image:// URL
+  -> main image.protocol.ts
+  -> imageStorage.resolveImageFile
+  -> Chromium image response
 ```
 
 Important rules:
 
 - database stores local image path, not raw image data.
-- UI loads image through API so renderer does not directly read arbitrary files.
+- renderer never receives raw image bytes through IPC.
+- main only serves images from approved client, item, and migration photo directories.
 
 ## Reference Data Admin
 

@@ -1,40 +1,29 @@
 import { useEffect, useState } from "react";
-import { getImageDataUrl } from "../../../shared/utils/imageDataUrl";
-import { clientApi } from "../client.api";
+import { getImageUrl } from "../../../shared/utils/imageUrl";
 
-export const getClientImageDataUrl = (base64: string, imagePath?: string) =>
-  getImageDataUrl(base64, imagePath);
+export const getClientImageUrl = (imagePath?: string) =>
+  getImageUrl("client", imagePath);
 
 export const useClientImage = (imagePath?: string) => {
   const [src, setSrc] = useState<string | null>(null);
 
   useEffect(() => {
-    let active = true;
-
     setSrc(null);
 
-    const load = async () => {
-      if (!imagePath) {
-        return;
-      }
-      try {
-        const base64 = await clientApi.loadClientImage(imagePath);
-        if (!active) {
-          return;
-        }
-        setSrc(base64 ? getClientImageDataUrl(base64, imagePath) : null);
-      } catch (err) {
-        if (!active) {
-          return;
-        }
-        console.error("Failed to load client image", err);
-        setSrc(null);
-      }
-    };
-    load();
+    const imageUrl = getClientImageUrl(imagePath);
+
+    if (!imageUrl) {
+      return;
+    }
+
+    const image = new Image();
+    image.onload = () => setSrc(imageUrl);
+    image.onerror = () => setSrc(null);
+    image.src = imageUrl;
 
     return () => {
-      active = false;
+      image.onload = null;
+      image.onerror = null;
     };
   }, [imagePath]);
 

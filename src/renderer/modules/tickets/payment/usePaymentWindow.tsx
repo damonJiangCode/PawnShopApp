@@ -6,8 +6,7 @@ import type {
   PaymentCompletedEvent,
 } from "../../../../shared/payload-contracts/window.contract";
 import { getAppApi } from "../../../shared/api/app.api";
-import { clientApi } from "../../clients/client.api";
-import { getClientImageDataUrl } from "../../clients/hooks/useClientImage";
+import { getClientImageUrl } from "../../clients/hooks/useClientImage";
 import { ticketApi } from "../ticket.api";
 import { createPaymentColumns } from "./payment.columns";
 import { loadAvailablePaymentRows, processPaymentRows } from "./payment.data";
@@ -187,14 +186,7 @@ export const usePaymentWindow = () => {
 
       setHolidayDateKeys(holidays.map((holiday) => holiday.holiday_date));
       setTicketSearchPreview(preview);
-      const clientImageBase64 = await clientApi.loadClientImage(
-        preview.client.image_path,
-      );
-      setTicketSearchClientImage(
-        clientImageBase64
-          ? getClientImageDataUrl(clientImageBase64, preview.client.image_path)
-          : null,
-      );
+      setTicketSearchClientImage(getClientImageUrl(preview.client.image_path));
       setTicketSearchDialogOpen(true);
 
       if (preview.client.pickup_self_only) {

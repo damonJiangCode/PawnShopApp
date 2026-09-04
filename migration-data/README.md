@@ -13,3 +13,6 @@ When a report or script is updated, replace the old file in place instead of cre
 Start with `reports/migration-status.md` to see the current migration state.
 
 For the final source refresh and production cutover, follow `reports/final-migration-runbook.md`.
+
+Photo migration stores relative `image_path` values. The app serves those files
+through `pawn-image://`; no photo schema conversion is required.

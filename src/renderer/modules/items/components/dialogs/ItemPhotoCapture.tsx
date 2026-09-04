@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Button, Typography } from "@mui/material";
-import { getImageDataUrl } from "../../../../shared/utils/imageDataUrl";
-import { itemApi } from "../../item.api";
+import { getImageUrl } from "../../../../shared/utils/imageUrl";
 
 interface ItemPhotoCaptureProps {
   imagePath?: string;
@@ -63,27 +62,7 @@ const ItemPhotoCapture: React.FC<ItemPhotoCaptureProps> = ({
   }, [active]);
 
   useEffect(() => {
-    if (!imagePath) {
-      setPhotoData(null);
-      return;
-    }
-
-    let mounted = true;
-
-    itemApi
-      .loadItemImage(imagePath)
-      .then((base64) => {
-        if (mounted && base64) {
-          setPhotoData(getImageDataUrl(base64, imagePath));
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to load item image", err);
-      });
-
-    return () => {
-      mounted = false;
-    };
+    setPhotoData(getImageUrl("item", imagePath));
   }, [imagePath]);
 
   const handleTakePhoto = () => {
@@ -156,6 +135,7 @@ const ItemPhotoCapture: React.FC<ItemPhotoCaptureProps> = ({
           <img
             src={photoData}
             alt="Item"
+            onError={() => setPhotoData(null)}
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
           />
         ) : (

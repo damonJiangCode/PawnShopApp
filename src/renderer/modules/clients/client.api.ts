@@ -236,20 +236,6 @@ export const clientApi = {
     return api.saveClientImage(fileName, base64);
   },
 
-  loadClientImage: async (imagePath?: string): Promise<string | null> => {
-    const api = getAppApi()?.client;
-
-    if (!imagePath) {
-      return null;
-    }
-
-    if (!api) {
-      throw new Error("Client API is unavailable.");
-    }
-
-    return api.loadClientImage(imagePath);
-  },
-
   createClient: async (input: SaveClientInput): Promise<Client> => {
     const api = getAppApi()?.client;
     if (!api) {

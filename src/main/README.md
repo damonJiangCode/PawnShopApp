@@ -8,6 +8,7 @@ business logic, and database access.
 ```text
 main/
   index.ts
+  image/
   ipc/
   window/
   database/
@@ -16,6 +17,7 @@ main/
 ```
 
 - `index.ts`: starts Electron and opens the main window.
+- `image/`: registers the controlled `pawn-image://` protocol.
 - `ipc/`: channel names and handler registration.
 - `window/`: app window creation, reuse, and window-action handlers.
 - `database/`: schema, seed data, views, and initializer.
@@ -154,5 +156,5 @@ shared/
 ```
 
 - `createFieldError.ts`: standard field error shape.
-- `imageStorage.ts`: local image save/read helpers.
+- `imageStorage.ts`: saves images and safely resolves stored image paths.
 - `runInTransaction.ts`: database transaction helper.

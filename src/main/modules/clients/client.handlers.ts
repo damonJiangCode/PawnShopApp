@@ -92,10 +92,4 @@ export const registerClientHandlers = () => {
       return clientService.saveClientImage(fileName, base64);
     },
   );
-  ipcMain.handle(
-    CHANNELS.GET_CLIENT_IMAGE,
-    async (_event: IpcMainInvokeEvent, imagePath: string) => {
-      return clientService.loadClientImage(imagePath);
-    },
-  );
 };

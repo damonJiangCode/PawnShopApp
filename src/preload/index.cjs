@@ -26,7 +26,6 @@ const CHANNELS = {
   SEARCH_EMPLOYEES: "search-employees",
   UPDATE_EMPLOYEE: "update-employee",
   SAVE_CLIENT_IMAGE: "save-client-image",
-  GET_CLIENT_IMAGE: "get-client-image",
   GET_TICKETS: "get-tickets",
   GET_HOLIDAY_DATES: "get-holiday-dates",
   ADD_HOLIDAY_DATE: "add-holiday-date",
@@ -43,7 +42,6 @@ const CHANNELS = {
   DELETE_ITEM: "delete-item",
   LINK_ITEMS_TO_TICKET: "link-items-to-ticket",
   SAVE_ITEM_IMAGE: "save-item-image",
-  GET_ITEM_IMAGE: "get-item-image",
   OPEN_PAYMENT_WINDOW: "open-payment-window",
   NOTIFY_PAYMENT_WINDOW_INPUT_UPDATED: "notify-payment-window-input-updated",
   OPEN_TICKET_SEARCH_WINDOW: "open-ticket-search-window",
@@ -87,7 +85,6 @@ const clientApi = {
   deleteClient: (clientNumber) => invoke(CHANNELS.DELETE_CLIENT, clientNumber),
   saveClientImage: (fileName, base64) =>
     invoke(CHANNELS.SAVE_CLIENT_IMAGE, fileName, base64),
-  loadClientImage: (imagePath) => invoke(CHANNELS.GET_CLIENT_IMAGE, imagePath),
 };
 
 const ticketApi = {
@@ -140,7 +137,6 @@ const itemApi = {
     invoke(CHANNELS.LINK_ITEMS_TO_TICKET, ticketNumber, itemNumbers),
   saveItemImage: (fileName, base64) =>
     invoke(CHANNELS.SAVE_ITEM_IMAGE, fileName, base64),
-  loadItemImage: (imagePath) => invoke(CHANNELS.GET_ITEM_IMAGE, imagePath),
 };
 
 const windowApi = {

@@ -2,8 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import type { SxProps, Theme } from "@mui/material/styles";
 import type { Item } from "../../../../../shared/models/item.model";
-import { getImageDataUrl } from "../../../../shared/utils/imageDataUrl";
-import { itemApi } from "../../item.api";
+import { getImageUrl } from "../../../../shared/utils/imageUrl";
 
 interface TransactionItemImageProps {
   selectedItem?: Item;
@@ -21,31 +20,13 @@ const TransactionItemImage: React.FC<TransactionItemImageProps> = (props) => {
     showPlaceholderText = true,
     sx,
   } = props;
-  const [imageSrc, setImageSrc] = useState("");
+  const [imageFailed, setImageFailed] = useState(false);
+  const imageSrc = imageFailed
+    ? null
+    : getImageUrl("item", selectedItem?.image_path);
 
   useEffect(() => {
-    setImageSrc("");
-
-    if (!selectedItem?.image_path) {
-      return;
-    }
-
-    let active = true;
-
-    itemApi.loadItemImage(selectedItem.image_path).then((base64) => {
-      if (active && base64) {
-        setImageSrc(getImageDataUrl(base64, selectedItem.image_path));
-      }
-    }).catch((err) => {
-      console.error("Failed to load item image", err);
-      if (active) {
-        setImageSrc("");
-      }
-    });
-
-    return () => {
-      active = false;
-    };
+    setImageFailed(false);
   }, [selectedItem?.image_path]);
 
   return (
@@ -74,6 +55,7 @@ const TransactionItemImage: React.FC<TransactionItemImageProps> = (props) => {
         <img
           src={imageSrc}
           alt="Item"
+          onError={() => setImageFailed(true)}
           style={{ width: "100%", height: "100%", objectFit }}
         />
       ) : selectedItem && showPlaceholderText ? (

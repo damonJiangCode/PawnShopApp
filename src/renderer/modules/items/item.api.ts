@@ -118,15 +118,6 @@ export const itemApi = {
 
     return api.saveItemImage(fileName, base64);
   },
-
-  loadItemImage: async (imagePath: string): Promise<string> => {
-    const api = getAppApi()?.item;
-    if (!api) {
-      throw new Error("Item API is unavailable.");
-    }
-
-    return api.loadItemImage(imagePath);
-  },
 };
 
 export type { ItemCategoryOption, ItemSearchInput, SaveItemInput };

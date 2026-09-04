@@ -136,8 +136,4 @@ export const itemService = {
   saveItemImage: async (fileName: string, base64: string): Promise<string> => {
     return imageStorage.saveItemImage(fileName, base64);
   },
-
-  loadItemImage: async (imagePath: string): Promise<string> => {
-    return imageStorage.loadItemImage(imagePath);
-  },
 };

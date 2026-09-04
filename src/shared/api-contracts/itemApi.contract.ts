@@ -17,5 +17,4 @@ export type ItemApi = {
     itemNumbers: number[],
   ) => Promise<Item[]>;
   saveItemImage: (fileName: string, base64: string) => Promise<string>;
-  loadItemImage: (imagePath: string) => Promise<string>;
 };

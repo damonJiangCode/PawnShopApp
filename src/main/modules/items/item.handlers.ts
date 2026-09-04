@@ -69,11 +69,4 @@ export const registerItemHandlers = () => {
       return itemService.saveItemImage(fileName, base64);
     },
   );
-
-  ipcMain.handle(
-    CHANNELS.GET_ITEM_IMAGE,
-    async (_event: IpcMainInvokeEvent, imagePath: string) => {
-      return itemService.loadItemImage(imagePath);
-    },
-  );
 };

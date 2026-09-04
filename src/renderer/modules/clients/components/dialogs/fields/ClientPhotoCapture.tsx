@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Button, Typography } from "@mui/material";
 import type { Client } from "../../../../../../shared/models/client.model";
-import { clientApi } from "../../../client.api";
-import { getClientImageDataUrl } from "../../../hooks/useClientImage";
+import { getClientImageUrl } from "../../../hooks/useClientImage";
 
 interface ClientPhotoCaptureProps {
   client: Client;
@@ -25,6 +24,7 @@ const ClientPhotoCapture: React.FC<ClientPhotoCaptureProps> = (props) => {
       navigator.mediaDevices
         .getUserMedia({ video: true })
         .then((stream) => {
+          // close the stream
           if (disposed) {
             stream.getTracks().forEach((track) => track.stop());
             return;
@@ -61,19 +61,7 @@ const ClientPhotoCapture: React.FC<ClientPhotoCaptureProps> = (props) => {
   }, [active]);
 
   useEffect(() => {
-    if (client.client_number && client.image_path) {
-      (async () => {
-        try {
-          const base64 = await clientApi.loadClientImage(client.image_path);
-          if (base64) {
-            setPhotoData(getClientImageDataUrl(base64, client.image_path));
-          }
-        } catch (err) {
-          console.error("Failed to load client image", err);
-          alert("Failed to load client image (ClientPhotoCapture.tsx).");
-        }
-      })();
-    }
+    setPhotoData(getClientImageUrl(client.image_path));
   }, [client.client_number, client.image_path]);
 
   const handleTakePhoto = () => {
@@ -149,6 +137,7 @@ const ClientPhotoCapture: React.FC<ClientPhotoCaptureProps> = (props) => {
             <img
               src={photoData}
               alt="Captured"
+              onError={() => setPhotoData(null)}
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
           ) : (

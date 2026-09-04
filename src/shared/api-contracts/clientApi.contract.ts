@@ -25,5 +25,4 @@ export type ClientApi = {
   updateClient: (input: SaveClientInput) => Promise<Client>;
   deleteClient: (clientNumber: number) => Promise<boolean>;
   saveClientImage: (fileName: string, base64: string) => Promise<string>;
-  loadClientImage: (imagePath: string) => Promise<string>;
 };

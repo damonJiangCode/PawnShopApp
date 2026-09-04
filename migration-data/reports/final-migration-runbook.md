@@ -146,7 +146,9 @@ Photos are exported to:
 migration-data/exports/client-photos/
 ```
 
-The `client.image` path is updated to point to the exported local file.
+The `client.image_path` value is updated with a relative path to the exported
+local file. The app serves this path through `pawn-image://`; no base64 import
+or additional database conversion is required.
 
 ### 5. Employee Migration
 
@@ -267,7 +269,9 @@ Photos are exported to:
 migration-data/exports/item-photos/
 ```
 
-The `item.image` path is updated to point to the exported local file.
+The `item.image_path` value is updated with a relative path to the exported
+local file. The app serves this path through `pawn-image://`; no base64 import
+or additional database conversion is required.
 
 ### 9. Client Statistics Recalculation
 
@@ -402,6 +406,7 @@ Smoke test:
 - Confirm active transaction page only shows `pawned` and `sold`.
 - Confirm history page shows latest tickets at the bottom and uses `E` or `P`.
 - Confirm item photos display.
+- Confirm migrated and newly captured photos still display after restarting the app.
 - Create a test pawn/sell ticket in the migration database and confirm the next ticket number continues after the max migrated ticket number.
 
 Do not use this test ticket database as production if test tickets were created. Reset and rerun the final migration before cutover.
