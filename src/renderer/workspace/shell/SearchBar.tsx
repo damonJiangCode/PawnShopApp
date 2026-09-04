@@ -63,6 +63,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
       firstName: trimmedFirstName,
       lastName: trimmedLastName,
     });
+    requestAnimationFrame(() => {
+      lastNameInputRef.current?.focus();
+      lastNameInputRef.current?.select();
+    });
   };
 
   const handleClear = () => {
