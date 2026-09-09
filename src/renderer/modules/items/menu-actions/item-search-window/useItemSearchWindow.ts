@@ -73,7 +73,7 @@ export const useItemSearchWindow = () => {
   const [items, setItems] = React.useState<Item[]>([]);
   const [checkedItemIds, setCheckedItemIds] =
     React.useState<GridRowSelectionModel>([]);
-  const [previewItem, setPreviewItem] = React.useState<Item | null>(null);
+  const [selectedItem, setSelectedItem] = React.useState<Item | null>(null);
   const [message, setMessage] = React.useState("");
   const [error, setError] = React.useState("");
   const [searching, setSearching] = React.useState(false);
@@ -127,7 +127,6 @@ export const useItemSearchWindow = () => {
     [checkedItems],
   );
 
-  const goToTicketItem = checkedItems.length === 1 ? checkedItems[0] : null;
   const canSearch =
     mode === "item-number"
       ? Boolean(itemNumber.trim())
@@ -139,8 +138,7 @@ export const useItemSearchWindow = () => {
           serialNumber.trim(),
         );
   const canGoToTicket =
-    checkedItems.length === 1 &&
-    Boolean(goToTicketItem?.latest_ticket_number) &&
+    Boolean(selectedItem?.latest_ticket_number) &&
     !openingTicket;
   const canAddToTicket =
     targetStatus.canAddToTicket &&
@@ -189,7 +187,7 @@ export const useItemSearchWindow = () => {
 
     setItems((prev) => mergeItems(prev, nextItems));
     setCheckedItemIds((prev) => mergeCheckedItemIds(prev, nextCheckedIds));
-    setPreviewItem((prev) => prev ?? nextItems[0] ?? null);
+    setSelectedItem((prev) => prev ?? nextItems[0] ?? null);
     setMessage(
       input.sourceTicketNumber
         ? `${nextItems.length} item(s) loaded from ticket #${input.sourceTicketNumber}.`
@@ -287,7 +285,7 @@ export const useItemSearchWindow = () => {
           setCheckedItemIds((prev) =>
             prev.filter((id) => !linkedItemIds.has(Number(id))),
           );
-          setPreviewItem((prev) => {
+          setSelectedItem((prev) => {
             if (!prev || !linkedItemIds.has(prev.item_number)) {
               return prev;
             }
@@ -390,7 +388,7 @@ export const useItemSearchWindow = () => {
 
       setItems(nextItems);
       setCheckedItemIds(retainedCheckedItems.map(getItemId));
-      setPreviewItem((prev) => {
+      setSelectedItem((prev) => {
         if (
           prev &&
           nextItems.some((item) => item.item_number === prev.item_number)
@@ -414,8 +412,8 @@ export const useItemSearchWindow = () => {
   };
 
   const handleGoToTicket = async () => {
-    if (!goToTicketItem?.latest_ticket_number) {
-      setError("Select exactly one item with a ticket first.");
+    if (!selectedItem?.latest_ticket_number) {
+      setError("Select an item with a ticket first.");
       return;
     }
 
@@ -424,7 +422,7 @@ export const useItemSearchWindow = () => {
 
     try {
       const result = await ticketApi.searchTicketByNumber(
-        goToTicketItem.latest_ticket_number,
+        selectedItem.latest_ticket_number,
       );
 
       if (!result) {
@@ -502,7 +500,7 @@ export const useItemSearchWindow = () => {
       items,
       checkedItemIds,
       checkedItems,
-      previewItem,
+      selectedItem,
       message,
       error,
       searching,
@@ -526,7 +524,7 @@ export const useItemSearchWindow = () => {
       setBrandName,
       setModelNumber,
       setSerialNumber,
-      setPreviewItem,
+      setSelectedItem,
       setPaginationModel,
       handleSearch,
       handleGoToTicket,

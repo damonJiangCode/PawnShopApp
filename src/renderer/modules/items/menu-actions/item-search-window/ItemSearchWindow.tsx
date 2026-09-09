@@ -276,7 +276,7 @@ const ItemSearchWindow: React.FC<WindowScreenProps> = () => {
 
             <Box sx={{ height: 112, minWidth: 0 }}>
               <TransactionItemImage
-                selectedItem={state.previewItem ?? undefined}
+                selectedItem={state.selectedItem ?? undefined}
               />
             </Box>
           </Box>
@@ -340,7 +340,7 @@ const ItemSearchWindow: React.FC<WindowScreenProps> = () => {
             }}
             pageSizeOptions={[ITEM_SEARCH_WINDOW_PAGE_SIZE]}
             slots={{ footer: renderFooter }}
-            onRowClick={(params) => actions.setPreviewItem(params.row)}
+            onRowClick={(params) => actions.setSelectedItem(params.row)}
             getRowClassName={(params) => {
               const classNames: string[] = [];
 
@@ -348,8 +348,8 @@ const ItemSearchWindow: React.FC<WindowScreenProps> = () => {
                 classNames.push("blocked-item-row");
               }
 
-              if (params.row.item_number === state.previewItem?.item_number) {
-                classNames.push("preview-item-row");
+              if (params.row.item_number === state.selectedItem?.item_number) {
+                classNames.push("selected-item-row");
               }
 
               return classNames.join(" ");
@@ -388,19 +388,31 @@ const ItemSearchWindow: React.FC<WindowScreenProps> = () => {
               "& .MuiDataGrid-row.blocked-item-row:hover": {
                 backgroundColor: "#ef9a9a",
               },
-              "& .MuiDataGrid-row.preview-item-row": {
-                backgroundColor: "#d0d7de",
+              "& .MuiDataGrid-row.Mui-selected": {
+                backgroundColor: "transparent",
               },
-              "& .MuiDataGrid-row.preview-item-row:hover": {
-                backgroundColor: "#c6d0d9",
+              "& .MuiDataGrid-row.Mui-selected:hover": {
+                backgroundColor: "#f5f5f5",
               },
-              "& .MuiDataGrid-row.blocked-item-row.preview-item-row": {
+              "& .MuiDataGrid-row.blocked-item-row.Mui-selected": {
+                backgroundColor: "#ffcdd2",
+              },
+              "& .MuiDataGrid-row.blocked-item-row.Mui-selected:hover": {
                 backgroundColor: "#ef9a9a",
               },
-              "& .MuiDataGrid-row.blocked-item-row.preview-item-row:hover": {
+              "& .MuiDataGrid-row.selected-item-row": {
+                backgroundColor: "#d0d7de",
+              },
+              "& .MuiDataGrid-row.selected-item-row:hover": {
+                backgroundColor: "#c6d0d9",
+              },
+              "& .MuiDataGrid-row.blocked-item-row.selected-item-row": {
+                backgroundColor: "#ef9a9a",
+              },
+              "& .MuiDataGrid-row.blocked-item-row.selected-item-row:hover": {
                 backgroundColor: "#e57373",
               },
-              "& .MuiDataGrid-row.preview-item-row .MuiDataGrid-cell": {
+              "& .MuiDataGrid-row.selected-item-row .MuiDataGrid-cell": {
                 borderRight: "1px solid #9aa4af",
                 borderBottom: "1px solid #9aa4af",
               },
