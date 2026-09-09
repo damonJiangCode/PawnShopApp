@@ -8,6 +8,7 @@ import {
 } from "../../tickets/ticket.api";
 import type { PrintClient } from "../../tickets/print/ticketPrintTemplate";
 import { getAppApi } from "../../../shared/api/app.api";
+import { sortHistoryTickets } from "../history.helpers";
 
 interface UseHistoryPageParams {
   isActive?: boolean;
@@ -29,18 +30,6 @@ const historyTicketStatuses = new Set<Ticket["status"]>([
   "pawned_picked_up",
   "sold_expired",
 ]);
-
-const sortHistoryTickets = (tickets: Ticket[]) =>
-  [...tickets].sort((a, b) => {
-    const aTime = a.transaction_datetime.getTime();
-    const bTime = b.transaction_datetime.getTime();
-
-    if (aTime !== bTime) {
-      return aTime - bTime;
-    }
-
-    return (a.ticket_number ?? 0) - (b.ticket_number ?? 0);
-  });
 
 export const useHistoryPage = ({
   isActive = true,
