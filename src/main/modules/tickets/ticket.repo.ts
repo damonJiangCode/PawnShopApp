@@ -198,7 +198,8 @@ export const ticketRepo = {
         amount = $4,
         due_date = $5,
         onetime_fee = $6,
-        employee_name = $7
+        employee_name = $7,
+        status_updated_at = CURRENT_TIMESTAMP
       WHERE ticket_number = $8
       RETURNING ${ticketSelectColumns}
     `;
