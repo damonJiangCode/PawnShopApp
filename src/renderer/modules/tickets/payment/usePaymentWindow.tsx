@@ -168,10 +168,7 @@ export const usePaymentWindow = () => {
     setStatusSeverity("info");
 
     try {
-      const [preview, holidays] = await Promise.all([
-        ticketApi.searchPaymentTicketByNumber(ticketNumber),
-        ticketApi.loadHolidayDates(),
-      ]);
+      const preview = await ticketApi.searchPaymentTicketByNumber(ticketNumber);
 
       if (!preview) {
         setStatusSeverity("warning");
@@ -180,10 +177,12 @@ export const usePaymentWindow = () => {
       }
 
       if (preview.ticket.status !== "pawned") {
-        window.alert(`Ticket #${ticketNumber} is not pawned.`);
+        setStatusSeverity("warning");
+        setStatusMessage(`Ticket #${ticketNumber} is not currently pawned.`);
         return;
       }
 
+      const holidays = await ticketApi.loadHolidayDates();
       setHolidayDateKeys(holidays.map((holiday) => holiday.holiday_date));
       setTicketSearchPreview(preview);
       setTicketSearchClientImage(getClientImageUrl(preview.client.image_path));
