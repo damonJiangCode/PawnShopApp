@@ -26,11 +26,6 @@ interface HistoryPageProps {
     sourceTicket: Ticket,
     sourceItems: Item[],
   ) => void;
-  onRepawnPreview?: (sourceTicket: Ticket, sourceItems: Item[]) => void;
-  onLoadItemsToTransaction?: (
-    sourceTicket: Ticket,
-    sourceItems: Item[],
-  ) => void;
 }
 
 const HistoryPage: React.FC<HistoryPageProps> = ({
@@ -45,8 +40,6 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
   refreshKey = 0,
   activationKey = 0,
   onRepawnCreated,
-  onRepawnPreview,
-  onLoadItemsToTransaction,
 }) => {
   const resolvedClientNumber = client?.client_number ?? clientNumber;
   const resolvedClientLastName = client?.last_name ?? clientLastName;
@@ -61,8 +54,6 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
     refreshKey,
     activationKey,
     onRepawnCreated,
-    onRepawnPreview,
-    onLoadItemsToTransaction,
   });
   const {
     tickets,

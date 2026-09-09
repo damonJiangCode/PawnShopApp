@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import type { Client } from "../../shared/models/client.model";
-import type { Item } from "../../shared/models/item.model";
 import type { Ticket } from "../../shared/models/ticket.model";
 import type { PaymentCompletedEvent } from "../../shared/payload-contracts/window.contract";
 import { itemApi } from "../modules/items/item.api";
@@ -14,8 +13,6 @@ type SearchParams = {
 type BirthdaySearchParams = {
   dateOfBirth: string;
 };
-
-type ItemSearchPayloadMode = "repawn" | "load";
 
 type TicketSearchSelectedEvent = {
   type: "ticket-search-selected";
@@ -370,40 +367,11 @@ export const useWorkspaceLayout = () => {
     }));
   };
 
-  const openItemSearchWithItems = (
-    sourceTicket: Ticket,
-    sourceItems: Item[],
-    mode: ItemSearchPayloadMode,
-    focusWindow = false,
-  ) => {
-    if (!sourceTicket.ticket_number) {
-      return;
-    }
-
-    void getAppApi()?.window.openItemSearchWindow({
-      sourceTicketNumber: sourceTicket.ticket_number,
-      items: sourceItems,
-      mode,
-      focusWindow,
-    });
-  };
-
   const handleRepawnCreated = (ticket: Ticket) => {
     setIncomingTransactionTicket(ticket);
     setFocusTicketNumber(ticket.ticket_number);
     setFocusRequestId((prev) => prev + 1);
     setCurrentTab(1);
-  };
-
-  const handleRepawnPreview = (sourceTicket: Ticket, sourceItems: Item[]) => {
-    openItemSearchWithItems(sourceTicket, sourceItems, "repawn", false);
-  };
-
-  const handleLoadHistoryItems = (
-    sourceTicket: Ticket,
-    sourceItems: Item[],
-  ) => {
-    openItemSearchWithItems(sourceTicket, sourceItems, "load", true);
   };
 
   return {
@@ -437,8 +405,6 @@ export const useWorkspaceLayout = () => {
       handleClientSoldTicket,
       requestHistoryRefresh,
       handleRepawnCreated,
-      handleRepawnPreview,
-      handleLoadHistoryItems,
     },
   };
 };

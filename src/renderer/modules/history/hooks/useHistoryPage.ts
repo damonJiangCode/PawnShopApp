@@ -7,6 +7,7 @@ import {
   type CreatePawnTicketInput,
 } from "../../tickets/ticket.api";
 import type { PrintClient } from "../../tickets/print/ticketPrintTemplate";
+import { getAppApi } from "../../../shared/api/app.api";
 
 interface UseHistoryPageParams {
   isActive?: boolean;
@@ -18,11 +19,6 @@ interface UseHistoryPageParams {
   activationKey?: number;
   onRepawnCreated?: (
     ticket: Ticket,
-    sourceTicket: Ticket,
-    sourceItems: Item[],
-  ) => void;
-  onRepawnPreview?: (sourceTicket: Ticket, sourceItems: Item[]) => void;
-  onLoadItemsToTransaction?: (
     sourceTicket: Ticket,
     sourceItems: Item[],
   ) => void;
@@ -55,8 +51,6 @@ export const useHistoryPage = ({
   refreshKey = 0,
   activationKey = 0,
   onRepawnCreated,
-  onRepawnPreview,
-  onLoadItemsToTransaction,
 }: UseHistoryPageParams) => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
@@ -282,13 +276,19 @@ export const useHistoryPage = ({
     isActive,
   ]);
 
-  const handleRepawn = () => {
+  const handleRepawn = async () => {
     if (!selectedTicket) return;
+
+    setStatusMessage("");
     if (items.length) {
-      onRepawnPreview?.(selectedTicket, items);
+      await getAppApi()?.window.openItemSearchWindow({
+        sourceTicketNumber: selectedTicket.ticket_number,
+        items,
+        mode: "repawn",
+        focusWindow: false,
+      });
     }
     setOpenRepawnDialog(true);
-    setStatusMessage("");
   };
 
   const handleRepawnSave = async (
@@ -318,7 +318,12 @@ export const useHistoryPage = ({
       return;
     }
 
-    onLoadItemsToTransaction?.(selectedTicket, items);
+    void getAppApi()?.window.openItemSearchWindow({
+      sourceTicketNumber: selectedTicket.ticket_number,
+      items,
+      mode: "load",
+      focusWindow: true,
+    });
   };
 
   const handleItemSaved = (savedItem: Item) => {
