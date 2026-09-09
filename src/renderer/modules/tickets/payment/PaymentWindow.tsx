@@ -258,24 +258,11 @@ const PaymentWindow: React.FC = () => {
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "1fr auto 1fr",
+            gridTemplateColumns: "auto 1fr auto",
             gap: 1,
             alignItems: "center",
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Button
-              variant="contained"
-              onClick={() => void actions.handleLoad()}
-              disabled={loading}
-            >
-              Load
-            </Button>
-            <Button variant="outlined" onClick={actions.handleClear}>
-              Clear
-            </Button>
-          </Box>
-
           <Tabs
             value={mode}
             onChange={(_event, nextMode) => actions.setMode(nextMode)}
@@ -293,9 +280,29 @@ const PaymentWindow: React.FC = () => {
               },
             }}
           >
-            <Tab value="pickup" label="Pickup" />
-            <Tab value="extension" label="Extension" />
+            <Tab value="pickup" label="Buyback" />
+            <Tab value="extension" label="Interest" />
           </Tabs>
+
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            <Button
+              variant="contained"
+              onClick={() => void actions.handleLoad()}
+              disabled={loading}
+            >
+              Load
+            </Button>
+            <Button variant="outlined" onClick={actions.handleClear}>
+              Clear
+            </Button>
+          </Box>
 
           <Box
             sx={{
