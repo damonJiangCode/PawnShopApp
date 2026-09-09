@@ -63,10 +63,16 @@ const HistoryTicketsTable: React.FC<HistoryTicketsTableProps> = ({
   const currentPage = Math.min(paginationModel.page, pageCount - 1);
 
   const setPage = (page: number) => {
+    const targetPage = Math.min(Math.max(page, 0), pageCount - 1);
+    const targetRowIndex =
+      Math.min((targetPage + 1) * HISTORY_PAGE_SIZE, tickets.length) - 1;
+
+    pendingScrollRowIndexRef.current = targetRowIndex;
     setPaginationModel({
-      page: Math.min(Math.max(page, 0), pageCount - 1),
+      page: targetPage,
       pageSize: HISTORY_PAGE_SIZE,
     });
+    setScrollTrigger((prev) => prev + 1);
   };
 
   const CompactFooter = () => (
@@ -265,7 +271,7 @@ const HistoryTicketsTable: React.FC<HistoryTicketsTableProps> = ({
         : { page: targetPage, pageSize: HISTORY_PAGE_SIZE },
     );
     setScrollTrigger((prev) => prev + 1);
-  }, [scrollRequestKey, selectedTicket?.ticket_number, tickets]);
+  }, [scrollRequestKey, tickets]);
 
   React.useEffect(() => {
     if (pendingScrollRowIndexRef.current === null) {
@@ -282,14 +288,10 @@ const HistoryTicketsTable: React.FC<HistoryTicketsTableProps> = ({
 
     const animationFrameId = window.requestAnimationFrame(scrollToTarget);
     const timeoutId = window.setTimeout(scrollToTarget, 80);
-    const secondTimeoutId = window.setTimeout(scrollToTarget, 180);
-    const finalTimeoutId = window.setTimeout(scrollToTarget, 320);
 
     return () => {
       window.cancelAnimationFrame(animationFrameId);
       window.clearTimeout(timeoutId);
-      window.clearTimeout(secondTimeoutId);
-      window.clearTimeout(finalTimeoutId);
     };
   }, [apiRef, paginationModel.page, paginationModel.pageSize, scrollTrigger]);
 
@@ -303,10 +305,14 @@ const HistoryTicketsTable: React.FC<HistoryTicketsTableProps> = ({
       getRowId={(row) => row.ticket_number}
       paginationModel={paginationModel}
       onPaginationModelChange={(model) => {
-        setPaginationModel({
-          page: model.page,
-          pageSize: HISTORY_PAGE_SIZE,
-        });
+        setPaginationModel((prev) =>
+          prev.page === model.page && prev.pageSize === HISTORY_PAGE_SIZE
+            ? prev
+            : {
+                page: model.page,
+                pageSize: HISTORY_PAGE_SIZE,
+              },
+        );
       }}
       pageSizeOptions={[HISTORY_PAGE_SIZE]}
       slots={{ footer: CompactFooter }}
