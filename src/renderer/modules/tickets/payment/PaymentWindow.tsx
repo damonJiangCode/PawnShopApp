@@ -409,7 +409,7 @@ const PaymentWindow: React.FC = () => {
           open={ticketSearchDialogOpen}
           preview={ticketSearchPreview}
           clientImage={ticketSearchClientImage}
-          onConfirm={actions.addTicketSearchPreviewToAvailable}
+          onConfirm={actions.addTicketSearchPreviewToSelected}
           onClose={actions.closeTicketSearchDialog}
         />
 

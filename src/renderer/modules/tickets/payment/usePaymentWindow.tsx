@@ -11,8 +11,10 @@ import { ticketApi } from "../ticket.api";
 import { createPaymentColumns } from "./payment.columns";
 import { loadAvailablePaymentRows, processPaymentRows } from "./payment.data";
 import {
+  addThirtyDayPeriods,
   createEmptyRowsByMode,
   createEmptySelectionByMode,
+  formatBlockedPickupMessage,
   getOppositeMode,
   mapTicketToPaymentRow,
 } from "./payment.helpers";
@@ -221,7 +223,7 @@ export const usePaymentWindow = () => {
     setTicketSearchDialogOpen(false);
   };
 
-  const addTicketSearchPreviewToAvailable = () => {
+  const addTicketSearchPreviewToSelected = () => {
     if (!ticketSearchPreview) {
       return;
     }
@@ -279,29 +281,42 @@ export const usePaymentWindow = () => {
       return;
     }
 
-    setAvailableRowsByMode((prev) => {
-      const alreadyAvailable = prev[mode].some(
-        (row) => row.ticketNumber === searchedRow.ticketNumber,
-      );
+    if (
+      mode === "pickup" &&
+      !searchedRow.isPickupAllowed &&
+      !window.confirm(formatBlockedPickupMessage([searchedRow]))
+    ) {
+      return;
+    }
 
-      if (alreadyAvailable) {
-        return prev;
-      }
-
-      return {
-        ...prev,
-        [mode]: [...prev[mode], searchedRow].sort(
-          (a, b) => a.ticketNumber - b.ticketNumber,
-        ),
-      };
-    });
-    setAvailableSelectionByMode((prev) => ({
+    setSelectedRowsByMode((prev) => ({
       ...prev,
-      [mode]: [searchedRow.id],
+      [mode]: [
+        ...prev[mode],
+        mode === "extension"
+          ? {
+              ...searchedRow,
+              dueDate: addThirtyDayPeriods(searchedRow.dueDate, 1),
+            }
+          : searchedRow,
+      ],
     }));
+    setAvailableRowsByMode((prev) => ({
+      ...prev,
+      [mode]:
+        mode === "pickup"
+          ? prev[mode].filter(
+              (row) => row.ticketNumber !== searchedRow.ticketNumber,
+            )
+          : prev[mode],
+      [getOppositeMode(mode)]: prev[getOppositeMode(mode)].filter(
+        (row) => row.ticketNumber !== searchedRow.ticketNumber,
+      ),
+    }));
+    setAvailableSelectionByMode((prev) => ({ ...prev, [mode]: [] }));
     closeTicketSearchDialog();
     setStatusSeverity("success");
-    setStatusMessage(`Ticket #${searchedRow.ticketNumber} loaded.`);
+    setStatusMessage(`Ticket #${searchedRow.ticketNumber} selected.`);
   };
 
   const handleClear = () => {
@@ -414,7 +429,7 @@ export const usePaymentWindow = () => {
       handleLoad,
       handleTicketSearch,
       closeTicketSearchDialog,
-      addTicketSearchPreviewToAvailable,
+      addTicketSearchPreviewToSelected,
       handleClear,
       handleDone,
       setAvailableSelectionModel: (selectionModel: GridRowSelectionModel) =>
