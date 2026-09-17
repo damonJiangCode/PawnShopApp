@@ -13,10 +13,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import { DataGrid } from "@mui/x-data-grid";
 import ClientBar from "../../../shared/components/ClientBar";
 import { formatCurrency } from "../../../shared/utils/formatters";
-import {
-  type PaymentMode,
-  usePaymentWindow,
-} from "./usePaymentWindow";
+import { type PaymentMode, usePaymentWindow } from "./usePaymentWindow";
 import TicketOwnerCheckDialog from "./TicketOwnerCheckDialog";
 
 const modeStyles: Record<
@@ -32,7 +29,6 @@ const modeStyles: Record<
     accent: "#f9a825",
   },
 };
-const summaryBackground = "#eaf3ff";
 
 const paymentTableSx = {
   border: "1px solid #ccc",
@@ -97,7 +93,8 @@ const PaymentWindow: React.FC = () => {
   const renderSummaryField = (
     label: string,
     value: string,
-    backgroundColor = summaryBackground,
+    backgroundColor: string,
+    borderColor: string,
   ) => (
     <Box sx={{ minWidth: 0 }}>
       <Typography
@@ -113,7 +110,7 @@ const PaymentWindow: React.FC = () => {
           py: 0.65,
           borderRadius: 1,
           backgroundColor,
-          border: "1px solid rgba(25, 118, 210, 0.22)",
+          border: `1px solid ${borderColor}`,
           fontWeight: 900,
           minHeight: 35,
           display: "flex",
@@ -232,13 +229,21 @@ const PaymentWindow: React.FC = () => {
           {renderSummaryField(
             "Pickup Amt",
             formatCurrency(pickupSummaryAmount),
+            modeStyles.pickup.tableBackground,
+            "rgba(25, 118, 210, 0.24)",
           )}
           {renderSummaryField(
             "Extension Amt",
             formatCurrency(extensionSummaryAmount),
             modeStyles.extension.tableBackground,
+            "rgba(249, 168, 37, 0.32)",
           )}
-          {renderSummaryField("Total Amt", formatCurrency(totalSummaryAmount))}
+          {renderSummaryField(
+            "Total Amt",
+            formatCurrency(totalSummaryAmount),
+            "#fff",
+            "#ccc",
+          )}
         </Box>
       </Paper>
 
@@ -258,7 +263,7 @@ const PaymentWindow: React.FC = () => {
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "auto 1fr auto",
+            gridTemplateColumns: "1fr auto 1fr",
             gap: 1,
             alignItems: "center",
           }}
@@ -268,6 +273,7 @@ const PaymentWindow: React.FC = () => {
             onChange={(_event, nextMode) => actions.setMode(nextMode)}
             sx={{
               minHeight: 36,
+              justifySelf: "start",
               "& .MuiTab-root": {
                 minHeight: 36,
                 fontWeight: 900,
@@ -307,6 +313,7 @@ const PaymentWindow: React.FC = () => {
           <Box
             sx={{
               display: "flex",
+              justifySelf: "end",
               justifyContent: "flex-end",
               alignItems: "center",
               gap: 1,

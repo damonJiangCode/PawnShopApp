@@ -113,6 +113,13 @@ export const usePaymentWindow = () => {
     return windowApi.onPaymentWindowInputUpdated(setPaymentWindowInput);
   }, []);
 
+  const focusTicketSearchInput = () => {
+    requestAnimationFrame(() => {
+      ticketSearchInputRef.current?.focus();
+      ticketSearchInputRef.current?.select();
+    });
+  };
+
   const handleLoad = async () => {
     if (!Number.isFinite(clientNumber) || clientNumber <= 0) {
       setStatusSeverity("warning");
@@ -160,6 +167,7 @@ export const usePaymentWindow = () => {
     if (!Number.isFinite(ticketNumber) || ticketNumber <= 0) {
       setStatusSeverity("warning");
       setStatusMessage("Enter a valid ticket number.");
+      focusTicketSearchInput();
       return;
     }
 
@@ -173,12 +181,14 @@ export const usePaymentWindow = () => {
       if (!preview) {
         setStatusSeverity("warning");
         setStatusMessage(`Ticket #${ticketNumber} was not found.`);
+        focusTicketSearchInput();
         return;
       }
 
       if (preview.ticket.status !== "pawned") {
         setStatusSeverity("warning");
         setStatusMessage(`Ticket #${ticketNumber} is not currently pawned.`);
+        focusTicketSearchInput();
         return;
       }
 
@@ -201,6 +211,7 @@ export const usePaymentWindow = () => {
       setStatusMessage(
         err instanceof Error ? err.message : "Unable to search ticket.",
       );
+      focusTicketSearchInput();
     } finally {
       setLoading(false);
     }
