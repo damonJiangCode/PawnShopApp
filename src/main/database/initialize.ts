@@ -24,6 +24,10 @@ import {
   createTicketItemTable,
 } from "./schema/ticket/ticketItemTable.ts";
 import {
+  createTicketReversalIndexes,
+  createTicketReversalTable,
+} from "./schema/ticket/ticketReversalTable.ts";
+import {
   createPreventItemMultiplePawnedTicketsFunction,
   createPreventItemMultiplePawnedTicketsTrigger,
   createPreventTicketWithConflictingPawnedItemsFunction,
@@ -125,6 +129,12 @@ export const initializeDatabase = async () => {
 
     await client.query(createEmployeeTable);
     console.log("employee table created successfully");
+
+    await client.query(createTicketReversalTable);
+    console.log("ticket_reversal table created successfully");
+
+    await client.query(createTicketReversalIndexes);
+    console.log("ticket_reversal indexes created successfully");
 
     // Seed default data.
     await seedCities(client);

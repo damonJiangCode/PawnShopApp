@@ -7,6 +7,7 @@ import type {
   CreatePawnTicketInput,
   CreateSellTicketInput,
   ReportDateInput,
+  ReverseTicketInput,
   TransferTicketInput,
   UpdateTicketInput,
 } from "../../../../shared/payload-contracts/ticket.contract";
@@ -19,6 +20,7 @@ export type TicketFormField =
   | "amount"
   | "onetime_fee"
   | "employee_password"
+  | "manager_password"
   | "ticket_number";
 
 export type TicketFormError = Error & {
@@ -155,6 +157,12 @@ export const normalizeReportDateInput = (
   input: ReportDateInput,
 ): ReportDateInput => ({
   date: trimText(input.date),
+});
+
+export const normalizeReverseTicketInput = (
+  input: ReverseTicketInput,
+): ReverseTicketInput => ({
+  ticket_number: toNumber(input.ticket_number),
 });
 
 export const mapBackendError = (error: unknown): Error => {

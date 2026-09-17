@@ -12,6 +12,8 @@ import type {
   CreatePawnTicketInput,
   CreateSellTicketInput,
   ReportDateInput,
+  ReverseTicketInput,
+  ReverseTicketResult,
   TicketSearchResult,
   TransferTicketInput,
   TransferTicketPreview,
@@ -25,6 +27,7 @@ import {
   type PrintClient,
 } from "./print/ticketPrintTemplate";
 import {
+  type TicketFormError,
   mapBackendError,
   normalizeConvertTicketInput,
   normalizeCreatePawnTicketInput,
@@ -34,6 +37,7 @@ import {
   normalizeMarkTicketStolenInput,
   normalizePickupTicketsInput,
   normalizeReportDateInput,
+  normalizeReverseTicketInput,
   normalizeTransferTicketInput,
   normalizeUpdateTicketInput,
 } from "./helpers/ticketApiUtils";
@@ -413,6 +417,26 @@ export const ticketApi = {
       throw mapBackendError(error);
     }
   },
+
+  reverseTicket: async (
+    input: ReverseTicketInput,
+  ): Promise<ReverseTicketResult> => {
+    const api = getAppApi()?.ticket;
+
+    if (!api) {
+      throw new Error("Ticket API is unavailable.");
+    }
+
+    const result = await api.reverseTicket(normalizeReverseTicketInput(input));
+
+    if (!result.ok) {
+      const error = new Error(result.message) as TicketFormError;
+      error.field = result.field;
+      throw error;
+    }
+
+    return result.result;
+  },
 };
 
 export type {
@@ -426,6 +450,8 @@ export type {
   CreatePawnTicketInput,
   CreateSellTicketInput,
   ReportDateInput,
+  ReverseTicketInput,
+  ReverseTicketResult,
   TransferTicketInput,
   TransferTicketPreview,
   UpdateTicketInput,

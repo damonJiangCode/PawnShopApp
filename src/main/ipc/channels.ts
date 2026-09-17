@@ -57,6 +57,7 @@ const CHANNELS = {
   EXTEND_TICKETS: "extend-tickets",
   GET_TRANSFER_TICKET_PREVIEW: "get-transfer-ticket-preview",
   TRANSFER_TICKET: "transfer-ticket",
+  REVERSE_TICKET: "reverse-ticket",
 } as const;
 
 export { CHANNELS };

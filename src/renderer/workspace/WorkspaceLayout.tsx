@@ -176,6 +176,7 @@ const WorkspaceLayout: React.FC = () => {
               refreshKey={historyRefreshKey}
               activationKey={historyActivationKey}
               onRepawnCreated={actions.handleRepawnCreated}
+              onReverseCompleted={actions.handleTicketReversed}
             />
           </MainTabPanel>
         </Box>

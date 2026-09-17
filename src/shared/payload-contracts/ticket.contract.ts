@@ -83,6 +83,18 @@ export type TransferTicketInput = {
   client_number: number;
 };
 
+export type ReverseTicketInput = {
+  ticket_number: number;
+};
+
+export type ReverseTicketFormField = "ticket_number";
+
+export type ReverseTicketResult = {
+  ticket: Ticket;
+  client: Client;
+  previous_status: "pawned_expired" | "pawned_picked_up";
+};
+
 export type ConvertTicketInput = TicketDescriptionInput &
   EmployeeAuthorizedInput & {
     ticket_number: number;

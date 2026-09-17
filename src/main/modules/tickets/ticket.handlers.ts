@@ -5,11 +5,14 @@ import type {
   ExpireTicketInput,
   MarkTicketStolenInput,
   PickupTicketsInput,
+  ReverseTicketFormField,
+  ReverseTicketInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
   TransferTicketInput,
   UpdateTicketInput,
 } from "../../../shared/payload-contracts/ticket.contract.ts";
+import type { ReverseTicketMutationResult } from "../../../shared/api-contracts/ticketApi.contract.ts";
 import type {
   SaveHolidayInput,
   SaveLocationInput,
@@ -17,9 +20,34 @@ import type {
 import { ticketAdminService } from "./ticket-admin.service.ts";
 import { ticketPaymentService } from "./ticket-payment.service.ts";
 import { ticketService } from "./ticket.service.ts";
+import { ticketReversalService } from "./ticket-reversal.service.ts";
 import { CHANNELS } from "../../ipc/channels.ts";
+import { extractFieldError } from "../../shared/createFieldError.ts";
 
 const { ipcMain } = require("electron/main") as typeof import("electron");
+
+const runReverseTicketMutation = async (
+  input: ReverseTicketInput,
+): Promise<ReverseTicketMutationResult> => {
+  try {
+    return {
+      ok: true,
+      result: await ticketReversalService.reverseTicket(input),
+    };
+  } catch (error) {
+    const fieldError = extractFieldError(error);
+
+    if (fieldError) {
+      return {
+        ok: false,
+        field: fieldError.field as ReverseTicketFormField,
+        message: fieldError.message,
+      };
+    }
+
+    throw error;
+  }
+};
 
 export const registerTicketHandlers = () => {
   ipcMain.handle(CHANNELS.GET_LOCATIONS, async () =>
@@ -128,5 +156,10 @@ export const registerTicketHandlers = () => {
     async (_event: IpcMainInvokeEvent, payload: TransferTicketInput) => {
       return ticketService.transferTicket(payload);
     },
+  );
+  ipcMain.handle(
+    CHANNELS.REVERSE_TICKET,
+    async (_event: IpcMainInvokeEvent, input: ReverseTicketInput) =>
+      runReverseTicketMutation(input),
   );
 };

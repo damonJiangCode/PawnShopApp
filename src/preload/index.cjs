@@ -59,6 +59,7 @@ const CHANNELS = {
   EXTEND_TICKETS: "extend-tickets",
   GET_TRANSFER_TICKET_PREVIEW: "get-transfer-ticket-preview",
   TRANSFER_TICKET: "transfer-ticket",
+  REVERSE_TICKET: "reverse-ticket",
 };
 
 const invoke = (channel, ...args) => ipcRenderer.invoke(channel, ...args);
@@ -116,6 +117,7 @@ const ticketApi = {
   loadTransferTicketPreview: (ticketNumber) =>
     invoke(CHANNELS.GET_TRANSFER_TICKET_PREVIEW, ticketNumber),
   transferTicket: (payload) => invoke(CHANNELS.TRANSFER_TICKET, payload),
+  reverseTicket: (payload) => invoke(CHANNELS.REVERSE_TICKET, payload),
 };
 
 const employeeApi = {

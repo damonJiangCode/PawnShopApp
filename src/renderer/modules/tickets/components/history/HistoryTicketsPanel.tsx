@@ -13,6 +13,7 @@ interface HistoryTicketsPanelProps {
   onSelectTicket: (ticket: Ticket | null) => void;
   onRepawn: () => void;
   onLoad: () => void;
+  onReverse: () => void;
 }
 
 const HistoryTicketsPanel: React.FC<HistoryTicketsPanelProps> = ({
@@ -23,6 +24,7 @@ const HistoryTicketsPanel: React.FC<HistoryTicketsPanelProps> = ({
   onSelectTicket,
   onRepawn,
   onLoad,
+  onReverse,
 }) => {
   return (
     <Paper
@@ -72,6 +74,7 @@ const HistoryTicketsPanel: React.FC<HistoryTicketsPanelProps> = ({
           selectedTicket={selectedTicket}
           onRepawn={onRepawn}
           onLoad={onLoad}
+          onReverse={onReverse}
         />
       </Paper>
     </Paper>

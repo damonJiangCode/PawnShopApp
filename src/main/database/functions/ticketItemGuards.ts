@@ -10,7 +10,7 @@ export const createPreventItemMultiplePawnedTicketsFunction = `
     FROM ticket
     WHERE ticket_number = NEW.ticket_number;
 
-    IF target_ticket_status = 'pawned' THEN
+    IF target_ticket_status IN ('pawned', 'sold') THEN
       SELECT ti.ticket_number
       INTO conflicting_ticket_number
       FROM ticket_item ti
@@ -18,12 +18,12 @@ export const createPreventItemMultiplePawnedTicketsFunction = `
         ON t.ticket_number = ti.ticket_number
       WHERE ti.item_number = NEW.item_number
         AND ti.ticket_number <> NEW.ticket_number
-        AND t.status = 'pawned'
+        AND t.status IN ('pawned', 'sold')
       LIMIT 1;
 
       IF conflicting_ticket_number IS NOT NULL THEN
         RAISE EXCEPTION
-          'Item % is already active on pawn ticket %',
+          'Item % is already active on ticket %',
           NEW.item_number,
           conflicting_ticket_number;
       END IF;
@@ -51,7 +51,7 @@ export const createPreventTicketWithConflictingPawnedItemsFunction = `
     conflicting_item_number INTEGER;
     conflicting_ticket_number INTEGER;
   BEGIN
-    IF NEW.status = 'pawned' THEN
+    IF NEW.status IN ('pawned', 'sold') THEN
       SELECT current_items.item_number, other_ti.ticket_number
       INTO conflicting_item_number, conflicting_ticket_number
       FROM ticket_item current_items
@@ -61,12 +61,12 @@ export const createPreventTicketWithConflictingPawnedItemsFunction = `
       INNER JOIN ticket other_ticket
         ON other_ticket.ticket_number = other_ti.ticket_number
       WHERE current_items.ticket_number = NEW.ticket_number
-        AND other_ticket.status = 'pawned'
+        AND other_ticket.status IN ('pawned', 'sold')
       LIMIT 1;
 
       IF conflicting_item_number IS NOT NULL THEN
         RAISE EXCEPTION
-          'Item % is already active on pawn ticket %',
+          'Item % is already active on ticket %',
           conflicting_item_number,
           conflicting_ticket_number;
       END IF;

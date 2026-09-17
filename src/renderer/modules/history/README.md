@@ -3,7 +3,7 @@
 `history/` owns the History page workflow.
 
 This page shows completed or expired tickets for the selected client and lets
-staff inspect, edit item info, load items, or repawn from old tickets.
+staff inspect, edit item info, load items, repawn, or reverse old tickets.
 
 ## Structure
 
@@ -13,6 +13,8 @@ history/
     HistoryPage.tsx
   hooks/
     useHistoryPage.ts
+  components/
+    ReverseTicketDialog.tsx
 ```
 
 ## Responsibilities
@@ -25,6 +27,7 @@ This module owns:
 - repawn dialog state
 - edit item dialog state
 - loading history items into Item Search
+- confirming Reverse for eligible pawn tickets
 
 It uses components from:
 
@@ -72,6 +75,20 @@ Load click
   -> focus Item Search window
   -> append source ticket items without duplicates
 ```
+
+## Reverse Flow
+
+```text
+Reverse click
+  -> open ReverseTicketDialog using the selected History ticket
+  -> show the calculated pickup amount
+  -> confirm and validate the current ticket in main
+  -> restore the ticket to Transaction
+  -> refresh both pages and select the restored ticket
+```
+
+Only `pawned_expired` and `pawned_picked_up` can be reversed. `sold_expired`
+cannot be reversed.
 
 ## Review Notes
 

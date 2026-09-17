@@ -7,6 +7,7 @@ import type {
   CreatePawnTicketInput,
   CreateSellTicketInput,
   ReportDateInput,
+  ReverseTicketInput,
   TransferTicketInput,
   UpdateTicketInput,
 } from "../../../shared/payload-contracts/ticket.contract.ts";
@@ -114,6 +115,10 @@ const normalizeReportDate = (input: ReportDateInput) => ({
   date: trimText(input.date),
 });
 
+const normalizeReverseTicket = (input: ReverseTicketInput) => ({
+  ticket_number: toNumber(input.ticket_number),
+});
+
 const isValidDateKey = (value: string) => {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
 
@@ -144,5 +149,6 @@ export const ticketInput = {
   normalizePickupTickets,
   normalizeExtendTickets,
   normalizeReportDate,
+  normalizeReverseTicket,
   isValidDateKey,
 };

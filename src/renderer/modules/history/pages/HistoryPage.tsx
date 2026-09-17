@@ -8,6 +8,8 @@ import HistoryTicketsPanel from "../../tickets/components/history/HistoryTickets
 import HistoryItemsPanel from "../../items/components/history/HistoryItemsPanel";
 import TicketPawnDialog from "../../tickets/components/dialogs/TicketPawnDialog";
 import ItemEditDialog from "../../items/components/dialogs/ItemEditDialog";
+import type { ReverseTicketResult } from "../../tickets/ticket.api";
+import ReverseTicketDialog from "../components/ReverseTicketDialog";
 import { useHistoryPage } from "../hooks/useHistoryPage";
 
 interface HistoryPageProps {
@@ -26,6 +28,7 @@ interface HistoryPageProps {
     sourceTicket: Ticket,
     sourceItems: Item[],
   ) => void;
+  onReverseCompleted?: (result: ReverseTicketResult) => void;
 }
 
 const HistoryPage: React.FC<HistoryPageProps> = ({
@@ -40,6 +43,7 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
   refreshKey = 0,
   activationKey = 0,
   onRepawnCreated,
+  onReverseCompleted,
 }) => {
   const resolvedClientNumber = client?.client_number ?? clientNumber;
   const resolvedClientLastName = client?.last_name ?? clientLastName;
@@ -54,6 +58,7 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
     refreshKey,
     activationKey,
     onRepawnCreated,
+    onReverseCompleted,
   });
   const {
     tickets,
@@ -66,6 +71,9 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
     itemsError,
     statusMessage,
     openRepawnDialog,
+    reverseTicket,
+    reverseError,
+    reverseProcessing,
     openItemEditDialog,
     itemCategories,
   } = state;
@@ -124,6 +132,7 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
           }}
           onRepawn={actions.handleRepawn}
           onLoad={actions.handleLoad}
+          onReverse={actions.handleReverse}
         />
 
         {(ticketsError || itemsError || statusMessage) && (
@@ -166,6 +175,19 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
           }}
           onClose={() => actions.setOpenRepawnDialog(false)}
           onSave={actions.handleRepawnSave}
+        />
+      )}
+
+      {reverseTicket && (
+        <ReverseTicketDialog
+          ticket={reverseTicket}
+          clientFirstName={resolvedClientFirstName}
+          clientLastName={resolvedClientLastName}
+          clientMiddleName={resolvedClientMiddleName}
+          error={reverseError}
+          processing={reverseProcessing}
+          onClose={actions.closeReverseDialog}
+          onConfirm={() => void actions.handleReverseConfirm()}
         />
       )}
 

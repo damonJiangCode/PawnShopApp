@@ -87,6 +87,15 @@ Important files:
 Payment behavior should be reviewed carefully because it touches money,
 interest, pickup, and extension flows.
 
+## Reverse
+
+Reverse confirmation is owned by `history/components/ReverseTicketDialog.tsx`.
+The mutation remains in `ticket.api.ts` and the main ticket reversal service.
+
+Reverse changes `pawned_expired` or `pawned_picked_up` back to `pawned`. It
+writes an audit row, corrects the matching client statistic, and refuses
+tickets whose items moved to a newer or active ticket.
+
 ## Print Template
 
 Important files:

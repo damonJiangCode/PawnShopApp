@@ -5,6 +5,8 @@ import { itemApi, type ItemCategoryOption } from "../../items/item.api";
 import {
   ticketApi,
   type CreatePawnTicketInput,
+  type ReverseTicketResult,
+  type TicketFormError,
 } from "../../tickets/ticket.api";
 import type { PrintClient } from "../../tickets/print/ticketPrintTemplate";
 import { getAppApi } from "../../../shared/api/app.api";
@@ -23,6 +25,7 @@ interface UseHistoryPageParams {
     sourceTicket: Ticket,
     sourceItems: Item[],
   ) => void;
+  onReverseCompleted?: (result: ReverseTicketResult) => void;
 }
 
 const historyTicketStatuses = new Set<Ticket["status"]>([
@@ -40,6 +43,7 @@ export const useHistoryPage = ({
   refreshKey = 0,
   activationKey = 0,
   onRepawnCreated,
+  onReverseCompleted,
 }: UseHistoryPageParams) => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
@@ -53,6 +57,9 @@ export const useHistoryPage = ({
   const [ticketScrollRequestKey, setTicketScrollRequestKey] = useState(0);
   const [statusMessage, setStatusMessage] = useState("");
   const [openRepawnDialog, setOpenRepawnDialog] = useState(false);
+  const [reverseTicket, setReverseTicket] = useState<Ticket | null>(null);
+  const [reverseError, setReverseError] = useState("");
+  const [reverseProcessing, setReverseProcessing] = useState(false);
   const [openItemEditDialog, setOpenItemEditDialog] = useState(false);
   const [itemCategories, setItemCategories] = useState<ItemCategoryOption[]>(
     [],
@@ -72,6 +79,8 @@ export const useHistoryPage = ({
     setTicketsError("");
     setItemsError("");
     setStatusMessage("");
+    setReverseTicket(null);
+    setReverseError("");
   }, [clientNumber]);
 
   useEffect(() => {
@@ -315,6 +324,60 @@ export const useHistoryPage = ({
     });
   };
 
+  const handleReverse = () => {
+    if (!selectedTicket?.ticket_number) {
+      return;
+    }
+
+    if (
+      selectedTicket.status !== "pawned_expired" &&
+      selectedTicket.status !== "pawned_picked_up"
+    ) {
+      setStatusMessage(
+        "Only expired or picked-up pawn tickets can be reversed.",
+      );
+      return;
+    }
+
+    setStatusMessage("");
+    setReverseError("");
+    setReverseTicket(selectedTicket);
+  };
+
+  const handleReverseConfirm = async () => {
+    if (!reverseTicket?.ticket_number || reverseProcessing) {
+      return;
+    }
+
+    setReverseProcessing(true);
+    setReverseError("");
+
+    try {
+      const result = await ticketApi.reverseTicket({
+        ticket_number: reverseTicket.ticket_number,
+      });
+      setTickets((prev) =>
+        prev.filter(
+          (ticket) => ticket.ticket_number !== result.ticket.ticket_number,
+        ),
+      );
+      setSelectedTicket(null);
+      setReverseTicket(null);
+      onReverseCompleted?.(result);
+    } catch (error) {
+      if (!(error as TicketFormError).field) {
+        console.error("Failed to reverse ticket", error);
+      }
+      setReverseError(
+        error instanceof Error
+          ? error.message
+          : "Unable to reverse the ticket.",
+      );
+    } finally {
+      setReverseProcessing(false);
+    }
+  };
+
   const handleItemSaved = (savedItem: Item) => {
     setItems((prev) =>
       prev.map((item) =>
@@ -345,6 +408,9 @@ export const useHistoryPage = ({
       ticketScrollRequestKey,
       statusMessage,
       openRepawnDialog,
+      reverseTicket,
+      reverseError,
+      reverseProcessing,
       openItemEditDialog,
       itemCategories,
     },
@@ -353,10 +419,17 @@ export const useHistoryPage = ({
       setSelectedItem,
       setStatusMessage,
       setOpenRepawnDialog,
+      closeReverseDialog: () => {
+        if (!reverseProcessing) {
+          setReverseTicket(null);
+        }
+      },
       setOpenItemEditDialog,
       handleRepawn,
       handleRepawnSave,
       handleLoad,
+      handleReverse,
+      handleReverseConfirm,
       handleEditItem,
       handleItemSaved,
     },

@@ -12,6 +12,9 @@ import type {
   CreatePawnTicketInput,
   CreateSellTicketInput,
   ReportDateInput,
+  ReverseTicketInput,
+  ReverseTicketFormField,
+  ReverseTicketResult,
   TicketSearchResult,
   TransferTicketInput,
   TransferTicketPreview,
@@ -19,6 +22,10 @@ import type {
   SaveHolidayInput,
   SaveLocationInput,
 } from "../payload-contracts/ticket.contract.ts";
+
+export type ReverseTicketMutationResult =
+  | { ok: true; result: ReverseTicketResult }
+  | { ok: false; field: ReverseTicketFormField; message: string };
 
 export type TicketApi = {
   loadTicketsByClient: (clientNumber: number) => Promise<Ticket[]>;
@@ -49,4 +56,7 @@ export type TicketApi = {
     ticketNumber: number,
   ) => Promise<TransferTicketPreview | null>;
   transferTicket: (input: TransferTicketInput) => Promise<Ticket>;
+  reverseTicket: (
+    input: ReverseTicketInput,
+  ) => Promise<ReverseTicketMutationResult>;
 };

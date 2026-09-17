@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Client } from "../../shared/models/client.model";
 import type { Ticket } from "../../shared/models/ticket.model";
+import type { ReverseTicketResult } from "../../shared/payload-contracts/ticket.contract";
 import type { PaymentCompletedEvent } from "../../shared/payload-contracts/window.contract";
 import { itemApi } from "../modules/items/item.api";
 import { getAppApi } from "../shared/api/app.api";
@@ -374,6 +375,17 @@ export const useWorkspaceLayout = () => {
     setCurrentTab(1);
   };
 
+  const handleTicketReversed = ({ ticket, client }: ReverseTicketResult) => {
+    setSelectedClient(client);
+    setForcedClient(client);
+    setIncomingTransactionTicket(ticket);
+    setFocusTicketNumber(ticket.ticket_number);
+    setFocusRequestId((prev) => prev + 1);
+    setHistoryRefreshKey((prev) => prev + 1);
+    setTransactionRefreshKey((prev) => prev + 1);
+    setCurrentTab(1);
+  };
+
   return {
     state: {
       currentTab,
@@ -405,6 +417,7 @@ export const useWorkspaceLayout = () => {
       handleClientSoldTicket,
       requestHistoryRefresh,
       handleRepawnCreated,
+      handleTicketReversed,
     },
   };
 };
