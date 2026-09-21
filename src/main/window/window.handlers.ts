@@ -7,6 +7,7 @@ import type {
 import type { Item } from "../../shared/models/item.model.ts";
 import { CHANNELS } from "../ipc/channels.ts";
 import { openFeatureWindow } from "./window.feature.ts";
+import { focusMainWindow } from "./window.main.ts";
 import {
   getManagedWindow,
   openManagedWindow,
@@ -72,6 +73,10 @@ const mergeItemSearchInput = (
 };
 
 export const registerWindowHandlers = () => {
+  ipcMain.handle(CHANNELS.FOCUS_MAIN_WINDOW, async () => {
+    focusMainWindow();
+  });
+
   ipcMain.handle(
     CHANNELS.OPEN_PAYMENT_WINDOW,
     async (_event: IpcMainInvokeEvent, payload: OpenPaymentWindowInput) => {

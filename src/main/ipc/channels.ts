@@ -42,6 +42,7 @@ const CHANNELS = {
   NOTIFY_QUOTE_WINDOW_INPUT_UPDATED: "notify-quote-window-input-updated",
   OPEN_TICKET_SEARCH_WINDOW: "open-ticket-search-window",
   OPEN_ITEM_SEARCH_WINDOW: "open-item-search-window",
+  FOCUS_MAIN_WINDOW: "focus-main-window",
   GET_ITEM_SEARCH_WINDOW_INPUT: "get-item-search-window-input",
   NOTIFY_ITEM_SEARCH_WINDOW_INPUT_UPDATED:
     "notify-item-search-window-input-updated",

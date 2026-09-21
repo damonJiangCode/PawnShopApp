@@ -15,6 +15,7 @@ export type WindowApi = {
   ) => () => void;
   openTicketSearchWindow: () => Promise<void>;
   openItemSearchWindow: (input?: OpenItemSearchWindowInput) => Promise<void>;
+  focusMainWindow: () => Promise<void>;
   getItemSearchWindowInput: () => Promise<OpenItemSearchWindowInput | null>;
   onItemSearchWindowInputUpdated: (callback: () => void) => () => void;
 };

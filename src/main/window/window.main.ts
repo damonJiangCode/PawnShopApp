@@ -34,3 +34,16 @@ export const openMainWindow = () => {
 
 export const hasMainWindow = () =>
   Boolean(mainWindow && !mainWindow.isDestroyed());
+
+export const focusMainWindow = () => {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    return;
+  }
+
+  if (mainWindow.isMinimized()) {
+    mainWindow.restore();
+  }
+
+  mainWindow.show();
+  mainWindow.focus();
+};
