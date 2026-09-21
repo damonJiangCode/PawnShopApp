@@ -11,7 +11,6 @@ interface UseClientPageParams {
   searchLastName: string;
   searchDateOfBirth?: string;
   searchRequestKey?: number;
-  forcedClient?: Client | null;
   activeClient?: Client | null;
   onClientSelected?: (client: Client | null) => void;
 }
@@ -40,12 +39,11 @@ export const useClientPage = ({
   searchLastName,
   searchDateOfBirth = "",
   searchRequestKey = 0,
-  forcedClient,
   activeClient,
   onClientSelected,
 }: UseClientPageParams) => {
   const [selectedClient, setSelectedClient] = useState<Client | null>(
-    forcedClient ?? activeClient ?? null,
+    activeClient ?? null,
   );
   const { results, loading, error, hasCompletedSearch, completedQueryKey } =
     useClientSearch(
@@ -56,6 +54,7 @@ export const useClientPage = ({
       isActive,
     );
   const [displayResults, setDisplayResults] = useState<Client[]>([]);
+  const [additionalClients, setAdditionalClients] = useState<Client[]>([]);
   const [clientOverrides, setClientOverrides] = useState<
     Record<number, Client>
   >({});
@@ -66,29 +65,50 @@ export const useClientPage = ({
   const lastNoResultPromptKeyRef = useRef<string>("");
 
   useEffect(() => {
+    setAdditionalClients([]);
+  }, [searchRequestKey]);
+
+  useEffect(() => {
+    const activeClientNumber = activeClient?.client_number;
+
+    if (!activeClientNumber) {
+      return;
+    }
+
+    setAdditionalClients((prev) => {
+      const existingIndex = prev.findIndex(
+        (client) => client.client_number === activeClientNumber,
+      );
+
+      if (existingIndex >= 0) {
+        return prev.map((client, index) =>
+          index === existingIndex ? activeClient : client,
+        );
+      }
+
+      if (
+        results.some((client) => client.client_number === activeClientNumber)
+      ) {
+        return prev;
+      }
+
+      return [activeClient, ...prev];
+    });
+  }, [activeClient, results]);
+
+  useEffect(() => {
     if (!isActive) {
       return;
     }
 
-    if (forcedClient) {
-      setSelectedClient(
-        forcedClient.client_number
-          ? (clientOverrides[forcedClient.client_number] ?? forcedClient)
-          : forcedClient,
-      );
-      return;
-    }
-
     if (activeClient) {
-      setSelectedClient((prev) =>
-        !prev || prev.client_number === activeClient.client_number
-          ? activeClient.client_number
-            ? (clientOverrides[activeClient.client_number] ?? activeClient)
-            : activeClient
-          : prev,
+      setSelectedClient(
+        activeClient.client_number
+          ? (clientOverrides[activeClient.client_number] ?? activeClient)
+          : activeClient,
       );
     }
-  }, [forcedClient, activeClient, clientOverrides, isActive]);
+  }, [activeClient, clientOverrides, isActive]);
 
   useEffect(() => {
     setCreatedClient(null);
@@ -97,7 +117,6 @@ export const useClientPage = ({
     searchLastName,
     searchDateOfBirth,
     searchRequestKey,
-    forcedClient,
   ]);
 
   useEffect(() => {
@@ -112,7 +131,6 @@ export const useClientPage = ({
     const hasQuery = Boolean(
       normalizedFirst || normalizedLast || normalizedDob,
     );
-    const forcedClientNumber = forcedClient?.client_number;
 
     if (createdClient?.client_number) {
       setDisplayResults([createdClient]);
@@ -128,10 +146,6 @@ export const useClientPage = ({
 
       if (clientOverrides[clientNumber]) {
         return clientOverrides[clientNumber];
-      }
-
-      if (forcedClient?.client_number === clientNumber) {
-        return forcedClient;
       }
 
       if (activeClient?.client_number === clientNumber) {
@@ -164,7 +178,7 @@ export const useClientPage = ({
     const overrideResults = hasQuery
       ? [
           ...Object.values(clientOverrides),
-          ...[forcedClient, activeClient].filter((client): client is Client =>
+          ...[activeClient].filter((client): client is Client =>
             Boolean(client?.client_number),
           ),
         ].filter((client, index, clients) => {
@@ -190,33 +204,43 @@ export const useClientPage = ({
           );
         })
       : [];
-    const combinedResults = [...overrideResults, ...mergedResults];
-
-    if (forcedClientNumber) {
-      const mergedWithForced = combinedResults.some(
-        (client) => client.client_number === forcedClientNumber,
+    const additionalResults = additionalClients
+      .filter(
+        (client) =>
+          !client.client_number ||
+          !deletedClientNumbers.includes(client.client_number),
       )
-        ? combinedResults
-        : [
-            getClientOverride(forcedClientNumber) ?? forcedClient,
-            ...combinedResults,
-          ];
-      setDisplayResults(mergedWithForced);
-      setSelectedClient(
-        mergedWithForced.find(
-          (client) => client.client_number === forcedClientNumber,
-        ) ??
-          clientOverrides[forcedClientNumber] ??
-          forcedClient,
+      .map((client) =>
+        client.client_number
+          ? (clientOverrides[client.client_number] ?? client)
+          : client,
       );
-      lastNoResultPromptKeyRef.current = "";
-      return;
-    }
+    const combinedResults = [
+      ...additionalResults,
+      ...overrideResults,
+      ...mergedResults,
+    ].filter(
+      (client, index, clients) =>
+        !client.client_number ||
+        clients.findIndex(
+          (current) => current.client_number === client.client_number,
+        ) === index,
+    );
+    const rowsWithActiveClient =
+      activeClient?.client_number &&
+      !combinedResults.some(
+        (client) => client.client_number === activeClient.client_number,
+      )
+        ? [
+            clientOverrides[activeClient.client_number] ?? activeClient,
+            ...combinedResults,
+          ]
+        : combinedResults;
 
-    setDisplayResults(combinedResults);
+    setDisplayResults(rowsWithActiveClient);
 
     if (!hasQuery) {
-      setSelectedClient(forcedClient ?? activeClient ?? null);
+      setSelectedClient(activeClient ?? null);
       return;
     }
 
@@ -230,7 +254,7 @@ export const useClientPage = ({
       return;
     }
 
-    if (combinedResults.length === 0) {
+    if (rowsWithActiveClient.length === 0) {
       setSelectedClient(null);
       const searchReturnedNoClients = results.length === 0;
       if (
@@ -246,28 +270,28 @@ export const useClientPage = ({
     }
 
     lastNoResultPromptKeyRef.current = "";
-    const preferredClientNumber =
-      forcedClient?.client_number ?? activeClient?.client_number;
+    const preferredClientNumber = activeClient?.client_number;
     const matchedClient = preferredClientNumber
-      ? (combinedResults.find(
+      ? (rowsWithActiveClient.find(
           (client) => client.client_number === preferredClientNumber,
         ) ?? null)
       : null;
     setSelectedClient((prev) => {
       if (prev?.client_number) {
-        const mergedSelected = combinedResults.find(
+        const mergedSelected = rowsWithActiveClient.find(
           (client) => client.client_number === prev.client_number,
         );
         if (mergedSelected) {
           return mergedSelected;
         }
       }
-      return matchedClient ?? combinedResults[0];
+      return matchedClient ?? rowsWithActiveClient[0];
     });
   }, [
     createdClient,
     results,
     clientOverrides,
+    additionalClients,
     deletedClientNumbers,
     searchFirstName,
     searchLastName,
@@ -276,7 +300,6 @@ export const useClientPage = ({
     hasCompletedSearch,
     completedQueryKey,
     error,
-    forcedClient,
     activeClient,
     isActive,
   ]);

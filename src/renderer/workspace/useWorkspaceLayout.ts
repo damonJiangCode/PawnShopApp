@@ -114,7 +114,6 @@ export const useWorkspaceLayout = () => {
   const [searchDateOfBirth, setSearchDateOfBirth] = useState("");
   const [searchRequestKey, setSearchRequestKey] = useState(0);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [forcedClient, setForcedClient] = useState<Client | null>(null);
   const [selectedTransactionTicket, setSelectedTransactionTicket] =
     useState<Ticket | null>(null);
   const [incomingTransactionTicket, setIncomingTransactionTicket] =
@@ -149,7 +148,6 @@ export const useWorkspaceLayout = () => {
       client?.client_number === clientNumber ? updater(client) : client;
 
     setSelectedClient(updateMatchingClient);
-    setForcedClient(updateMatchingClient);
   };
 
   useEffect(() => {
@@ -271,7 +269,6 @@ export const useWorkspaceLayout = () => {
       const { client, targetTab, ticket } = event.data;
 
       setSelectedClient(client);
-      setForcedClient(client);
       setCurrentTab(targetTab === "history" ? 2 : 1);
       setFocusTicketNumber(ticket.ticket_number);
       setFocusRequestId((prev) => prev + 1);
@@ -301,7 +298,7 @@ export const useWorkspaceLayout = () => {
   }, [currentTab, selectedTransactionTicket?.ticket_number]);
 
   const handleSearch = ({ firstName, lastName }: SearchParams) => {
-    setForcedClient(null);
+    setSelectedClient(null);
     setSearchFirstName(firstName);
     setSearchLastName(lastName);
     setSearchDateOfBirth("");
@@ -310,7 +307,7 @@ export const useWorkspaceLayout = () => {
   };
 
   const handleBirthdaySearch = ({ dateOfBirth }: BirthdaySearchParams) => {
-    setForcedClient(null);
+    setSelectedClient(null);
     setSearchFirstName("");
     setSearchLastName("");
     setSearchDateOfBirth(dateOfBirth);
@@ -319,7 +316,6 @@ export const useWorkspaceLayout = () => {
   };
 
   const handleClear = () => {
-    setForcedClient(null);
     setSearchFirstName("");
     setSearchLastName("");
     setSearchDateOfBirth("");
@@ -377,7 +373,6 @@ export const useWorkspaceLayout = () => {
 
   const handleTicketReversed = ({ ticket, client }: ReverseTicketResult) => {
     setSelectedClient(client);
-    setForcedClient(client);
     setIncomingTransactionTicket(ticket);
     setFocusTicketNumber(ticket.ticket_number);
     setFocusRequestId((prev) => prev + 1);
@@ -394,7 +389,6 @@ export const useWorkspaceLayout = () => {
       searchDateOfBirth,
       searchRequestKey,
       selectedClient,
-      forcedClient,
       selectedTransactionTicket,
       incomingTransactionTicket,
       focusTicketNumber,

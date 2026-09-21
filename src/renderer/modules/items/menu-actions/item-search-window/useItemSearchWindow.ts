@@ -442,6 +442,7 @@ export const useItemSearchWindow = () => {
         targetTab,
       });
       channel.close();
+      await getAppApi()?.window.focusMainWindow();
     } catch (err) {
       console.error(err);
       setError("Unable to open the selected item's ticket right now.");

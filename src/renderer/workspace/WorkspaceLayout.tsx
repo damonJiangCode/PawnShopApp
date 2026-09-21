@@ -39,7 +39,6 @@ const WorkspaceLayout: React.FC = () => {
     searchDateOfBirth,
     searchRequestKey,
     selectedClient,
-    forcedClient,
     incomingTransactionTicket,
     focusTicketNumber,
     focusRequestId,
@@ -144,7 +143,6 @@ const WorkspaceLayout: React.FC = () => {
               searchLastName={searchLastName}
               searchDateOfBirth={searchDateOfBirth}
               searchRequestKey={searchRequestKey}
-              forcedClient={forcedClient}
               activeClient={selectedClient}
               onClientSelected={actions.setSelectedClient}
             />

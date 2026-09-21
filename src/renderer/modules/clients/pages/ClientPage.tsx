@@ -13,7 +13,6 @@ interface ClientPageProps {
   searchLastName: string;
   searchDateOfBirth?: string;
   searchRequestKey?: number;
-  forcedClient?: Client | null;
   activeClient?: Client | null;
   onClientSelected?: (client: Client | null) => void;
 }
@@ -24,7 +23,6 @@ const ClientPage: React.FC<ClientPageProps> = ({
   searchLastName,
   searchDateOfBirth = "",
   searchRequestKey = 0,
-  forcedClient,
   activeClient,
   onClientSelected,
 }) => {
@@ -34,7 +32,6 @@ const ClientPage: React.FC<ClientPageProps> = ({
     searchLastName,
     searchDateOfBirth,
     searchRequestKey,
-    forcedClient,
     activeClient,
     onClientSelected,
   });
