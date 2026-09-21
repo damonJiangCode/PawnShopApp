@@ -2,6 +2,7 @@ import type { IpcMainInvokeEvent } from "electron";
 import type {
   OpenItemSearchWindowInput,
   OpenPaymentWindowInput,
+  OpenQuoteWindowInput,
 } from "../../shared/payload-contracts/window.contract.ts";
 import type { Item } from "../../shared/models/item.model.ts";
 import { CHANNELS } from "../ipc/channels.ts";
@@ -107,6 +108,34 @@ export const registerWindowHandlers = () => {
         width: 720,
         height: 420,
       });
+    },
+  );
+
+  ipcMain.handle(
+    CHANNELS.OPEN_QUOTE_WINDOW,
+    async (_event: IpcMainInvokeEvent, input: OpenQuoteWindowInput) => {
+      const { window, created } = openManagedWindow({
+        screen: "quote",
+        title: "Quote",
+        description: "Preview pickup and interest amounts for a client.",
+        width: 920,
+        height: 760,
+        minWidth: 760,
+        minHeight: 560,
+        params: {
+          clientNumber: input.clientNumber,
+          clientLastName: input.clientLastName,
+          clientFirstName: input.clientFirstName,
+          clientMiddleName: input.clientMiddleName,
+        },
+      });
+
+      if (!created) {
+        window.webContents.send(
+          CHANNELS.NOTIFY_QUOTE_WINDOW_INPUT_UPDATED,
+          input,
+        );
+      }
     },
   );
 

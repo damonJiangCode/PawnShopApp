@@ -11,6 +11,7 @@ import {
   type UpdateTicketInput,
 } from "../../tickets/ticket.api";
 import { itemApi } from "../../items/item.api";
+import { getAppApi } from "../../../shared/api/app.api";
 import {
   filterVisibleTickets,
   sortTickets,
@@ -58,6 +59,19 @@ export const createTransactionTicketHandlers = ({
     setStatusMessage(
       `Envelope print ready for ticket #${selectedTicket.ticket_number}.`,
     );
+  };
+
+  const handleQuote = async () => {
+    if (!clientNumber || !client) {
+      return;
+    }
+
+    await getAppApi()?.window.openQuoteWindow({
+      clientNumber,
+      clientLastName: client.last_name,
+      clientFirstName: client.first_name,
+      clientMiddleName: client.middle_name,
+    });
   };
 
   const handlePawnTicket = async (
@@ -197,6 +211,7 @@ export const createTransactionTicketHandlers = ({
 
   return {
     handleTicketPrint,
+    handleQuote,
     handlePawnTicket,
     handleSellTicket,
     handleEditTicket,

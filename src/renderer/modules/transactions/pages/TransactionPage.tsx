@@ -9,6 +9,7 @@ import {
   Paper,
   Typography,
 } from "@mui/material";
+import PrintIcon from "@mui/icons-material/Print";
 import type { Ticket } from "../../../../shared/models/ticket.model";
 import type { Client } from "../../../../shared/models/client.model";
 import { useTransactionPage } from "../hooks/useTransactionPage";
@@ -105,12 +106,22 @@ const TransactionPage: React.FC<TransactionPageProps> = ({
         boxSizing: "border-box",
       }}
     >
-      <ClientBar
-        client_last_name={clientLastName}
-        client_first_name={clientFirstName}
-        client_middle_name={clientMiddleName}
-        sx={{ mb: 1 }}
-      />
+      <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
+        <ClientBar
+          client_last_name={clientLastName}
+          client_first_name={clientFirstName}
+          client_middle_name={clientMiddleName}
+          sx={{ flex: 1 }}
+        />
+        <Button
+          variant="outlined"
+          startIcon={<PrintIcon />}
+          onClick={() => void actions.handleQuote()}
+          sx={{ flex: "0 0 auto" }}
+        >
+          Quote
+        </Button>
+      </Box>
 
       <Box
         sx={{

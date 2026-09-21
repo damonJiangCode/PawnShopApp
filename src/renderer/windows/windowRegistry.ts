@@ -43,6 +43,9 @@ const TicketStolenWindow = lazy(
 const PaymentWindow = lazy(
   () => import("../modules/tickets/payment/PaymentWindow"),
 );
+const QuoteWindow = lazy(
+  () => import("../modules/tickets/quote/QuoteWindow"),
+);
 
 export type WindowScreenProps = {
   screen: string;
@@ -53,6 +56,7 @@ export const windowRegistry: Record<
   ComponentType<WindowScreenProps>
 > = {
   payment: PaymentWindow,
+  quote: QuoteWindow,
   "ticket-search": TicketSearchWindow,
   "ticket-expire": TicketExpireWindow,
   "ticket-stolen": TicketStolenWindow,

@@ -13,6 +13,13 @@ export type OpenPaymentWindowInput = {
   clientFirstName?: string;
 };
 
+export type OpenQuoteWindowInput = {
+  clientNumber: number;
+  clientLastName: string;
+  clientFirstName: string;
+  clientMiddleName?: string;
+};
+
 export type PaymentCompletedEvent = {
   type: "payment-completed";
   pickedUpCounts: Array<{

@@ -427,6 +427,7 @@ export const useTransactionPage = ({
       handleEditButtonClick,
       handleSellButtonClick,
       handleTicketPrint: ticketHandlers.handleTicketPrint,
+      handleQuote: ticketHandlers.handleQuote,
       handleConvertTicket,
       handleTransferTicket,
       handlePawnTicket: ticketHandlers.handlePawnTicket,

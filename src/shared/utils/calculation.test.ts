@@ -201,6 +201,32 @@ describe("calculation", () => {
     assert.equal(actual, 110);
   });
 
+  it("does not require interest before or on the due date", () => {
+    const dueDate = utcDate(2026, 2, 1);
+
+    assert.equal(
+      calculation.getInterestDue(100, dueDate, utcDate(2026, 1, 31)),
+      0,
+    );
+    assert.equal(
+      calculation.getInterestDue(100, dueDate, utcDate(2026, 2, 1)),
+      0,
+    );
+  });
+
+  it("requires one interest payment after the due date and another every 30 days", () => {
+    const dueDate = utcDate(2026, 2, 1);
+
+    assert.equal(
+      calculation.getInterestDue(100, dueDate, utcDate(2026, 2, 2)),
+      30,
+    );
+    assert.equal(
+      calculation.getInterestDue(100, dueDate, utcDate(2026, 3, 4)),
+      60,
+    );
+  });
+
   it("compares expire eligibility by local calendar date instead of exact time", () => {
     const dueToday = new Date(2026, 4, 15, 1, 0, 0);
     const laterToday = new Date(2026, 4, 15, 23, 0, 0);

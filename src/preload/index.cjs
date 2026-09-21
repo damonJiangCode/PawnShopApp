@@ -44,6 +44,8 @@ const CHANNELS = {
   SAVE_ITEM_IMAGE: "save-item-image",
   OPEN_PAYMENT_WINDOW: "open-payment-window",
   NOTIFY_PAYMENT_WINDOW_INPUT_UPDATED: "notify-payment-window-input-updated",
+  OPEN_QUOTE_WINDOW: "open-quote-window",
+  NOTIFY_QUOTE_WINDOW_INPUT_UPDATED: "notify-quote-window-input-updated",
   OPEN_TICKET_SEARCH_WINDOW: "open-ticket-search-window",
   OPEN_ITEM_SEARCH_WINDOW: "open-item-search-window",
   GET_ITEM_SEARCH_WINDOW_INPUT: "get-item-search-window-input",
@@ -149,6 +151,16 @@ const windowApi = {
     return () =>
       ipcRenderer.removeListener(
         CHANNELS.NOTIFY_PAYMENT_WINDOW_INPUT_UPDATED,
+        listener,
+      );
+  },
+  openQuoteWindow: (input) => invoke(CHANNELS.OPEN_QUOTE_WINDOW, input),
+  onQuoteWindowInputUpdated: (callback) => {
+    const listener = (_event, input) => callback(input);
+    ipcRenderer.on(CHANNELS.NOTIFY_QUOTE_WINDOW_INPUT_UPDATED, listener);
+    return () =>
+      ipcRenderer.removeListener(
+        CHANNELS.NOTIFY_QUOTE_WINDOW_INPUT_UPDATED,
         listener,
       );
   },

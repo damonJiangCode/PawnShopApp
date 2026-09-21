@@ -71,6 +71,17 @@ export const calculation = {
     return Number(Math.max(minimumPickup, pickup).toFixed(2));
   },
 
+  getInterestDue: (amt: number, dueDate: Date, asOf = new Date()) => {
+    const daysPastDue = getCalendarDayDiff(dueDate, asOf);
+
+    if (daysPastDue === 0) {
+      return 0;
+    }
+
+    const monthsDue = Math.ceil(daysPastDue / 30);
+    return Number((calculation.getBaseIntAmt(amt) * monthsDue).toFixed(2));
+  },
+
   getEarliestPickupDatetime: (
     transactionDatetime: Date,
     holidayDateKeys: string[] = [],

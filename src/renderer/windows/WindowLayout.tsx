@@ -65,6 +65,12 @@ const WindowLayout: React.FC<WindowLayoutProps> = ({
             minHeight: 0,
             overflow: "auto",
             pt: denseFooter ? 0.5 : 1,
+            "@media print": {
+              flex: "none",
+              minHeight: "auto",
+              overflow: "visible",
+              pt: 0,
+            },
           }}
         >
           {children}
