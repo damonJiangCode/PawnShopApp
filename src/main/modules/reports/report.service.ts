@@ -93,17 +93,27 @@ export const reportService = {
   },
 
   loadBuybackReport: async (
-    input: ReportDateInput,
+    input: ReportDateRangeInput,
   ): Promise<BuybackReportResult> => {
-    const normalizedInput = ticketInput.normalizeReportDate(input);
+    const fromDate = input.from_date?.trim() ?? "";
+    const toDate = input.to_date?.trim() ?? "";
 
-    if (!ticketInput.isValidDateKey(normalizedInput.date)) {
-      throw createFieldError("date", "Enter a valid report date.");
+    if (!ticketInput.isValidDateKey(fromDate)) {
+      throw createFieldError("from_date", "Enter a valid From date.");
     }
 
-    const sourceRows = await reportRepo.loadBuybackReportRows(
-      normalizedInput.date,
-    );
+    if (!ticketInput.isValidDateKey(toDate)) {
+      throw createFieldError("to_date", "Enter a valid To date.");
+    }
+
+    if (fromDate > toDate) {
+      throw createFieldError(
+        "to_date",
+        "To date must be the same as or later than From date.",
+      );
+    }
+
+    const sourceRows = await reportRepo.loadBuybackReportRows(fromDate, toDate);
 
     const rows = sourceRows.map((row) => ({
       ticket_number: row.ticket_number,
@@ -116,7 +126,8 @@ export const reportService = {
     const total = rows.reduce((sum, row) => sum + row.pickup_amount_paid, 0);
 
     return {
-      date: normalizedInput.date,
+      from_date: fromDate,
+      to_date: toDate,
       rows,
       total_buyback_price: Number(total.toFixed(2)),
     };

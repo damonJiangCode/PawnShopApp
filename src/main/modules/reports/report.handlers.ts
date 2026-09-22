@@ -18,7 +18,7 @@ export const registerReportHandlers = () => {
 
   ipcMain.handle(
     CHANNELS.LOAD_BUYBACK_REPORT,
-    async (_event: IpcMainInvokeEvent, input: ReportDateInput) => {
+    async (_event: IpcMainInvokeEvent, input: ReportDateRangeInput) => {
       return reportService.loadBuybackReport(input);
     },
   );

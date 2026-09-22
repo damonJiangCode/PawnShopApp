@@ -160,7 +160,8 @@ export const reportRepo = {
   },
 
   loadBuybackReportRows: async (
-    dateKey: string,
+    fromDate: string,
+    toDate: string,
   ): Promise<BuybackReportSourceRow[]> => {
     const client = await connect();
     const query = `
@@ -179,12 +180,12 @@ export const reportRepo = {
       LEFT JOIN client c ON c.client_number = t.client_number
       WHERE t.status = 'pawned_picked_up'
         AND t.pickup_datetime >= $1::date
-        AND t.pickup_datetime < ($1::date + INTERVAL '1 day')
+        AND t.pickup_datetime < ($2::date + INTERVAL '1 day')
       ORDER BY t.pickup_datetime ASC, t.ticket_number ASC
     `;
 
     try {
-      const result = await client.query(query, [dateKey]);
+      const result = await client.query(query, [fromDate, toDate]);
       return result.rows.map(mapBuybackReportRow);
     } finally {
       client.release();

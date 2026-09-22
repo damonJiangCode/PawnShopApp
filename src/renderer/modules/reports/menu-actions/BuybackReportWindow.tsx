@@ -16,7 +16,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { ticketApi } from "../../tickets/ticket.api";
 import {
   formatCurrency,
@@ -28,15 +28,21 @@ import type { WindowScreenProps } from "../../../windows/windowRegistry";
 
 const BuybackReportWindow: React.FC<WindowScreenProps> = () => {
   const today = useMemo(() => formatIsoDate(new Date()), []);
-  const [selectedDate, setSelectedDate] = useState(today);
+  const [fromDate, setFromDate] = useState(today);
+  const [toDate, setToDate] = useState(today);
   const [report, setReport] =
     useState<Awaited<ReturnType<typeof ticketApi.loadBuybackReport>>>();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const loadReport = useCallback(async () => {
-    if (!selectedDate) {
-      setErrorMessage("Select a report date.");
+  const loadReport = async () => {
+    if (!fromDate || !toDate) {
+      setErrorMessage("Select both From and To dates.");
+      return;
+    }
+
+    if (fromDate > toDate) {
+      setErrorMessage("To date must be the same as or later than From date.");
       return;
     }
 
@@ -45,7 +51,8 @@ const BuybackReportWindow: React.FC<WindowScreenProps> = () => {
 
     try {
       const nextReport = await ticketApi.loadBuybackReport({
-        date: selectedDate,
+        from_date: fromDate,
+        to_date: toDate,
       });
       setReport(nextReport);
     } catch (error) {
@@ -55,11 +62,7 @@ const BuybackReportWindow: React.FC<WindowScreenProps> = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedDate]);
-
-  useEffect(() => {
-    void loadReport();
-  }, [loadReport]);
+  };
 
   const rows = report?.rows ?? [];
 
@@ -99,11 +102,28 @@ const BuybackReportWindow: React.FC<WindowScreenProps> = () => {
           sx={{ displayPrint: "none" }}
         >
           <TextField
-            label="Date"
+            label="From"
             type="date"
             size="small"
-            value={selectedDate}
-            onChange={(event) => setSelectedDate(event.target.value)}
+            value={fromDate}
+            onChange={(event) => {
+              setFromDate(event.target.value);
+              setReport(undefined);
+              setErrorMessage("");
+            }}
+            slotProps={{ inputLabel: { shrink: true } }}
+            sx={{ width: { xs: "100%", sm: 180 } }}
+          />
+          <TextField
+            label="To"
+            type="date"
+            size="small"
+            value={toDate}
+            onChange={(event) => {
+              setToDate(event.target.value);
+              setReport(undefined);
+              setErrorMessage("");
+            }}
             slotProps={{ inputLabel: { shrink: true } }}
             sx={{ width: { xs: "100%", sm: 180 } }}
           />
@@ -112,7 +132,7 @@ const BuybackReportWindow: React.FC<WindowScreenProps> = () => {
             startIcon={
               isLoading ? <CircularProgress size={16} /> : <RefreshIcon />
             }
-            onClick={loadReport}
+            onClick={() => void loadReport()}
             disabled={isLoading}
           >
             Generate
@@ -121,7 +141,7 @@ const BuybackReportWindow: React.FC<WindowScreenProps> = () => {
             variant="outlined"
             startIcon={<PrintIcon />}
             onClick={() => window.print()}
-            disabled={isLoading}
+            disabled={isLoading || !report}
           >
             Print / Save PDF
           </Button>
@@ -152,7 +172,8 @@ const BuybackReportWindow: React.FC<WindowScreenProps> = () => {
               BUYBACK REPORT
             </Typography>
             <Typography variant="body2" fontWeight={800}>
-              Date: {report?.date ?? selectedDate}
+              From: {report?.from_date ?? fromDate} &nbsp;&nbsp; To:{" "}
+              {report?.to_date ?? toDate}
             </Typography>
           </Stack>
 
@@ -185,7 +206,7 @@ const BuybackReportWindow: React.FC<WindowScreenProps> = () => {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={5} align="center">
-                      No buybacks found for this date.
+                      No buybacks found for this date range.
                     </TableCell>
                   </TableRow>
                 )}

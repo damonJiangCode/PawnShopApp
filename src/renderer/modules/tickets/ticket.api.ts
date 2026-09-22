@@ -353,9 +353,8 @@ export const ticketApi = {
   },
 
   loadBuybackReport: async (
-    input: ReportDateInput,
+    input: ReportDateRangeInput,
   ): Promise<BuybackReportResult> => {
-    const normalizedInput = normalizeReportDateInput(input);
     const api = getAppApi()?.ticket;
 
     if (!api) {
@@ -365,7 +364,10 @@ export const ticketApi = {
     }
 
     try {
-      return await api.loadBuybackReport(normalizedInput);
+      return await api.loadBuybackReport({
+        from_date: input.from_date.trim(),
+        to_date: input.to_date.trim(),
+      });
     } catch (error) {
       throw mapBackendError(error);
     }

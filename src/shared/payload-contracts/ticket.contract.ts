@@ -105,8 +105,7 @@ export type BuybackReportRow = {
   client_name: string;
 };
 
-export type BuybackReportResult = {
-  date: string;
+export type BuybackReportResult = ReportDateRangeInput & {
   rows: BuybackReportRow[];
   total_buyback_price: number;
 };

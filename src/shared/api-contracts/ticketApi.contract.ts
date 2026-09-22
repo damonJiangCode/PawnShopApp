@@ -49,7 +49,9 @@ export type TicketApi = {
   searchPaymentTicketByNumber: (
     ticketNumber: number,
   ) => Promise<TicketSearchResult | null>;
-  loadBuybackReport: (input: ReportDateInput) => Promise<BuybackReportResult>;
+  loadBuybackReport: (
+    input: ReportDateRangeInput,
+  ) => Promise<BuybackReportResult>;
   loadDailyReport: (input: ReportDateRangeInput) => Promise<DailyReportResult>;
   loadInterestReport: (input: ReportDateInput) => Promise<InterestReportResult>;
   createPawnTicket: (
