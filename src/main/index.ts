@@ -69,7 +69,7 @@ const createAppMenu = () => {
       label: "Report",
       submenu: [
         {
-          label: "Daily Report",
+          label: "Daily",
           click: () =>
             openMenuActionWindow({
               id: "report-daily",
