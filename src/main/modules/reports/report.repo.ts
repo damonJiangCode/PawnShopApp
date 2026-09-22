@@ -22,6 +22,27 @@ export type InterestReportRow = {
   payment_datetime: Date;
 };
 
+export type DailyReportSourceRow = {
+  ticket_number: number;
+  ticket_amount: number;
+  ticket_description: string;
+  client_name: string;
+  date_of_birth?: string;
+  gender: string;
+  hair_color: string;
+  eye_color: string;
+  height_cm?: number;
+  weight_kg?: number;
+  identifications: string;
+  item_number?: number;
+  quantity?: number;
+  item_description: string;
+  brand_name: string;
+  model_number: string;
+  serial_number: string;
+  item_amount?: number;
+};
+
 const clientDisplayNameSql = (alias: string) => `
   CONCAT(
     UPPER(${alias}.last_name),
@@ -60,7 +81,84 @@ const mapInterestReportRow = (
   payment_datetime: new Date(String(row.payment_datetime)),
 });
 
+const textValue = (value: unknown) => (value ? String(value) : "");
+const optionalNumber = (value: unknown) =>
+  value === null || value === undefined ? undefined : Number(value);
+
+const mapDailyReportRow = (
+  row: Record<string, unknown>,
+): DailyReportSourceRow => ({
+  ticket_number: Number(row.ticket_number),
+  ticket_amount: Number(row.ticket_amount ?? 0),
+  ticket_description: textValue(row.ticket_description),
+  client_name: textValue(row.client_name),
+  date_of_birth: row.date_of_birth ? String(row.date_of_birth) : undefined,
+  gender: textValue(row.gender),
+  hair_color: textValue(row.hair_color),
+  eye_color: textValue(row.eye_color),
+  height_cm: optionalNumber(row.height_cm),
+  weight_kg: optionalNumber(row.weight_kg),
+  identifications: textValue(row.identifications),
+  item_number: optionalNumber(row.item_number),
+  quantity: optionalNumber(row.quantity),
+  item_description: textValue(row.item_description),
+  brand_name: textValue(row.brand_name),
+  model_number: textValue(row.model_number),
+  serial_number: textValue(row.serial_number),
+  item_amount: optionalNumber(row.item_amount),
+});
+
 export const reportRepo = {
+  loadDailyReportRows: async (
+    fromDate: string,
+    toDate: string,
+  ): Promise<DailyReportSourceRow[]> => {
+    const client = await connect();
+    const query = `
+      SELECT
+        t.ticket_number,
+        t.amount AS ticket_amount,
+        COALESCE(t.description, '') AS ticket_description,
+        ${clientDisplayNameSql("c")} AS client_name,
+        TO_CHAR(c.date_of_birth, 'YYYY-MM-DD') AS date_of_birth,
+        COALESCE(c.gender, '') AS gender,
+        COALESCE(c.hair_color, '') AS hair_color,
+        COALESCE(c.eye_color, '') AS eye_color,
+        c.height_cm,
+        c.weight_kg,
+        COALESCE(ids.identifications, '') AS identifications,
+        i.item_number,
+        i.quantity,
+        COALESCE(i.description, '') AS item_description,
+        COALESCE(i.brand_name, '') AS brand_name,
+        COALESCE(i.model_number, '') AS model_number,
+        COALESCE(i.serial_number, '') AS serial_number,
+        i.amount AS item_amount
+      FROM ticket t
+      LEFT JOIN client c ON c.client_number = t.client_number
+      LEFT JOIN LATERAL (
+        SELECT STRING_AGG(
+          CONCAT(ci.id_type, ': ', ci.id_value),
+          ' | ' ORDER BY ci.id
+        ) AS identifications
+        FROM client_id ci
+        WHERE ci.client_number = c.client_number
+      ) ids ON TRUE
+      LEFT JOIN ticket_item ti ON ti.ticket_number = t.ticket_number
+      LEFT JOIN item i ON i.item_number = ti.item_number
+      WHERE t.transaction_datetime >= $1::date
+        AND t.transaction_datetime < ($2::date + INTERVAL '1 day')
+      ORDER BY t.transaction_datetime ASC, t.ticket_number ASC, i.item_number ASC
+    `;
+
+    try {
+      const result = await client.query(query, [fromDate, toDate]);
+      return result.rows.map(mapDailyReportRow);
+    } finally {
+      client.release();
+    }
+  },
+
   loadBuybackReportRows: async (
     dateKey: string,
   ): Promise<BuybackReportSourceRow[]> => {

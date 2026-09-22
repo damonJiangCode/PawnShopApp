@@ -4,6 +4,7 @@ import type { Location } from "../models/location.model.ts";
 import type {
   ConvertTicketInput,
   BuybackReportResult,
+  DailyReportResult,
   ExtendTicketsInput,
   ExpireTicketInput,
   InterestReportResult,
@@ -12,6 +13,7 @@ import type {
   CreatePawnTicketInput,
   CreateSellTicketInput,
   ReportDateInput,
+  ReportDateRangeInput,
   ReverseTicketInput,
   ReverseTicketFormField,
   ReverseTicketResult,
@@ -43,6 +45,7 @@ export type TicketApi = {
     ticketNumber: number,
   ) => Promise<TicketSearchResult | null>;
   loadBuybackReport: (input: ReportDateInput) => Promise<BuybackReportResult>;
+  loadDailyReport: (input: ReportDateRangeInput) => Promise<DailyReportResult>;
   loadInterestReport: (input: ReportDateInput) => Promise<InterestReportResult>;
   createPawnTicket: (input: CreatePawnTicketInput) => Promise<Ticket>;
   createSellTicket: (input: CreateSellTicketInput) => Promise<Ticket>;

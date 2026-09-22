@@ -27,6 +27,7 @@ const CHANNELS = {
   SEARCH_TICKET: "search-ticket",
   SEARCH_PAYMENT_TICKET: "search-payment-ticket",
   LOAD_BUYBACK_REPORT: "load-buyback-report",
+  LOAD_DAILY_REPORT: "load-daily-report",
   LOAD_INTEREST_REPORT: "load-interest-report",
   GET_ITEMS: "get-items",
   GET_ITEM_CATEGORIES: "get-item-categories",

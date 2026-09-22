@@ -49,6 +49,44 @@ export type ReportDateInput = {
   date: string;
 };
 
+export type ReportDateRangeInput = {
+  from_date: string;
+  to_date: string;
+};
+
+export type DailyReportItem = {
+  item_number: number;
+  quantity: number;
+  description: string;
+  brand_name: string;
+  model_number: string;
+  serial_number: string;
+  amount: number;
+};
+
+export type DailyReportTicket = {
+  ticket_number: number;
+  amount: number;
+  description: string;
+  client_name: string;
+  date_of_birth?: string;
+  gender: string;
+  hair_color: string;
+  eye_color: string;
+  height_cm?: number;
+  weight_kg?: number;
+  identifications: string;
+  items: DailyReportItem[];
+};
+
+export type DailyReportResult = ReportDateRangeInput & {
+  tickets: DailyReportTicket[];
+  missing_item_ticket_numbers: number[];
+  total_tickets: number;
+  total_items: number;
+  total_amount: number;
+};
+
 export type BuybackReportRow = {
   ticket_number: number;
   pickup_datetime: Date;

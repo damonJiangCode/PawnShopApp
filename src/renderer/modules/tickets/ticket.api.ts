@@ -4,6 +4,7 @@ import type { Location } from "../../../shared/models/location.model";
 import type {
   ConvertTicketInput,
   BuybackReportResult,
+  DailyReportResult,
   ExtendTicketsInput,
   ExpireTicketInput,
   InterestReportResult,
@@ -12,6 +13,7 @@ import type {
   CreatePawnTicketInput,
   CreateSellTicketInput,
   ReportDateInput,
+  ReportDateRangeInput,
   ReverseTicketInput,
   ReverseTicketResult,
   TicketSearchResult,
@@ -372,6 +374,25 @@ export const ticketApi = {
 
     try {
       return await api.loadInterestReport(normalizedInput);
+    } catch (error) {
+      throw mapBackendError(error);
+    }
+  },
+
+  loadDailyReport: async (
+    input: ReportDateRangeInput,
+  ): Promise<DailyReportResult> => {
+    const api = getAppApi()?.ticket;
+
+    if (!api) {
+      throw new Error("Ticket API is unavailable.");
+    }
+
+    try {
+      return await api.loadDailyReport({
+        from_date: input.from_date.trim(),
+        to_date: input.to_date.trim(),
+      });
     } catch (error) {
       throw mapBackendError(error);
     }

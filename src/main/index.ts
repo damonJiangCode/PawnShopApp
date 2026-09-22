@@ -75,6 +75,8 @@ const createAppMenu = () => {
               id: "report-daily",
               title: "Daily Report",
               description: "Generate daily ticket and payment records.",
+              width: 1000,
+              height: 720,
             }),
         },
         {
