@@ -3,12 +3,12 @@ import type {
   DailyReportResult,
   DailyReportTicket,
   InterestReportResult,
-  ReportDateInput,
   ReportDateRangeInput,
 } from "../../../shared/payload-contracts/ticket.contract.ts";
 import { reportRepo } from "./report.repo.ts";
 import { createFieldError } from "../../shared/createFieldError.ts";
 import { ticketInput } from "../tickets/ticket.input.ts";
+import { INTEREST_REPORT_START_DATE } from "../../../shared/reportSettings.ts";
 
 export const reportService = {
   loadDailyReport: async (
@@ -134,19 +134,46 @@ export const reportService = {
   },
 
   loadInterestReport: async (
-    input: ReportDateInput,
+    input: ReportDateRangeInput,
   ): Promise<InterestReportResult> => {
-    const normalizedInput = ticketInput.normalizeReportDate(input);
+    const fromDate = input.from_date?.trim() ?? "";
+    const toDate = input.to_date?.trim() ?? "";
 
-    if (!ticketInput.isValidDateKey(normalizedInput.date)) {
-      throw createFieldError("date", "Enter a valid report date.");
+    if (!ticketInput.isValidDateKey(fromDate)) {
+      throw createFieldError("from_date", "Enter a valid From date.");
     }
 
-    const rows = await reportRepo.loadInterestReportRows(normalizedInput.date);
+    if (!ticketInput.isValidDateKey(toDate)) {
+      throw createFieldError("to_date", "Enter a valid To date.");
+    }
+
+    if (fromDate > toDate) {
+      throw createFieldError(
+        "to_date",
+        "To date must be the same as or later than From date.",
+      );
+    }
+
+    if (fromDate < INTEREST_REPORT_START_DATE) {
+      throw createFieldError(
+        "from_date",
+        `Interest reports are available from ${INTEREST_REPORT_START_DATE}.`,
+      );
+    }
+
+    if (toDate < INTEREST_REPORT_START_DATE) {
+      throw createFieldError(
+        "to_date",
+        `Interest reports are available from ${INTEREST_REPORT_START_DATE}.`,
+      );
+    }
+
+    const rows = await reportRepo.loadInterestReportRows(fromDate, toDate);
     const total = rows.reduce((sum, row) => sum + row.amount_paid, 0);
 
     return {
-      date: normalizedInput.date,
+      from_date: fromDate,
+      to_date: toDate,
       rows,
       total_interest_paid: Number(total.toFixed(2)),
     };

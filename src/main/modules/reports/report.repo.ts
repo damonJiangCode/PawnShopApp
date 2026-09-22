@@ -193,7 +193,8 @@ export const reportRepo = {
   },
 
   loadInterestReportRows: async (
-    dateKey: string,
+    fromDate: string,
+    toDate: string,
   ): Promise<InterestReportRow[]> => {
     const client = await connect();
     const query = `
@@ -208,12 +209,12 @@ export const reportRepo = {
       INNER JOIN ticket t ON t.ticket_number = ip.ticket_number
       LEFT JOIN client c ON c.client_number = t.client_number
       WHERE ip.payment_datetime >= $1::date
-        AND ip.payment_datetime < ($1::date + INTERVAL '1 day')
+        AND ip.payment_datetime < ($2::date + INTERVAL '1 day')
       ORDER BY ip.payment_datetime ASC, ip.ticket_number ASC
     `;
 
     try {
-      const result = await client.query(query, [dateKey]);
+      const result = await client.query(query, [fromDate, toDate]);
       return result.rows.map(mapInterestReportRow);
     } finally {
       client.release();

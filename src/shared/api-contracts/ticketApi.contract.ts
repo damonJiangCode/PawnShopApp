@@ -12,7 +12,6 @@ import type {
   PickupTicketsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
-  ReportDateInput,
   ReportDateRangeInput,
   ReverseTicketInput,
   ReverseTicketFormField,
@@ -53,7 +52,9 @@ export type TicketApi = {
     input: ReportDateRangeInput,
   ) => Promise<BuybackReportResult>;
   loadDailyReport: (input: ReportDateRangeInput) => Promise<DailyReportResult>;
-  loadInterestReport: (input: ReportDateInput) => Promise<InterestReportResult>;
+  loadInterestReport: (
+    input: ReportDateRangeInput,
+  ) => Promise<InterestReportResult>;
   createPawnTicket: (
     input: CreatePawnTicketInput,
   ) => Promise<TicketMutationResult>;

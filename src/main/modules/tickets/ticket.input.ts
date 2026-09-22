@@ -6,7 +6,6 @@ import type {
   PickupTicketsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
-  ReportDateInput,
   ReverseTicketInput,
   TransferTicketInput,
   UpdateTicketInput,
@@ -111,10 +110,6 @@ const normalizeExtendTickets = (input: ExtendTicketsInput) => ({
     ),
 });
 
-const normalizeReportDate = (input: ReportDateInput) => ({
-  date: trimText(input.date),
-});
-
 const normalizeReverseTicket = (input: ReverseTicketInput) => ({
   ticket_number: toNumber(input.ticket_number),
 });
@@ -148,7 +143,6 @@ export const ticketInput = {
   normalizeMarkTicketStolen,
   normalizePickupTickets,
   normalizeExtendTickets,
-  normalizeReportDate,
   normalizeReverseTicket,
   isValidDateKey,
 };

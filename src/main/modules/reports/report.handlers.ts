@@ -1,8 +1,5 @@
 import type { IpcMainInvokeEvent } from "electron";
-import type {
-  ReportDateInput,
-  ReportDateRangeInput,
-} from "../../../shared/payload-contracts/ticket.contract.ts";
+import type { ReportDateRangeInput } from "../../../shared/payload-contracts/ticket.contract.ts";
 import { CHANNELS } from "../../ipc/channels.ts";
 import { reportService } from "./report.service.ts";
 
@@ -25,7 +22,7 @@ export const registerReportHandlers = () => {
 
   ipcMain.handle(
     CHANNELS.LOAD_INTEREST_REPORT,
-    async (_event: IpcMainInvokeEvent, input: ReportDateInput) => {
+    async (_event: IpcMainInvokeEvent, input: ReportDateRangeInput) => {
       return reportService.loadInterestReport(input);
     },
   );

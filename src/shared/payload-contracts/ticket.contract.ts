@@ -55,10 +55,6 @@ export type TicketSearchResult = {
   client: Client;
 };
 
-export type ReportDateInput = {
-  date: string;
-};
-
 export type ReportDateRangeInput = {
   from_date: string;
   to_date: string;
@@ -119,8 +115,7 @@ export type InterestReportRow = {
   payment_datetime: Date;
 };
 
-export type InterestReportResult = {
-  date: string;
+export type InterestReportResult = ReportDateRangeInput & {
   rows: InterestReportRow[];
   total_interest_paid: number;
 };

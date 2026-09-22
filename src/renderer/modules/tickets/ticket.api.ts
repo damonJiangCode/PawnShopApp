@@ -13,7 +13,6 @@ import type {
   PickupTicketsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
-  ReportDateInput,
   ReportDateRangeInput,
   ReverseTicketInput,
   ReverseTicketResult,
@@ -39,7 +38,6 @@ import {
   normalizeExtendTicketsInput,
   normalizeMarkTicketStolenInput,
   normalizePickupTicketsInput,
-  normalizeReportDateInput,
   normalizeReverseTicketInput,
   normalizeTransferTicketInput,
   normalizeUpdateTicketInput,
@@ -374,9 +372,8 @@ export const ticketApi = {
   },
 
   loadInterestReport: async (
-    input: ReportDateInput,
+    input: ReportDateRangeInput,
   ): Promise<InterestReportResult> => {
-    const normalizedInput = normalizeReportDateInput(input);
     const api = getAppApi()?.ticket;
 
     if (!api) {
@@ -386,7 +383,10 @@ export const ticketApi = {
     }
 
     try {
-      return await api.loadInterestReport(normalizedInput);
+      return await api.loadInterestReport({
+        from_date: input.from_date.trim(),
+        to_date: input.to_date.trim(),
+      });
     } catch (error) {
       throw mapBackendError(error);
     }
@@ -483,7 +483,6 @@ export type {
   PickupTicketsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
-  ReportDateInput,
   ReverseTicketInput,
   ReverseTicketResult,
   TransferTicketInput,
