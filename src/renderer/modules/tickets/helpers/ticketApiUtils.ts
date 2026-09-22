@@ -10,18 +10,11 @@ import type {
   ReverseTicketInput,
   TransferTicketInput,
   UpdateTicketInput,
+  TicketFormField,
 } from "../../../../shared/payload-contracts/ticket.contract";
 import { extractBackendFieldError } from "../../../shared/utils/formError";
 
-export type TicketFormField =
-  | "target_status"
-  | "description"
-  | "location"
-  | "amount"
-  | "onetime_fee"
-  | "employee_password"
-  | "manager_password"
-  | "ticket_number";
+export type { TicketFormField } from "../../../../shared/payload-contracts/ticket.contract";
 
 export type TicketFormError = Error & {
   field?: TicketFormField;

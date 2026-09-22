@@ -1,4 +1,5 @@
 import type { Ticket } from "../../../shared/models/ticket.model";
+import type { TicketMutationResult } from "../../../shared/api-contracts/ticketApi.contract";
 import type { HolidayDate } from "../../../shared/models/holiday-date.model";
 import type { Location } from "../../../shared/models/location.model";
 import type {
@@ -55,6 +56,16 @@ const openPrintWindow = (html: string) => {
   printWindow.document.open();
   printWindow.document.write(html);
   printWindow.document.close();
+};
+
+const unwrapTicketMutation = (result: TicketMutationResult): Ticket => {
+  if (result.ok) {
+    return result.ticket;
+  }
+
+  const error = new Error(result.message) as TicketFormError;
+  error.field = result.field;
+  throw error;
 };
 
 export const ticketApi = {
@@ -208,7 +219,7 @@ export const ticketApi = {
     }
 
     try {
-      return await api.createPawnTicket(normalizedInput);
+      return unwrapTicketMutation(await api.createPawnTicket(normalizedInput));
     } catch (error) {
       throw mapBackendError(error);
     }
@@ -225,7 +236,7 @@ export const ticketApi = {
     }
 
     try {
-      return await api.createSellTicket(normalizedInput);
+      return unwrapTicketMutation(await api.createSellTicket(normalizedInput));
     } catch (error) {
       throw mapBackendError(error);
     }
@@ -242,7 +253,7 @@ export const ticketApi = {
     }
 
     try {
-      return await api.updateTicket(normalizedInput);
+      return unwrapTicketMutation(await api.updateTicket(normalizedInput));
     } catch (error) {
       throw mapBackendError(error);
     }
@@ -259,7 +270,7 @@ export const ticketApi = {
     }
 
     try {
-      return await api.convertTicket(normalizedInput);
+      return unwrapTicketMutation(await api.convertTicket(normalizedInput));
     } catch (error) {
       throw mapBackendError(error);
     }
@@ -276,7 +287,7 @@ export const ticketApi = {
     }
 
     try {
-      return await api.expireTicket(normalizedInput);
+      return unwrapTicketMutation(await api.expireTicket(normalizedInput));
     } catch (error) {
       throw mapBackendError(error);
     }
@@ -293,7 +304,7 @@ export const ticketApi = {
     }
 
     try {
-      return await api.markTicketStolen(normalizedInput);
+      return unwrapTicketMutation(await api.markTicketStolen(normalizedInput));
     } catch (error) {
       throw mapBackendError(error);
     }
@@ -433,7 +444,7 @@ export const ticketApi = {
     }
 
     try {
-      return await api.transferTicket(normalizedInput);
+      return unwrapTicketMutation(await api.transferTicket(normalizedInput));
     } catch (error) {
       throw mapBackendError(error);
     }

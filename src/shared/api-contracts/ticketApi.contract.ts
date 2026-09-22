@@ -18,6 +18,7 @@ import type {
   ReverseTicketFormField,
   ReverseTicketResult,
   TicketSearchResult,
+  TicketFormField,
   TransferTicketInput,
   TransferTicketPreview,
   UpdateTicketInput,
@@ -28,6 +29,10 @@ import type {
 export type ReverseTicketMutationResult =
   | { ok: true; result: ReverseTicketResult }
   | { ok: false; field: ReverseTicketFormField; message: string };
+
+export type TicketMutationResult =
+  | { ok: true; ticket: Ticket }
+  | { ok: false; field: TicketFormField; message: string };
 
 export type TicketApi = {
   loadTicketsByClient: (clientNumber: number) => Promise<Ticket[]>;
@@ -47,18 +52,24 @@ export type TicketApi = {
   loadBuybackReport: (input: ReportDateInput) => Promise<BuybackReportResult>;
   loadDailyReport: (input: ReportDateRangeInput) => Promise<DailyReportResult>;
   loadInterestReport: (input: ReportDateInput) => Promise<InterestReportResult>;
-  createPawnTicket: (input: CreatePawnTicketInput) => Promise<Ticket>;
-  createSellTicket: (input: CreateSellTicketInput) => Promise<Ticket>;
-  updateTicket: (input: UpdateTicketInput) => Promise<Ticket>;
-  convertTicket: (input: ConvertTicketInput) => Promise<Ticket>;
-  expireTicket: (input: ExpireTicketInput) => Promise<Ticket>;
-  markTicketStolen: (input: MarkTicketStolenInput) => Promise<Ticket>;
+  createPawnTicket: (
+    input: CreatePawnTicketInput,
+  ) => Promise<TicketMutationResult>;
+  createSellTicket: (
+    input: CreateSellTicketInput,
+  ) => Promise<TicketMutationResult>;
+  updateTicket: (input: UpdateTicketInput) => Promise<TicketMutationResult>;
+  convertTicket: (input: ConvertTicketInput) => Promise<TicketMutationResult>;
+  expireTicket: (input: ExpireTicketInput) => Promise<TicketMutationResult>;
+  markTicketStolen: (
+    input: MarkTicketStolenInput,
+  ) => Promise<TicketMutationResult>;
   pickupTickets: (input: PickupTicketsInput) => Promise<Ticket[]>;
   extendTickets: (input: ExtendTicketsInput) => Promise<Ticket[]>;
   loadTransferTicketPreview: (
     ticketNumber: number,
   ) => Promise<TransferTicketPreview | null>;
-  transferTicket: (input: TransferTicketInput) => Promise<Ticket>;
+  transferTicket: (input: TransferTicketInput) => Promise<TicketMutationResult>;
   reverseTicket: (
     input: ReverseTicketInput,
   ) => Promise<ReverseTicketMutationResult>;

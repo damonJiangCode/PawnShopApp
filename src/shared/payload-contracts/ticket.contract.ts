@@ -1,4 +1,14 @@
 import type { Client } from "../models/client.model.ts";
+
+export type TicketFormField =
+  | "target_status"
+  | "description"
+  | "location"
+  | "amount"
+  | "onetime_fee"
+  | "employee_password"
+  | "manager_password"
+  | "ticket_number";
 import type { Ticket } from "../models/ticket.model.ts";
 
 type TicketDescriptionInput = {

@@ -11,8 +11,13 @@ import type {
   CreateSellTicketInput,
   TransferTicketInput,
   UpdateTicketInput,
+  TicketFormField,
 } from "../../../shared/payload-contracts/ticket.contract.ts";
-import type { ReverseTicketMutationResult } from "../../../shared/api-contracts/ticketApi.contract.ts";
+import type {
+  ReverseTicketMutationResult,
+  TicketMutationResult,
+} from "../../../shared/api-contracts/ticketApi.contract.ts";
+import type { Ticket } from "../../../shared/models/ticket.model.ts";
 import type {
   SaveHolidayInput,
   SaveLocationInput,
@@ -41,6 +46,26 @@ const runReverseTicketMutation = async (
       return {
         ok: false,
         field: fieldError.field as ReverseTicketFormField,
+        message: fieldError.message,
+      };
+    }
+
+    throw error;
+  }
+};
+
+const runTicketMutation = async (
+  operation: () => Promise<Ticket>,
+): Promise<TicketMutationResult> => {
+  try {
+    return { ok: true, ticket: await operation() };
+  } catch (error) {
+    const fieldError = extractFieldError(error);
+
+    if (fieldError) {
+      return {
+        ok: false,
+        field: fieldError.field as TicketFormField,
         message: fieldError.message,
       };
     }
@@ -100,37 +125,37 @@ export const registerTicketHandlers = () => {
   ipcMain.handle(
     CHANNELS.ADD_PAWN_TICKET,
     async (_event: IpcMainInvokeEvent, payload: CreatePawnTicketInput) => {
-      return ticketService.createPawnTicket(payload);
+      return runTicketMutation(() => ticketService.createPawnTicket(payload));
     },
   );
   ipcMain.handle(
     CHANNELS.ADD_SELL_TICKET,
     async (_event: IpcMainInvokeEvent, payload: CreateSellTicketInput) => {
-      return ticketService.createSellTicket(payload);
+      return runTicketMutation(() => ticketService.createSellTicket(payload));
     },
   );
   ipcMain.handle(
     CHANNELS.UPDATE_TICKET,
     async (_event: IpcMainInvokeEvent, payload: UpdateTicketInput) => {
-      return ticketService.updateTicket(payload);
+      return runTicketMutation(() => ticketService.updateTicket(payload));
     },
   );
   ipcMain.handle(
     CHANNELS.CONVERT_TICKET,
     async (_event: IpcMainInvokeEvent, payload: ConvertTicketInput) => {
-      return ticketService.convertTicket(payload);
+      return runTicketMutation(() => ticketService.convertTicket(payload));
     },
   );
   ipcMain.handle(
     CHANNELS.EXPIRE_TICKET,
     async (_event: IpcMainInvokeEvent, payload: ExpireTicketInput) => {
-      return ticketService.expireTicket(payload);
+      return runTicketMutation(() => ticketService.expireTicket(payload));
     },
   );
   ipcMain.handle(
     CHANNELS.MARK_TICKET_STOLEN,
     async (_event: IpcMainInvokeEvent, payload: MarkTicketStolenInput) => {
-      return ticketService.markTicketStolen(payload);
+      return runTicketMutation(() => ticketService.markTicketStolen(payload));
     },
   );
   ipcMain.handle(
@@ -154,7 +179,7 @@ export const registerTicketHandlers = () => {
   ipcMain.handle(
     CHANNELS.TRANSFER_TICKET,
     async (_event: IpcMainInvokeEvent, payload: TransferTicketInput) => {
-      return ticketService.transferTicket(payload);
+      return runTicketMutation(() => ticketService.transferTicket(payload));
     },
   );
   ipcMain.handle(
