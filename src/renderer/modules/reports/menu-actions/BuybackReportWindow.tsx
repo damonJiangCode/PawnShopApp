@@ -25,6 +25,7 @@ import {
 } from "../../../shared/utils/formatters";
 import WindowLayout from "../../../windows/WindowLayout";
 import type { WindowScreenProps } from "../../../windows/windowRegistry";
+import ReportDocument from "../components/ReportDocument";
 
 const BuybackReportWindow: React.FC<WindowScreenProps> = () => {
   const today = useMemo(() => formatIsoDate(new Date()), []);
@@ -65,11 +66,12 @@ const BuybackReportWindow: React.FC<WindowScreenProps> = () => {
   };
 
   const rows = report?.rows ?? [];
+  const ticketCount = new Set(rows.map((row) => row.ticket_number)).size;
 
   return (
     <WindowLayout
       title="Buyback Report"
-      description="Generate daily pickup/buyback reconciliation."
+      description="Generate  buyback payment records."
     >
       <GlobalStyles
         styles={{
@@ -157,72 +159,64 @@ const BuybackReportWindow: React.FC<WindowScreenProps> = () => {
           </Alert>
         ) : null}
 
-        <Box
-          sx={{
-            color: "text.primary",
-            bgcolor: "background.paper",
-            "@media print": {
-              color: "#000",
-              bgcolor: "#fff",
-            },
-          }}
-        >
-          <Stack spacing={0.5} alignItems="center" sx={{ mb: 2 }}>
-            <Typography variant="h5" fontWeight={900} sx={{ letterSpacing: 0 }}>
-              BUYBACK REPORT
-            </Typography>
-            <Typography variant="body2" fontWeight={800}>
-              From: {report?.from_date ?? fromDate} &nbsp;&nbsp; To:{" "}
-              {report?.to_date ?? toDate}
-            </Typography>
-          </Stack>
-
-          <TableContainer>
-            <Table size="small" aria-label="buyback report">
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 800 }}>Ticket Number</TableCell>
-                  <TableCell sx={{ fontWeight: 800 }}>Amount</TableCell>
-                  <TableCell sx={{ fontWeight: 800 }}>Description</TableCell>
-                  <TableCell sx={{ fontWeight: 800 }}>Name</TableCell>
-                  <TableCell sx={{ fontWeight: 800 }}>Date</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.length ? (
-                  rows.map((row) => (
-                    <TableRow key={row.ticket_number}>
-                      <TableCell>{row.ticket_number}</TableCell>
-                      <TableCell>
-                        {formatCurrency(row.pickup_amount_paid)}
-                      </TableCell>
-                      <TableCell>{row.description}</TableCell>
-                      <TableCell>{row.client_name}</TableCell>
-                      <TableCell>
-                        {formatIsoDateTime(row.pickup_datetime)}
+        {report ? (
+          <ReportDocument
+            title="Buyback Report"
+            fromDate={report.from_date}
+            toDate={report.to_date}
+            footer={
+              <>
+                <Typography variant="body2" fontWeight={800}>
+                  TICKETS: {ticketCount}
+                </Typography>
+                <Typography variant="body2" fontWeight={900}>
+                  TOTAL: {formatCurrency(report.total_buyback_price)}
+                </Typography>
+              </>
+            }
+          >
+            <TableContainer>
+              <Table size="small" aria-label="buyback report">
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 800 }}>Ticket #</TableCell>
+                    <TableCell sx={{ fontWeight: 800 }}>Amount</TableCell>
+                    <TableCell sx={{ fontWeight: 800 }}>Description</TableCell>
+                    <TableCell sx={{ fontWeight: 800 }}>Customer</TableCell>
+                    <TableCell sx={{ fontWeight: 800 }}>Date & Time</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {rows.length ? (
+                    rows.map((row) => (
+                      <TableRow key={row.ticket_number}>
+                        <TableCell>#{row.ticket_number}</TableCell>
+                        <TableCell>
+                          {formatCurrency(row.pickup_amount_paid)}
+                        </TableCell>
+                        <TableCell>{row.description}</TableCell>
+                        <TableCell>{row.client_name}</TableCell>
+                        <TableCell>
+                          {formatIsoDateTime(row.pickup_datetime)}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} align="center">
+                        No buybacks found for this date range.
                       </TableCell>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={5} align="center">
-                      No buybacks found for this date range.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-
-          <Stack direction="row" justifyContent="flex-end" spacing={2} mt={2}>
-            <Typography variant="subtitle1" fontWeight={900}>
-              TOTAL BUYBACK PRICE
-            </Typography>
-            <Typography variant="subtitle1" fontWeight={900}>
-              {formatCurrency(report?.total_buyback_price ?? 0)}
-            </Typography>
-          </Stack>
-        </Box>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </ReportDocument>
+        ) : !isLoading && !errorMessage ? (
+          <Typography color="text.secondary">
+            Select a date range and generate the report.
+          </Typography>
+        ) : null}
       </Box>
     </WindowLayout>
   );

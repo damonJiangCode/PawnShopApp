@@ -2,7 +2,6 @@ import PrintIcon from "@mui/icons-material/Print";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import {
   Alert,
-  Box,
   Button,
   CircularProgress,
   GlobalStyles,
@@ -24,6 +23,7 @@ import {
 } from "../../../shared/utils/formatters";
 import WindowLayout from "../../../windows/WindowLayout";
 import type { WindowScreenProps } from "../../../windows/windowRegistry";
+import ReportDocument from "../components/ReportDocument";
 
 const detailValue = (value: string | number | undefined) =>
   value === undefined || value === "" ? "---" : String(value);
@@ -88,7 +88,7 @@ const DailyReportWindow: React.FC<WindowScreenProps> = () => {
   return (
     <WindowLayout
       title="Daily Report"
-      description="Generate detailed pawn and sold item records."
+      description="Generate detailed item records."
     >
       <GlobalStyles
         styles={{
@@ -188,17 +188,24 @@ const DailyReportWindow: React.FC<WindowScreenProps> = () => {
         ) : null}
 
         {hasReportTickets && report ? (
-          <Box sx={{ color: "#000", bgcolor: "#fff", px: 0.5 }}>
-            <Stack alignItems="center" spacing={0.1} sx={{ mb: 0.75 }}>
-              <Typography variant="h6" fontWeight={900}>
-                DAILY REPORT
-              </Typography>
-              <Typography variant="caption" fontWeight={800}>
-                FROM: {report.from_date} &nbsp;&nbsp; TO: {report.to_date}
-                &nbsp;&nbsp; PRINT DATE: {today}
-              </Typography>
-            </Stack>
-
+          <ReportDocument
+            title="Daily Report"
+            fromDate={report.from_date}
+            toDate={report.to_date}
+            footer={
+              <>
+                <Typography variant="body2" fontWeight={800}>
+                  TICKETS: {report.total_tickets}
+                </Typography>
+                <Typography variant="body2" fontWeight={800}>
+                  ITEMS: {report.total_items}
+                </Typography>
+                <Typography variant="body2" fontWeight={900}>
+                  TOTAL: {formatCurrency(report.total_amount)}
+                </Typography>
+              </>
+            }
+          >
             <TableContainer>
               <Table
                 size="small"
@@ -206,10 +213,6 @@ const DailyReportWindow: React.FC<WindowScreenProps> = () => {
                 sx={{
                   tableLayout: "fixed",
                   "& th, & td": {
-                    px: 0.75,
-                    py: 0.35,
-                    fontSize: "0.72rem",
-                    lineHeight: 1.25,
                     verticalAlign: "top",
                     overflowWrap: "anywhere",
                   },
@@ -219,16 +222,16 @@ const DailyReportWindow: React.FC<WindowScreenProps> = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell sx={{ width: "14%", fontWeight: 900 }}>
-                      No.
+                      Ticket #
                     </TableCell>
                     <TableCell sx={{ width: "11%", fontWeight: 900 }}>
-                      Amount / Qty
+                      Amt / Qty
                     </TableCell>
                     <TableCell sx={{ width: "35%", fontWeight: 900 }}>
-                      Customer / Description
+                      Description / Customer
                     </TableCell>
                     <TableCell sx={{ width: "40%", fontWeight: 900 }}>
-                      Personal Data / Item Details
+                      Personal / Item Details
                     </TableCell>
                   </TableRow>
                 </TableHead>
@@ -254,7 +257,7 @@ const DailyReportWindow: React.FC<WindowScreenProps> = () => {
                         <TableCell>
                           <strong>{detailValue(ticket.description)}</strong>
                           <br />
-                          NAME: {ticket.client_name || "UNKNOWN CLIENT"}
+                          {ticket.client_name || "UNKNOWN CLIENT"}
                         </TableCell>
                         <TableCell>
                           DOB: {detailValue(ticket.date_of_birth)} | SEX:{" "}
@@ -295,24 +298,7 @@ const DailyReportWindow: React.FC<WindowScreenProps> = () => {
                 </TableBody>
               </Table>
             </TableContainer>
-
-            <Stack
-              direction="row"
-              justifyContent="flex-end"
-              spacing={3}
-              sx={{ mt: 1.5, breakInside: "avoid" }}
-            >
-              <Typography fontWeight={800}>
-                TICKETS: {report.total_tickets}
-              </Typography>
-              <Typography fontWeight={800}>
-                ITEMS: {report.total_items}
-              </Typography>
-              <Typography fontWeight={900}>
-                TOTAL: {formatCurrency(report.total_amount)}
-              </Typography>
-            </Stack>
-          </Box>
+          </ReportDocument>
         ) : !loading && !missingTicketNumbers.length && !errorMessage ? (
           <Typography color="text.secondary">
             Select a date range and generate the report.

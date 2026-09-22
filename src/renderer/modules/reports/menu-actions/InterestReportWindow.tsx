@@ -19,9 +19,13 @@ import {
 import React, { useMemo, useState } from "react";
 import { INTEREST_REPORT_START_DATE } from "../../../../shared/reportSettings";
 import { ticketApi } from "../../tickets/ticket.api";
-import { formatIsoDate } from "../../../shared/utils/formatters";
+import {
+  formatIsoDate,
+  formatIsoDateTime,
+} from "../../../shared/utils/formatters";
 import WindowLayout from "../../../windows/WindowLayout";
 import type { WindowScreenProps } from "../../../windows/windowRegistry";
+import ReportDocument from "../components/ReportDocument";
 
 const InterestReportWindow: React.FC<WindowScreenProps> = () => {
   const today = useMemo(() => formatIsoDate(new Date()), []);
@@ -72,6 +76,7 @@ const InterestReportWindow: React.FC<WindowScreenProps> = () => {
   };
 
   const rows = report?.rows ?? [];
+  const ticketCount = new Set(rows.map((row) => row.ticket_number)).size;
 
   return (
     <WindowLayout
@@ -171,54 +176,42 @@ const InterestReportWindow: React.FC<WindowScreenProps> = () => {
         ) : null}
 
         {report ? (
-          <Box
-            sx={{
-              color: "text.primary",
-              bgcolor: "background.paper",
-              px: 0.5,
-              "@media print": {
-                color: "#000",
-                bgcolor: "#fff",
-              },
-            }}
+          <ReportDocument
+            title="Interest Report"
+            fromDate={report.from_date}
+            toDate={report.to_date}
+            footer={
+              <>
+                <Typography variant="body2" fontWeight={800}>
+                  TICKETS: {ticketCount}
+                </Typography>
+                <Typography variant="body2" fontWeight={900}>
+                  TOTAL: ${report.total_interest_paid.toFixed(2)}
+                </Typography>
+              </>
+            }
           >
-            <Stack spacing={0.25} sx={{ mb: 1.25 }}>
-              <Typography variant="caption">Print Date: {today}</Typography>
-              <Typography variant="body2" fontWeight={700}>
-                ** INTEREST REPORT ** &nbsp;&nbsp; From: {report.from_date}
-                &nbsp;&nbsp; To: {report.to_date}
-              </Typography>
-            </Stack>
-
             <TableContainer>
-              <Table
-                size="small"
-                aria-label="interest report"
-                sx={{
-                  "& th, & td": {
-                    px: 0.75,
-                    py: 0.35,
-                    fontSize: "0.78rem",
-                    lineHeight: 1.2,
-                  },
-                }}
-              >
+              <Table size="small" aria-label="interest report">
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ width: "19%", fontWeight: 800 }}>
-                      Transaction #
+                    <TableCell sx={{ width: "15%", fontWeight: 800 }}>
+                      Ticket #
                     </TableCell>
                     <TableCell sx={{ width: "10%", fontWeight: 800 }}>
                       Months
                     </TableCell>
-                    <TableCell sx={{ width: "14%", fontWeight: 800 }}>
-                      Amt.
+                    <TableCell sx={{ width: "12%", fontWeight: 800 }}>
+                      Amount
                     </TableCell>
-                    <TableCell sx={{ width: "27%", fontWeight: 800 }}>
-                      Name
+                    <TableCell sx={{ width: "25%", fontWeight: 800 }}>
+                      Description
                     </TableCell>
-                    <TableCell sx={{ width: "30%", fontWeight: 800 }}>
-                      Remark
+                    <TableCell sx={{ width: "20%", fontWeight: 800 }}>
+                      Customer
+                    </TableCell>
+                    <TableCell sx={{ width: "18%", fontWeight: 800 }}>
+                      Date & Time
                     </TableCell>
                   </TableRow>
                 </TableHead>
@@ -234,18 +227,21 @@ const InterestReportWindow: React.FC<WindowScreenProps> = () => {
                             alignItems="center"
                             spacing={1}
                           >
-                            <span>{row.ticket_number}</span>
+                            <span>#{row.ticket_number}</span>
                           </Stack>
                         </TableCell>
                         <TableCell>{row.months_paid} x</TableCell>
                         <TableCell>${row.amount_paid.toFixed(2)}</TableCell>
-                        <TableCell>{row.client_name}</TableCell>
                         <TableCell>{row.description}</TableCell>
+                        <TableCell>{row.client_name}</TableCell>
+                        <TableCell>
+                          {formatIsoDateTime(row.payment_datetime)}
+                        </TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={5} align="center">
+                      <TableCell colSpan={6} align="center">
                         No interest payments found for this date range.
                       </TableCell>
                     </TableRow>
@@ -253,16 +249,7 @@ const InterestReportWindow: React.FC<WindowScreenProps> = () => {
                 </TableBody>
               </Table>
             </TableContainer>
-
-            <Stack direction="row" spacing={2} sx={{ mt: 1.25, pl: 0.75 }}>
-              <Typography variant="body2" fontWeight={800}>
-                Total:
-              </Typography>
-              <Typography variant="body2" fontWeight={800}>
-                ${(report?.total_interest_paid ?? 0).toFixed(2)}
-              </Typography>
-            </Stack>
-          </Box>
+          </ReportDocument>
         ) : !isLoading && !errorMessage ? (
           <Typography color="text.secondary">
             Select a date range and generate the report.
