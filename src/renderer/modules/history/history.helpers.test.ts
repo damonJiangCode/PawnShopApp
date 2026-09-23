@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { Ticket } from "../../../shared/models/ticket.model.ts";
-import { sortHistoryTickets } from "./history.helpers.ts";
+import { canRepawnTicket, sortHistoryTickets } from "./history.helpers.ts";
 
 const createHistoryTicket = (
   ticketNumber: number,
@@ -60,5 +60,20 @@ test("uses the ticket number when history activity times match", () => {
       (ticket) => ticket.ticket_number,
     ),
     [980000, 980001],
+  );
+});
+
+test("allows repawn only for tickets from the pawn flow", () => {
+  assert.equal(
+    canRepawnTicket(createHistoryTicket(1, { status: "pawned_expired" })),
+    true,
+  );
+  assert.equal(
+    canRepawnTicket(createHistoryTicket(2, { status: "pawned_picked_up" })),
+    true,
+  );
+  assert.equal(
+    canRepawnTicket(createHistoryTicket(3, { status: "sold_expired" })),
+    false,
   );
 });

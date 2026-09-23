@@ -1,5 +1,8 @@
 import type { Ticket } from "../../../shared/models/ticket.model";
 
+export const canRepawnTicket = (ticket?: Ticket | null) =>
+  ticket?.status === "pawned_expired" || ticket?.status === "pawned_picked_up";
+
 const getValidTime = (date?: Date) => {
   const time = date?.getTime();
   return Number.isFinite(time) ? time : undefined;

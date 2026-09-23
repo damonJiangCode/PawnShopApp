@@ -10,7 +10,7 @@ import {
 } from "../../tickets/ticket.api";
 import type { PrintClient } from "../../tickets/print/ticketPrintTemplate";
 import { getAppApi } from "../../../shared/api/app.api";
-import { sortHistoryTickets } from "../history.helpers";
+import { canRepawnTicket, sortHistoryTickets } from "../history.helpers";
 
 interface UseHistoryPageParams {
   isActive?: boolean;
@@ -277,6 +277,11 @@ export const useHistoryPage = ({
   const handleRepawn = async () => {
     if (!selectedTicket) return;
 
+    if (!canRepawnTicket(selectedTicket)) {
+      setStatusMessage("Sold tickets cannot be repawned.");
+      return;
+    }
+
     setStatusMessage("");
     if (items.length) {
       await getAppApi()?.window.openItemSearchWindow({
@@ -294,6 +299,11 @@ export const useHistoryPage = ({
   ) => {
     if (!clientNumber || !selectedTicket) {
       throw new Error("Please select a client and ticket first.");
+    }
+
+    if (!canRepawnTicket(selectedTicket)) {
+      setOpenRepawnDialog(false);
+      throw new Error("Sold tickets cannot be repawned.");
     }
 
     const newTicket = await ticketApi.createPawnTicket({
