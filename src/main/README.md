@@ -118,7 +118,7 @@ Start here:
 
 ### reports
 
-Owns daily, interest, buyback, and police report data.
+Owns daily, interest, buyback, and XML Report data.
 
 Start here:
 

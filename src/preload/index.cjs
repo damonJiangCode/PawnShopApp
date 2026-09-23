@@ -35,6 +35,9 @@ const CHANNELS = {
   LOAD_BUYBACK_REPORT: "load-buyback-report",
   LOAD_DAILY_REPORT: "load-daily-report",
   LOAD_INTEREST_REPORT: "load-interest-report",
+  CHECK_XML_REPORT_CONNECTION: "check-xml-report-connection",
+  LOAD_XML_REPORT_PREVIEW: "load-xml-report-preview",
+  SUBMIT_XML_REPORT: "submit-xml-report",
   GET_ITEMS: "get-items",
   GET_ITEM_CATEGORIES: "get-item-categories",
   SEARCH_ITEMS: "search-items",
@@ -146,6 +149,12 @@ const itemApi = {
     invoke(CHANNELS.SAVE_ITEM_IMAGE, fileName, base64),
 };
 
+const xmlReportApi = {
+  checkConnection: () => invoke(CHANNELS.CHECK_XML_REPORT_CONNECTION),
+  loadPreview: (input) => invoke(CHANNELS.LOAD_XML_REPORT_PREVIEW, input),
+  submitReport: (input) => invoke(CHANNELS.SUBMIT_XML_REPORT, input),
+};
+
 const windowApi = {
   openPaymentWindow: (payload) => invoke(CHANNELS.OPEN_PAYMENT_WINDOW, payload),
   onPaymentWindowInputUpdated: (callback) => {
@@ -189,6 +198,7 @@ contextBridge.exposeInMainWorld("appAPI", {
   ticket: ticketApi,
   item: itemApi,
   window: windowApi,
+  xmlReport: xmlReportApi,
 });
 
 console.log("Preload (CJS) loaded");

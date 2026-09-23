@@ -102,12 +102,14 @@ const createAppMenu = () => {
             }),
         },
         {
-          label: "Police XML",
+          label: "XML",
           click: () =>
             openMenuActionWindow({
-              id: "report-police-xml",
-              title: "Police XML / BWI",
-              description: "Generate the daily police XML file.",
+              id: "report-xml",
+              title: "XML Report",
+              description: "Validate and upload LeadsOnline XML reports.",
+              width: 1000,
+              height: 720,
             }),
         },
       ],

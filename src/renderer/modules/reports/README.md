@@ -10,7 +10,7 @@ reports/
     BuybackReportWindow.tsx
     DailyReportWindow.tsx
     InterestReportWindow.tsx
-    PoliceXmlWindow.tsx
+    XmlReportWindow.tsx
 ```
 
 ## Main Flow
@@ -30,4 +30,4 @@ When reviewing this module, check:
 
 - date range inputs are passed correctly
 - money totals match ticket/payment service behavior
-- generated police XML uses migrated category/location data correctly
+- generated XML Report uses migrated category/location data correctly

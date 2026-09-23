@@ -5,6 +5,7 @@ export type WindowLayoutProps = {
   title: string;
   description: string;
   denseFooter?: boolean;
+  footerActions?: React.ReactNode;
   children?: React.ReactNode;
 };
 
@@ -12,6 +13,7 @@ const WindowLayout: React.FC<WindowLayoutProps> = ({
   title,
   description,
   denseFooter = false,
+  footerActions,
   children,
 }) => {
   return (
@@ -83,6 +85,7 @@ const WindowLayout: React.FC<WindowLayoutProps> = ({
           className="no-print"
           sx={{ displayPrint: "none", minHeight: denseFooter ? 28 : undefined }}
         >
+          {footerActions}
           <Button
             variant="outlined"
             size={denseFooter ? "small" : "medium"}

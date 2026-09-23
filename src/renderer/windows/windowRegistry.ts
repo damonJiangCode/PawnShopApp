@@ -28,8 +28,8 @@ const DailyReportWindow = lazy(
 const InterestReportWindow = lazy(
   () => import("../modules/reports/menu-actions/InterestReportWindow"),
 );
-const PoliceXmlWindow = lazy(
-  () => import("../modules/reports/menu-actions/PoliceXmlWindow"),
+const XmlReportWindow = lazy(
+  () => import("../modules/reports/menu-actions/XmlReportWindow"),
 );
 const TicketExpireWindow = lazy(
   () => import("../modules/tickets/menu-actions/TicketExpireWindow"),
@@ -43,9 +43,7 @@ const TicketStolenWindow = lazy(
 const PaymentWindow = lazy(
   () => import("../modules/tickets/payment/PaymentWindow"),
 );
-const QuoteWindow = lazy(
-  () => import("../modules/tickets/quote/QuoteWindow"),
-);
+const QuoteWindow = lazy(() => import("../modules/tickets/quote/QuoteWindow"));
 
 export type WindowScreenProps = {
   screen: string;
@@ -64,7 +62,7 @@ export const windowRegistry: Record<
   "report-daily": DailyReportWindow,
   "report-buyback": BuybackReportWindow,
   "report-interest": InterestReportWindow,
-  "report-police-xml": PoliceXmlWindow,
+  "report-xml": XmlReportWindow,
   "admin-employee": EmployeeAdminWindow,
   "admin-hair-color": HairColorAdminWindow,
   "admin-eye-color": EyeColorAdminWindow,

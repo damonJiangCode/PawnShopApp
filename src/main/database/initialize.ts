@@ -28,6 +28,10 @@ import {
   createTicketReversalTable,
 } from "./schema/ticket/ticketReversalTable.ts";
 import {
+  createXmlReportSubmissionIndexes,
+  createXmlReportSubmissionTable,
+} from "./schema/report/xmlReportSubmissionTable.ts";
+import {
   createPreventItemMultiplePawnedTicketsFunction,
   createPreventItemMultiplePawnedTicketsTrigger,
   createPreventTicketWithConflictingPawnedItemsFunction,
@@ -135,6 +139,12 @@ export const initializeDatabase = async () => {
 
     await client.query(createTicketReversalIndexes);
     console.log("ticket_reversal indexes created successfully");
+
+    await client.query(createXmlReportSubmissionTable);
+    console.log("xml_report_submission table created successfully");
+
+    await client.query(createXmlReportSubmissionIndexes);
+    console.log("xml_report_submission indexes created successfully");
 
     // Seed default data.
     await seedCities(client);
