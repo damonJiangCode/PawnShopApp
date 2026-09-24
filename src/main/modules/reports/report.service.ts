@@ -3,6 +3,9 @@ import type {
   DailyReportResult,
   DailyReportTicket,
   InterestReportResult,
+  OverdueReportInput,
+  OverdueReportResult,
+  OverdueReportTicket,
   ReportDateRangeInput,
 } from "../../../shared/payload-contracts/ticket.contract.ts";
 import { reportRepo } from "./report.repo.ts";
@@ -10,7 +13,106 @@ import { createFieldError } from "../../shared/createFieldError.ts";
 import { ticketInput } from "../tickets/ticket.input.ts";
 import { INTEREST_REPORT_START_DATE } from "../../../shared/reportSettings.ts";
 
+const parseLocation = (
+  value: string,
+  field: "location_from" | "location_to",
+) => {
+  const normalized = value.trim().toUpperCase();
+  const match = /^([A-Z]+)(\d+)$/.exec(normalized);
+
+  if (!match) {
+    throw createFieldError(field, "Enter a location such as AA11.");
+  }
+
+  return {
+    value: normalized,
+    prefix: match[1],
+    number: Number(match[2]),
+  };
+};
+
 export const reportService = {
+  loadOverdueReport: async (
+    input: OverdueReportInput,
+  ): Promise<OverdueReportResult> => {
+    const dueOnOrBefore = input.due_on_or_before?.trim() ?? "";
+
+    if (!ticketInput.isValidDateKey(dueOnOrBefore)) {
+      throw createFieldError(
+        "due_on_or_before",
+        "Enter a valid Due On or Before date.",
+      );
+    }
+
+    const locationFrom = parseLocation(
+      input.location_from ?? "",
+      "location_from",
+    );
+    const locationTo = parseLocation(input.location_to ?? "", "location_to");
+
+    if (locationFrom.prefix !== locationTo.prefix) {
+      throw createFieldError(
+        "location_to",
+        "From and To locations must use the same letter code.",
+      );
+    }
+
+    if (locationFrom.number > locationTo.number) {
+      throw createFieldError(
+        "location_to",
+        "To location must be the same as or later than From location.",
+      );
+    }
+
+    const sourceRows = await reportRepo.loadOverdueReportRows(
+      dueOnOrBefore,
+      locationFrom.prefix,
+      locationFrom.number,
+      locationTo.number,
+    );
+    const ticketMap = new Map<number, OverdueReportTicket>();
+
+    for (const row of sourceRows) {
+      let ticket = ticketMap.get(row.ticket_number);
+
+      if (!ticket) {
+        ticket = {
+          ticket_number: row.ticket_number,
+          client_name: row.client_name,
+          location: row.location,
+          transaction_date: row.transaction_date,
+          due_date: row.due_date,
+          interest_paid_months: row.interest_paid_months,
+          items: [],
+        };
+        ticketMap.set(row.ticket_number, ticket);
+      }
+
+      if (row.item_number) {
+        ticket.items.push({
+          description: row.item_description,
+          brand_name: row.brand_name,
+          model_number: row.model_number,
+          serial_number: row.serial_number,
+        });
+      }
+    }
+
+    const tickets = [...ticketMap.values()];
+
+    return {
+      due_on_or_before: dueOnOrBefore,
+      location_from: locationFrom.value,
+      location_to: locationTo.value,
+      tickets,
+      total_tickets: tickets.length,
+      total_items: tickets.reduce(
+        (total, ticket) => total + ticket.items.length,
+        0,
+      ),
+    };
+  },
+
   loadDailyReport: async (
     input: ReportDateRangeInput,
   ): Promise<DailyReportResult> => {

@@ -9,6 +9,8 @@ import type {
   ExtendTicketsInput,
   ExpireTicketInput,
   InterestReportResult,
+  OverdueReportInput,
+  OverdueReportResult,
   MarkTicketStolenInput,
   PickupTicketsInput,
   CreatePawnTicketInput,
@@ -411,6 +413,26 @@ export const ticketApi = {
     }
   },
 
+  loadOverdueReport: async (
+    input: OverdueReportInput,
+  ): Promise<OverdueReportResult> => {
+    const api = getAppApi()?.ticket;
+
+    if (!api) {
+      throw new Error("Ticket API is unavailable.");
+    }
+
+    try {
+      return await api.loadOverdueReport({
+        due_on_or_before: input.due_on_or_before.trim(),
+        location_from: input.location_from.trim().toUpperCase(),
+        location_to: input.location_to.trim().toUpperCase(),
+      });
+    } catch (error) {
+      throw mapBackendError(error);
+    }
+  },
+
   loadTransferTicketPreview: async (
     ticketNumber: number,
   ): Promise<TransferTicketPreview | null> => {
@@ -479,6 +501,8 @@ export type {
   ExtendTicketsInput,
   ExpireTicketInput,
   InterestReportResult,
+  OverdueReportInput,
+  OverdueReportResult,
   MarkTicketStolenInput,
   PickupTicketsInput,
   CreatePawnTicketInput,

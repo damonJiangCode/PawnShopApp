@@ -102,6 +102,17 @@ const createAppMenu = () => {
             }),
         },
         {
+          label: "Overdue",
+          click: () =>
+            openMenuActionWindow({
+              id: "report-overdue",
+              title: "Overdue Report",
+              description: "Review overdue pawn tickets by location range.",
+              width: 1100,
+              height: 760,
+            }),
+        },
+        {
           label: "XML",
           click: () =>
             openMenuActionWindow({

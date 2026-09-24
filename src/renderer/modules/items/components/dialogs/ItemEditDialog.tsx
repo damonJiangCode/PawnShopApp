@@ -106,10 +106,16 @@ const ItemEditDialog: React.FC<ItemEditDialogProps> = ({
     setSubmitError("");
   };
 
-  const focusDescription = () => {
+  const focusDescription = (selectText = true) => {
     const id = requestAnimationFrame(() => {
-      descriptionRef.current?.focus();
-      descriptionRef.current?.select();
+      const input = descriptionRef.current;
+      input?.focus();
+
+      if (selectText) {
+        input?.select();
+      } else if (input) {
+        input.setSelectionRange(input.value.length, input.value.length);
+      }
     });
     return () => cancelAnimationFrame(id);
   };
@@ -406,10 +412,28 @@ const ItemEditDialog: React.FC<ItemEditDialogProps> = ({
         categories={categories}
         onClose={() => setCategoryDialogOpen(false)}
         onSelect={(nextCategory) => {
+          const previousDefault = category?.subcategory_name
+            .trim()
+            .toUpperCase();
           setCategory(nextCategory);
+          setDescription((currentDescription) => {
+            const normalizedDescription = currentDescription
+              .trim()
+              .toUpperCase();
+
+            if (
+              mode === "add" &&
+              (!normalizedDescription ||
+                normalizedDescription === previousDefault)
+            ) {
+              return nextCategory.subcategory_name.trim().toUpperCase();
+            }
+
+            return currentDescription;
+          });
           setCategoryError("");
           setCategoryDialogOpen(false);
-          focusDescription();
+          focusDescription(false);
         }}
       />
     </>

@@ -10,6 +10,7 @@ reports/
     BuybackReportWindow.tsx
     DailyReportWindow.tsx
     InterestReportWindow.tsx
+    OverdueReportWindow.tsx
     XmlReportWindow.tsx
 ```
 

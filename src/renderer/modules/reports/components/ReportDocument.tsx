@@ -7,6 +7,7 @@ type ReportDocumentProps = {
   toDate: string;
   children: ReactNode;
   footer: ReactNode;
+  dateSummary?: string;
 };
 
 const ReportDocument = ({
@@ -15,6 +16,7 @@ const ReportDocument = ({
   toDate,
   children,
   footer,
+  dateSummary,
 }: ReportDocumentProps) => (
   <Box
     sx={{
@@ -42,7 +44,11 @@ const ReportDocument = ({
         {title.toUpperCase()}
       </Typography>
       <Typography variant="caption" fontWeight={800}>
-        FROM: {fromDate} &nbsp;&nbsp; TO: {toDate}
+        {dateSummary ?? (
+          <>
+            FROM: {fromDate} &nbsp;&nbsp; TO: {toDate}
+          </>
+        )}
       </Typography>
     </Stack>
 

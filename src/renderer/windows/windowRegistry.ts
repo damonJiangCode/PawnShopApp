@@ -28,6 +28,9 @@ const DailyReportWindow = lazy(
 const InterestReportWindow = lazy(
   () => import("../modules/reports/menu-actions/InterestReportWindow"),
 );
+const OverdueReportWindow = lazy(
+  () => import("../modules/reports/menu-actions/OverdueReportWindow"),
+);
 const XmlReportWindow = lazy(
   () => import("../modules/reports/menu-actions/XmlReportWindow"),
 );
@@ -62,6 +65,7 @@ export const windowRegistry: Record<
   "report-daily": DailyReportWindow,
   "report-buyback": BuybackReportWindow,
   "report-interest": InterestReportWindow,
+  "report-overdue": OverdueReportWindow,
   "report-xml": XmlReportWindow,
   "admin-employee": EmployeeAdminWindow,
   "admin-hair-color": HairColorAdminWindow,

@@ -8,6 +8,8 @@ import type {
   ExtendTicketsInput,
   ExpireTicketInput,
   InterestReportResult,
+  OverdueReportInput,
+  OverdueReportResult,
   MarkTicketStolenInput,
   PickupTicketsInput,
   CreatePawnTicketInput,
@@ -55,6 +57,9 @@ export type TicketApi = {
   loadInterestReport: (
     input: ReportDateRangeInput,
   ) => Promise<InterestReportResult>;
+  loadOverdueReport: (
+    input: OverdueReportInput,
+  ) => Promise<OverdueReportResult>;
   createPawnTicket: (
     input: CreatePawnTicketInput,
   ) => Promise<TicketMutationResult>;

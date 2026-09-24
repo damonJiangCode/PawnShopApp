@@ -120,6 +120,35 @@ export type InterestReportResult = ReportDateRangeInput & {
   total_interest_paid: number;
 };
 
+export type OverdueReportInput = {
+  due_on_or_before: string;
+  location_from: string;
+  location_to: string;
+};
+
+export type OverdueReportItem = {
+  description: string;
+  brand_name: string;
+  model_number: string;
+  serial_number: string;
+};
+
+export type OverdueReportTicket = {
+  ticket_number: number;
+  client_name: string;
+  location: string;
+  transaction_date: string;
+  due_date: string;
+  interest_paid_months: number;
+  items: OverdueReportItem[];
+};
+
+export type OverdueReportResult = OverdueReportInput & {
+  tickets: OverdueReportTicket[];
+  total_tickets: number;
+  total_items: number;
+};
+
 export type TransferTicketInput = {
   ticket_number: number;
   client_number: number;

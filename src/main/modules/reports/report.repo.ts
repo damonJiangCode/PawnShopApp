@@ -43,6 +43,20 @@ export type DailyReportSourceRow = {
   item_amount?: number;
 };
 
+export type OverdueReportSourceRow = {
+  ticket_number: number;
+  client_name: string;
+  location: string;
+  transaction_date: string;
+  due_date: string;
+  interest_paid_months: number;
+  item_number?: number;
+  item_description: string;
+  brand_name: string;
+  model_number: string;
+  serial_number: string;
+};
+
 const clientDisplayNameSql = (alias: string) => `
   CONCAT(
     UPPER(${alias}.last_name),
@@ -108,7 +122,72 @@ const mapDailyReportRow = (
   item_amount: optionalNumber(row.item_amount),
 });
 
+const mapOverdueReportRow = (
+  row: Record<string, unknown>,
+): OverdueReportSourceRow => ({
+  ticket_number: Number(row.ticket_number),
+  client_name: textValue(row.client_name),
+  location: textValue(row.location),
+  transaction_date: textValue(row.transaction_date),
+  due_date: textValue(row.due_date),
+  interest_paid_months: Number(row.interest_paid_months ?? 0),
+  item_number: optionalNumber(row.item_number),
+  item_description: textValue(row.item_description),
+  brand_name: textValue(row.brand_name),
+  model_number: textValue(row.model_number),
+  serial_number: textValue(row.serial_number),
+});
+
 export const reportRepo = {
+  loadOverdueReportRows: async (
+    dueOnOrBefore: string,
+    locationPrefix: string,
+    locationFromNumber: number,
+    locationToNumber: number,
+  ): Promise<OverdueReportSourceRow[]> => {
+    const client = await connect();
+    const query = `
+      SELECT
+        t.ticket_number,
+        ${clientDisplayNameSql("c")} AS client_name,
+        t.location,
+        TO_CHAR(t.transaction_datetime, 'YYYY-MM-DD') AS transaction_date,
+        TO_CHAR(t.due_date, 'YYYY-MM-DD') AS due_date,
+        t.interest_paid_months,
+        i.item_number,
+        COALESCE(i.description, '') AS item_description,
+        COALESCE(i.brand_name, '') AS brand_name,
+        COALESCE(i.model_number, '') AS model_number,
+        COALESCE(i.serial_number, '') AS serial_number
+      FROM ticket t
+      INNER JOIN client c ON c.client_number = t.client_number
+      LEFT JOIN ticket_item ti ON ti.ticket_number = t.ticket_number
+      LEFT JOIN item i ON i.item_number = ti.item_number
+      WHERE t.status = 'pawned'
+        AND t.due_date < ($1::date + INTERVAL '1 day')
+        AND UPPER(SUBSTRING(t.location FROM '^[A-Za-z]+')) = $2
+        AND CAST(SUBSTRING(t.location FROM '[0-9]+$') AS INTEGER)
+          BETWEEN $3 AND $4
+      ORDER BY
+        CAST(SUBSTRING(t.location FROM '[0-9]+$') AS INTEGER) ASC,
+        t.due_date ASC,
+        t.ticket_number ASC,
+        i.item_number ASC
+    `;
+
+    try {
+      const result = await client.query(query, [
+        dueOnOrBefore,
+        locationPrefix,
+        locationFromNumber,
+        locationToNumber,
+      ]);
+      return result.rows.map(mapOverdueReportRow);
+    } finally {
+      client.release();
+    }
+  },
+
   loadDailyReportRows: async (
     fromDate: string,
     toDate: string,
