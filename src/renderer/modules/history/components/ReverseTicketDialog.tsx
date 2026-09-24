@@ -10,7 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import type { Ticket } from "../../../../shared/models/ticket.model";
-import { calculation } from "../../../../shared/utils/calculation";
+import { getTicketPickupAmount } from "../../../../shared/utils/ticketFinance";
 import ClientBar from "../../../shared/components/ClientBar";
 import { formatCurrency } from "../../../shared/utils/formatters";
 
@@ -35,12 +35,7 @@ const ReverseTicketDialog: React.FC<ReverseTicketDialogProps> = ({
   onClose,
   onConfirm,
 }) => {
-  const pickupAmount = calculation.getPaymentPickupAmt(
-    ticket.amount,
-    ticket.onetime_fee,
-    ticket.transaction_datetime,
-    ticket.interest_paid_months,
-  );
+  const pickupAmount = getTicketPickupAmount(ticket);
 
   return (
     <Dialog

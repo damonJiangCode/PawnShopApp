@@ -40,6 +40,10 @@ const FIELD_MESSAGE_RESOLVERS: Record<string, FieldMessageResolver> = {
     fallback: "Amount cannot be negative.",
     rules: [
       {
+        pattern: /overdue/i,
+        message: "This ticket is overdue. Its amount cannot be changed.",
+      },
+      {
         pattern: /negative|greater than 0|required|valid/i,
         message: "Amount cannot be negative.",
       },

@@ -201,7 +201,6 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
     if (!confirmZeroTicketAmount(normalizedAmount)) {
       return;
     }
-
     setSaving(true);
 
     try {
@@ -222,6 +221,13 @@ const TicketEditDialog: React.FC<TicketEditDialogProps> = (props) => {
     } catch (err) {
       console.error(err);
       const formError = err as TicketFormError;
+
+      const nextAmountError = resolveFormFieldError("amount", formError);
+
+      if (nextAmountError) {
+        setAmountError(nextAmountError);
+        return;
+      }
 
       const nextEmployeePasswordError = resolveFormFieldError(
         "employee_password",

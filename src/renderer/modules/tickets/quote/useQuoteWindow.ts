@@ -3,6 +3,7 @@ import type { Item } from "../../../../shared/models/item.model";
 import type { Ticket } from "../../../../shared/models/ticket.model";
 import type { OpenQuoteWindowInput } from "../../../../shared/payload-contracts/window.contract";
 import { calculation } from "../../../../shared/utils/calculation";
+import { getTicketPickupAmount } from "../../../../shared/utils/ticketFinance";
 import { getAppApi } from "../../../shared/api/app.api";
 import { formatIsoDate } from "../../../shared/utils/formatters";
 import { itemApi } from "../../items/item.api";
@@ -61,7 +62,10 @@ export const useQuoteWindow = () => {
         const itemEntries = await Promise.all(
           pawnedTickets.map(async (ticket) => {
             const ticketNumber = Number(ticket.ticket_number);
-            return [ticketNumber, await itemApi.loadItems(ticketNumber)] as const;
+            return [
+              ticketNumber,
+              await itemApi.loadItems(ticketNumber),
+            ] as const;
           }),
         );
 
@@ -101,13 +105,7 @@ export const useQuoteWindow = () => {
     return tickets.map((ticket) => ({
       ticket,
       items: itemsByTicket.get(Number(ticket.ticket_number)) ?? [],
-      pickupAmount: calculation.getPaymentPickupAmt(
-        Number(ticket.amount ?? 0),
-        Number(ticket.onetime_fee ?? 0),
-        new Date(ticket.transaction_datetime),
-        Number(ticket.interest_paid_months ?? 0),
-        asOf,
-      ),
+      pickupAmount: getTicketPickupAmount(ticket, asOf),
       interestDue: calculation.getInterestDue(
         Number(ticket.amount ?? 0),
         new Date(ticket.due_date),

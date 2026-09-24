@@ -174,6 +174,28 @@ export const ticketService = {
         );
       }
 
+      const existingTicket = await ticketRepo.loadByTicketNumberForUpdate(
+        normalizedInput.ticket_number,
+        client,
+      );
+
+      if (!existingTicket) {
+        throw createFieldError("ticket_number", "Ticket was not found.");
+      }
+
+      const amountChanged =
+        normalizedInput.amount !== Number(existingTicket.amount);
+      const pawnTicketOverdue =
+        existingTicket.status.startsWith("pawned") &&
+        calculation.isBeforeCalendarDate(existingTicket.due_date);
+
+      if (amountChanged && pawnTicketOverdue) {
+        throw createFieldError(
+          "amount",
+          "This ticket is overdue. Its amount cannot be changed.",
+        );
+      }
+
       return ticketRepo.update(
         {
           ticket_number: normalizedInput.ticket_number,

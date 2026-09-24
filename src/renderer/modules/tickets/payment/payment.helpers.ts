@@ -1,5 +1,6 @@
 import type { Ticket } from "../../../../shared/models/ticket.model";
 import { calculation } from "../../../../shared/utils/calculation";
+import { getTicketPickupAmount } from "../../../../shared/utils/ticketFinance";
 import { formatIsoDate } from "../../../shared/utils/formatters";
 import type {
   PaymentMode,
@@ -36,7 +37,6 @@ export const mapTicketToPaymentRow = (
   }
 
   const pawnAmount = Number(ticket.amount ?? 0);
-  const oneTimeFee = Number(ticket.onetime_fee ?? 0);
   const baseExtensionAmount = calculation.getBaseIntAmt(pawnAmount);
   const earliestPickupDate = calculation.getEarliestPickupDatetime(
     ticket.transaction_datetime,
@@ -56,12 +56,7 @@ export const mapTicketToPaymentRow = (
       holidayDateKeys,
     ),
     earliestPickupDate,
-    pickupAmount: calculation.getPaymentPickupAmt(
-      pawnAmount,
-      oneTimeFee,
-      ticket.transaction_datetime,
-      ticket.interest_paid_months,
-    ),
+    pickupAmount: getTicketPickupAmount(ticket),
     baseExtensionAmount,
     extensionAmount: baseExtensionAmount,
     extensionMonths: 1,

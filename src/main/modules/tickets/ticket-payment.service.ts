@@ -4,6 +4,7 @@ import type {
   PickupTicketsInput,
 } from "../../../shared/payload-contracts/ticket.contract.ts";
 import { calculation } from "../../../shared/utils/calculation.ts";
+import { getTicketPickupAmount } from "../../../shared/utils/ticketFinance.ts";
 import { interestPaymentRepo } from "./interest-payment.repo.ts";
 import { ticketRepo } from "./ticket.repo.ts";
 import { createFieldError } from "../../shared/createFieldError.ts";
@@ -55,29 +56,20 @@ export const ticketPaymentService = {
         );
       }
 
-      const invalidAmountTicket = normalizedInput.tickets.find(
-        (ticket) =>
-          !Number.isFinite(ticket.pickup_amount_paid) ||
-          ticket.pickup_amount_paid < 0,
-      );
-
-      if (invalidAmountTicket) {
-        throw createFieldError(
-          "amount",
-          `Ticket #${invalidAmountTicket.ticket_number} has an invalid pickup amount.`,
-        );
-      }
-
       const pickupDatetime = calculation.getCurrentDatetime();
+      const authoritativePayments = existingTickets.map((ticket, index) => ({
+        ticket_number: normalizedInput.tickets[index].ticket_number,
+        pickup_amount_paid: getTicketPickupAmount(ticket!, pickupDatetime),
+      }));
       const pickedUpTickets = await ticketRepo.pickup(
         {
-          tickets: normalizedInput.tickets,
+          tickets: authoritativePayments,
           pickup_datetime: pickupDatetime,
         },
         client,
       );
 
-      if (pickedUpTickets.length !== normalizedInput.tickets.length) {
+      if (pickedUpTickets.length !== authoritativePayments.length) {
         throw createFieldError(
           "ticket_number",
           "Some selected tickets could not be picked up.",

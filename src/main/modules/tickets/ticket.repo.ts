@@ -17,6 +17,29 @@ import type {
   PickupTicketsPayload,
   UpdateTicketPayload,
 } from "./ticket.types.ts";
+import { interestPaymentRepo } from "./interest-payment.repo.ts";
+
+const attachInterestPaymentSummaries = async (
+  tickets: Ticket[],
+  client: DbClient,
+) => {
+  const ticketNumbers = tickets.flatMap((ticket) =>
+    ticket.ticket_number ? [ticket.ticket_number] : [],
+  );
+  const summaries = await interestPaymentRepo.loadSummaries(
+    ticketNumbers,
+    client,
+  );
+
+  return tickets.map((ticket) => {
+    const summary = summaries.get(Number(ticket.ticket_number));
+    return {
+      ...ticket,
+      recorded_interest_amount_paid: summary?.amountPaid ?? 0,
+      recorded_interest_months_paid: summary?.monthsPaid ?? 0,
+    };
+  });
+};
 
 export const ticketRepo = {
   loadByClientNumber: async (clientNumber: number): Promise<Ticket[]> => {
@@ -30,7 +53,10 @@ export const ticketRepo = {
 
     try {
       const result = await client.query(query, [clientNumber]);
-      return result.rows.map(mapTicketRow);
+      return attachInterestPaymentSummaries(
+        result.rows.map(mapTicketRow),
+        client,
+      );
     } finally {
       client.release();
     }
@@ -50,12 +76,35 @@ export const ticketRepo = {
 
     try {
       const result = await client.query(query, [ticketNumber]);
-      return result.rows[0] ? mapTicketRow(result.rows[0]) : null;
+      if (!result.rows[0]) {
+        return null;
+      }
+      return (
+        await attachInterestPaymentSummaries(
+          [mapTicketRow(result.rows[0])],
+          client,
+        )
+      )[0];
     } finally {
       if (!dbClient) {
         client.release();
       }
     }
+  },
+
+  loadByTicketNumberForUpdate: async (
+    ticketNumber: number,
+    client: DbClient,
+  ): Promise<Ticket | null> => {
+    const query = `
+      SELECT ${ticketSelectColumns}
+      FROM ticket
+      WHERE ticket_number = $1
+      LIMIT 1
+      FOR UPDATE
+    `;
+    const result = await client.query(query, [ticketNumber]);
+    return result.rows[0] ? mapTicketRow(result.rows[0]) : null;
   },
 
   loadTransferTicketPreview: async (
