@@ -19,10 +19,7 @@ import {
 import React, { useMemo, useState } from "react";
 import { INTEREST_REPORT_START_DATE } from "../../../../shared/reportSettings";
 import { ticketApi } from "../../tickets/ticket.api";
-import {
-  formatIsoDate,
-  formatIsoDateTime,
-} from "../../../shared/utils/formatters";
+import { formatIsoDate } from "../../../shared/utils/formatters";
 import WindowLayout from "../../../windows/WindowLayout";
 import type { WindowScreenProps } from "../../../windows/windowRegistry";
 import ReportDocument from "../components/ReportDocument";
@@ -195,23 +192,20 @@ const InterestReportWindow: React.FC<WindowScreenProps> = () => {
               <Table size="small" aria-label="interest report">
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ width: "15%", fontWeight: 800 }}>
+                    <TableCell sx={{ width: "18%", fontWeight: 800 }}>
                       Ticket #
                     </TableCell>
-                    <TableCell sx={{ width: "10%", fontWeight: 800 }}>
+                    <TableCell sx={{ width: "12%", fontWeight: 800 }}>
                       Months
                     </TableCell>
-                    <TableCell sx={{ width: "12%", fontWeight: 800 }}>
+                    <TableCell sx={{ width: "15%", fontWeight: 800 }}>
                       Amount
                     </TableCell>
-                    <TableCell sx={{ width: "25%", fontWeight: 800 }}>
+                    <TableCell sx={{ width: "30%", fontWeight: 800 }}>
                       Description
                     </TableCell>
-                    <TableCell sx={{ width: "20%", fontWeight: 800 }}>
+                    <TableCell sx={{ width: "25%", fontWeight: 800 }}>
                       Customer
-                    </TableCell>
-                    <TableCell sx={{ width: "18%", fontWeight: 800 }}>
-                      Date & Time
                     </TableCell>
                   </TableRow>
                 </TableHead>
@@ -221,7 +215,7 @@ const InterestReportWindow: React.FC<WindowScreenProps> = () => {
                       <TableRow
                         key={`${row.ticket_number}-${row.payment_datetime}`}
                       >
-                        <TableCell>
+                        <TableCell sx={{ fontWeight: 800 }}>
                           <Stack
                             direction="row"
                             alignItems="center"
@@ -230,18 +224,23 @@ const InterestReportWindow: React.FC<WindowScreenProps> = () => {
                             <span>{row.ticket_number}</span>
                           </Stack>
                         </TableCell>
-                        <TableCell>{row.months_paid} x</TableCell>
-                        <TableCell>${row.amount_paid.toFixed(2)}</TableCell>
-                        <TableCell>{row.description}</TableCell>
-                        <TableCell>{row.client_name}</TableCell>
-                        <TableCell>
-                          {formatIsoDateTime(row.payment_datetime)}
+                        <TableCell sx={{ fontWeight: 800 }}>
+                          {row.months_paid} x
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 800 }}>
+                          ${row.amount_paid.toFixed(2)}
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 800 }}>
+                          {row.description}
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 800 }}>
+                          {row.client_name}
                         </TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={6} align="center">
+                      <TableCell colSpan={5} align="center">
                         No interest payments found for this date range.
                       </TableCell>
                     </TableRow>

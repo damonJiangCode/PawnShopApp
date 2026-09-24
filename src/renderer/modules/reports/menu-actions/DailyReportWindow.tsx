@@ -261,17 +261,11 @@ const DailyReportWindow: React.FC<WindowScreenProps> = () => {
                           <strong>{detailValue(ticket.description)}</strong>
                         </TableCell>
                         <TableCell>
-                          {ticket.client_name || "UNKNOWN CLIENT"}
-                          <br />
-                          DOB: {detailValue(ticket.date_of_birth)} | SEX:{" "}
-                          {detailValue(ticket.gender)} | HAIR:{" "}
-                          {detailValue(ticket.hair_color)} | EYES:{" "}
+                          {ticket.client_name || "UNKNOWN CLIENT"} |{" "}
+                          {detailValue(ticket.gender)} |{" "}
                           {detailValue(ticket.eye_color)}
                           <br />
-                          HEIGHT: {detailValue(ticket.height_cm)} CM | WEIGHT:{" "}
-                          {detailValue(ticket.weight_kg)} KG
-                          <br />
-                          ID: {detailValue(ticket.identifications)}
+                          {detailValue(ticket.identifications)}
                         </TableCell>
                       </TableRow>
 

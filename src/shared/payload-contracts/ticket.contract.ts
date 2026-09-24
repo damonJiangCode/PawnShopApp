@@ -75,12 +75,8 @@ export type DailyReportTicket = {
   amount: number;
   description: string;
   client_name: string;
-  date_of_birth?: string;
   gender: string;
-  hair_color: string;
   eye_color: string;
-  height_cm?: number;
-  weight_kg?: number;
   identifications: string;
   items: DailyReportItem[];
 };

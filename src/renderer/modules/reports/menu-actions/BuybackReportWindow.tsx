@@ -21,11 +21,16 @@ import { ticketApi } from "../../tickets/ticket.api";
 import {
   formatCurrency,
   formatIsoDate,
-  formatIsoDateTime,
 } from "../../../shared/utils/formatters";
 import WindowLayout from "../../../windows/WindowLayout";
 import type { WindowScreenProps } from "../../../windows/windowRegistry";
 import ReportDocument from "../components/ReportDocument";
+
+const getBuybackReportFileName = (date: Date) => {
+  const month = date.toLocaleString("en-US", { month: "short" }).toLowerCase();
+  const day = String(date.getDate()).padStart(2, "0");
+  return `buyback_report_${month}_${day}_${date.getFullYear()}`;
+};
 
 const BuybackReportWindow: React.FC<WindowScreenProps> = () => {
   const today = useMemo(() => formatIsoDate(new Date()), []);
@@ -67,6 +72,20 @@ const BuybackReportWindow: React.FC<WindowScreenProps> = () => {
 
   const rows = report?.rows ?? [];
   const ticketCount = new Set(rows.map((row) => row.ticket_number)).size;
+
+  const printReport = () => {
+    const previousTitle = document.title;
+    document.title = getBuybackReportFileName(new Date());
+
+    window.addEventListener(
+      "afterprint",
+      () => {
+        document.title = previousTitle;
+      },
+      { once: true },
+    );
+    window.print();
+  };
 
   return (
     <WindowLayout
@@ -142,7 +161,7 @@ const BuybackReportWindow: React.FC<WindowScreenProps> = () => {
           <Button
             variant="outlined"
             startIcon={<PrintIcon />}
-            onClick={() => window.print()}
+            onClick={printReport}
             disabled={isLoading || !report}
           >
             Print / Save PDF
@@ -183,27 +202,29 @@ const BuybackReportWindow: React.FC<WindowScreenProps> = () => {
                     <TableCell sx={{ fontWeight: 800 }}>Amount</TableCell>
                     <TableCell sx={{ fontWeight: 800 }}>Description</TableCell>
                     <TableCell sx={{ fontWeight: 800 }}>Customer</TableCell>
-                    <TableCell sx={{ fontWeight: 800 }}>Date & Time</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {rows.length ? (
                     rows.map((row) => (
                       <TableRow key={row.ticket_number}>
-                        <TableCell>{row.ticket_number}</TableCell>
-                        <TableCell>
+                        <TableCell sx={{ fontWeight: 800 }}>
+                          {row.ticket_number}
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 800 }}>
                           {formatCurrency(row.pickup_amount_paid)}
                         </TableCell>
-                        <TableCell>{row.description}</TableCell>
-                        <TableCell>{row.client_name}</TableCell>
-                        <TableCell>
-                          {formatIsoDateTime(row.pickup_datetime)}
+                        <TableCell sx={{ fontWeight: 800 }}>
+                          {row.description}
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 800 }}>
+                          {row.client_name}
                         </TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={5} align="center">
+                      <TableCell colSpan={4} align="center">
                         No buybacks found for this date range.
                       </TableCell>
                     </TableRow>

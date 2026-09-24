@@ -27,12 +27,8 @@ export type DailyReportSourceRow = {
   ticket_amount: number;
   ticket_description: string;
   client_name: string;
-  date_of_birth?: string;
   gender: string;
-  hair_color: string;
   eye_color: string;
-  height_cm?: number;
-  weight_kg?: number;
   identifications: string;
   item_number?: number;
   quantity?: number;
@@ -106,12 +102,8 @@ const mapDailyReportRow = (
   ticket_amount: Number(row.ticket_amount ?? 0),
   ticket_description: textValue(row.ticket_description),
   client_name: textValue(row.client_name),
-  date_of_birth: row.date_of_birth ? String(row.date_of_birth) : undefined,
   gender: textValue(row.gender),
-  hair_color: textValue(row.hair_color),
   eye_color: textValue(row.eye_color),
-  height_cm: optionalNumber(row.height_cm),
-  weight_kg: optionalNumber(row.weight_kg),
   identifications: textValue(row.identifications),
   item_number: optionalNumber(row.item_number),
   quantity: optionalNumber(row.quantity),
@@ -199,12 +191,8 @@ export const reportRepo = {
         t.amount AS ticket_amount,
         COALESCE(t.description, '') AS ticket_description,
         ${clientDisplayNameSql("c")} AS client_name,
-        TO_CHAR(c.date_of_birth, 'YYYY-MM-DD') AS date_of_birth,
         COALESCE(c.gender, '') AS gender,
-        COALESCE(c.hair_color, '') AS hair_color,
         COALESCE(c.eye_color, '') AS eye_color,
-        c.height_cm,
-        c.weight_kg,
         COALESCE(ids.identifications, '') AS identifications,
         i.item_number,
         i.quantity,

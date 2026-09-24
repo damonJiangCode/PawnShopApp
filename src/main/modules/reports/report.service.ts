@@ -146,12 +146,8 @@ export const reportService = {
           amount: row.ticket_amount,
           description: row.ticket_description,
           client_name: row.client_name,
-          date_of_birth: row.date_of_birth,
           gender: row.gender,
-          hair_color: row.hair_color,
           eye_color: row.eye_color,
-          height_cm: row.height_cm,
-          weight_kg: row.weight_kg,
           identifications: row.identifications,
           items: [],
         };

@@ -184,7 +184,56 @@ const addDays = (dateValue, days) => {
   return date.toISOString().slice(0, 10);
 };
 
-const combineDateTime = (dateValue, timeValue, { optional = false, allowSentinelDate = false } = {}) => {
+const getDaysBetween = (fromDateValue, toDateValue) => {
+  const fromDate = new Date(`${fromDateValue}T00:00:00.000Z`);
+  const toDate = new Date(`${toDateValue}T00:00:00.000Z`);
+  return Math.round((toDate.getTime() - fromDate.getTime()) / 86_400_000);
+};
+
+const resolveInterestPaidMonths = (
+  row,
+  status,
+  transactionDateTime,
+  dueDate,
+) => {
+  if (status === "sold" || status === "sold_expired") {
+    return { value: 0, reason: "sell ticket" };
+  }
+
+  const originalDueDays = parseNumber(row.SA100NODUEDAY);
+  if (
+    transactionDateTime &&
+    dueDate &&
+    Number.isInteger(originalDueDays) &&
+    originalDueDays > 0
+  ) {
+    const elapsedDays = getDaysBetween(
+      transactionDateTime.slice(0, 10),
+      dueDate,
+    );
+    const extensionDays = elapsedDays - originalDueDays;
+
+    if (extensionDays >= 0 && extensionDays % 30 === 0) {
+      return {
+        value: extensionDays / 30,
+        reason: "derived from dates and original due days",
+      };
+    }
+  }
+
+  const legacyPaymentCount = parseNumber(row.SA100INTFLAG);
+  if (Number.isInteger(legacyPaymentCount) && legacyPaymentCount >= 0) {
+    return { value: legacyPaymentCount, reason: "INTFLAG fallback" };
+  }
+
+  return { value: null, reason: "unresolved" };
+};
+
+const combineDateTime = (
+  dateValue,
+  timeValue,
+  { optional = false, allowSentinelDate = false } = {},
+) => {
   const date = parseLegacyDate(dateValue, { allowSentinel: allowSentinelDate });
   const time = parseLegacyTime(timeValue);
   if (!date.value) return { value: null, reason: date.reason };
@@ -237,15 +286,22 @@ const candidatePickupAmountPaid = (row, status) => {
   }
   const amountPaidBack = parseNumber(row.SA100AMOUNPB) || 0;
   const amountPay = parseNumber(row.SA100AMOUNTPAY) || 0;
-  if (amountPaidBack > 0) return { value: amountPaidBack, reason: "SA100AMOUNPB" };
-  if (amountPay > 0) return { value: amountPay, reason: "SA100AMOUNTPAY fallback" };
+  if (amountPaidBack > 0)
+    return { value: amountPaidBack, reason: "SA100AMOUNPB" };
+  if (amountPay > 0)
+    return { value: amountPay, reason: "SA100AMOUNTPAY fallback" };
   return { value: 0, reason: "zero pickup amount" };
 };
 
 const loadTicketNumberOccurrencePlan = () =>
   new Promise((resolve, reject) => {
     const totals = new Map();
-    const child = spawn("mdb-export", ["-b", "strip", sourceDbPath, "SA100TRAN"]);
+    const child = spawn("mdb-export", [
+      "-b",
+      "strip",
+      sourceDbPath,
+      "SA100TRAN",
+    ]);
     let stderr = "";
     child.stdout.pipe(csv()).on("data", (row) => {
       const ticketNumber = normalizeText(row.SA100TRANACTNO);
@@ -263,7 +319,12 @@ const loadTicketNumberOccurrencePlan = () =>
 
 const streamLegacyTickets = (onRow) =>
   new Promise((resolve, reject) => {
-    const child = spawn("mdb-export", ["-b", "strip", sourceDbPath, "SA100TRAN"]);
+    const child = spawn("mdb-export", [
+      "-b",
+      "strip",
+      sourceDbPath,
+      "SA100TRAN",
+    ]);
     let stderr = "";
     const parser = csv();
     child.stdout.pipe(parser);
@@ -348,6 +409,7 @@ const main = async () => {
   const statusRuleCounts = new Map();
   const amountCounts = new Map();
   const pickupAmountPaidCounts = new Map();
+  const interestPaidMonthSourceCounts = new Map();
   const warningCounts = new Map();
   const blockerCounts = new Map();
 
@@ -360,13 +422,14 @@ const main = async () => {
   try {
     await client.query("BEGIN");
 
-    const [clientsResult, locationsResult, otherClientResult] = await Promise.all([
-      client.query("SELECT client_number FROM client"),
-      client.query("SELECT location FROM location"),
-      client.query(
-        "SELECT client_number FROM client WHERE first_name = 'Unknown' AND last_name = 'Legacy Client' ORDER BY client_number LIMIT 1",
-      ),
-    ]);
+    const [clientsResult, locationsResult, otherClientResult] =
+      await Promise.all([
+        client.query("SELECT client_number FROM client"),
+        client.query("SELECT location FROM location"),
+        client.query(
+          "SELECT client_number FROM client WHERE first_name = 'Unknown' AND last_name = 'Legacy Client' ORDER BY client_number LIMIT 1",
+        ),
+      ]);
     const targetClients = new Set(
       clientsResult.rows.map((row) => String(row.client_number)),
     );
@@ -385,7 +448,8 @@ const main = async () => {
       total += 1;
       const ticketNumberText = normalizeText(row.SA100TRANACTNO);
       const occurrenceTotal = ticketOccurrenceTotals.get(ticketNumberText) || 0;
-      const occurrenceIndex = (ticketOccurrenceIndex.get(ticketNumberText) || 0) + 1;
+      const occurrenceIndex =
+        (ticketOccurrenceIndex.get(ticketNumberText) || 0) + 1;
       ticketOccurrenceIndex.set(ticketNumberText, occurrenceIndex);
       if (
         ticketNumberText &&
@@ -424,27 +488,41 @@ const main = async () => {
         } else {
           clientNumber = otherClientNumber;
           missingClientsMappedToOther += 1;
-          increment(warningCounts, "client missing from target mapped to Unknown Legacy Client");
+          increment(
+            warningCounts,
+            "client missing from target mapped to Unknown Legacy Client",
+          );
         }
       }
 
-      const transactionDateTime = combineDateTime(row.SA100DATE, row.SA100TIME, {
-        optional: true,
-        allowSentinelDate: true,
-      });
+      const transactionDateTime = combineDateTime(
+        row.SA100DATE,
+        row.SA100TIME,
+        {
+          optional: true,
+          allowSentinelDate: true,
+        },
+      );
       if (!transactionDateTime.value) {
         blockers.push("invalid transaction date/time");
       }
 
       let dueDate = parseLegacyDate(row.SA100DUEDATE);
-      if (!dueDate.value && dueDate.reason === "sentinel" && transactionDateTime.value) {
+      if (
+        !dueDate.value &&
+        dueDate.reason === "sentinel" &&
+        transactionDateTime.value
+      ) {
         const dueDay = parseNumber(row.SA100NODUEDAY);
         if (Number.isInteger(dueDay) && dueDay > 0) {
           dueDate = {
             value: addDays(transactionDateTime.value.slice(0, 10), dueDay),
             reason: "derived",
           };
-          increment(warningCounts, "due date derived from transaction date plus due days");
+          increment(
+            warningCounts,
+            "due date derived from transaction date plus due days",
+          );
         }
       }
       if (!dueDate.value) {
@@ -464,18 +542,24 @@ const main = async () => {
         blockers.push("negative amount");
       }
 
-      const interestPaidMonths = parseNumber(row.SA100INTFLAG);
-      if (
-        interestPaidMonths === undefined ||
-        !Number.isInteger(interestPaidMonths) ||
-        interestPaidMonths < 0
-      ) {
+      const interestPaidMonths = resolveInterestPaidMonths(
+        row,
+        status.value,
+        transactionDateTime.value,
+        dueDate.value,
+      );
+      increment(interestPaidMonthSourceCounts, interestPaidMonths.reason);
+      if (interestPaidMonths.value === null) {
         blockers.push("invalid interest-paid month count");
       }
 
-      const pickupDateTime = combineDateTime(row.SA100PAYBDATE, row.SA100PAYBTIME, {
-        optional: true,
-      });
+      const pickupDateTime = combineDateTime(
+        row.SA100PAYBDATE,
+        row.SA100PAYBTIME,
+        {
+          optional: true,
+        },
+      );
       const pickupAmountPaid = candidatePickupAmountPaid(row, status);
       increment(pickupAmountPaidCounts, pickupAmountPaid.reason);
 
@@ -491,7 +575,8 @@ const main = async () => {
         "Unknown";
 
       if (blockers.length) {
-        for (const blocker of new Set(blockers)) increment(blockerCounts, blocker);
+        for (const blocker of new Set(blockers))
+          increment(blockerCounts, blocker);
         return;
       }
 
@@ -512,10 +597,11 @@ const main = async () => {
         due_date: dueDate.value,
         amount: amount.value,
         onetime_fee: parseNumber(row.SA100ONETIMEFEE) || 0,
-        interest_paid_months: interestPaidMonths,
+        interest_paid_months: interestPaidMonths.value,
         interested_datetime: interestDateTime.value,
         employee_name: `${PENDING_EMPLOYEE_PREFIX} ${employeeNumber}`,
-        pickup_datetime: status.value === "pawned_picked_up" ? pickupDateTime.value : null,
+        pickup_datetime:
+          status.value === "pawned_picked_up" ? pickupDateTime.value : null,
         pickup_amount_paid: pickupAmountPaid.value,
         expire_date:
           status.value === "pawned_expired" || status.value === "sold_expired"
@@ -560,9 +646,10 @@ const main = async () => {
       await client.query("ROLLBACK");
     }
 
-    const targetCountResult = shouldCommit && !hasBlockers
-      ? await pool.query("SELECT COUNT(*)::int AS count FROM ticket")
-      : { rows: [{ count: 0 }] };
+    const targetCountResult =
+      shouldCommit && !hasBlockers
+        ? await pool.query("SELECT COUNT(*)::int AS count FROM ticket")
+        : { rows: [{ count: 0 }] };
 
     const report = `# Ticket Migration
 
@@ -604,6 +691,10 @@ ${formatCounts(amountCounts)}
 
 ${formatCounts(pickupAmountPaidCounts)}
 
+## Interest Paid Month Sources
+
+${formatCounts(interestPaidMonthSourceCounts)}
+
 ## Warnings
 
 ${formatCounts(warningCounts)}
@@ -622,7 +713,9 @@ The ticket number identity sequence is also advanced to the maximum migrated tic
     }
 
     console.log(`Ticket migration ${shouldCommit ? "committed" : "previewed"}`);
-    console.log(`Rows ${shouldCommit ? "inserted" : "insertable"}: ${inserted.toLocaleString()}`);
+    console.log(
+      `Rows ${shouldCommit ? "inserted" : "insertable"}: ${inserted.toLocaleString()}`,
+    );
     console.log(`Report: ${reportPath}`);
   } catch (error) {
     await client.query("ROLLBACK").catch(() => {});

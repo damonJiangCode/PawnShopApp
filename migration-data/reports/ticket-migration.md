@@ -1,12 +1,12 @@
 # Ticket Migration
 
-Generated: 2026-07-14T16:35:05.850Z
+Generated: 2026-09-24T19:07:12.978Z
 
 Source: `SA100TRAN` in `superpawnconv.mdb`
 
 Target database: `pawnsystemdb_migration`
 
-Mode: commit
+Mode: preview
 
 ## Summary
 
@@ -14,8 +14,8 @@ Mode: commit
 | --- | ---: |
 | Legacy ticket rows scanned | 631,995 |
 | Duplicate earlier rows skipped | 5 |
-| Rows inserted | 631,990 |
-| Target ticket rows after commit | 631,990 |
+| Rows insertable | 631,990 |
+| Target ticket rows after commit | 0 |
 | Missing clients mapped to Unknown Legacy Client | 6 |
 
 ## Blockers
@@ -59,6 +59,14 @@ _none_
  147547  not picked up
   10775  SA100AMOUNTPAY fallback
    1018  zero pickup amount
+```
+
+## Interest Paid Month Sources
+
+```txt
+ 606863  derived from dates and original due days
+  14944  sell ticket
+  10183  INTFLAG fallback
 ```
 
 ## Warnings
