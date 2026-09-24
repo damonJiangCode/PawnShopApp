@@ -254,7 +254,7 @@ const XmlReportWindow = (_props: WindowScreenProps) => {
                       submission_message: submissionMessage,
                     }) => (
                       <TableRow key={payload.key.ticketnumber}>
-                        <TableCell>#{payload.key.ticketnumber}</TableCell>
+                        <TableCell>{payload.key.ticketnumber}</TableCell>
                         <TableCell>{payload.key.ticketType}</TableCell>
                         <TableCell>{payload.key.ticketDateTime}</TableCell>
                         <TableCell>{payload.customer.name}</TableCell>

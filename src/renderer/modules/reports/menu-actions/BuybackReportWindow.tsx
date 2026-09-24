@@ -190,7 +190,7 @@ const BuybackReportWindow: React.FC<WindowScreenProps> = () => {
                   {rows.length ? (
                     rows.map((row) => (
                       <TableRow key={row.ticket_number}>
-                        <TableCell>#{row.ticket_number}</TableCell>
+                        <TableCell>{row.ticket_number}</TableCell>
                         <TableCell>
                           {formatCurrency(row.pickup_amount_paid)}
                         </TableCell>

@@ -391,7 +391,7 @@ const OverdueReportWindow: React.FC<WindowScreenProps> = () => {
                                     verticalAlign: "baseline",
                                   }}
                                 >
-                                  #{ticket.ticket_number}{" "}
+                                  {ticket.ticket_number}{" "}
                                   <OpenInNewIcon sx={{ fontSize: 12 }} />
                                 </Link>
                                 <Typography
@@ -403,7 +403,7 @@ const OverdueReportWindow: React.FC<WindowScreenProps> = () => {
                                     fontWeight: 900,
                                   }}
                                 >
-                                  #{ticket.ticket_number}
+                                  {ticket.ticket_number}
                                 </Typography>
                               </TableCell>
                               <TableCell>{ticket.client_name}</TableCell>

@@ -28,6 +28,12 @@ import ReportDocument from "../components/ReportDocument";
 const detailValue = (value: string | number | undefined) =>
   value === undefined || value === "" ? "---" : String(value);
 
+const getDailyReportFileName = (date: Date) => {
+  const month = date.toLocaleString("en-US", { month: "short" }).toLowerCase();
+  const day = String(date.getDate()).padStart(2, "0");
+  return `daily_report_${month}_${day}_${date.getFullYear()}`;
+};
+
 const DailyReportWindow: React.FC<WindowScreenProps> = () => {
   const today = useMemo(() => formatIsoDate(new Date()), []);
   const [fromDate, setFromDate] = useState(today);
@@ -39,7 +45,20 @@ const DailyReportWindow: React.FC<WindowScreenProps> = () => {
   );
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const hasReportTickets = Boolean(report?.tickets.length);
+
+  const printReport = () => {
+    const previousTitle = document.title;
+    document.title = getDailyReportFileName(new Date());
+
+    window.addEventListener(
+      "afterprint",
+      () => {
+        document.title = previousTitle;
+      },
+      { once: true },
+    );
+    window.print();
+  };
 
   const resetGeneratedReport = () => {
     setReport(undefined);
@@ -68,12 +87,7 @@ const DailyReportWindow: React.FC<WindowScreenProps> = () => {
         to_date: toDate,
       });
 
-      if (nextReport.missing_item_ticket_numbers.length) {
-        setReport(undefined);
-        setMissingTicketNumbers(nextReport.missing_item_ticket_numbers);
-        return;
-      }
-
+      setMissingTicketNumbers(nextReport.missing_item_ticket_numbers);
       setReport(nextReport);
     } catch (error) {
       setReport(undefined);
@@ -149,8 +163,8 @@ const DailyReportWindow: React.FC<WindowScreenProps> = () => {
           <Button
             variant="outlined"
             startIcon={<PrintIcon />}
-            disabled={!hasReportTickets || loading}
-            onClick={() => window.print()}
+            disabled={!report || loading}
+            onClick={printReport}
           >
             Print / Save PDF
           </Button>
@@ -172,22 +186,11 @@ const DailyReportWindow: React.FC<WindowScreenProps> = () => {
             className="no-print"
             sx={{ displayPrint: "none" }}
           >
-            Report not generated. Add at least one item to ticket(s):{" "}
-            {missingTicketNumbers.join(", ")}.
+            Missing items on ticket(s): {missingTicketNumbers.join(", ")}.
           </Alert>
         ) : null}
 
-        {report && !report.tickets.length ? (
-          <Alert
-            severity="info"
-            className="no-print"
-            sx={{ displayPrint: "none" }}
-          >
-            No pawn or sold tickets were found in this date range.
-          </Alert>
-        ) : null}
-
-        {hasReportTickets && report ? (
+        {report ? (
           <ReportDocument
             title="Daily Report"
             fromDate={report.from_date}
@@ -221,16 +224,16 @@ const DailyReportWindow: React.FC<WindowScreenProps> = () => {
               >
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ width: "14%", fontWeight: 900 }}>
-                      Ticket #
+                    <TableCell sx={{ width: "16%", fontWeight: 900 }}>
+                      Ticket # / Item #
                     </TableCell>
                     <TableCell sx={{ width: "11%", fontWeight: 900 }}>
                       Amt / Qty
                     </TableCell>
-                    <TableCell sx={{ width: "35%", fontWeight: 900 }}>
-                      Description / Customer
+                    <TableCell sx={{ width: "30%", fontWeight: 900 }}>
+                      Description
                     </TableCell>
-                    <TableCell sx={{ width: "40%", fontWeight: 900 }}>
+                    <TableCell sx={{ width: "43%", fontWeight: 900 }}>
                       Personal / Item Details
                     </TableCell>
                   </TableRow>
@@ -249,17 +252,17 @@ const DailyReportWindow: React.FC<WindowScreenProps> = () => {
                         }}
                       >
                         <TableCell>
-                          <strong>#{ticket.ticket_number}</strong>
+                          <strong>{ticket.ticket_number}</strong>
                         </TableCell>
                         <TableCell>
                           <strong>{formatCurrency(ticket.amount)}</strong>
                         </TableCell>
                         <TableCell>
                           <strong>{detailValue(ticket.description)}</strong>
-                          <br />
-                          {ticket.client_name || "UNKNOWN CLIENT"}
                         </TableCell>
                         <TableCell>
+                          {ticket.client_name || "UNKNOWN CLIENT"}
+                          <br />
                           DOB: {detailValue(ticket.date_of_birth)} | SEX:{" "}
                           {detailValue(ticket.gender)} | HAIR:{" "}
                           {detailValue(ticket.hair_color)} | EYES:{" "}
@@ -272,7 +275,7 @@ const DailyReportWindow: React.FC<WindowScreenProps> = () => {
                         </TableCell>
                       </TableRow>
 
-                      {ticket.items.map((item, itemIndex) => (
+                      {ticket.items.map((item) => (
                         <TableRow
                           key={item.item_number}
                           sx={{
@@ -281,10 +284,10 @@ const DailyReportWindow: React.FC<WindowScreenProps> = () => {
                             "& td": { borderBottomColor: "#ddd" },
                           }}
                         >
-                          <TableCell sx={{ pl: 4 }}>{itemIndex + 1}</TableCell>
-                          <TableCell>
-                            {formatCurrency(item.amount)} | QTY: {item.quantity}
+                          <TableCell sx={{ pl: 4 }}>
+                            {item.item_number}
                           </TableCell>
+                          <TableCell>{item.quantity}</TableCell>
                           <TableCell>{detailValue(item.description)}</TableCell>
                           <TableCell>
                             MAKE: {detailValue(item.brand_name)} | MODEL:{" "}
@@ -293,13 +296,35 @@ const DailyReportWindow: React.FC<WindowScreenProps> = () => {
                           </TableCell>
                         </TableRow>
                       ))}
+
+                      {!ticket.items.length ? (
+                        <TableRow
+                          sx={{
+                            breakInside: "avoid",
+                            pageBreakInside: "avoid",
+                          }}
+                        >
+                          <TableCell />
+                          <TableCell>0</TableCell>
+                          <TableCell>NO ITEMS</TableCell>
+                          <TableCell>NO ITEM DETAILS</TableCell>
+                        </TableRow>
+                      ) : null}
                     </React.Fragment>
                   ))}
+
+                  {!report.tickets.length ? (
+                    <TableRow>
+                      <TableCell colSpan={4} align="center">
+                        No pawn or sold tickets were found in this date range.
+                      </TableCell>
+                    </TableRow>
+                  ) : null}
                 </TableBody>
               </Table>
             </TableContainer>
           </ReportDocument>
-        ) : !loading && !missingTicketNumbers.length && !errorMessage ? (
+        ) : !loading && !errorMessage ? (
           <Typography color="text.secondary">
             Select a date range and generate the report.
           </Typography>

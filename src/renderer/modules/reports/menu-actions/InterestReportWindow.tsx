@@ -227,7 +227,7 @@ const InterestReportWindow: React.FC<WindowScreenProps> = () => {
                             alignItems="center"
                             spacing={1}
                           >
-                            <span>#{row.ticket_number}</span>
+                            <span>{row.ticket_number}</span>
                           </Stack>
                         </TableCell>
                         <TableCell>{row.months_paid} x</TableCell>
