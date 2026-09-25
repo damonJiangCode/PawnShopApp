@@ -70,6 +70,10 @@ export const createEnvelopePrintHtml = (
   ticket: Ticket,
   client?: PrintClient,
 ) => {
+  const isPurchaseTicket =
+    ticket.status === "sold" ||
+    ticket.status === "sold_expired" ||
+    ticket.location.trim().toUpperCase() === "BIWK";
   const ticketNumber = String(ticket.ticket_number ?? "");
   const pawnAmount = Number(ticket.amount ?? 0);
   const oneTimeFee = Number(ticket.onetime_fee ?? 0);
@@ -82,6 +86,66 @@ export const createEnvelopePrintHtml = (
   const clientName = formatClientName(client);
   const cityProvince = formatCityProvince(client);
   const barcode = createPseudoBarcode(ticketNumber);
+  const topBrandHtml = isPurchaseTicket
+    ? ""
+    : '<div class="brand">Money Express</div>';
+  const moneyFieldsHtml = isPurchaseTicket
+    ? `<div class="small-row"><span class="label">Purchase Amt:</span><span class="value">${formatMoney(pawnAmount)}</span></div>`
+    : `<div class="small-row"><span class="label">Pawn Amt:</span><span class="value">${formatMoney(pawnAmount)}</span></div>
+        <div class="small-row"><span class="label">Interest Amt:</span><span class="value">${formatMoney(interestAmount)}</span></div>
+        <div class="small-row"><span class="label">Early Claim Amt:</span><span class="value">${formatMoney(earlyClaimAmount)}</span></div>`;
+  const additionalDateFieldsHtml = isPurchaseTicket
+    ? ""
+    : `<div class="small-row"><span class="label">Due Date:</span><span class="value">${formatTicketDate(dueDate)}</span></div>
+        <div class="small-row"><span class="label">Amt Due:</span><span class="value">${formatMoney(amountDue)}</span></div>`;
+  const ratesHtml = isPurchaseTicket
+    ? ""
+    : `<div class="rates">
+        <span>InterestRate:</span>
+        <span>30%</span>
+        <span>Early Redemption Rate:</span>
+        <span>10%</span>
+      </div>
+      <div class="terms" style="top: 4.74in;">Early redemption rates ar subject to a $5 minimum interest amount</div>`;
+  const bottomDatesHtml = isPurchaseTicket
+    ? `<div class="bottom-date-row">
+          <span class="label">Date:</span>
+          <span class="value">${formatTicketDate(transactionDate)}</span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="bottom-date-row">
+          <span class="label">Amt Paid:</span>
+          <span class="value">${formatMoney(pawnAmount)}</span>
+          <span></span>
+          <span></span>
+        </div>`
+    : `<div class="bottom-date-row">
+          <span class="label">Date:</span>
+          <span class="value">${formatTicketDate(transactionDate)}</span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="bottom-date-row">
+          <span class="label">Early Claim:</span>
+          <span class="value">${formatTicketDate(earlyClaimDate)}</span>
+          <span class="label">Amt Due:</span>
+          <span class="value">${formatMoney(earlyClaimAmount)}</span>
+        </div>
+        <div class="bottom-date-row">
+          <span class="label">Due Date:</span>
+          <span class="value">${formatTicketDate(dueDate)}</span>
+          <span class="label">Amt Due:</span>
+          <span class="value">${formatMoney(amountDue)}</span>
+        </div>`;
+  const bottomTermsHtml = isPurchaseTicket
+    ? '<div class="purchase-notice">This article has been purchased by Money Express</div>'
+    : `<div class="bottom-terms">
+        All pawned goods must be held for a minimum of 2 clear business days<br />
+        before they may be redeemed.<br />
+        We are not responsible for any items lost, damaged or stolen in our store.<br />
+        This article must be redeemed or extended within 30 days or it will be sold.
+      </div>`;
 
   return `<!doctype html>
 <html>
@@ -338,14 +402,41 @@ export const createEnvelopePrintHtml = (
       line-height: 1.15;
       font-weight: 900;
     }
+
+    .purchase .money-fields {
+      top: 2.08in;
+      width: 3.2in;
+    }
+
+    .purchase .date-fields {
+      top: 2.48in;
+    }
+
+    .purchase .signature {
+      top: 3.78in;
+    }
+
+    .purchase .bottom-dates {
+      top: 1.96in;
+    }
+
+    .purchase-notice {
+      position: absolute;
+      left: 0.04in;
+      right: 0;
+      bottom: 0.48in;
+      font-size: 17px;
+      line-height: 1.08;
+      font-weight: 900;
+    }
   </style>
 </head>
 <body>
-  <main class="page">
+  <main class="page${isPurchaseTicket ? " purchase" : ""}">
     <section class="top-copy">
       <div class="barcode top">${barcode}</div>
       <div class="logo-dot"></div>
-      <div class="brand">Money Express</div>
+      ${topBrandHtml}
 
       <div class="top-fields">
         <div class="field-row">
@@ -382,15 +473,12 @@ export const createEnvelopePrintHtml = (
       </div>
 
       <div class="money-fields">
-        <div class="small-row"><span class="label">Pawn Amt:</span><span class="value">${formatMoney(pawnAmount)}</span></div>
-        <div class="small-row"><span class="label">Interest Amt:</span><span class="value">${formatMoney(interestAmount)}</span></div>
-        <div class="small-row"><span class="label">Early Claim Amt:</span><span class="value">${formatMoney(earlyClaimAmount)}</span></div>
+        ${moneyFieldsHtml}
       </div>
 
       <div class="date-fields">
         <div class="small-row"><span class="label">Date:</span><span class="value">${formatTicketDate(transactionDate)}</span></div>
-        <div class="small-row"><span class="label">Due Date:</span><span class="value">${formatTicketDate(dueDate)}</span></div>
-        <div class="small-row"><span class="label">Amt Due:</span><span class="value">${formatMoney(amountDue)}</span></div>
+        ${additionalDateFieldsHtml}
       </div>
 
       <div class="signature">
@@ -406,13 +494,7 @@ export const createEnvelopePrintHtml = (
         clear business days for police checks.
       </div>
 
-      <div class="rates">
-        <span>InterestRate:</span>
-        <span>30%</span>
-        <span>Early Redemption Rate:</span>
-        <span>10%</span>
-      </div>
-      <div class="terms" style="top: 4.74in;">Early redemption rates ar subject to a $5 minimum interest amount</div>
+      ${ratesHtml}
     </section>
 
     <section class="customer-copy">
@@ -438,32 +520,10 @@ export const createEnvelopePrintHtml = (
       </div>
 
       <div class="bottom-dates">
-        <div class="bottom-date-row">
-          <span class="label">Date:</span>
-          <span class="value">${formatTicketDate(transactionDate)}</span>
-          <span></span>
-          <span></span>
-        </div>
-        <div class="bottom-date-row">
-          <span class="label">Early Claim:</span>
-          <span class="value">${formatTicketDate(earlyClaimDate)}</span>
-          <span class="label">Amt Due:</span>
-          <span class="value">${formatMoney(earlyClaimAmount)}</span>
-        </div>
-        <div class="bottom-date-row">
-          <span class="label">Due Date:</span>
-          <span class="value">${formatTicketDate(dueDate)}</span>
-          <span class="label">Amt Due:</span>
-          <span class="value">${formatMoney(amountDue)}</span>
-        </div>
+        ${bottomDatesHtml}
       </div>
 
-      <div class="bottom-terms">
-        All pawned goods must be held for a minimum of 2 clear business days<br />
-        before they may be redeemed.<br />
-        We are not responsible for any items lost, damaged or stolen in our store.<br />
-        This article must be redeemed or extended within 30 days or it will be sold.
-      </div>
+      ${bottomTermsHtml}
     </section>
   </main>
   <script>
