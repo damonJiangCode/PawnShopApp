@@ -15,6 +15,7 @@ import ClientBar from "../../../shared/components/ClientBar";
 import { formatCurrency } from "../../../shared/utils/formatters";
 import { type PaymentMode, usePaymentWindow } from "./usePaymentWindow";
 import TicketOwnerCheckDialog from "./TicketOwnerCheckDialog";
+import PickupHoldDialog from "./PickupHoldDialog";
 
 const modeStyles: Record<
   PaymentMode,
@@ -84,6 +85,9 @@ const PaymentWindow: React.FC = () => {
     ticketSearchPreview,
     ticketSearchClientImage,
     ticketSearchDialogOpen,
+    ticketSearchSelectionConflictMessage,
+    ticketSearchConfirmLabel,
+    pickupHoldRows,
     pickupSummaryAmount,
     extensionSummaryAmount,
     totalSummaryAmount,
@@ -153,9 +157,14 @@ const PaymentWindow: React.FC = () => {
           }
         }}
         getRowClassName={(params) =>
-          mode === "pickup" && !params.row.isPickupAllowed
-            ? "payment-row-hold"
-            : ""
+          [
+            mode === "pickup" && !params.row.isPickupAllowed
+              ? "payment-row-hold"
+              : "",
+            mode === "pickup" && params.row.isLost ? "payment-row-lost" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")
         }
         disableColumnMenu
         disableColumnSorting
@@ -186,6 +195,22 @@ const PaymentWindow: React.FC = () => {
           "& .MuiDataGrid-row.payment-row-hold .MuiDataGrid-cell": {
             borderRight: "1px solid rgba(211, 47, 47, 0.35)",
             borderBottom: "1px solid rgba(211, 47, 47, 0.35)",
+          },
+          "& .MuiDataGrid-row.payment-row-lost": {
+            backgroundColor: "#f1ecf8",
+          },
+          "& .MuiDataGrid-row.payment-row-lost:hover": {
+            backgroundColor: "#e8def8",
+          },
+          "& .MuiDataGrid-row.payment-row-lost.Mui-selected": {
+            backgroundColor: "#d0bcff",
+          },
+          "& .MuiDataGrid-row.payment-row-lost.Mui-selected:hover": {
+            backgroundColor: "#c2a7f2",
+          },
+          "& .MuiDataGrid-row.payment-row-lost .MuiDataGrid-cell": {
+            borderRight: "1px solid rgba(103, 80, 164, 0.4)",
+            borderBottom: "1px solid rgba(103, 80, 164, 0.4)",
           },
         }}
       />
@@ -332,7 +357,19 @@ const PaymentWindow: React.FC = () => {
                   void actions.handleTicketSearch();
                 }
               }}
-              sx={{ width: 160 }}
+              sx={{
+                width: 160,
+                "& .MuiOutlinedInput-root": {
+                  backgroundColor: selectedStyle.tableBackground,
+                  transition: "background-color 160ms ease",
+                  "& fieldset": {
+                    borderColor: selectedStyle.accent,
+                  },
+                  "&:hover fieldset": {
+                    borderColor: selectedStyle.accent,
+                  },
+                },
+              }}
             />
             <Button
               variant="outlined"
@@ -347,12 +384,28 @@ const PaymentWindow: React.FC = () => {
 
         {statusMessage && (
           <Alert
-            severity={statusSeverity}
-            variant={statusSeverity === "warning" ? "filled" : "outlined"}
+            severity={statusSeverity === "lost" ? "warning" : statusSeverity}
+            variant="outlined"
             sx={{
               py: 0.25,
               alignItems: "center",
               fontWeight: statusSeverity === "warning" ? 800 : 600,
+              ...(statusSeverity === "warning"
+                ? {
+                    backgroundColor: "#fff3cd",
+                    borderColor: "rgba(237, 108, 2, 0.55)",
+                    color: "#7a3e00",
+                  }
+                : {}),
+              ...(statusSeverity === "lost"
+                ? {
+                    backgroundColor: "#f1ecf8",
+                    borderColor: "rgba(103, 80, 164, 0.5)",
+                    color: "#4f378b",
+                    fontWeight: 800,
+                    "& .MuiAlert-icon": { color: "#6750a4" },
+                  }
+                : {}),
               "& .MuiAlert-message": {
                 py: 0.5,
               },
@@ -409,8 +462,17 @@ const PaymentWindow: React.FC = () => {
           open={ticketSearchDialogOpen}
           preview={ticketSearchPreview}
           clientImage={ticketSearchClientImage}
+          showPickupWarnings={mode === "pickup"}
+          selectionConflictMessage={ticketSearchSelectionConflictMessage}
+          confirmLabel={ticketSearchConfirmLabel}
           onConfirm={actions.addTicketSearchPreviewToSelected}
           onClose={actions.closeTicketSearchDialog}
+        />
+
+        <PickupHoldDialog
+          rows={pickupHoldRows}
+          onContinue={actions.continuePickupHold}
+          onClose={actions.closePickupHoldDialog}
         />
 
         <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>

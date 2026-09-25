@@ -62,6 +62,7 @@ export const useClientPage = ({
     [],
   );
   const [createdClient, setCreatedClient] = useState<Client | null>(null);
+  const [searchDialogOpen, setSearchDialogOpen] = useState(false);
   const lastNoResultPromptKeyRef = useRef<string>("");
 
   useEffect(() => {
@@ -112,12 +113,8 @@ export const useClientPage = ({
 
   useEffect(() => {
     setCreatedClient(null);
-  }, [
-    searchFirstName,
-    searchLastName,
-    searchDateOfBirth,
-    searchRequestKey,
-  ]);
+    setSearchDialogOpen(false);
+  }, [searchFirstName, searchLastName, searchDateOfBirth, searchRequestKey]);
 
   useEffect(() => {
     if (!isActive) {
@@ -261,7 +258,7 @@ export const useClientPage = ({
         searchReturnedNoClients &&
         lastNoResultPromptKeyRef.current !== queryKey
       ) {
-        alert("No client found.");
+        setSearchDialogOpen(true);
         lastNoResultPromptKeyRef.current = queryKey;
         return;
       }
@@ -390,12 +387,14 @@ export const useClientPage = ({
       displayResults,
       loading,
       error,
+      searchDialogOpen,
     },
     actions: {
       setSelectedClient,
       handleClientCreated,
       handleClientUpdated,
       handleSaveClientNotes,
+      closeSearchDialog: () => setSearchDialogOpen(false),
     },
   };
 };

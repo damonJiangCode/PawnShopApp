@@ -1,7 +1,6 @@
 import type { Ticket } from "../../../../shared/models/ticket.model";
 import { calculation } from "../../../../shared/utils/calculation";
 import { getTicketPickupAmount } from "../../../../shared/utils/ticketFinance";
-import { formatIsoDate } from "../../../shared/utils/formatters";
 import type {
   PaymentMode,
   PaymentRowsByMode,
@@ -47,6 +46,7 @@ export const mapTicketToPaymentRow = (
     id: ticket.ticket_number,
     ticketNumber: ticket.ticket_number,
     status: ticket.status,
+    isLost: Boolean(ticket.is_lost),
     location: ticket.location,
     description: ticket.description,
     dueDate: ticket.due_date,
@@ -62,13 +62,3 @@ export const mapTicketToPaymentRow = (
     extensionMonths: 1,
   };
 };
-
-export const formatBlockedPickupMessage = (rows: PaymentTicketRow[]) =>
-  rows
-    .map(
-      (row) =>
-        `Ticket #${row.ticketNumber}: earliest pickup ${formatIsoDate(
-          row.earliestPickupDate,
-        )}`,
-    )
-    .join("\n");

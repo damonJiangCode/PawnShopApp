@@ -1,10 +1,6 @@
 import type { GridRowSelectionModel } from "@mui/x-data-grid";
 import type { Dispatch, SetStateAction } from "react";
-import {
-  addThirtyDayPeriods,
-  formatBlockedPickupMessage,
-  getOppositeMode,
-} from "./payment.helpers";
+import { addThirtyDayPeriods, getOppositeMode } from "./payment.helpers";
 import type {
   PaymentMode,
   PaymentRowsByMode,
@@ -29,6 +25,10 @@ type PaymentRowHandlerDeps = {
   >;
   setStatusSeverity: Dispatch<SetStateAction<PaymentStatusSeverity>>;
   setStatusMessage: Dispatch<SetStateAction<string>>;
+  requestPickupHoldConfirmation: (
+    rows: PaymentTicketRow[],
+    onContinue: () => void,
+  ) => void;
 };
 
 export const createPaymentRowHandlers = ({
@@ -44,21 +44,12 @@ export const createPaymentRowHandlers = ({
   setSelectedSelectionByMode,
   setStatusSeverity,
   setStatusMessage,
+  requestPickupHoldConfirmation,
 }: PaymentRowHandlerDeps) => {
-  const confirmBlockedPickupRows = (rows: PaymentTicketRow[]) => {
-    if (mode !== "pickup") {
-      return true;
-    }
-
-    const blockedRows = rows.filter((row) => !row.isPickupAllowed);
-
-    return (
-      !blockedRows.length ||
-      window.confirm(formatBlockedPickupMessage(blockedRows))
-    );
-  };
-
-  const moveRowsToSelected = (moveAll: boolean) => {
+  const moveRowsToSelected = (
+    moveAll: boolean,
+    skipPickupHoldConfirmation = false,
+  ) => {
     const selectedIds = new Set(
       moveAll
         ? availableRows.map((row) => String(row.id))
@@ -85,7 +76,17 @@ export const createPaymentRowHandlers = ({
           ]
         : rowsToMove;
 
-    if (!rowsToApply.length || !confirmBlockedPickupRows(rowsToMove)) {
+    if (!rowsToApply.length) {
+      return;
+    }
+
+    const blockedRows =
+      mode === "pickup" ? rowsToMove.filter((row) => !row.isPickupAllowed) : [];
+
+    if (!skipPickupHoldConfirmation && blockedRows.length) {
+      requestPickupHoldConfirmation(blockedRows, () =>
+        moveRowsToSelected(moveAll, true),
+      );
       return;
     }
 
@@ -187,6 +188,77 @@ export const createPaymentRowHandlers = ({
       return;
     }
 
+    if (mode === "extension") {
+      const fullyRemovedRows = rowsToMove
+        .filter((row) => moveAll || row.extensionMonths <= 1)
+        .map((row) => ({
+          ...row,
+          id: row.ticketNumber,
+          dueDate: row.sourceDueDate,
+          extensionMonths: 1,
+          extensionAmount: row.baseExtensionAmount,
+        }));
+
+      setSelectedRowsByMode((prev) => ({
+        ...prev,
+        extension: prev.extension.flatMap((row) => {
+          if (!selectedIds.has(String(row.id))) {
+            return [row];
+          }
+
+          if (moveAll || row.extensionMonths <= 1) {
+            return [];
+          }
+
+          const extensionMonths = row.extensionMonths - 1;
+          return [
+            {
+              ...row,
+              dueDate: addThirtyDayPeriods(row.sourceDueDate, extensionMonths),
+              extensionMonths,
+              extensionAmount: row.baseExtensionAmount * extensionMonths,
+            },
+          ];
+        }),
+      }));
+
+      if (fullyRemovedRows.length) {
+        setAvailableRowsByMode((prev) => {
+          const existingPickupTicketNumbers = new Set(
+            prev.pickup.map((row) => row.ticketNumber),
+          );
+          const rowsToRestore = fullyRemovedRows.filter(
+            (row) => !existingPickupTicketNumbers.has(row.ticketNumber),
+          );
+
+          if (!rowsToRestore.length) {
+            return prev;
+          }
+
+          return {
+            ...prev,
+            pickup: [...prev.pickup, ...rowsToRestore].sort(
+              (a, b) => a.ticketNumber - b.ticketNumber,
+            ),
+          };
+        });
+      }
+
+      const remainingReducedIds = new Set(
+        rowsToMove
+          .filter((row) => !moveAll && row.extensionMonths > 1)
+          .map((row) => String(row.id)),
+      );
+      setSelectedSelectionByMode((prev) => ({
+        ...prev,
+        extension: prev.extension.filter(
+          (id) =>
+            !selectedIds.has(String(id)) || remainingReducedIds.has(String(id)),
+        ),
+      }));
+      return;
+    }
+
     const remainingSelectedRows = selectedRows.filter(
       (row) => !selectedIds.has(String(row.id)),
     );
@@ -206,14 +278,12 @@ export const createPaymentRowHandlers = ({
     const restorableRows = [...restorableRowsByTicketNumber.values()];
     const oppositeMode = getOppositeMode(mode);
 
-    if (mode === "pickup") {
-      setAvailableRowsByMode((prev) => ({
-        ...prev,
-        pickup: [...prev.pickup, ...rowsToMove].sort(
-          (a, b) => a.ticketNumber - b.ticketNumber,
-        ),
-      }));
-    }
+    setAvailableRowsByMode((prev) => ({
+      ...prev,
+      pickup: [...prev.pickup, ...rowsToMove].sort(
+        (a, b) => a.ticketNumber - b.ticketNumber,
+      ),
+    }));
 
     if (restorableRows.length) {
       setAvailableRowsByMode((prev) => {

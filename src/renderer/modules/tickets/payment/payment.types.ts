@@ -2,12 +2,13 @@ import type { GridRowSelectionModel } from "@mui/x-data-grid";
 import type { Ticket } from "../../../../shared/models/ticket.model";
 
 export type PaymentMode = "pickup" | "extension";
-export type PaymentStatusSeverity = "info" | "success" | "warning";
+export type PaymentStatusSeverity = "info" | "success" | "warning" | "lost";
 
 export type PaymentTicketRow = {
   id: number | string;
   ticketNumber: number;
   status: Ticket["status"];
+  isLost: boolean;
   location: string;
   description: string;
   dueDate: Date;

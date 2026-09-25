@@ -14,7 +14,6 @@ import {
   addThirtyDayPeriods,
   createEmptyRowsByMode,
   createEmptySelectionByMode,
-  formatBlockedPickupMessage,
   getOppositeMode,
   mapTicketToPaymentRow,
 } from "./payment.helpers";
@@ -24,6 +23,7 @@ import type {
   PaymentRowsByMode,
   PaymentSelectionByMode,
   PaymentStatusSeverity,
+  PaymentTicketRow,
 } from "./payment.types";
 
 export type { PaymentMode } from "./payment.types";
@@ -62,6 +62,8 @@ export const usePaymentWindow = () => {
     string | null
   >(null);
   const [ticketSearchDialogOpen, setTicketSearchDialogOpen] = useState(false);
+  const [pickupHoldRows, setPickupHoldRows] = useState<PaymentTicketRow[]>([]);
+  const pickupHoldActionRef = useRef<(() => void) | null>(null);
   const [statusSeverity, setStatusSeverity] =
     useState<PaymentStatusSeverity>("info");
   const clientNumber = Number(paymentWindowInput.clientNumber);
@@ -80,6 +82,30 @@ export const usePaymentWindow = () => {
     0,
   );
   const totalSummaryAmount = pickupSummaryAmount + extensionSummaryAmount;
+  const searchedTicketNumber = ticketSearchPreview?.ticket.ticket_number;
+  const oppositeMode = getOppositeMode(mode);
+  const hasTicketSearchSelectionConflict = Boolean(
+    searchedTicketNumber &&
+    selectedRowsByMode[oppositeMode].some(
+      (row) => row.ticketNumber === searchedTicketNumber,
+    ),
+  );
+  const currentModeLabel = mode === "pickup" ? "Buyback" : "Interest";
+  const oppositeModeLabel = oppositeMode === "pickup" ? "Buyback" : "Interest";
+  const ticketSearchSelectionConflictMessage =
+    hasTicketSearchSelectionConflict && searchedTicketNumber
+      ? `Ticket #${searchedTicketNumber} is already selected in ${oppositeModeLabel}. Moving it will remove it from ${oppositeModeLabel}.`
+      : "";
+  const ticketSearchConfirmLabel = hasTicketSearchSelectionConflict
+    ? `Move to ${currentModeLabel}`
+    : "Confirm";
+  const requestPickupHoldConfirmation = (
+    rows: PaymentTicketRow[],
+    onContinue: () => void,
+  ) => {
+    pickupHoldActionRef.current = onContinue;
+    setPickupHoldRows(rows);
+  };
   const rowHandlers = createPaymentRowHandlers({
     mode,
     availableRows,
@@ -93,6 +119,7 @@ export const usePaymentWindow = () => {
     setSelectedSelectionByMode,
     setStatusSeverity,
     setStatusMessage,
+    requestPickupHoldConfirmation,
   });
 
   const columns = useMemo(() => createPaymentColumns(mode), [mode]);
@@ -142,11 +169,17 @@ export const usePaymentWindow = () => {
       setHolidayDateKeys(holidayDateKeys);
       setAvailableRowsByMode((prev) => ({ ...prev, [mode]: rows }));
       setAvailableSelectionByMode((prev) => ({ ...prev, [mode]: [] }));
-      setStatusSeverity(rows.length ? "success" : "info");
+      const lostTicketCount =
+        mode === "pickup" ? rows.filter((row) => row.isLost).length : 0;
+      setStatusSeverity(
+        lostTicketCount ? "lost" : rows.length ? "success" : "info",
+      );
       setStatusMessage(
-        rows.length
-          ? `${rows.length} pawned ticket(s) loaded.`
-          : "No pawned tickets found.",
+        lostTicketCount
+          ? `${rows.length} pawned ticket(s) loaded. ${lostTicketCount} marked as lost.`
+          : rows.length
+            ? `${rows.length} pawned ticket(s) loaded.`
+            : "No pawned tickets found.",
       );
     } catch (err) {
       console.error("Failed to load payment tickets", err);
@@ -195,18 +228,53 @@ export const usePaymentWindow = () => {
       }
 
       const holidays = await ticketApi.loadHolidayDates();
-      setHolidayDateKeys(holidays.map((holiday) => holiday.holiday_date));
+      const nextHolidayDateKeys = holidays.map(
+        (holiday) => holiday.holiday_date,
+      );
+      const searchedRow = mapTicketToPaymentRow(
+        preview.ticket,
+        nextHolidayDateKeys,
+      );
+      setHolidayDateKeys(nextHolidayDateKeys);
+
+      if (searchedRow && !preview.ticket.is_stolen) {
+        const oppositeSelectedTicketNumbers = new Set(
+          selectedRowsByMode[getOppositeMode(mode)].map(
+            (row) => row.ticketNumber,
+          ),
+        );
+        const isAlreadySelected =
+          mode === "pickup" &&
+          selectedRowsByMode.pickup.some(
+            (row) => row.ticketNumber === searchedRow.ticketNumber,
+          );
+
+        if (
+          !isAlreadySelected &&
+          !oppositeSelectedTicketNumbers.has(searchedRow.ticketNumber)
+        ) {
+          setAvailableRowsByMode((prev) => {
+            if (
+              prev[mode].some(
+                (row) => row.ticketNumber === searchedRow.ticketNumber,
+              )
+            ) {
+              return prev;
+            }
+
+            return {
+              ...prev,
+              [mode]: [...prev[mode], searchedRow].sort(
+                (a, b) => a.ticketNumber - b.ticketNumber,
+              ),
+            };
+          });
+        }
+      }
+
       setTicketSearchPreview(preview);
       setTicketSearchClientImage(getClientImageUrl(preview.client.image_path));
       setTicketSearchDialogOpen(true);
-
-      if (preview.client.pickup_self_only) {
-        window.alert("Only this client can pick up this ticket.");
-      }
-
-      if (preview.ticket.is_lost) {
-        window.alert("This ticket is marked as lost.");
-      }
     } catch (err) {
       console.error(err);
       setStatusSeverity("warning");
@@ -223,7 +291,9 @@ export const usePaymentWindow = () => {
     setTicketSearchDialogOpen(false);
   };
 
-  const addTicketSearchPreviewToSelected = () => {
+  const addTicketSearchPreviewToSelected = (
+    skipPickupHoldConfirmation = false,
+  ) => {
     if (!ticketSearchPreview) {
       return;
     }
@@ -255,22 +325,13 @@ export const usePaymentWindow = () => {
       return;
     }
 
+    const nextOppositeMode = getOppositeMode(mode);
     const oppositeSelectedTicketNumbers = new Set(
-      selectedRowsByMode[getOppositeMode(mode)].map((row) => row.ticketNumber),
+      selectedRowsByMode[nextOppositeMode].map((row) => row.ticketNumber),
     );
     const currentSelectedTicketNumbers = new Set(
       selectedRowsByMode[mode].map((row) => row.ticketNumber),
     );
-
-    if (oppositeSelectedTicketNumbers.has(searchedRow.ticketNumber)) {
-      setStatusSeverity("warning");
-      setStatusMessage(
-        `Ticket #${searchedRow.ticketNumber} is already selected for ${getOppositeMode(
-          mode,
-        )}.`,
-      );
-      return;
-    }
 
     if (currentSelectedTicketNumbers.has(searchedRow.ticketNumber)) {
       setStatusSeverity("info");
@@ -281,26 +342,44 @@ export const usePaymentWindow = () => {
       return;
     }
 
+    const movingFromOppositeMode = oppositeSelectedTicketNumbers.has(
+      searchedRow.ticketNumber,
+    );
+
     if (
+      !skipPickupHoldConfirmation &&
       mode === "pickup" &&
-      !searchedRow.isPickupAllowed &&
-      !window.confirm(formatBlockedPickupMessage([searchedRow]))
+      !searchedRow.isPickupAllowed
     ) {
+      requestPickupHoldConfirmation([searchedRow], () =>
+        addTicketSearchPreviewToSelected(true),
+      );
       return;
     }
 
-    setSelectedRowsByMode((prev) => ({
-      ...prev,
-      [mode]: [
-        ...prev[mode],
-        mode === "extension"
-          ? {
-              ...searchedRow,
-              dueDate: addThirtyDayPeriods(searchedRow.dueDate, 1),
-            }
-          : searchedRow,
-      ],
-    }));
+    setSelectedRowsByMode((prev) => {
+      const nextRows = movingFromOppositeMode
+        ? {
+            ...prev,
+            [nextOppositeMode]: prev[nextOppositeMode].filter(
+              (row) => row.ticketNumber !== searchedRow.ticketNumber,
+            ),
+          }
+        : prev;
+
+      return {
+        ...nextRows,
+        [mode]: [
+          ...nextRows[mode],
+          mode === "extension"
+            ? {
+                ...searchedRow,
+                dueDate: addThirtyDayPeriods(searchedRow.dueDate, 1),
+              }
+            : searchedRow,
+        ],
+      };
+    });
     setAvailableRowsByMode((prev) => ({
       ...prev,
       [mode]:
@@ -309,14 +388,50 @@ export const usePaymentWindow = () => {
               (row) => row.ticketNumber !== searchedRow.ticketNumber,
             )
           : prev[mode],
-      [getOppositeMode(mode)]: prev[getOppositeMode(mode)].filter(
+      [nextOppositeMode]: prev[nextOppositeMode].filter(
         (row) => row.ticketNumber !== searchedRow.ticketNumber,
       ),
     }));
-    setAvailableSelectionByMode((prev) => ({ ...prev, [mode]: [] }));
+    setAvailableSelectionByMode((prev) => ({
+      ...prev,
+      [mode]: [],
+      [nextOppositeMode]: [],
+    }));
+    setSelectedSelectionByMode((prev) => ({
+      ...prev,
+      [mode]: [],
+      [nextOppositeMode]: [],
+    }));
     closeTicketSearchDialog();
-    setStatusSeverity("success");
-    setStatusMessage(`Ticket #${searchedRow.ticketNumber} selected.`);
+    const showLostWarning = mode === "pickup" && searchedRow.isLost;
+    setStatusSeverity(showLostWarning ? "lost" : "success");
+    setStatusMessage(
+      showLostWarning
+        ? movingFromOppositeMode
+          ? `Ticket #${searchedRow.ticketNumber} moved from ${oppositeModeLabel} to ${currentModeLabel}. This ticket is marked as lost.`
+          : `Ticket #${searchedRow.ticketNumber} selected. This ticket is marked as lost.`
+        : movingFromOppositeMode
+          ? `Ticket #${searchedRow.ticketNumber} moved from ${oppositeModeLabel} to ${currentModeLabel}.`
+          : `Ticket #${searchedRow.ticketNumber} selected.`,
+    );
+  };
+
+  const closePickupHoldDialog = () => {
+    pickupHoldActionRef.current = null;
+    setPickupHoldRows([]);
+  };
+
+  const continuePickupHold = () => {
+    const action = pickupHoldActionRef.current;
+    pickupHoldActionRef.current = null;
+    setPickupHoldRows([]);
+    action?.();
+  };
+
+  const handleModeChange = (nextMode: PaymentMode) => {
+    setMode(nextMode);
+    setStatusMessage("");
+    setStatusSeverity("info");
   };
 
   const handleClear = () => {
@@ -419,17 +534,22 @@ export const usePaymentWindow = () => {
       ticketSearchPreview,
       ticketSearchClientImage,
       ticketSearchDialogOpen,
+      ticketSearchSelectionConflictMessage,
+      ticketSearchConfirmLabel,
+      pickupHoldRows,
       pickupSummaryAmount,
       extensionSummaryAmount,
       totalSummaryAmount,
     },
     actions: {
-      setMode,
+      setMode: handleModeChange,
       setTicketSearchValue,
       handleLoad,
       handleTicketSearch,
       closeTicketSearchDialog,
       addTicketSearchPreviewToSelected,
+      closePickupHoldDialog,
+      continuePickupHold,
       handleClear,
       handleDone,
       setAvailableSelectionModel: (selectionModel: GridRowSelectionModel) =>

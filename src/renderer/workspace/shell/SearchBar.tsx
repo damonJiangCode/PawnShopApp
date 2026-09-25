@@ -37,6 +37,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const [birthday, setBirthday] = useState("");
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const [birthdayDialogOpen, setBirthdayDialogOpen] = useState(false);
+  const [validationMessage, setValidationMessage] = useState("");
+  const validationTargetRef = useRef<"name" | "birthday">("name");
   const lastNameInputRef = useRef<HTMLInputElement>(null);
   const birthdayInputRef = useRef<HTMLInputElement>(null);
 
@@ -55,7 +57,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
     const trimmedLastName = lastName.trim();
 
     if (!trimmedFirstName && !trimmedLastName) {
-      alert("Please enter a first name or last name to search.");
+      validationTargetRef.current = "name";
+      setValidationMessage("Please enter a first name or last name to search.");
       return;
     }
 
@@ -91,7 +94,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
     event.preventDefault();
 
     if (!birthday) {
-      alert("Please enter a birthday to search.");
+      validationTargetRef.current = "birthday";
+      setValidationMessage("Please enter a birthday to search.");
       return;
     }
 
@@ -99,6 +103,18 @@ const SearchBar: React.FC<SearchBarProps> = ({
     setLastName("");
     setBirthdayDialogOpen(false);
     onBirthdaySearch?.({ dateOfBirth: birthday });
+  };
+
+  const closeValidationDialog = () => {
+    const target = validationTargetRef.current;
+    setValidationMessage("");
+    requestAnimationFrame(() => {
+      if (target === "birthday") {
+        birthdayInputRef.current?.focus();
+      } else {
+        lastNameInputRef.current?.focus();
+      }
+    });
   };
 
   return (
@@ -220,6 +236,21 @@ const SearchBar: React.FC<SearchBarProps> = ({
             </Button>
           </DialogActions>
         </form>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(validationMessage)}
+        onClose={closeValidationDialog}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>Search</DialogTitle>
+        <DialogContent>{validationMessage}</DialogContent>
+        <DialogActions>
+          <Button variant="contained" onClick={closeValidationDialog}>
+            OK
+          </Button>
+        </DialogActions>
       </Dialog>
     </>
   );
