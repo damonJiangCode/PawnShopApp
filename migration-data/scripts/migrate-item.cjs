@@ -527,12 +527,36 @@ const main = async () => {
         ],
         items,
       );
+      // The live trigger takes one advisory transaction lock per item. Disable it
+      // for this isolated bulk import, then validate the same invariant as a set.
+      await client.query(`
+        ALTER TABLE ticket_item
+        DISABLE TRIGGER trg_prevent_item_multiple_pawned_tickets
+      `);
       await insertBatches(
         client,
         "ticket_item",
         ["ticket_number", "item_number", "item_snapshot"],
         ticketItems,
       );
+      const conflictResult = await client.query(`
+        SELECT ti.item_number
+        FROM ticket_item ti
+        INNER JOIN ticket t ON t.ticket_number = ti.ticket_number
+        WHERE t.status IN ('pawned', 'sold')
+        GROUP BY ti.item_number
+        HAVING COUNT(DISTINCT ti.ticket_number) > 1
+        LIMIT 1
+      `);
+      if (conflictResult.rowCount) {
+        throw new Error(
+          `Item ${conflictResult.rows[0].item_number} belongs to multiple active tickets`,
+        );
+      }
+      await client.query(`
+        ALTER TABLE ticket_item
+        ENABLE TRIGGER trg_prevent_item_multiple_pawned_tickets
+      `);
       await client.query(
         "SELECT setval(pg_get_serial_sequence('item', 'item_number'), (SELECT MAX(item_number) FROM item))",
       );

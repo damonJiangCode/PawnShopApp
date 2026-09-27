@@ -11,4 +11,10 @@ test-results/
 migration-data/exports
 migration-data/source
 migration-data/backups
+migration-data/latestData
 migration-data/rec.mp4
+
+deployment/windows-server/.env.server
+deployment/windows-server/postgres-data/
+deployment/windows-server/import/
+deployment/windows-server/images/
