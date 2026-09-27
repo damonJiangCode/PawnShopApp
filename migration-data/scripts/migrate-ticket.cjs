@@ -5,6 +5,7 @@ const path = require("path");
 const { spawn } = require("child_process");
 const csv = require("csv-parser");
 const { Pool } = require("pg");
+const dbConfig = require("./migration-config.cjs");
 
 const migrationRoot = path.resolve(__dirname, "..");
 const sourceDbPath = path.join(migrationRoot, "source", "superpawnconv.mdb");
@@ -15,14 +16,6 @@ const shouldCommit = process.argv.includes("--commit");
 
 const INSERT_BATCH_SIZE = 1000;
 const PENDING_EMPLOYEE_PREFIX = "Legacy Employee";
-
-const dbConfig = {
-  user: process.env.DB_USER || "moneyexpress",
-  host: process.env.DB_HOST || "localhost",
-  database: process.env.DB_NAME || "pawnsystemdb_migration",
-  password: process.env.DB_PASSWORD || "0236",
-  port: Number(process.env.DB_PORT || 5432),
-};
 
 const normalizeText = (value) => String(value ?? "").trim();
 const normalizeUpper = (value) => normalizeText(value).toUpperCase();
@@ -637,6 +630,49 @@ const main = async () => {
         SET employee_name = COALESCE(NULLIF(e.nickname, ''), e.first_name)
         FROM employee e
         WHERE t.employee_name = 'Legacy Employee ' || e.employee_number::text
+      `);
+      await client.query(`
+        WITH id_snapshots AS (
+          SELECT
+            ci.client_number,
+            jsonb_agg(
+              jsonb_build_object(
+                'id_type', ci.id_type,
+                'id_value', ci.id_value
+              ) ORDER BY ci.id
+            ) AS identifications
+          FROM client_id ci
+          GROUP BY ci.client_number
+        ),
+        client_snapshots AS (
+          SELECT
+            c.client_number,
+            jsonb_build_object(
+              'client_number', c.client_number,
+              'first_name', c.first_name,
+              'last_name', c.last_name,
+              'middle_name', COALESCE(c.middle_name, ''),
+              'date_of_birth', TO_CHAR(c.date_of_birth, 'YYYY-MM-DD'),
+              'gender', c.gender,
+              'hair_color', c.hair_color,
+              'eye_color', c.eye_color,
+              'height_cm', c.height_cm,
+              'weight_kg', c.weight_kg,
+              'address', COALESCE(c.address, ''),
+              'city', COALESCE(c.city, ''),
+              'province', COALESCE(c.province, ''),
+              'postal_code', COALESCE(c.postal_code, ''),
+              'phone', COALESCE(c.phone, ''),
+              'email', COALESCE(c.email, ''),
+              'identifications', COALESCE(ids.identifications, '[]'::jsonb)
+            ) AS snapshot
+          FROM client c
+          LEFT JOIN id_snapshots ids ON ids.client_number = c.client_number
+        )
+        UPDATE ticket t
+        SET client_snapshot = cs.snapshot
+        FROM client_snapshots cs
+        WHERE t.client_number = cs.client_number
       `);
       await client.query(
         "SELECT setval(pg_get_serial_sequence('ticket', 'ticket_number'), (SELECT MAX(ticket_number) FROM ticket))",

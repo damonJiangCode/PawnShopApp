@@ -5,6 +5,8 @@ export const createPreventItemMultiplePawnedTicketsFunction = `
     target_ticket_status TEXT;
     conflicting_ticket_number INTEGER;
   BEGIN
+    PERFORM pg_advisory_xact_lock(198511, NEW.item_number);
+
     SELECT status
     INTO target_ticket_status
     FROM ticket
@@ -39,7 +41,7 @@ export const createPreventItemMultiplePawnedTicketsTrigger = `
   ON ticket_item;
 
   CREATE TRIGGER trg_prevent_item_multiple_pawned_tickets
-  BEFORE INSERT OR UPDATE ON ticket_item
+  BEFORE INSERT OR UPDATE OF ticket_number, item_number ON ticket_item
   FOR EACH ROW
   EXECUTE FUNCTION prevent_item_multiple_pawned_tickets();
 `;
@@ -50,8 +52,18 @@ export const createPreventTicketWithConflictingPawnedItemsFunction = `
   DECLARE
     conflicting_item_number INTEGER;
     conflicting_ticket_number INTEGER;
+    item_to_lock INTEGER;
   BEGIN
     IF NEW.status IN ('pawned', 'sold') THEN
+      FOR item_to_lock IN
+        SELECT item_number
+        FROM ticket_item
+        WHERE ticket_number = NEW.ticket_number
+        ORDER BY item_number
+      LOOP
+        PERFORM pg_advisory_xact_lock(198511, item_to_lock);
+      END LOOP;
+
       SELECT current_items.item_number, other_ti.ticket_number
       INTO conflicting_item_number, conflicting_ticket_number
       FROM ticket_item current_items

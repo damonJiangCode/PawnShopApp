@@ -12,6 +12,19 @@ import { reportRepo } from "./report.repo.ts";
 import { createFieldError } from "../../shared/createFieldError.ts";
 import { ticketInput } from "../tickets/ticket.input.ts";
 import { INTEREST_REPORT_START_DATE } from "../../../shared/reportSettings.ts";
+import { validateReportDateRange } from "../../shared/reportDateRange.ts";
+
+const MAX_REPORT_RANGE_DAYS = 93;
+const MAX_REPORT_SOURCE_ROWS = 20_000;
+
+const assertReportSize = (rowCount: number) => {
+  if (rowCount > MAX_REPORT_SOURCE_ROWS) {
+    throw createFieldError(
+      "to_date",
+      "This report is too large. Select a smaller date or location range.",
+    );
+  }
+};
 
 const parseLocation = (
   value: string,
@@ -70,6 +83,7 @@ export const reportService = {
       locationFrom.number,
       locationTo.number,
     );
+    assertReportSize(sourceRows.length);
     const ticketMap = new Map<number, OverdueReportTicket>();
 
     for (const row of sourceRows) {
@@ -116,25 +130,12 @@ export const reportService = {
   loadDailyReport: async (
     input: ReportDateRangeInput,
   ): Promise<DailyReportResult> => {
-    const fromDate = input.from_date?.trim() ?? "";
-    const toDate = input.to_date?.trim() ?? "";
-
-    if (!ticketInput.isValidDateKey(fromDate)) {
-      throw createFieldError("from_date", "Enter a valid From date.");
-    }
-
-    if (!ticketInput.isValidDateKey(toDate)) {
-      throw createFieldError("to_date", "Enter a valid To date.");
-    }
-
-    if (fromDate > toDate) {
-      throw createFieldError(
-        "to_date",
-        "To date must be the same as or later than From date.",
-      );
-    }
+    const { fromDate, toDate } = validateReportDateRange(input, {
+      maximumDays: MAX_REPORT_RANGE_DAYS,
+    });
 
     const sourceRows = await reportRepo.loadDailyReportRows(fromDate, toDate);
+    assertReportSize(sourceRows.length);
     const ticketMap = new Map<number, DailyReportTicket>();
 
     for (const row of sourceRows) {
@@ -193,25 +194,12 @@ export const reportService = {
   loadBuybackReport: async (
     input: ReportDateRangeInput,
   ): Promise<BuybackReportResult> => {
-    const fromDate = input.from_date?.trim() ?? "";
-    const toDate = input.to_date?.trim() ?? "";
-
-    if (!ticketInput.isValidDateKey(fromDate)) {
-      throw createFieldError("from_date", "Enter a valid From date.");
-    }
-
-    if (!ticketInput.isValidDateKey(toDate)) {
-      throw createFieldError("to_date", "Enter a valid To date.");
-    }
-
-    if (fromDate > toDate) {
-      throw createFieldError(
-        "to_date",
-        "To date must be the same as or later than From date.",
-      );
-    }
+    const { fromDate, toDate } = validateReportDateRange(input, {
+      maximumDays: MAX_REPORT_RANGE_DAYS,
+    });
 
     const sourceRows = await reportRepo.loadBuybackReportRows(fromDate, toDate);
+    assertReportSize(sourceRows.length);
 
     const rows = sourceRows.map((row) => ({
       ticket_number: row.ticket_number,
@@ -234,39 +222,13 @@ export const reportService = {
   loadInterestReport: async (
     input: ReportDateRangeInput,
   ): Promise<InterestReportResult> => {
-    const fromDate = input.from_date?.trim() ?? "";
-    const toDate = input.to_date?.trim() ?? "";
-
-    if (!ticketInput.isValidDateKey(fromDate)) {
-      throw createFieldError("from_date", "Enter a valid From date.");
-    }
-
-    if (!ticketInput.isValidDateKey(toDate)) {
-      throw createFieldError("to_date", "Enter a valid To date.");
-    }
-
-    if (fromDate > toDate) {
-      throw createFieldError(
-        "to_date",
-        "To date must be the same as or later than From date.",
-      );
-    }
-
-    if (fromDate < INTEREST_REPORT_START_DATE) {
-      throw createFieldError(
-        "from_date",
-        `Interest reports are available from ${INTEREST_REPORT_START_DATE}.`,
-      );
-    }
-
-    if (toDate < INTEREST_REPORT_START_DATE) {
-      throw createFieldError(
-        "to_date",
-        `Interest reports are available from ${INTEREST_REPORT_START_DATE}.`,
-      );
-    }
+    const { fromDate, toDate } = validateReportDateRange(input, {
+      earliestDate: INTEREST_REPORT_START_DATE,
+      maximumDays: MAX_REPORT_RANGE_DAYS,
+    });
 
     const rows = await reportRepo.loadInterestReportRows(fromDate, toDate);
+    assertReportSize(rows.length);
     const total = rows.reduce((sum, row) => sum + row.amount_paid, 0);
 
     return {

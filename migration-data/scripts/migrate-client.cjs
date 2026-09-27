@@ -5,6 +5,7 @@ const path = require("path");
 const { spawn } = require("child_process");
 const csv = require("csv-parser");
 const { Pool } = require("pg");
+const dbConfig = require("./migration-config.cjs");
 
 const migrationRoot = path.resolve(__dirname, "..");
 const projectRoot = path.resolve(migrationRoot, "..");
@@ -12,14 +13,6 @@ const sourceDbPath = path.join(migrationRoot, "source", "superpawnconv.mdb");
 const summaryDir = path.join(migrationRoot, "reports");
 const reportPath = path.join(summaryDir, "client-migration.md");
 const shouldCommit = process.argv.includes("--commit");
-
-const dbConfig = {
-  user: process.env.DB_USER || "moneyexpress",
-  host: process.env.DB_HOST || "localhost",
-  database: process.env.DB_NAME || "pawnsystemdb_migration",
-  password: process.env.DB_PASSWORD || "0236",
-  port: Number(process.env.DB_PORT || 5432),
-};
 
 const ID_TYPE_MAPPING = {
   SIN: "Social Insurance Number",
@@ -119,7 +112,8 @@ const OTHER_MIGRATION_CLIENT = {
   country: "Other",
   email: null,
   phone: null,
-  notes: "Fallback client for legacy tickets whose client number is missing from AR200CLIENT.",
+  notes:
+    "Fallback client for legacy tickets whose client number is missing from AR200CLIENT.",
   image_path: "",
   pickup_self_only: false,
   redeem_count: 0,
@@ -132,9 +126,7 @@ const INSERT_BATCH_SIZE = 1000;
 const normalizeText = (value) => String(value ?? "").trim();
 const normalizeUpper = (value) => normalizeText(value).toUpperCase();
 const normalizeCityKeyPart = (value) =>
-  normalizeUpper(value)
-    .replace(/\./g, "")
-    .replace(/\s+/g, " ");
+  normalizeUpper(value).replace(/\./g, "").replace(/\s+/g, " ");
 
 const normalizeMigrationLocation = (city, province, country) => {
   const resolvedCountry = country || "Canada";
@@ -166,9 +158,13 @@ const getValue = (row, key) => {
 const readAccessTable = (tableName) => {
   return new Promise((resolve, reject) => {
     const rows = [];
-    const child = spawn("mdb-export", ["-b", "strip", sourceDbPath, tableName], {
-      cwd: projectRoot,
-    });
+    const child = spawn(
+      "mdb-export",
+      ["-b", "strip", sourceDbPath, tableName],
+      {
+        cwd: projectRoot,
+      },
+    );
 
     child.stdout.pipe(csv()).on("data", (row) => rows.push(row));
 
@@ -496,18 +492,24 @@ const main = async () => {
     const countryByCode = buildLookupByCode(countryRows, "MF120CODE", (row) =>
       normalizeText(getValue(row, "MF120COUNTRY")),
     );
-    const provinceByCode = buildLookupByCode(provinceRows, "MF110CODE", (row) => ({
-      province: normalizeText(getValue(row, "MF110PROVINCE")),
-      countryCode: normalizeText(getValue(row, "MF110COUNTRYCODE")),
-    }));
+    const provinceByCode = buildLookupByCode(
+      provinceRows,
+      "MF110CODE",
+      (row) => ({
+        province: normalizeText(getValue(row, "MF110PROVINCE")),
+        countryCode: normalizeText(getValue(row, "MF110COUNTRYCODE")),
+      }),
+    );
     const cityByCode = buildLookupByCode(cityRows, "MF100CITY", (row) => {
       const provinceCode = normalizeText(getValue(row, "MF100PROVINCENO"));
       const province = provinceByCode.get(provinceCode);
       const countryCode =
-        province?.countryCode || normalizeText(getValue(row, "MF110COUNTRYCODE"));
+        province?.countryCode ||
+        normalizeText(getValue(row, "MF110COUNTRYCODE"));
       return {
         city: normalizeText(getValue(row, "MF100NAME")),
-        province: province?.province || normalizeText(getValue(row, "MF100PROVSHNAME")),
+        province:
+          province?.province || normalizeText(getValue(row, "MF100PROVSHNAME")),
         country: countryByCode.get(countryCode) || "",
       };
     });
@@ -520,7 +522,11 @@ const main = async () => {
       .map((value) => Number(value))
       .filter((value) => Number.isFinite(value));
     let nextGeneratedClientNumber =
-      Math.max(0, ...numericSourceClientNumbers, ...numericExistingClientNumbers) + 1;
+      Math.max(
+        0,
+        ...numericSourceClientNumbers,
+        ...numericExistingClientNumbers,
+      ) + 1;
 
     const clientsToInsert = [];
     const clientIdsToInsert = [];
@@ -572,10 +578,14 @@ const main = async () => {
       const firstName = rawFirstName || DEFAULT_MISSING_NAME;
       const lastName = rawLastName || DEFAULT_MISSING_NAME;
       if (!rawFirstName) {
-        rowWarnings.push(`missing first name defaulted to ${DEFAULT_MISSING_NAME}`);
+        rowWarnings.push(
+          `missing first name defaulted to ${DEFAULT_MISSING_NAME}`,
+        );
       }
       if (!rawLastName) {
-        rowWarnings.push(`missing last name defaulted to ${DEFAULT_MISSING_NAME}`);
+        rowWarnings.push(
+          `missing last name defaulted to ${DEFAULT_MISSING_NAME}`,
+        );
       }
 
       const parsedDateOfBirth =
@@ -638,7 +648,9 @@ const main = async () => {
         rowWarnings.push("missing/short phone");
       }
 
-      const cityInfo = cityByCode.get(normalizeText(getValue(row, "AR200CITYNO")));
+      const cityInfo = cityByCode.get(
+        normalizeText(getValue(row, "AR200CITYNO")),
+      );
       const provinceInfo = provinceByCode.get(
         normalizeText(getValue(row, "AR200PROVINCENO")),
       );
@@ -655,7 +667,9 @@ const main = async () => {
       const cityKey = `${normalizeUpper(city)}|${normalizeUpper(province)}|${normalizeUpper(country)}`;
       if (!targetCityKeys.has(cityKey)) {
         cityMissCount += 1;
-        rowBlockers.push(`city missing in target: ${city} / ${province} / ${country}`);
+        rowBlockers.push(
+          `city missing in target: ${city} / ${province} / ${country}`,
+        );
       }
       increment(provinceCounts, province || "<blank>");
       increment(countryCounts, country || "<blank>");
@@ -716,7 +730,9 @@ const main = async () => {
       };
       for (const [counterName, value] of Object.entries(rawCounters)) {
         if (value < 0) {
-          rowWarnings.push(`${counterName} negative value ${value} defaulted to 0`);
+          rowWarnings.push(
+            `${counterName} negative value ${value} defaulted to 0`,
+          );
         }
       }
 
@@ -763,7 +779,10 @@ const main = async () => {
         increment(warningCounts, warning);
       }
       if (rowWarnings.length) {
-        samplePush(warningSamples, `${clientNumber}: ${rowWarnings.join("; ")}`);
+        samplePush(
+          warningSamples,
+          `${clientNumber}: ${rowWarnings.join("; ")}`,
+        );
       }
     }
 
@@ -778,7 +797,10 @@ const main = async () => {
         warningSamples,
         `${otherMigrationClientNumber}: Unknown Legacy Client fallback client inserted`,
       );
-      increment(warningCounts, "Unknown Legacy Client fallback client inserted");
+      increment(
+        warningCounts,
+        "Unknown Legacy Client fallback client inserted",
+      );
     }
 
     let insertedClients = 0;
@@ -791,25 +813,37 @@ const main = async () => {
         );
       }
 
-      await pool.query("BEGIN");
+      const transactionClient = await pool.connect();
       try {
-        await insertClients(pool, clientsToInsert);
-        await insertClientIds(pool, clientIdsToInsert);
-        await pool.query(
+        await transactionClient.query("BEGIN");
+        await insertClients(transactionClient, clientsToInsert);
+        await insertClientIds(transactionClient, clientIdsToInsert);
+        await transactionClient.query(
           "SELECT setval(pg_get_serial_sequence('client', 'client_number'), (SELECT COALESCE(MAX(client_number), 1) FROM client), true)",
         );
-        const clientCount = await pool.query("SELECT count(*)::int AS count FROM client");
-        const idCount = await pool.query("SELECT count(*)::int AS count FROM client_id");
+        const clientCount = await transactionClient.query(
+          "SELECT count(*)::int AS count FROM client",
+        );
+        const idCount = await transactionClient.query(
+          "SELECT count(*)::int AS count FROM client_id",
+        );
         insertedClients = clientsToInsert.length;
         insertedClientIds = clientIdsToInsert.length;
-        await pool.query("COMMIT");
 
-        if (clientCount.rows[0].count < insertedClients || idCount.rows[0].count < insertedClientIds) {
-          throw new Error("Post-commit counts were lower than inserted row counts.");
+        if (
+          clientCount.rows[0].count < insertedClients ||
+          idCount.rows[0].count < insertedClientIds
+        ) {
+          throw new Error(
+            "Transaction counts were lower than inserted row counts.",
+          );
         }
+        await transactionClient.query("COMMIT");
       } catch (error) {
-        await pool.query("ROLLBACK");
+        await transactionClient.query("ROLLBACK").catch(() => {});
         throw error;
+      } finally {
+        transactionClient.release();
       }
     }
 
@@ -906,7 +940,9 @@ const main = async () => {
     ].join("\n");
 
     fs.writeFileSync(reportPath, report);
-    console.log(`Client migration ${shouldCommit ? "commit" : "dry-run"} written to ${reportPath}`);
+    console.log(
+      `Client migration ${shouldCommit ? "commit" : "dry-run"} written to ${reportPath}`,
+    );
   } finally {
     await pool.end();
   }

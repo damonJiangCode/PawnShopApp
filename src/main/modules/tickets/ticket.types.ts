@@ -29,7 +29,9 @@ export type UpdateTicketPayload = {
 
 export type ConvertTicketPayload = {
   ticket_number: number;
+  current_status: Ticket["status"];
   status: Ticket["status"];
+  transaction_datetime: Date;
   description: string;
   location: string;
   amount: number;

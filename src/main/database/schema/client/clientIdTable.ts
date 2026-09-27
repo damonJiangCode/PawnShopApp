@@ -7,3 +7,11 @@ export const createClientIDTable = `
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
   );
 `;
+
+export const createClientIdIndexes = `
+  CREATE INDEX IF NOT EXISTS idx_client_id_client_number
+  ON client_id(client_number, id);
+
+  CREATE INDEX IF NOT EXISTS idx_client_id_normalized_value
+  ON client_id(UPPER(TRIM(id_type)), UPPER(REGEXP_REPLACE(id_value, '[^A-Za-z0-9]', '', 'g')));
+`;

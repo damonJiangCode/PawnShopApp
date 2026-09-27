@@ -5,22 +5,18 @@ const path = require("path");
 const { spawn } = require("child_process");
 const csv = require("csv-parser");
 const { Pool } = require("pg");
+const dbConfig = require("./migration-config.cjs");
 
 const migrationRoot = path.resolve(__dirname, "..");
 const projectRoot = path.resolve(migrationRoot, "..");
 const sourceDbPath = path.join(migrationRoot, "source", "Pictureconv.mdb");
-const outputDir = path.join(migrationRoot, "exports", "item-photos");
+const configuredImageRoot = process.env.IMAGE_ROOT?.trim();
+const outputDir = configuredImageRoot
+  ? path.join(path.resolve(configuredImageRoot), "items")
+  : path.join(migrationRoot, "exports", "item-photos");
 const summaryDir = path.join(migrationRoot, "reports");
 const reportPath = path.join(summaryDir, "item-migration.md");
 const shouldUpdateDb = process.argv.includes("--update-db");
-
-const dbConfig = {
-  user: process.env.DB_USER || "moneyexpress",
-  host: process.env.DB_HOST || "localhost",
-  database: process.env.DB_NAME || "pawnsystemdb_migration",
-  password: process.env.DB_PASSWORD || "0236",
-  port: Number(process.env.DB_PORT || 5432),
-};
 
 const normalizeText = (value) => String(value ?? "").trim();
 
@@ -41,7 +37,12 @@ const decodeMdbOctalBytes = (value) => {
 };
 
 const imageExtension = (buffer) => {
-  if (buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+  if (
+    buffer.length >= 3 &&
+    buffer[0] === 0xff &&
+    buffer[1] === 0xd8 &&
+    buffer[2] === 0xff
+  ) {
     return "jpg";
   }
   if (
@@ -72,7 +73,10 @@ const ensureUniquePath = (filePath) => {
 
   const parsed = path.parse(filePath);
   for (let index = 2; ; index += 1) {
-    const candidate = path.join(parsed.dir, `${parsed.name}_${index}${parsed.ext}`);
+    const candidate = path.join(
+      parsed.dir,
+      `${parsed.name}_${index}${parsed.ext}`,
+    );
     if (!fs.existsSync(candidate)) {
       return candidate;
     }
@@ -131,9 +135,13 @@ const exportRows = async () =>
     let totalBytes = 0;
     const samples = [];
 
-    const child = spawn("mdb-export", ["-b", "octal", sourceDbPath, "WC405ITEMPIC"], {
-      cwd: projectRoot,
-    });
+    const child = spawn(
+      "mdb-export",
+      ["-b", "octal", sourceDbPath, "WC405ITEMPIC"],
+      {
+        cwd: projectRoot,
+      },
+    );
 
     child.stdout.pipe(csv()).on("data", (row) => {
       totalRows += 1;
@@ -155,7 +163,9 @@ const exportRows = async () =>
 
       const buffer = decodeMdbOctalBytes(picture);
       const extension = imageExtension(buffer);
-      const filePath = ensureUniquePath(path.join(outputDir, `${itemNumber}.${extension}`));
+      const filePath = ensureUniquePath(
+        path.join(outputDir, `${itemNumber}.${extension}`),
+      );
       fs.writeFileSync(filePath, buffer);
 
       totalBytes += buffer.length;
@@ -165,7 +175,9 @@ const exportRows = async () =>
         nonJpgCount += 1;
       }
 
-      const relativePath = path.relative(projectRoot, filePath);
+      const relativePath = configuredImageRoot
+        ? path.join("images", "items", path.basename(filePath))
+        : path.relative(projectRoot, filePath);
       exported.push({
         itemNumber,
         filePath,
@@ -207,19 +219,34 @@ const exportRows = async () =>
 
 const updateDbImagePaths = async (exported) => {
   const pool = new Pool(dbConfig);
+  const client = await pool.connect();
   try {
-    await pool.query("BEGIN");
+    await client.query("BEGIN");
     for (const row of exported) {
-      await pool.query(
+      await client.query(
         "UPDATE item SET image_path = $1 WHERE item_number = $2",
         [row.relativePath, row.itemNumber],
       );
+      await client.query(
+        `
+          UPDATE ticket_item
+          SET item_snapshot = jsonb_set(
+            item_snapshot,
+            '{image_path}',
+            to_jsonb($1::text),
+            true
+          )
+          WHERE item_number = $2
+        `,
+        [row.relativePath, row.itemNumber],
+      );
     }
-    await pool.query("COMMIT");
+    await client.query("COMMIT");
   } catch (error) {
-    await pool.query("ROLLBACK");
+    await client.query("ROLLBACK").catch(() => {});
     throw error;
   } finally {
+    client.release();
     await pool.end();
   }
 };

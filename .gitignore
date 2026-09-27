@@ -10,4 +10,5 @@ images/
 test-results/
 migration-data/exports
 migration-data/source
+migration-data/backups
 migration-data/rec.mp4

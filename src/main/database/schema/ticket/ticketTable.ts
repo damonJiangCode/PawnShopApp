@@ -8,8 +8,8 @@ export const createTicketTable = `
     location TEXT NOT NULL REFERENCES location(location),
     description TEXT,
     due_date TIMESTAMPTZ NOT NULL,
-    amount NUMERIC(10, 1) NOT NULL CHECK (amount >= 0),
-    onetime_fee NUMERIC(10, 1) NOT NULL DEFAULT 0 CHECK (onetime_fee >= 0),
+    amount NUMERIC(12, 2) NOT NULL CHECK (amount >= 0),
+    onetime_fee NUMERIC(12, 2) NOT NULL DEFAULT 0 CHECK (onetime_fee >= 0),
     interest_paid_months INTEGER NOT NULL DEFAULT 0 CHECK (interest_paid_months >= 0),
     partial_payment NUMERIC(10, 2) NOT NULL DEFAULT 0 CHECK (partial_payment >= 0),
     partial_payment_datetime TIMESTAMPTZ DEFAULT NULL,
@@ -20,7 +20,8 @@ export const createTicketTable = `
     expire_date TIMESTAMPTZ DEFAULT NULL,
     status TEXT NOT NULL CHECK (status IN ('pawned', 'pawned_expired', 'pawned_picked_up', 'sold', 'sold_expired')),
     status_updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    client_number INTEGER REFERENCES client(client_number) ON DELETE SET NULL
+    client_number INTEGER REFERENCES client(client_number) ON DELETE SET NULL,
+    client_snapshot JSONB NOT NULL DEFAULT '{}'::jsonb
   );
 `;
 
@@ -28,4 +29,21 @@ export const createTicketIndexes = `
   CREATE INDEX IF NOT EXISTS idx_ticket_pawned_location_due_date
   ON ticket(location, due_date)
   WHERE status = 'pawned';
+
+  CREATE INDEX IF NOT EXISTS idx_ticket_pawned_due_date_location
+  ON ticket(due_date, location)
+  WHERE status = 'pawned';
+
+  CREATE INDEX IF NOT EXISTS idx_ticket_client_timeline
+  ON ticket(client_number, transaction_datetime, ticket_number);
+
+  CREATE INDEX IF NOT EXISTS idx_ticket_transaction_datetime
+  ON ticket(transaction_datetime, ticket_number);
+
+  CREATE INDEX IF NOT EXISTS idx_ticket_pickup_datetime
+  ON ticket(pickup_datetime, ticket_number)
+  WHERE pickup_datetime IS NOT NULL;
+
+  CREATE INDEX IF NOT EXISTS idx_ticket_status_updated_at
+  ON ticket(status_updated_at, ticket_number);
 `;

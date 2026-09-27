@@ -6,7 +6,61 @@ type DbClient = Awaited<ReturnType<typeof connect>>;
 const getDbClient = async (dbClient?: DbClient) =>
   dbClient ?? (await connect());
 
+const normalizeIdPart = (value: string) =>
+  value
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
+
+const getIdKey = (id: ID) =>
+  `${id.id_type.trim().toUpperCase()}\u0000${normalizeIdPart(id.id_value)}`;
+
 export const clientIdRepo = {
+  assertNewIdsAvailable: async (
+    ids: ID[],
+    existingIds: ID[],
+    currentClientNumber: number | null,
+    dbClient: DbClient,
+  ): Promise<string | null> => {
+    const existingKeys = new Set(existingIds.map(getIdKey));
+    const incomingKeys = ids.map(getIdKey);
+
+    if (new Set(incomingKeys).size !== incomingKeys.length) {
+      return "The same identification was entered more than once.";
+    }
+
+    const newIds = ids
+      .filter((id) => !existingKeys.has(getIdKey(id)))
+      .sort((left, right) => getIdKey(left).localeCompare(getIdKey(right)));
+
+    for (const id of newIds) {
+      const normalizedType = id.id_type.trim().toUpperCase();
+      const normalizedValue = normalizeIdPart(id.id_value);
+
+      await dbClient.query(
+        "SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))",
+        [normalizedType, normalizedValue],
+      );
+
+      const conflict = await dbClient.query(
+        `
+          SELECT client_number
+          FROM client_id
+          WHERE UPPER(TRIM(id_type)) = $1
+            AND UPPER(REGEXP_REPLACE(id_value, '[^A-Za-z0-9]', '', 'g')) = $2
+            AND ($3::integer IS NULL OR client_number <> $3)
+          LIMIT 1
+        `,
+        [normalizedType, normalizedValue, currentClientNumber],
+      );
+
+      if (conflict.rowCount) {
+        return `${id.id_type} ${id.id_value} is already assigned to another client.`;
+      }
+    }
+
+    return null;
+  },
   insertIds: async (
     clientNumber: number,
     ids: ID[],

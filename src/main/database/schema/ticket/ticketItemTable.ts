@@ -3,6 +3,7 @@ export const createTicketItemTable = `
     ticket_number INTEGER NOT NULL REFERENCES ticket(ticket_number),
     item_number INTEGER NOT NULL REFERENCES item(item_number),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    item_snapshot JSONB NOT NULL DEFAULT '{}'::jsonb,
     PRIMARY KEY (ticket_number, item_number)
   );
 `;

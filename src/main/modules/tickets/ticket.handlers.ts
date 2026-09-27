@@ -1,10 +1,9 @@
 import type { IpcMainInvokeEvent } from "electron";
 import type {
   ConvertTicketInput,
-  ExtendTicketsInput,
   ExpireTicketInput,
   MarkTicketStolenInput,
-  PickupTicketsInput,
+  ProcessTicketPaymentsInput,
   ReverseTicketFormField,
   ReverseTicketInput,
   CreatePawnTicketInput,
@@ -16,6 +15,7 @@ import type {
 import type {
   ReverseTicketMutationResult,
   TicketMutationResult,
+  TicketPaymentMutationResult,
 } from "../../../shared/api-contracts/ticketApi.contract.ts";
 import type { Ticket } from "../../../shared/models/ticket.model.ts";
 import type {
@@ -59,6 +59,29 @@ const runTicketMutation = async (
 ): Promise<TicketMutationResult> => {
   try {
     return { ok: true, ticket: await operation() };
+  } catch (error) {
+    const fieldError = extractFieldError(error);
+
+    if (fieldError) {
+      return {
+        ok: false,
+        field: fieldError.field as TicketFormField,
+        message: fieldError.message,
+      };
+    }
+
+    throw error;
+  }
+};
+
+const runTicketPaymentMutation = async (
+  input: ProcessTicketPaymentsInput,
+): Promise<TicketPaymentMutationResult> => {
+  try {
+    return {
+      ok: true,
+      ...(await ticketPaymentService.processPayments(input)),
+    };
   } catch (error) {
     const fieldError = extractFieldError(error);
 
@@ -159,16 +182,9 @@ export const registerTicketHandlers = () => {
     },
   );
   ipcMain.handle(
-    CHANNELS.PICKUP_TICKETS,
-    async (_event: IpcMainInvokeEvent, payload: PickupTicketsInput) => {
-      return ticketPaymentService.pickupTickets(payload);
-    },
-  );
-  ipcMain.handle(
-    CHANNELS.EXTEND_TICKETS,
-    async (_event: IpcMainInvokeEvent, payload: ExtendTicketsInput) => {
-      return ticketPaymentService.extendTickets(payload);
-    },
+    CHANNELS.PROCESS_TICKET_PAYMENTS,
+    async (_event: IpcMainInvokeEvent, payload: ProcessTicketPaymentsInput) =>
+      runTicketPaymentMutation(payload),
   );
   ipcMain.handle(
     CHANNELS.GET_TRANSFER_TICKET_PREVIEW,

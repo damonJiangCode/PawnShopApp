@@ -3,16 +3,26 @@ import type { HairColor } from "../../../shared/models/hair-color.model";
 import type { EyeColor } from "../../../shared/models/eye-color.model";
 import type {
   CitiesResponse,
+  ClientFormField,
   ClientNotesAction,
   SaveClientInput,
 } from "../../../shared/payload-contracts/client.contract";
+import type { ClientMutationResult } from "../../../shared/api-contracts/clientApi.contract";
 import { getAppApi } from "../../shared/api/app.api";
 import { extractBackendFieldError } from "../../shared/utils/formError";
 
-export type ClientFormField = "employee_password";
-
 export type ClientFormError = Error & {
   field?: ClientFormField;
+};
+
+const unwrapClientMutation = (result: ClientMutationResult): Client => {
+  if (result.ok) {
+    return result.client;
+  }
+
+  return (() => {
+    throw createFieldError(result.field, result.message);
+  })();
 };
 
 const normalizeSearchInput = (value?: string) => value?.trim() ?? "";
@@ -243,7 +253,9 @@ export const clientApi = {
     }
 
     try {
-      return await api.createClient(normalizeSaveClientInput(input));
+      return unwrapClientMutation(
+        await api.createClient(normalizeSaveClientInput(input)),
+      );
     } catch (error) {
       throw mapBackendError(error);
     }
@@ -256,20 +268,18 @@ export const clientApi = {
     }
 
     try {
-      return await api.updateClient(normalizeSaveClientInput(input));
+      return unwrapClientMutation(
+        await api.updateClient(normalizeSaveClientInput(input)),
+      );
     } catch (error) {
       throw mapBackendError(error);
     }
   },
-
-  deleteClient: async (clientNumber: number): Promise<boolean> => {
-    const api = getAppApi()?.client;
-    if (!api) {
-      throw new Error("Client API is unavailable.");
-    }
-
-    return api.deleteClient(clientNumber);
-  },
 };
 
-export type { CitiesResponse, ClientNotesAction, SaveClientInput };
+export type {
+  CitiesResponse,
+  ClientFormField,
+  ClientNotesAction,
+  SaveClientInput,
+};

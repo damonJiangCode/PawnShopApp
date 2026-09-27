@@ -28,10 +28,7 @@ export const resolveDate = (value?: string | Date | null) => {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 
-export const formatDisplayValue = (
-  value: unknown,
-  fallback = "-",
-): string => {
+export const formatDisplayValue = (value: unknown, fallback = "-"): string => {
   if (value === null || value === undefined || value === "") {
     return fallback;
   }
@@ -80,7 +77,7 @@ export const formatCurrency = (
     return fallback;
   }
 
-  return `$${value.toFixed(1)}`;
+  return `$${value.toFixed(2)}`;
 };
 
 export const formatUppercase = (

@@ -8,7 +8,8 @@ export type TicketFormField =
   | "onetime_fee"
   | "employee_password"
   | "manager_password"
-  | "ticket_number";
+  | "ticket_number"
+  | "client";
 import type { Ticket } from "../models/ticket.model.ts";
 
 type TicketDescriptionInput = {
@@ -59,6 +60,13 @@ export type ReportDateRangeInput = {
   from_date: string;
   to_date: string;
 };
+
+export type ReportFormField =
+  | "from_date"
+  | "to_date"
+  | "due_on_or_before"
+  | "location_from"
+  | "location_to";
 
 export type DailyReportItem = {
   item_number: number;
@@ -178,21 +186,13 @@ export type MarkTicketStolenInput = EmployeeAuthorizedInput & {
   ticket_number: number;
 };
 
-export type PickupTicketPaymentInput = {
-  ticket_number: number;
-  pickup_amount_paid: number;
-};
-
-export type PickupTicketsInput = {
-  tickets: PickupTicketPaymentInput[];
-};
-
 export type ExtensionTicketPaymentInput = {
   ticket_number: number;
   months: number;
 };
 
-export type ExtendTicketsInput = {
+export type ProcessTicketPaymentsInput = {
+  pickup_ticket_numbers: number[];
   extensions: ExtensionTicketPaymentInput[];
 };
 

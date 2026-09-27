@@ -34,13 +34,14 @@ const focusWindowIfAvailable = (window: Electron.BrowserWindow | null) => {
   window.focus();
 };
 
-const restoreFocusAfterInactiveShow = (
-  window: Electron.BrowserWindow | null,
+const showWithoutTakingFocus = (
+  featureWindow: Electron.BrowserWindow,
+  requesterWindow: Electron.BrowserWindow | null,
 ) => {
-  focusWindowIfAvailable(window);
-  setTimeout(() => focusWindowIfAvailable(window), 50);
-  setTimeout(() => focusWindowIfAvailable(window), 250);
-  setTimeout(() => focusWindowIfAvailable(window), 750);
+  featureWindow.setFocusable(false);
+  featureWindow.showInactive();
+  featureWindow.setFocusable(true);
+  focusWindowIfAvailable(requesterWindow);
 };
 
 const getItemRowId = (item: Item): number | string | undefined =>
@@ -165,8 +166,7 @@ export const registerWindowHandlers = () => {
           activeItemSearchWindow.show();
           activeItemSearchWindow.focus();
         } else {
-          activeItemSearchWindow.showInactive();
-          restoreFocusAfterInactiveShow(requesterWindow);
+          showWithoutTakingFocus(activeItemSearchWindow, requesterWindow);
         }
         activeItemSearchWindow.webContents.send(
           CHANNELS.NOTIFY_ITEM_SEARCH_WINDOW_INPUT_UPDATED,
@@ -195,13 +195,7 @@ export const registerWindowHandlers = () => {
       });
 
       if (!focusWindow) {
-        restoreFocusAfterInactiveShow(requesterWindow);
-        itemSearchWindow.once("ready-to-show", () => {
-          restoreFocusAfterInactiveShow(requesterWindow);
-        });
-        itemSearchWindow.webContents.once("did-finish-load", () => {
-          restoreFocusAfterInactiveShow(requesterWindow);
-        });
+        focusWindowIfAvailable(requesterWindow);
       }
     },
   );

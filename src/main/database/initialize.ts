@@ -1,7 +1,13 @@
 import { connect } from "./connection.ts";
 import { createCityTable } from "./schema/client/cityTable.ts";
-import { createClientIDTable } from "./schema/client/clientIdTable.ts";
-import { createClientTable } from "./schema/client/clientTable.ts";
+import {
+  createClientIdIndexes,
+  createClientIDTable,
+} from "./schema/client/clientIdTable.ts";
+import {
+  createClientIndexes,
+  createClientTable,
+} from "./schema/client/clientTable.ts";
 import { createEyeColorTable } from "./schema/client/eyeColorTable.ts";
 import { createHairColorTable } from "./schema/client/hairColorTable.ts";
 import { createIDTypeTable } from "./schema/client/idTypeTable.ts";
@@ -46,12 +52,14 @@ import {
 } from "./seed/clientSeeds.ts";
 import { seedItemCategories, seedItemSubcategories } from "./seed/itemSeeds.ts";
 import { seedHolidayDates, seedLocations } from "./seed/ticketSeeds.ts";
+import { runDatabaseMigrations } from "./migrations/migrations.ts";
 
 export const initializeDatabase = async () => {
   const client = await connect();
 
   try {
     await client.query("BEGIN");
+    await client.query("SET LOCAL statement_timeout = 0");
 
     // Create database structure.
     await client.query(createCityTable);
@@ -71,6 +79,10 @@ export const initializeDatabase = async () => {
 
     await client.query(createClientIDTable);
     console.log("client_id table created successfully");
+
+    await client.query(createClientIndexes);
+    await client.query(createClientIdIndexes);
+    console.log("client indexes created successfully");
 
     await client.query(createLocationTable);
     console.log("location table created successfully");
@@ -145,6 +157,9 @@ export const initializeDatabase = async () => {
 
     await client.query(createXmlReportSubmissionIndexes);
     console.log("xml_report_submission indexes created successfully");
+
+    await runDatabaseMigrations(client);
+    console.log("database migrations applied successfully");
 
     // Seed default data.
     await seedCities(client);

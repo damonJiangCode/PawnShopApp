@@ -2,12 +2,24 @@ import type { Item } from "../../../shared/models/item.model";
 import type {
   ItemSearchInput,
   ItemCategoryOption,
+  ItemSearchResult,
   SaveItemInput,
 } from "../../../shared/payload-contracts/item.contract";
 import { getAppApi } from "../../shared/api/app.api";
+import type { ItemOperationResult } from "../../../shared/api-contracts/itemApi.contract";
 
 let categoryCache: ItemCategoryOption[] | null = null;
 let categoryPromise: Promise<ItemCategoryOption[]> | null = null;
+
+const unwrapItemOperation = <T>(result: ItemOperationResult<T>): T => {
+  if (result.ok) {
+    return result.result;
+  }
+
+  const error = new Error(result.message) as Error & { field?: string };
+  error.field = result.field;
+  throw error;
+};
 
 export const itemApi = {
   loadItems: async (ticketNumber?: number): Promise<Item[]> => {
@@ -50,22 +62,24 @@ export const itemApi = {
     return categoryPromise;
   },
 
-  searchItems: async (input: ItemSearchInput): Promise<Item[]> => {
+  searchItems: async (input: ItemSearchInput): Promise<ItemSearchResult> => {
     const api = getAppApi()?.item;
     if (!api) {
       throw new Error("Item API is unavailable.");
     }
 
-    return api.searchItems({
-      item_number: input.item_number ? Number(input.item_number) : undefined,
-      category_id: input.category_id ? Number(input.category_id) : undefined,
-      subcategory_id: input.subcategory_id
-        ? Number(input.subcategory_id)
-        : undefined,
-      brand_name: input.brand_name?.trim() ?? "",
-      model_number: input.model_number?.trim() ?? "",
-      serial_number: input.serial_number?.trim() ?? "",
-    });
+    return unwrapItemOperation(
+      await api.searchItems({
+        item_number: input.item_number ? Number(input.item_number) : undefined,
+        category_id: input.category_id ? Number(input.category_id) : undefined,
+        subcategory_id: input.subcategory_id
+          ? Number(input.subcategory_id)
+          : undefined,
+        brand_name: input.brand_name?.trim() ?? "",
+        model_number: input.model_number?.trim() ?? "",
+        serial_number: input.serial_number?.trim() ?? "",
+      }),
+    );
   },
 
   createItem: async (payload: SaveItemInput): Promise<Item> => {
@@ -74,7 +88,7 @@ export const itemApi = {
       throw new Error("Item API is unavailable.");
     }
 
-    return api.createItem(payload);
+    return unwrapItemOperation(await api.createItem(payload));
   },
 
   updateItem: async (payload: SaveItemInput): Promise<Item> => {
@@ -83,7 +97,7 @@ export const itemApi = {
       throw new Error("Item API is unavailable.");
     }
 
-    return api.updateItem(payload);
+    return unwrapItemOperation(await api.updateItem(payload));
   },
 
   deleteItem: async (
@@ -95,7 +109,7 @@ export const itemApi = {
       throw new Error("Item API is unavailable.");
     }
 
-    return api.deleteItem(ticketNumber, itemNumber);
+    unwrapItemOperation(await api.deleteItem(ticketNumber, itemNumber));
   },
 
   linkItemsToTicket: async (
@@ -107,7 +121,9 @@ export const itemApi = {
       throw new Error("Item API is unavailable.");
     }
 
-    return api.linkItemsToTicket(ticketNumber, itemNumbers);
+    return unwrapItemOperation(
+      await api.linkItemsToTicket(ticketNumber, itemNumbers),
+    );
   },
 
   saveItemImage: async (fileName: string, base64: string): Promise<string> => {

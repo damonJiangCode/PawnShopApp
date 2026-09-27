@@ -5,17 +5,33 @@ import type {
   XmlReportSourceRow,
 } from "./xml-report.types.ts";
 
+const reportTimeZone = process.env.APP_TIME_ZONE?.trim() || "America/Regina";
+const dateTimeFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: reportTimeZone,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
+const getLocalDateParts = (date: Date) =>
+  Object.fromEntries(
+    dateTimeFormatter
+      .formatToParts(date)
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]),
+  );
+
 const formatLocalDate = (date: Date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
+  const { year, month, day } = getLocalDateParts(date);
   return `${year}-${month}-${day}`;
 };
 
 const formatLocalDateTime = (date: Date) => {
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  return `${formatLocalDate(date)} ${hours}:${minutes}`;
+  const { year, month, day, hour, minute } = getLocalDateParts(date);
+  return `${year}-${month}-${day} ${hour}:${minute}`;
 };
 
 const PROVINCE_CODES: Record<string, string> = {
@@ -39,11 +55,7 @@ const mapProvince = (province: string) => {
   return PROVINCE_CODES[normalized] ?? normalized;
 };
 
-const kilogramsToPounds = (kilograms: number) =>
-  kilograms > 0 ? Math.round(kilograms * 2.2046226218) : 0;
-
-const centimetersToInches = (centimeters: number) =>
-  centimeters > 0 ? Math.round(centimeters / 2.54) : 0;
+const wholeMetricValue = (value: number) => (value > 0 ? Math.round(value) : 0);
 
 const mapSex = (gender: string) => {
   const normalized = gender.trim().toUpperCase();
@@ -120,9 +132,12 @@ export const mapXmlReportTicket = (
       phone: source.phone,
       idType: source.id_type,
       idNumber: source.id_value,
+      ...(source.id_type_2 && source.id_value_2
+        ? { idType2: source.id_type_2, idNumber2: source.id_value_2 }
+        : {}),
       dob: source.date_of_birth,
-      weight: kilogramsToPounds(source.weight_kg),
-      height: centimetersToInches(source.height_cm),
+      weight: wholeMetricValue(source.weight_kg),
+      height: wholeMetricValue(source.height_cm),
       eyeColor: source.eye_color,
       hairColor: source.hair_color,
       sex: mapSex(source.gender),

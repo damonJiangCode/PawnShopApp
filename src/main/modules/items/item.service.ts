@@ -2,12 +2,92 @@ import type { Item } from "../../../shared/models/item.model.ts";
 import type {
   ItemSearchInput,
   ItemCategoryOption,
+  ItemSearchResult,
   SaveItemInput,
 } from "../../../shared/payload-contracts/item.contract.ts";
 import { itemRepo } from "./item.repo.ts";
 import { runInTransaction } from "../../shared/runInTransaction.ts";
 import { imageStorage } from "../../shared/imageStorage.ts";
 import { itemInput } from "./item.input.ts";
+import { ticketRepo } from "../tickets/ticket.repo.ts";
+import type { DbClient } from "../../database/connection.ts";
+import { createFieldError } from "../../shared/createFieldError.ts";
+
+const assertEditableTicket = async (ticketNumber: number, client: DbClient) => {
+  const ticket = await ticketRepo.loadByTicketNumberForUpdate(
+    ticketNumber,
+    client,
+  );
+
+  if (!ticket) {
+    throw createFieldError(
+      "ticket_number",
+      `Ticket #${ticketNumber} was not found.`,
+    );
+  }
+
+  if (ticket.status !== "pawned" && ticket.status !== "sold") {
+    throw createFieldError(
+      "ticket_number",
+      "Items can only be changed on an active ticket.",
+    );
+  }
+
+  return ticket;
+};
+
+const finalizeSavedItemImage = async (item: Item, ticketNumber: number) => {
+  const stagedImagePath = item.image_path ?? "";
+  let finalizedImagePath = "";
+
+  if (!stagedImagePath) {
+    return item;
+  }
+
+  try {
+    finalizedImagePath = await imageStorage.finalizeItemImage(
+      item.item_number,
+      stagedImagePath,
+    );
+
+    if (!finalizedImagePath || finalizedImagePath === stagedImagePath) {
+      return item;
+    }
+
+    await runInTransaction("finalizeItemImage", async (client) =>
+      itemRepo.updateImagePath(
+        item.item_number,
+        finalizedImagePath,
+        ticketNumber,
+        client,
+      ),
+    );
+
+    try {
+      await imageStorage.removeStagedImage(stagedImagePath);
+    } catch (error) {
+      console.error("[image] Unable to remove staged item image:", error);
+    }
+
+    return { ...item, image_path: finalizedImagePath };
+  } catch (error) {
+    if (finalizedImagePath && finalizedImagePath !== stagedImagePath) {
+      await imageStorage
+        .removeFinalizedImage("item", finalizedImagePath)
+        .catch((cleanupError) => {
+          console.error(
+            "[image] Unable to remove unused finalized item image:",
+            cleanupError,
+          );
+        });
+    }
+    console.error(
+      "[image] Unable to finalize item image; keeping staged image:",
+      error,
+    );
+    return item;
+  }
+};
 
 export const itemService = {
   loadItems: async (ticketNumber: number): Promise<Item[]> => {
@@ -22,7 +102,7 @@ export const itemService = {
     return itemRepo.loadCategories();
   },
 
-  searchItems: async (input: ItemSearchInput): Promise<Item[]> => {
+  searchItems: async (input: ItemSearchInput): Promise<ItemSearchResult> => {
     const normalizedInput = itemInput.normalizeItemSearch(input);
 
     if (
@@ -30,7 +110,7 @@ export const itemService = {
       (!Number.isFinite(normalizedInput.item_number) ||
         normalizedInput.item_number <= 0)
     ) {
-      throw new Error("Enter a valid item number.");
+      throw createFieldError("item_number", "Enter a valid item number.");
     }
 
     return itemRepo.search(normalizedInput);
@@ -40,24 +120,11 @@ export const itemService = {
     const normalizedInput = itemInput.normalizeSaveItem(input);
     itemInput.validateItem(normalizedInput);
 
-    return runInTransaction("createItem", async (client) => {
-      const item = await itemRepo.create(normalizedInput, client);
-      const imagePath = item.image_path
-        ? await imageStorage.finalizeItemImage(
-            item.item_number,
-            item.image_path,
-          )
-        : "";
-
-      if (imagePath && imagePath !== item.image_path) {
-        await itemRepo.updateImagePath(item.item_number, imagePath, client);
-      }
-
-      return {
-        ...item,
-        image_path: imagePath || item.image_path,
-      };
+    const item = await runInTransaction("createItem", async (client) => {
+      await assertEditableTicket(normalizedInput.ticket_number, client);
+      return itemRepo.create(normalizedInput, client);
     });
+    return finalizeSavedItemImage(item, normalizedInput.ticket_number);
   },
 
   updateItem: async (input: SaveItemInput): Promise<Item> => {
@@ -65,23 +132,14 @@ export const itemService = {
     itemInput.validateItem(normalizedInput);
 
     if (!normalizedInput.item_number) {
-      throw new Error("An item is required.");
+      throw createFieldError("item_number", "An item is required.");
     }
 
-    return runInTransaction("updateItem", async (client) => {
-      const imagePath = normalizedInput.image_path
-        ? await imageStorage.finalizeItemImage(
-            normalizedInput.item_number as number,
-            normalizedInput.image_path,
-          )
-        : "";
-      const preparedInput = {
-        ...normalizedInput,
-        image_path: imagePath || normalizedInput.image_path,
-      };
-
-      return itemRepo.update(preparedInput, client);
+    const item = await runInTransaction("updateItem", async (client) => {
+      await assertEditableTicket(normalizedInput.ticket_number, client);
+      return itemRepo.update(normalizedInput, client);
     });
+    return finalizeSavedItemImage(item, normalizedInput.ticket_number);
   },
 
   deleteItem: async (
@@ -89,12 +147,13 @@ export const itemService = {
     itemNumber: number,
   ): Promise<void> => {
     if (!ticketNumber || !itemNumber) {
-      throw new Error("A ticket and item are required.");
+      throw createFieldError("form", "A ticket and item are required.");
     }
 
-    return runInTransaction("deleteItem", async (client) =>
-      itemRepo.delete(Number(ticketNumber), Number(itemNumber), client),
-    );
+    return runInTransaction("deleteItem", async (client) => {
+      await assertEditableTicket(Number(ticketNumber), client);
+      await itemRepo.delete(Number(ticketNumber), Number(itemNumber), client);
+    });
   },
 
   linkItemsToTicket: async (
@@ -110,7 +169,7 @@ export const itemService = {
       !Number.isFinite(normalizedInput.ticketNumber) ||
       normalizedInput.ticketNumber <= 0
     ) {
-      throw new Error("A ticket is required.");
+      throw createFieldError("ticket_number", "A ticket is required.");
     }
 
     if (!normalizedInput.itemNumbers.length) {
@@ -118,9 +177,12 @@ export const itemService = {
     }
 
     return runInTransaction("linkItemsToTicket", async (client) => {
+      await assertEditableTicket(normalizedInput.ticketNumber, client);
       const linkedItems: Item[] = [];
 
-      for (const itemNumber of normalizedInput.itemNumbers) {
+      for (const itemNumber of [...normalizedInput.itemNumbers].sort(
+        (left, right) => left - right,
+      )) {
         const linkedItem = await itemRepo.linkItemToTicket(
           normalizedInput.ticketNumber,
           itemNumber,

@@ -21,7 +21,6 @@ const CHANNELS = {
   DEACTIVATE_LOCATION: "deactivate-location",
   ADD_CLIENT: "add-client",
   UPDATE_CLIENT: "update-client",
-  DELETE_CLIENT: "delete-client",
   ADD_EMPLOYEE: "add-employee",
   SEARCH_EMPLOYEES: "search-employees",
   UPDATE_EMPLOYEE: "update-employee",
@@ -63,8 +62,7 @@ const CHANNELS = {
   CONVERT_TICKET: "convert-ticket",
   EXPIRE_TICKET: "expire-ticket",
   MARK_TICKET_STOLEN: "mark-ticket-stolen",
-  PICKUP_TICKETS: "pickup-tickets",
-  EXTEND_TICKETS: "extend-tickets",
+  PROCESS_TICKET_PAYMENTS: "process-ticket-payments",
   GET_TRANSFER_TICKET_PREVIEW: "get-transfer-ticket-preview",
   TRANSFER_TICKET: "transfer-ticket",
   REVERSE_TICKET: "reverse-ticket",
@@ -91,7 +89,6 @@ const clientApi = {
   loadIdTypes: () => invoke(CHANNELS.GET_ID_TYPES),
   createClient: (payload) => invoke(CHANNELS.ADD_CLIENT, payload),
   updateClient: (payload) => invoke(CHANNELS.UPDATE_CLIENT, payload),
-  deleteClient: (clientNumber) => invoke(CHANNELS.DELETE_CLIENT, clientNumber),
   saveClientImage: (fileName, base64) =>
     invoke(CHANNELS.SAVE_CLIENT_IMAGE, fileName, base64),
 };
@@ -122,8 +119,8 @@ const ticketApi = {
   convertTicket: (payload) => invoke(CHANNELS.CONVERT_TICKET, payload),
   expireTicket: (payload) => invoke(CHANNELS.EXPIRE_TICKET, payload),
   markTicketStolen: (payload) => invoke(CHANNELS.MARK_TICKET_STOLEN, payload),
-  pickupTickets: (payload) => invoke(CHANNELS.PICKUP_TICKETS, payload),
-  extendTickets: (payload) => invoke(CHANNELS.EXTEND_TICKETS, payload),
+  processPayments: (payload) =>
+    invoke(CHANNELS.PROCESS_TICKET_PAYMENTS, payload),
   loadTransferTicketPreview: (ticketNumber) =>
     invoke(CHANNELS.GET_TRANSFER_TICKET_PREVIEW, ticketNumber),
   transferTicket: (payload) => invoke(CHANNELS.TRANSFER_TICKET, payload),

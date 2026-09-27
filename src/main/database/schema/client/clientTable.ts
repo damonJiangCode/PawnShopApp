@@ -28,3 +28,11 @@ export const createClientTable = `
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
   );
 `;
+
+export const createClientIndexes = `
+  CREATE INDEX IF NOT EXISTS idx_client_name_search
+  ON client(LOWER(last_name), LOWER(first_name), client_number);
+
+  CREATE INDEX IF NOT EXISTS idx_client_date_of_birth
+  ON client(date_of_birth, client_number);
+`;

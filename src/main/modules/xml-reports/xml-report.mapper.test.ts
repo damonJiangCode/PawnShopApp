@@ -28,6 +28,9 @@ const sourceRow: XmlReportSourceRow = {
   email: "",
   id_type: "Health Card",
   id_value: "490189806",
+  id_type_2: "Driver License",
+  id_value_2: "123456789",
+  client_image_path: "images/clients/client_8688.png",
   item_number: 1,
   quantity: 1,
   category_name: "Electronics",
@@ -36,17 +39,31 @@ const sourceRow: XmlReportSourceRow = {
   model_number: "MODEL",
   serial_number: "SERIAL",
   item_amount: 21,
+  item_image_path: "images/items/item_1.jpg",
 };
 
-test("maps metric client measurements to whole imperial values", () => {
+test("maps Canadian metric measurements to whole values", () => {
   const ticket = mapXmlReportTicket([sourceRow]);
 
-  assert.equal(ticket.customer.weight, 120);
-  assert.equal(ticket.customer.height, 67);
+  assert.equal(ticket.customer.weight, 54);
+  assert.equal(ticket.customer.height, 170);
+  assert.equal(ticket.customer.idType2, "Driver License");
+  assert.equal(ticket.customer.idNumber2, "123456789");
 });
 
 test("maps a Canadian province name to its postal abbreviation", () => {
   const ticket = mapXmlReportTicket([sourceRow]);
 
   assert.equal(ticket.customer.state, "SK");
+});
+
+test("formats the ticket time in the configured Saskatchewan time zone", () => {
+  const ticket = mapXmlReportTicket([
+    {
+      ...sourceRow,
+      transaction_datetime: new Date("2026-09-22T00:30:00.000Z"),
+    },
+  ]);
+
+  assert.equal(ticket.key.ticketDateTime, "2026-09-21 18:30");
 });

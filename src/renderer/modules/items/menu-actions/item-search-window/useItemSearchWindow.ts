@@ -77,6 +77,7 @@ export const useItemSearchWindow = () => {
   const [message, setMessage] = React.useState("");
   const [error, setError] = React.useState("");
   const [searching, setSearching] = React.useState(false);
+  const [searchLimitReached, setSearchLimitReached] = React.useState(false);
   const [openingTicket, setOpeningTicket] = React.useState(false);
   const [addingToTicket, setAddingToTicket] = React.useState(false);
   const [targetStatus, setTargetStatus] =
@@ -138,8 +139,7 @@ export const useItemSearchWindow = () => {
           serialNumber.trim(),
         );
   const canGoToTicket =
-    Boolean(selectedItem?.latest_ticket_number) &&
-    !openingTicket;
+    Boolean(selectedItem?.latest_ticket_number) && !openingTicket;
   const canAddToTicket =
     targetStatus.canAddToTicket &&
     addableCheckedItems.length > 0 &&
@@ -350,6 +350,7 @@ export const useItemSearchWindow = () => {
   const handleSearch = async () => {
     setError("");
     setMessage("");
+    setSearchLimitReached(false);
 
     const normalizedItemNumber = Number(itemNumber);
 
@@ -369,7 +370,7 @@ export const useItemSearchWindow = () => {
     setSearching(true);
 
     try {
-      const results = await itemApi.searchItems(
+      const searchResult = await itemApi.searchItems(
         mode === "item-number"
           ? { item_number: normalizedItemNumber }
           : {
@@ -380,6 +381,7 @@ export const useItemSearchWindow = () => {
               serial_number: serialNumber.trim(),
             },
       );
+      const results = searchResult.items;
       const checkedIdSet = new Set(checkedItemIds.map(String));
       const retainedCheckedItems = items.filter((item) =>
         checkedIdSet.has(String(getItemId(item))),
@@ -399,10 +401,13 @@ export const useItemSearchWindow = () => {
         return results[0] ?? retainedCheckedItems[0] ?? null;
       });
       setMessage(
-        results.length
-          ? `${results.length} item(s) found.`
-          : "No matching items found.",
+        searchResult.limit_reached
+          ? `Showing the first ${searchResult.limit} items. Add more search details to narrow the results.`
+          : results.length
+            ? `${results.length} item(s) found.`
+            : "No matching items found.",
       );
+      setSearchLimitReached(searchResult.limit_reached);
     } catch (err) {
       console.error(err);
       setError(err instanceof Error ? err.message : "Unable to search items.");
@@ -505,6 +510,7 @@ export const useItemSearchWindow = () => {
       message,
       error,
       searching,
+      searchLimitReached,
       openingTicket,
       addingToTicket,
       targetStatus,

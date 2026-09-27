@@ -1,9 +1,8 @@
 import type {
   ConvertTicketInput,
-  ExtendTicketsInput,
   ExpireTicketInput,
   MarkTicketStolenInput,
-  PickupTicketsInput,
+  ProcessTicketPaymentsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
   ReverseTicketInput,
@@ -32,10 +31,10 @@ const trimText = (value?: string) => value?.trim() ?? "";
 
 const toNumber = (value: unknown) => Number(value);
 
-const toNonNegativeNumber = (value: unknown, fallback = 0) => {
-  const numberValue = Number(value);
-  return Number.isFinite(numberValue) ? Math.max(0, numberValue) : fallback;
-};
+const toOptionalNumber = (value: unknown, fallback = 0) =>
+  value === "" || value === null || value === undefined
+    ? fallback
+    : Number(value);
 
 export const normalizeCreatePawnTicketInput = (
   input: CreatePawnTicketInput,
@@ -44,7 +43,7 @@ export const normalizeCreatePawnTicketInput = (
   description: trimText(input.description),
   location: trimText(input.location),
   amount: toNumber(input.amount),
-  onetime_fee: toNonNegativeNumber(input.onetime_fee),
+  onetime_fee: toOptionalNumber(input.onetime_fee),
   employee_password: trimText(input.employee_password),
 });
 
@@ -66,8 +65,8 @@ export const normalizeUpdateTicketInput = (
   description: trimText(input.description),
   location: trimText(input.location),
   amount: toNumber(input.amount),
-  onetime_fee: toNonNegativeNumber(input.onetime_fee),
-  partial_payment: toNonNegativeNumber(input.partial_payment),
+  onetime_fee: toOptionalNumber(input.onetime_fee),
+  partial_payment: toOptionalNumber(input.partial_payment),
   employee_password: trimText(input.employee_password),
 });
 
@@ -86,7 +85,7 @@ export const normalizeConvertTicketInput = (
   description: trimText(input.description),
   location: trimText(input.location),
   amount: toNumber(input.amount),
-  onetime_fee: toNonNegativeNumber(input.onetime_fee),
+  onetime_fee: toOptionalNumber(input.onetime_fee),
   employee_password: trimText(input.employee_password),
 });
 
@@ -107,42 +106,44 @@ export const normalizeMarkTicketStolenInput = (
   employee_password: trimText(input.employee_password),
 });
 
-export const normalizePickupTicketsInput = (
-  input: PickupTicketsInput,
-): PickupTicketsInput => ({
-  tickets: [
-    ...new Map(
-      input.tickets
-        .map((ticket) => ({
-          ticket_number: toNumber(ticket.ticket_number),
-          pickup_amount_paid: toNonNegativeNumber(ticket.pickup_amount_paid),
-        }))
+export const normalizeProcessTicketPaymentsInput = (
+  input: ProcessTicketPaymentsInput,
+): ProcessTicketPaymentsInput => ({
+  pickup_ticket_numbers: [
+    ...new Set(
+      input.pickup_ticket_numbers
+        .map(toNumber)
         .filter(
-          (ticket) =>
-            Number.isFinite(ticket.ticket_number) &&
-            ticket.ticket_number > 0 &&
-            Number.isFinite(ticket.pickup_amount_paid),
-        )
-        .map((ticket) => [ticket.ticket_number, ticket]),
-    ).values(),
-  ],
-});
-
-export const normalizeExtendTicketsInput = (
-  input: ExtendTicketsInput,
-): ExtendTicketsInput => ({
-  extensions: input.extensions
-    .map((extension) => ({
-      ticket_number: toNumber(extension.ticket_number),
-      months: Math.floor(toNumber(extension.months)),
-    }))
-    .filter(
-      (extension) =>
-        Number.isFinite(extension.ticket_number) &&
-        extension.ticket_number > 0 &&
-        Number.isFinite(extension.months) &&
-        extension.months > 0,
+          (ticketNumber) => Number.isInteger(ticketNumber) && ticketNumber > 0,
+        ),
     ),
+  ],
+  extensions: [
+    ...input.extensions
+      .map((extension) => ({
+        ticket_number: toNumber(extension.ticket_number),
+        months: Math.floor(toNumber(extension.months)),
+      }))
+      .filter(
+        (extension) =>
+          Number.isInteger(extension.ticket_number) &&
+          extension.ticket_number > 0 &&
+          Number.isInteger(extension.months) &&
+          extension.months > 0,
+      )
+      .reduce<Map<number, { ticket_number: number; months: number }>>(
+        (extensions, extension) => {
+          const existing = extensions.get(extension.ticket_number);
+          extensions.set(extension.ticket_number, {
+            ticket_number: extension.ticket_number,
+            months: (existing?.months ?? 0) + extension.months,
+          });
+          return extensions;
+        },
+        new Map(),
+      )
+      .values(),
+  ],
 });
 
 export const normalizeReverseTicketInput = (

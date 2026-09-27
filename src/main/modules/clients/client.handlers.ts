@@ -1,10 +1,37 @@
 import type { IpcMainInvokeEvent } from "electron";
-import type { SaveClientInput } from "../../../shared/payload-contracts/client.contract.ts";
+import type {
+  ClientFormField,
+  SaveClientInput,
+} from "../../../shared/payload-contracts/client.contract.ts";
+import type { ClientMutationResult } from "../../../shared/api-contracts/clientApi.contract.ts";
 import { clientReferenceService } from "./client-reference.service.ts";
 import { clientService } from "./client.service.ts";
 import { CHANNELS } from "../../ipc/channels.ts";
+import { extractFieldError } from "../../shared/createFieldError.ts";
 
 const { ipcMain } = require("electron/main") as typeof import("electron");
+
+const runClientMutation = async (
+  operation: () => Promise<
+    import("../../../shared/models/client.model.ts").Client
+  >,
+): Promise<ClientMutationResult> => {
+  try {
+    return { ok: true, client: await operation() };
+  } catch (error) {
+    const fieldError = extractFieldError(error);
+
+    if (fieldError) {
+      return {
+        ok: false,
+        field: fieldError.field as ClientFormField,
+        message: fieldError.message,
+      };
+    }
+
+    throw error;
+  }
+};
 
 export const registerClientHandlers = () => {
   ipcMain.handle(
@@ -71,19 +98,13 @@ export const registerClientHandlers = () => {
   ipcMain.handle(
     CHANNELS.ADD_CLIENT,
     async (_event: IpcMainInvokeEvent, payload: SaveClientInput) => {
-      return clientService.createClient(payload);
+      return runClientMutation(() => clientService.createClient(payload));
     },
   );
   ipcMain.handle(
     CHANNELS.UPDATE_CLIENT,
     async (_event: IpcMainInvokeEvent, payload: SaveClientInput) => {
-      return clientService.updateClient(payload);
-    },
-  );
-  ipcMain.handle(
-    CHANNELS.DELETE_CLIENT,
-    async (_event: IpcMainInvokeEvent, clientNumber: number) => {
-      return clientService.deleteClient(clientNumber);
+      return runClientMutation(() => clientService.updateClient(payload));
     },
   );
   ipcMain.handle(

@@ -8,10 +8,17 @@ import type {
 } from "../../../shared/payload-contracts/employee.contract.ts";
 import { createFieldError } from "../../shared/createFieldError.ts";
 import { employeeInput } from "./employee.input.ts";
+import { runInTransaction } from "../../shared/runInTransaction.ts";
+import { getPasswordLookup, hashPassword } from "../../shared/passwordHash.ts";
 
-const authorizeManager = async (managerPassword: string): Promise<void> => {
-  const manager =
-    await employeeRepo.findActiveManagerByPassword(managerPassword);
+const authorizeManager = async (
+  managerPassword: string,
+  dbClient: DbClient,
+): Promise<void> => {
+  const manager = await employeeRepo.findActiveManagerByPassword(
+    managerPassword,
+    dbClient,
+  );
 
   if (!manager) {
     throw createFieldError(
@@ -55,22 +62,33 @@ export const employeeService = {
     const normalizedInput = employeeInput.normalizeCreateEmployee(input);
 
     employeeInput.validateCreateEmployee(normalizedInput);
-    await authorizeManager(normalizedInput.manager_password);
 
-    const existingEmployee = await employeeRepo.findByPassword(
-      normalizedInput.password,
-      undefined,
-      true,
-    );
+    return runInTransaction("createEmployee", async (client) => {
+      await employeeRepo.lockForAdministration(client);
+      await authorizeManager(normalizedInput.manager_password, client);
 
-    if (existingEmployee) {
-      throw createFieldError("password", "Password is already in use.");
-    }
+      const existingEmployee = await employeeRepo.findByPassword(
+        normalizedInput.password,
+        client,
+        true,
+      );
 
-    const { manager_password: _managerPassword, ...employeeData } =
-      normalizedInput;
+      if (existingEmployee) {
+        throw createFieldError("password", "Password is already in use.");
+      }
 
-    return employeeRepo.create(employeeData);
+      const { manager_password: _managerPassword, ...employeeData } =
+        normalizedInput;
+
+      return employeeRepo.create(
+        {
+          ...employeeData,
+          password: await hashPassword(employeeData.password),
+          password_lookup: getPasswordLookup(employeeData.password),
+        },
+        client,
+      );
+    });
   },
 
   updateEmployee: async (
@@ -83,48 +101,67 @@ export const employeeService = {
 
     const normalizedInput = employeeInput.normalizeUpdateEmployee(input);
     employeeInput.validateEmployeeDetails(normalizedInput);
-    await authorizeManager(normalizedInput.manager_password);
 
-    const existingEmployee =
-      await employeeRepo.findByEmployeeNumber(employeeNumber);
+    return runInTransaction("updateEmployee", async (client) => {
+      await employeeRepo.lockForAdministration(client);
+      await authorizeManager(normalizedInput.manager_password, client);
 
-    if (!existingEmployee) {
-      throw createFieldError("form", "No employee was found for that number.");
-    }
-
-    const removesLastActiveManager =
-      existingEmployee.is_manager &&
-      !existingEmployee.is_terminated &&
-      (!normalizedInput.is_manager || normalizedInput.is_terminated);
-
-    if (
-      removesLastActiveManager &&
-      !(await employeeRepo.hasOtherActiveManager(employeeNumber))
-    ) {
-      throw createFieldError(
-        "form",
-        "At least one active manager is required.",
+      const existingEmployee = await employeeRepo.findByEmployeeNumber(
+        employeeNumber,
+        client,
       );
-    }
 
-    const employeeWithPassword = normalizedInput.password
-      ? await employeeRepo.findByPassword(
-          normalizedInput.password,
-          undefined,
-          true,
-        )
-      : null;
+      if (!existingEmployee) {
+        throw createFieldError(
+          "form",
+          "No employee was found for that number.",
+        );
+      }
 
-    if (
-      employeeWithPassword &&
-      employeeWithPassword.employee_number !== employeeNumber
-    ) {
-      throw createFieldError("password", "Password is already in use.");
-    }
+      const removesLastActiveManager =
+        existingEmployee.is_manager &&
+        !existingEmployee.is_terminated &&
+        (!normalizedInput.is_manager || normalizedInput.is_terminated);
 
-    const { manager_password: _managerPassword, ...employeeData } =
-      normalizedInput;
+      if (
+        removesLastActiveManager &&
+        !(await employeeRepo.hasOtherActiveManager(employeeNumber, client))
+      ) {
+        throw createFieldError(
+          "form",
+          "At least one active manager is required.",
+        );
+      }
 
-    return employeeRepo.update(employeeNumber, employeeData);
+      const employeeWithPassword = normalizedInput.password
+        ? await employeeRepo.findByPassword(
+            normalizedInput.password,
+            client,
+            true,
+          )
+        : null;
+
+      if (
+        employeeWithPassword &&
+        employeeWithPassword.employee_number !== employeeNumber
+      ) {
+        throw createFieldError("password", "Password is already in use.");
+      }
+
+      const { manager_password: _managerPassword, ...employeeData } =
+        normalizedInput;
+      const password = employeeData.password
+        ? await hashPassword(employeeData.password)
+        : undefined;
+      const passwordLookup = employeeData.password
+        ? getPasswordLookup(employeeData.password)
+        : undefined;
+
+      return employeeRepo.update(
+        employeeNumber,
+        { ...employeeData, password, password_lookup: passwordLookup },
+        client,
+      );
+    });
   },
 };

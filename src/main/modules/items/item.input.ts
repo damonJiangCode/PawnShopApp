@@ -2,6 +2,7 @@ import type {
   ItemSearchInput,
   SaveItemInput,
 } from "../../../shared/payload-contracts/item.contract.ts";
+import { createFieldError } from "../../shared/createFieldError.ts";
 
 const trimUpper = (value?: string) => value?.trim().toUpperCase() ?? "";
 
@@ -20,23 +21,23 @@ const normalizeSaveItem = (input: SaveItemInput): SaveItemInput => ({
 
 const validateItem = (item: SaveItemInput) => {
   if (!Number.isFinite(item.ticket_number) || item.ticket_number <= 0) {
-    throw new Error("A ticket is required.");
+    throw createFieldError("ticket_number", "A ticket is required.");
   }
 
   if (!Number.isFinite(item.subcategory_id) || item.subcategory_id <= 0) {
-    throw new Error("Select a category.");
+    throw createFieldError("subcategory_id", "Select a category.");
   }
 
   if (!Number.isFinite(item.quantity) || item.quantity <= 0) {
-    throw new Error("Quantity must be greater than 0.");
+    throw createFieldError("quantity", "Quantity must be greater than 0.");
   }
 
   if (!item.description) {
-    throw new Error("Description is required.");
+    throw createFieldError("description", "Description is required.");
   }
 
   if (!Number.isFinite(item.amount) || item.amount < 0) {
-    throw new Error("Price must be greater than 0.");
+    throw createFieldError("amount", "Price cannot be negative.");
   }
 };
 

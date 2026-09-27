@@ -300,7 +300,9 @@ const ItemSearchWindow: React.FC<WindowScreenProps> = () => {
             ) : state.message ? (
               <Typography
                 variant="caption"
-                color="success.main"
+                color={
+                  state.searchLimitReached ? "warning.main" : "success.main"
+                }
                 sx={{ fontWeight: 800 }}
               >
                 {state.message}

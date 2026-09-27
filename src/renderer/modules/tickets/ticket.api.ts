@@ -1,18 +1,21 @@
 import type { Ticket } from "../../../shared/models/ticket.model";
-import type { TicketMutationResult } from "../../../shared/api-contracts/ticketApi.contract";
+import type {
+  TicketMutationResult,
+  TicketPaymentMutationResult,
+  ReportQueryResult,
+} from "../../../shared/api-contracts/ticketApi.contract";
 import type { HolidayDate } from "../../../shared/models/holiday-date.model";
 import type { Location } from "../../../shared/models/location.model";
 import type {
   ConvertTicketInput,
   BuybackReportResult,
   DailyReportResult,
-  ExtendTicketsInput,
   ExpireTicketInput,
   InterestReportResult,
   OverdueReportInput,
   OverdueReportResult,
   MarkTicketStolenInput,
-  PickupTicketsInput,
+  ProcessTicketPaymentsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
   ReportDateRangeInput,
@@ -37,9 +40,8 @@ import {
   normalizeCreatePawnTicketInput,
   normalizeCreateSellTicketInput,
   normalizeExpireTicketInput,
-  normalizeExtendTicketsInput,
   normalizeMarkTicketStolenInput,
-  normalizePickupTicketsInput,
+  normalizeProcessTicketPaymentsInput,
   normalizeReverseTicketInput,
   normalizeTransferTicketInput,
   normalizeUpdateTicketInput,
@@ -64,6 +66,26 @@ const unwrapTicketMutation = (result: TicketMutationResult): Ticket => {
   }
 
   const error = new Error(result.message) as TicketFormError;
+  error.field = result.field;
+  throw error;
+};
+
+const unwrapTicketPaymentMutation = (result: TicketPaymentMutationResult) => {
+  if (result.ok) {
+    return result;
+  }
+
+  const error = new Error(result.message) as TicketFormError;
+  error.field = result.field;
+  throw error;
+};
+
+const unwrapReportQuery = <T>(result: ReportQueryResult<T>): T => {
+  if (result.ok) {
+    return result.result;
+  }
+
+  const error = new Error(result.message) as Error & { field?: string };
   error.field = result.field;
   throw error;
 };
@@ -310,43 +332,18 @@ export const ticketApi = {
     }
   },
 
-  pickupTickets: async (input: PickupTicketsInput): Promise<Ticket[]> => {
-    const normalizedInput = normalizePickupTicketsInput(input);
+  processPayments: async (input: ProcessTicketPaymentsInput) => {
+    const normalizedInput = normalizeProcessTicketPaymentsInput(input);
     const api = getAppApi()?.ticket;
 
     if (!api) {
-      throw new Error(
-        "[ticketApi] pickupTickets(): Cannot get api from Electron",
-      );
-    }
-
-    if (!normalizedInput.tickets.length) {
-      return [];
+      throw new Error("Ticket API is unavailable.");
     }
 
     try {
-      return await api.pickupTickets(normalizedInput);
-    } catch (error) {
-      throw mapBackendError(error);
-    }
-  },
-
-  extendTickets: async (input: ExtendTicketsInput): Promise<Ticket[]> => {
-    const normalizedInput = normalizeExtendTicketsInput(input);
-    const api = getAppApi()?.ticket;
-
-    if (!api) {
-      throw new Error(
-        "[ticketApi] extendTickets(): Cannot get api from Electron",
+      return unwrapTicketPaymentMutation(
+        await api.processPayments(normalizedInput),
       );
-    }
-
-    if (!normalizedInput.extensions.length) {
-      return [];
-    }
-
-    try {
-      return await api.extendTickets(normalizedInput);
     } catch (error) {
       throw mapBackendError(error);
     }
@@ -364,10 +361,12 @@ export const ticketApi = {
     }
 
     try {
-      return await api.loadBuybackReport({
-        from_date: input.from_date.trim(),
-        to_date: input.to_date.trim(),
-      });
+      return unwrapReportQuery(
+        await api.loadBuybackReport({
+          from_date: input.from_date.trim(),
+          to_date: input.to_date.trim(),
+        }),
+      );
     } catch (error) {
       throw mapBackendError(error);
     }
@@ -385,10 +384,12 @@ export const ticketApi = {
     }
 
     try {
-      return await api.loadInterestReport({
-        from_date: input.from_date.trim(),
-        to_date: input.to_date.trim(),
-      });
+      return unwrapReportQuery(
+        await api.loadInterestReport({
+          from_date: input.from_date.trim(),
+          to_date: input.to_date.trim(),
+        }),
+      );
     } catch (error) {
       throw mapBackendError(error);
     }
@@ -404,10 +405,12 @@ export const ticketApi = {
     }
 
     try {
-      return await api.loadDailyReport({
-        from_date: input.from_date.trim(),
-        to_date: input.to_date.trim(),
-      });
+      return unwrapReportQuery(
+        await api.loadDailyReport({
+          from_date: input.from_date.trim(),
+          to_date: input.to_date.trim(),
+        }),
+      );
     } catch (error) {
       throw mapBackendError(error);
     }
@@ -423,11 +426,13 @@ export const ticketApi = {
     }
 
     try {
-      return await api.loadOverdueReport({
-        due_on_or_before: input.due_on_or_before.trim(),
-        location_from: input.location_from.trim().toUpperCase(),
-        location_to: input.location_to.trim().toUpperCase(),
-      });
+      return unwrapReportQuery(
+        await api.loadOverdueReport({
+          due_on_or_before: input.due_on_or_before.trim(),
+          location_from: input.location_from.trim().toUpperCase(),
+          location_to: input.location_to.trim().toUpperCase(),
+        }),
+      );
     } catch (error) {
       throw mapBackendError(error);
     }
@@ -498,13 +503,11 @@ export const ticketApi = {
 export type {
   ConvertTicketInput,
   BuybackReportResult,
-  ExtendTicketsInput,
   ExpireTicketInput,
   InterestReportResult,
   OverdueReportInput,
   OverdueReportResult,
   MarkTicketStolenInput,
-  PickupTicketsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
   ReverseTicketInput,

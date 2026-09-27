@@ -5,16 +5,16 @@ import type {
   ConvertTicketInput,
   BuybackReportResult,
   DailyReportResult,
-  ExtendTicketsInput,
   ExpireTicketInput,
   InterestReportResult,
   OverdueReportInput,
   OverdueReportResult,
   MarkTicketStolenInput,
-  PickupTicketsInput,
+  ProcessTicketPaymentsInput,
   CreatePawnTicketInput,
   CreateSellTicketInput,
   ReportDateRangeInput,
+  ReportFormField,
   ReverseTicketInput,
   ReverseTicketFormField,
   ReverseTicketResult,
@@ -35,6 +35,18 @@ export type TicketMutationResult =
   | { ok: true; ticket: Ticket }
   | { ok: false; field: TicketFormField; message: string };
 
+export type TicketPaymentMutationResult =
+  | {
+      ok: true;
+      picked_up_tickets: Ticket[];
+      extended_tickets: Ticket[];
+    }
+  | { ok: false; field: TicketFormField; message: string };
+
+export type ReportQueryResult<T> =
+  | { ok: true; result: T }
+  | { ok: false; field: ReportFormField; message: string };
+
 export type TicketApi = {
   loadTicketsByClient: (clientNumber: number) => Promise<Ticket[]>;
   loadHolidayDates: () => Promise<HolidayDate[]>;
@@ -52,14 +64,16 @@ export type TicketApi = {
   ) => Promise<TicketSearchResult | null>;
   loadBuybackReport: (
     input: ReportDateRangeInput,
-  ) => Promise<BuybackReportResult>;
-  loadDailyReport: (input: ReportDateRangeInput) => Promise<DailyReportResult>;
+  ) => Promise<ReportQueryResult<BuybackReportResult>>;
+  loadDailyReport: (
+    input: ReportDateRangeInput,
+  ) => Promise<ReportQueryResult<DailyReportResult>>;
   loadInterestReport: (
     input: ReportDateRangeInput,
-  ) => Promise<InterestReportResult>;
+  ) => Promise<ReportQueryResult<InterestReportResult>>;
   loadOverdueReport: (
     input: OverdueReportInput,
-  ) => Promise<OverdueReportResult>;
+  ) => Promise<ReportQueryResult<OverdueReportResult>>;
   createPawnTicket: (
     input: CreatePawnTicketInput,
   ) => Promise<TicketMutationResult>;
@@ -72,8 +86,9 @@ export type TicketApi = {
   markTicketStolen: (
     input: MarkTicketStolenInput,
   ) => Promise<TicketMutationResult>;
-  pickupTickets: (input: PickupTicketsInput) => Promise<Ticket[]>;
-  extendTickets: (input: ExtendTicketsInput) => Promise<Ticket[]>;
+  processPayments: (
+    input: ProcessTicketPaymentsInput,
+  ) => Promise<TicketPaymentMutationResult>;
   loadTransferTicketPreview: (
     ticketNumber: number,
   ) => Promise<TransferTicketPreview | null>;

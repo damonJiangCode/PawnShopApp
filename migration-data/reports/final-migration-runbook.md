@@ -48,7 +48,7 @@ MIGRATION_DB_NAME=pawnsystemdb_migration \
 DB_HOST=localhost \
 DB_PORT=5432 \
 DB_USER=moneyexpress \
-DB_PASSWORD=0236 \
+DB_PASSWORD='<database-password>' \
 ADMIN_DB_USER="$(whoami)" \
 bash migration-data/scripts/setup-migration-db.sh
 ```
@@ -134,21 +134,25 @@ Known rules:
 node migration-data/scripts/migrate-client-photos.cjs --update-db
 ```
 
+When `IMAGE_ROOT` is set, photos are written directly to its `clients` folder
+and the database stores portable `images/clients/...` paths. Without it, the
+script keeps using `migration-data/exports/client-photos` for local previews.
+
 Review the `Client Photo Export` section in:
 
 ```txt
 migration-data/reports/client-migration.md
 ```
 
-Photos are exported to:
+Without `IMAGE_ROOT`, photos are exported to:
 
 ```txt
 migration-data/exports/client-photos/
 ```
 
-The `client.image_path` value is updated with a relative path to the exported
-local file. The app serves this path through `pawn-image://`; no base64 import
-or additional database conversion is required.
+The `client.image_path` value is updated with a portable relative path. The app
+serves this path through `pawn-image://`; no base64 import or additional
+database conversion is required.
 
 ### 5. Employee Migration
 
@@ -173,7 +177,7 @@ node migration-data/scripts/migrate-employee.cjs --commit
 Known rules:
 
 - Employee `999` is the legacy fallback employee.
-- Gender defaults to `unknown`.
+- Gender defaults to `UNKNOWN`.
 - Terminated employees are migrated so their password cannot be used for new tickets.
 - No employee photo field is migrated.
 
@@ -257,21 +261,25 @@ Known rules:
 node migration-data/scripts/migrate-item-photos.cjs --update-db
 ```
 
+When `IMAGE_ROOT` is set, photos are written directly to its `items` folder
+and the database stores portable `images/items/...` paths. Without it, the
+script keeps using `migration-data/exports/item-photos` for local previews.
+
 Review the `Item Photo Export` section in:
 
 ```txt
 migration-data/reports/item-migration.md
 ```
 
-Photos are exported to:
+Without `IMAGE_ROOT`, photos are exported to:
 
 ```txt
 migration-data/exports/item-photos/
 ```
 
-The `item.image_path` value is updated with a relative path to the exported
-local file. The app serves this path through `pawn-image://`; no base64 import
-or additional database conversion is required.
+The `item.image_path` value is updated with a portable relative path. The app
+serves this path through `pawn-image://`; no base64 import or additional
+database conversion is required.
 
 ### 9. Client Statistics Recalculation
 
@@ -312,6 +320,24 @@ SELECT status, COUNT(*) FROM ticket GROUP BY status ORDER BY status;
 SELECT COUNT(*) FROM item;
 SELECT COUNT(*) FROM ticket_item;
 ```
+
+Check historical snapshots and employee password migration:
+
+```sql
+SELECT COUNT(*) AS tickets_without_client_snapshot
+FROM ticket
+WHERE client_snapshot = '{}'::jsonb;
+
+SELECT COUNT(*) AS links_without_item_snapshot
+FROM ticket_item
+WHERE item_snapshot = '{}'::jsonb;
+
+SELECT COUNT(*) AS plaintext_employee_passwords
+FROM employee
+WHERE password NOT LIKE 'scrypt$%';
+```
+
+All three results must be `0` before cutover.
 
 Check ticket and item sequences:
 

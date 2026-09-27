@@ -5,7 +5,8 @@ export const createXmlReportSubmissionTable = `
     ticket_type TEXT NOT NULL CHECK (ticket_type IN ('Pawn', 'Buy')),
     ticket_datetime TEXT NOT NULL,
     environment TEXT NOT NULL CHECK (environment IN ('sandbox', 'production')),
-    status TEXT NOT NULL CHECK (status IN ('submitted', 'failed')),
+    status TEXT NOT NULL CHECK (status IN ('submitting', 'submitted', 'failed')),
+    payload_hash TEXT NOT NULL DEFAULT '',
     attempt_count INTEGER NOT NULL DEFAULT 1 CHECK (attempt_count > 0),
     error_code INTEGER,
     message TEXT NOT NULL DEFAULT '',
@@ -18,4 +19,12 @@ export const createXmlReportSubmissionTable = `
 export const createXmlReportSubmissionIndexes = `
   CREATE INDEX IF NOT EXISTS idx_xml_report_submission_status
   ON xml_report_submission(environment, status, last_attempt_at);
+
+  CREATE INDEX IF NOT EXISTS idx_xml_report_submission_identity
+  ON xml_report_submission(
+    environment,
+    ticket_number,
+    ticket_type,
+    ticket_datetime
+  );
 `;

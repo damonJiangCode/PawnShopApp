@@ -3,10 +3,12 @@ import type { DbClient } from "../../database/connection.ts";
 import type {
   ItemCategoryOption,
   ItemSearchInput,
+  ItemSearchResult,
   SaveItemInput,
 } from "../../../shared/payload-contracts/item.contract.ts";
 import type { Item } from "../../../shared/models/item.model.ts";
 import type { Ticket } from "../../../shared/models/ticket.model.ts";
+import { createFieldError } from "../../shared/createFieldError.ts";
 
 const mapItemRow = (row: Record<string, unknown>): Item => {
   const latestTicketStatus = row.latest_ticket_status
@@ -59,6 +61,22 @@ const mapItemCategoryRow = (
   subcategory_id: Number(row.subcategory_id),
   subcategory_name: String(row.subcategory_name),
 });
+
+const itemSnapshotSql = (itemAlias: string) => `
+  jsonb_build_object(
+    'item_number', ${itemAlias}.item_number,
+    'quantity', ${itemAlias}.quantity,
+    'subcategory_id', ${itemAlias}.subcategory_id,
+    'category_name', COALESCE(ic.name, ''),
+    'subcategory_name', COALESCE(isc.name, ''),
+    'description', ${itemAlias}.description,
+    'brand_name', COALESCE(${itemAlias}.brand_name, ''),
+    'model_number', COALESCE(${itemAlias}.model_number, ''),
+    'serial_number', COALESCE(${itemAlias}.serial_number, ''),
+    'amount', ${itemAlias}.amount,
+    'image_path', ${itemAlias}.image_path
+  )
+`;
 
 export const itemRepo = {
   loadCategories: async (): Promise<ItemCategoryOption[]> => {
@@ -120,7 +138,8 @@ export const itemRepo = {
     return result.rows[0] ? mapItemRow(result.rows[0]) : null;
   },
 
-  search: async (payload: ItemSearchInput): Promise<Item[]> => {
+  search: async (payload: ItemSearchInput): Promise<ItemSearchResult> => {
+    const resultLimit = 500;
     const conditions: string[] = [];
     const values: Array<number | string> = [];
 
@@ -163,7 +182,7 @@ export const itemRepo = {
     }
 
     if (!conditions.length) {
-      return [];
+      return { items: [], limit: resultLimit, limit_reached: false };
     }
 
     const client = await connect();
@@ -172,11 +191,16 @@ export const itemRepo = {
       FROM item_with_status iws
       WHERE ${conditions.join(" AND ")}
       ORDER BY iws.item_number DESC
+      LIMIT ${resultLimit + 1}
     `;
 
     try {
       const result = await client.query(query, values);
-      return result.rows.map(mapItemRow);
+      return {
+        items: result.rows.slice(0, resultLimit).map(mapItemRow),
+        limit: resultLimit,
+        limit_reached: result.rows.length > resultLimit,
+      };
     } finally {
       client.release();
     }
@@ -187,6 +211,10 @@ export const itemRepo = {
     targetTicketNumber: number,
     dbClient: DbClient,
   ): Promise<void> => {
+    await dbClient.query("SELECT pg_advisory_xact_lock(198511, $1)", [
+      itemNumber,
+    ]);
+
     const result = await dbClient.query(
       `
         SELECT
@@ -203,7 +231,10 @@ export const itemRepo = {
     const row = result.rows[0];
 
     if (!row) {
-      throw new Error(`Item #${itemNumber} was not found.`);
+      throw createFieldError(
+        "item_number",
+        `Item #${itemNumber} was not found.`,
+      );
     }
 
     const latestTicketNumber = row.latest_ticket_number
@@ -217,7 +248,8 @@ export const itemRepo = {
       (latestTicketStatus === "pawned" || latestTicketStatus === "sold") &&
       latestTicketNumber !== targetTicketNumber
     ) {
-      throw new Error(
+      throw createFieldError(
+        "item_number",
         `Item #${itemNumber} is already active on ticket #${latestTicketNumber}.`,
       );
     }
@@ -232,8 +264,12 @@ export const itemRepo = {
 
     await dbClient.query(
       `
-        INSERT INTO ticket_item (ticket_number, item_number)
-        VALUES ($1, $2)
+        INSERT INTO ticket_item (ticket_number, item_number, item_snapshot)
+        SELECT $1, i.item_number, ${itemSnapshotSql("i")}
+        FROM item i
+        LEFT JOIN item_subcategory isc ON isc.id = i.subcategory_id
+        LEFT JOIN item_category ic ON ic.id = isc.category_id
+        WHERE i.item_number = $2
         ON CONFLICT (ticket_number, item_number) DO NOTHING
       `,
       [ticketNumber, itemNumber],
@@ -278,8 +314,12 @@ export const itemRepo = {
 
     await dbClient.query(
       `
-        INSERT INTO ticket_item (ticket_number, item_number)
-        VALUES ($1, $2)
+        INSERT INTO ticket_item (ticket_number, item_number, item_snapshot)
+        SELECT $1, i.item_number, ${itemSnapshotSql("i")}
+        FROM item i
+        LEFT JOIN item_subcategory isc ON isc.id = i.subcategory_id
+        LEFT JOIN item_category ic ON ic.id = isc.category_id
+        WHERE i.item_number = $2
         ON CONFLICT (ticket_number, item_number) DO NOTHING
       `,
       [payload.ticket_number, itemNumber],
@@ -328,6 +368,20 @@ export const itemRepo = {
       );
     }
 
+    await dbClient.query(
+      `
+        UPDATE ticket_item ti
+        SET item_snapshot = ${itemSnapshotSql("i")}
+        FROM item i
+        LEFT JOIN item_subcategory isc ON isc.id = i.subcategory_id
+        LEFT JOIN item_category ic ON ic.id = isc.category_id
+        WHERE ti.ticket_number = $1
+          AND ti.item_number = $2
+          AND i.item_number = ti.item_number
+      `,
+      [payload.ticket_number, payload.item_number],
+    );
+
     const item = await itemRepo.loadByItemNumber(
       Number(result.rows[0].item_number),
       dbClient,
@@ -345,6 +399,7 @@ export const itemRepo = {
   updateImagePath: async (
     itemNumber: number,
     imagePath: string,
+    ticketNumber: number,
     dbClient: DbClient,
   ): Promise<void> => {
     await dbClient.query(
@@ -354,6 +409,20 @@ export const itemRepo = {
         WHERE item_number = $2
       `,
       [imagePath, itemNumber],
+    );
+    await dbClient.query(
+      `
+        UPDATE ticket_item
+        SET item_snapshot = jsonb_set(
+          item_snapshot,
+          '{image_path}',
+          to_jsonb($1::text),
+          TRUE
+        )
+        WHERE ticket_number = $2
+          AND item_number = $3
+      `,
+      [imagePath, ticketNumber, itemNumber],
     );
   },
 

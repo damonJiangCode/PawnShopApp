@@ -10,10 +10,14 @@ import { clientInput } from "./client.input.ts";
 import { createFieldError } from "../../shared/createFieldError.ts";
 import { imageStorage } from "../../shared/imageStorage.ts";
 import { runInTransaction } from "../../shared/runInTransaction.ts";
-import type { DbClient } from "../../database/connection.ts";
+import {
+  getDatabaseDateKey,
+  type DbClient,
+} from "../../database/connection.ts";
 
 const resolveNotes = async (
-  client: Client,
+  proposedNotes: string,
+  existingNotes: string,
   notesAction: ClientNotesAction,
   employeePassword: string,
   dbClient: DbClient,
@@ -23,7 +27,7 @@ const resolveNotes = async (
   }
 
   if (notesAction !== "append_signature") {
-    return client.notes;
+    return existingNotes;
   }
 
   if (!employeePassword) {
@@ -45,12 +49,64 @@ const resolveNotes = async (
     );
   }
 
-  if (!client.notes) {
+  if (!proposedNotes) {
     return "";
   }
 
-  const formattedDate = new Date().toLocaleDateString("en-CA");
-  return `${client.notes} (${employee.first_name}, ${formattedDate})`;
+  const formattedDate = await getDatabaseDateKey(dbClient);
+  return `${proposedNotes} (${employee.first_name}, ${formattedDate})`;
+};
+
+const finalizeSavedClientImage = async (savedClient: Client) => {
+  const stagedImagePath = savedClient.image_path ?? "";
+  let finalizedImagePath = "";
+
+  if (!stagedImagePath || !savedClient.client_number) {
+    return savedClient;
+  }
+
+  try {
+    finalizedImagePath = await imageStorage.finalizeClientImage(
+      savedClient.client_number,
+      stagedImagePath,
+    );
+
+    if (!finalizedImagePath || finalizedImagePath === stagedImagePath) {
+      return savedClient;
+    }
+
+    await runInTransaction("finalizeClientImage", async (client) =>
+      clientRepo.updateImagePath(
+        savedClient.client_number as number,
+        finalizedImagePath,
+        client,
+      ),
+    );
+
+    try {
+      await imageStorage.removeStagedImage(stagedImagePath);
+    } catch (error) {
+      console.error("[image] Unable to remove staged client image:", error);
+    }
+
+    return { ...savedClient, image_path: finalizedImagePath };
+  } catch (error) {
+    if (finalizedImagePath && finalizedImagePath !== stagedImagePath) {
+      await imageStorage
+        .removeFinalizedImage("client", finalizedImagePath)
+        .catch((cleanupError) => {
+          console.error(
+            "[image] Unable to remove unused finalized client image:",
+            cleanupError,
+          );
+        });
+    }
+    console.error(
+      "[image] Unable to finalize client image; keeping staged image:",
+      error,
+    );
+    return savedClient;
+  }
 };
 
 export const clientService = {
@@ -96,56 +152,62 @@ export const clientService = {
       normalizedInput.client.notes &&
       normalizedInput.notes_action !== "append_signature"
     ) {
-      throw new Error("Notes require employee authorization before saving.");
+      throw createFieldError(
+        "client",
+        "Notes require employee authorization before saving.",
+      );
     }
 
-    return runInTransaction("createClient", async (client) => {
-      const nextNotes = await resolveNotes(
-        normalizedInput.client,
-        normalizedInput.notes_action,
-        normalizedInput.employee_password,
-        client,
-      );
-
-      const preparedClient = {
-        ...normalizedInput.client,
-        notes: nextNotes,
-      };
-
-      const insertedClient = await clientRepo.create(preparedClient, client);
-      const imagePath = preparedClient.image_path
-        ? await imageStorage.finalizeClientImage(
-            insertedClient.client_number,
-            preparedClient.image_path,
-          )
-        : "";
-
-      if (imagePath && imagePath !== preparedClient.image_path) {
-        await clientRepo.updateImagePath(
-          insertedClient.client_number,
-          imagePath,
+    const createdClient = await runInTransaction(
+      "createClient",
+      async (client) => {
+        const idConflict = await clientIdRepo.assertNewIdsAvailable(
+          normalizedInput.identifications,
+          [],
+          null,
           client,
         );
-      }
 
-      const insertedIds = await clientIdRepo.insertIds(
-        insertedClient.client_number,
-        normalizedInput.identifications,
-        client,
-      );
+        if (idConflict) {
+          throw createFieldError("identifications", idConflict);
+        }
 
-      return {
-        ...preparedClient,
-        image_path: imagePath || preparedClient.image_path,
-        client_number: insertedClient.client_number,
-        updated_at: insertedClient.updated_at,
-        identifications: insertedIds,
-      };
-    });
+        const nextNotes = await resolveNotes(
+          normalizedInput.client.notes,
+          "",
+          normalizedInput.notes_action,
+          normalizedInput.employee_password,
+          client,
+        );
+
+        const preparedClient = {
+          ...normalizedInput.client,
+          notes: nextNotes,
+        };
+
+        const insertedClient = await clientRepo.create(preparedClient, client);
+        const insertedIds = await clientIdRepo.insertIds(
+          insertedClient.client_number,
+          normalizedInput.identifications,
+          client,
+        );
+
+        return {
+          ...preparedClient,
+          image_path: preparedClient.image_path,
+          client_number: insertedClient.client_number,
+          updated_at: insertedClient.updated_at,
+          identifications: insertedIds,
+        };
+      },
+    );
+
+    return finalizeSavedClientImage(createdClient);
   },
 
   updateClient: async (input: SaveClientInput): Promise<Client> => {
     const normalizedInput = clientInput.normalizeSaveClient(input);
+    let previousImagePath = "";
     clientInput.validateClient(
       normalizedInput.client,
       normalizedInput.identifications,
@@ -155,57 +217,88 @@ export const clientService = {
       throw new Error("Missing client number for update.");
     }
 
-    return runInTransaction("updateClient", async (client) => {
-      const nextNotes = await resolveNotes(
-        normalizedInput.client,
-        normalizedInput.notes_action,
-        normalizedInput.employee_password,
-        client,
-      );
+    const updatedClient = await runInTransaction(
+      "updateClient",
+      async (client) => {
+        const currentClient = await clientRepo.loadByNumberForUpdate(
+          normalizedInput.client.client_number as number,
+          client,
+        );
 
-      const preparedClient = {
-        ...normalizedInput.client,
-        notes: nextNotes,
-      };
+        if (!currentClient) {
+          throw createFieldError("client", "This client no longer exists.");
+        }
 
-      const imagePath = preparedClient.image_path
-        ? await imageStorage.finalizeClientImage(
-            preparedClient.client_number as number,
-            preparedClient.image_path,
-          )
-        : "";
-      const preparedClientWithImage = {
-        ...preparedClient,
-        image_path: imagePath || preparedClient.image_path,
-      };
+        previousImagePath = currentClient.image_path ?? "";
 
-      const updatedClient = await clientRepo.update(
-        preparedClientWithImage,
-        client,
-      );
-      await clientIdRepo.deleteIds(
-        preparedClientWithImage.client_number as number,
-        client,
-      );
-      const insertedIds = await clientIdRepo.insertIds(
-        preparedClientWithImage.client_number as number,
-        normalizedInput.identifications,
-        client,
-      );
+        const expectedUpdatedAt = new Date(
+          normalizedInput.client.updated_at,
+        ).getTime();
+        const currentUpdatedAt = new Date(currentClient.updated_at).getTime();
 
-      return {
-        ...preparedClientWithImage,
-        updated_at: updatedClient.updated_at,
-        identifications: insertedIds,
-      };
-    });
-  },
+        if (
+          !Number.isFinite(expectedUpdatedAt) ||
+          expectedUpdatedAt !== currentUpdatedAt
+        ) {
+          throw createFieldError(
+            "client",
+            "This client was changed on another computer. Refresh it before saving.",
+          );
+        }
 
-  deleteClient: async (clientNumber: number): Promise<boolean> => {
-    if (!clientNumber) {
-      return false;
+        const idConflict = await clientIdRepo.assertNewIdsAvailable(
+          normalizedInput.identifications,
+          currentClient.identifications ?? [],
+          currentClient.client_number as number,
+          client,
+        );
+
+        if (idConflict) {
+          throw createFieldError("identifications", idConflict);
+        }
+
+        const nextNotes = await resolveNotes(
+          normalizedInput.client.notes,
+          currentClient.notes,
+          normalizedInput.notes_action,
+          normalizedInput.employee_password,
+          client,
+        );
+
+        const preparedClient = {
+          ...normalizedInput.client,
+          notes: nextNotes,
+        };
+
+        const updatedClient = await clientRepo.update(preparedClient, client);
+        await clientIdRepo.deleteIds(
+          preparedClient.client_number as number,
+          client,
+        );
+        const insertedIds = await clientIdRepo.insertIds(
+          preparedClient.client_number as number,
+          normalizedInput.identifications,
+          client,
+        );
+
+        return {
+          ...preparedClient,
+          updated_at: updatedClient.updated_at,
+          identifications: insertedIds,
+        };
+      },
+    );
+
+    const finalizedClient = await finalizeSavedClientImage(updatedClient);
+
+    if (previousImagePath && previousImagePath !== finalizedClient.image_path) {
+      await imageStorage
+        .removeFinalizedImage("client", previousImagePath)
+        .catch((error) => {
+          console.error("[image] Unable to remove old client image:", error);
+        });
     }
 
-    return clientRepo.deleteByNumber(clientNumber);
+    return finalizedClient;
   },
 };

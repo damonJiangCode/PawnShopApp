@@ -17,6 +17,8 @@ import { employeeService } from "../employees/employee.service.ts";
 import { ticketInput } from "./ticket.input.ts";
 import { createFieldError } from "../../shared/createFieldError.ts";
 import { runInTransaction } from "../../shared/runInTransaction.ts";
+import { getDatabaseNow } from "../../database/connection.ts";
+import { interestPaymentRepo } from "./interest-payment.repo.ts";
 
 export const ticketService = {
   loadTickets: async (clientNumber: number): Promise<Ticket[]> => {
@@ -77,9 +79,10 @@ export const ticketService = {
 
   createPawnTicket: async (input: CreatePawnTicketInput): Promise<Ticket> => {
     const normalizedInput = ticketInput.normalizeCreatePawnTicket(input);
+    ticketInput.validateCreatePawnTicket(normalizedInput);
 
     return runInTransaction("createPawnTicket", async (client) => {
-      const transactionDatetime = calculation.getCurrentDatetime();
+      const transactionDatetime = await getDatabaseNow(client);
       const dueDate = calculation.getDueDatetime(transactionDatetime);
       const employeeName =
         await employeeService.getEmployeeDisplayNameByPassword(
@@ -92,6 +95,12 @@ export const ticketService = {
           "employee_password",
           "Employee password is incorrect.",
         );
+      }
+
+      if (
+        !(await clientRepo.loadByNumber(normalizedInput.client_number, client))
+      ) {
+        throw createFieldError("client", "Client was not found.");
       }
 
       const newTicket = await ticketRepo.create(
@@ -116,9 +125,10 @@ export const ticketService = {
 
   createSellTicket: async (input: CreateSellTicketInput): Promise<Ticket> => {
     const normalizedInput = ticketInput.normalizeCreateSellTicket(input);
+    ticketInput.validateCreateSellTicket(normalizedInput);
 
     return runInTransaction("createSellTicket", async (client) => {
-      const transactionDatetime = calculation.getCurrentDatetime();
+      const transactionDatetime = await getDatabaseNow(client);
       const employeeName =
         await employeeService.getEmployeeDisplayNameByPassword(
           normalizedInput.employee_password,
@@ -130,6 +140,12 @@ export const ticketService = {
           "employee_password",
           "Employee password is incorrect.",
         );
+      }
+
+      if (
+        !(await clientRepo.loadByNumber(normalizedInput.client_number, client))
+      ) {
+        throw createFieldError("client", "Client was not found.");
       }
 
       const newTicket = await ticketRepo.create(
@@ -159,6 +175,7 @@ export const ticketService = {
 
   updateTicket: async (input: UpdateTicketInput): Promise<Ticket> => {
     const normalizedInput = ticketInput.normalizeUpdateTicket(input);
+    ticketInput.validateUpdateTicket(normalizedInput);
 
     return runInTransaction("updateTicket", async (client) => {
       const employeeName =
@@ -183,11 +200,22 @@ export const ticketService = {
         throw createFieldError("ticket_number", "Ticket was not found.");
       }
 
+      if (
+        existingTicket.status !== "pawned" &&
+        existingTicket.status !== "sold"
+      ) {
+        throw createFieldError(
+          "ticket_number",
+          "Only active pawned or sold tickets can be edited.",
+        );
+      }
+
       const amountChanged =
         normalizedInput.amount !== Number(existingTicket.amount);
+      const databaseNow = await getDatabaseNow(client);
       const pawnTicketOverdue =
         existingTicket.status.startsWith("pawned") &&
-        calculation.isBeforeCalendarDate(existingTicket.due_date);
+        calculation.isBeforeCalendarDate(existingTicket.due_date, databaseNow);
 
       if (amountChanged && pawnTicketOverdue) {
         throw createFieldError(
@@ -214,37 +242,9 @@ export const ticketService = {
 
   convertTicket: async (input: ConvertTicketInput): Promise<Ticket> => {
     const normalizedInput = ticketInput.normalizeConvertTicket(input);
+    ticketInput.validateConvertTicket(normalizedInput);
 
     return runInTransaction("convertTicket", async (client) => {
-      if (
-        !Number.isFinite(normalizedInput.ticket_number) ||
-        normalizedInput.ticket_number <= 0
-      ) {
-        throw createFieldError("ticket_number", "Enter a valid ticket number.");
-      }
-
-      if (!normalizedInput.description) {
-        throw createFieldError("description", "Description is required.");
-      }
-
-      if (!normalizedInput.location) {
-        throw createFieldError("location", "Location is required.");
-      }
-
-      if (
-        !Number.isFinite(normalizedInput.amount) ||
-        normalizedInput.amount < 0
-      ) {
-        throw createFieldError("amount", "Amount cannot be negative.");
-      }
-
-      if (normalizedInput.onetime_fee < 0) {
-        throw createFieldError(
-          "onetime_fee",
-          "One Time Fee cannot be negative.",
-        );
-      }
-
       const employeeName =
         await employeeService.getEmployeeDisplayNameByPassword(
           normalizedInput.employee_password,
@@ -258,7 +258,7 @@ export const ticketService = {
         );
       }
 
-      const existingTicket = await ticketRepo.loadByTicketNumber(
+      const existingTicket = await ticketRepo.loadByTicketNumberForUpdate(
         normalizedInput.ticket_number,
         client,
       );
@@ -286,8 +286,24 @@ export const ticketService = {
           "This ticket is already in the selected target status.",
         );
       }
+      const interestSummary = (
+        await interestPaymentRepo.loadSummaries(
+          [normalizedInput.ticket_number],
+          client,
+        )
+      ).get(normalizedInput.ticket_number);
 
-      const conversionDatetime = calculation.getCurrentDatetime();
+      if (
+        existingTicket.interest_paid_months > 0 ||
+        (interestSummary?.monthsPaid ?? 0) > 0
+      ) {
+        throw createFieldError(
+          "ticket_number",
+          "A ticket with interest payments cannot be converted.",
+        );
+      }
+
+      const conversionDatetime = await getDatabaseNow(client);
       const dueDate =
         normalizedInput.target_status === "pawned"
           ? calculation.getDueDatetime(conversionDatetime)
@@ -297,10 +313,12 @@ export const ticketService = {
           ? normalizedInput.onetime_fee
           : 0;
 
-      return ticketRepo.convert(
+      const convertedTicket = await ticketRepo.convert(
         {
           ticket_number: normalizedInput.ticket_number,
+          current_status: existingTicket.status,
           status: normalizedInput.target_status,
+          transaction_datetime: conversionDatetime,
           description: normalizedInput.description,
           location: normalizedInput.location,
           amount: normalizedInput.amount,
@@ -310,6 +328,20 @@ export const ticketService = {
         },
         client,
       );
+
+      if (existingTicket.status === "sold") {
+        await clientRepo.decrementSellCount(
+          existingTicket.client_number,
+          client,
+        );
+      } else {
+        await clientRepo.incrementSellCount(
+          existingTicket.client_number,
+          client,
+        );
+      }
+
+      return convertedTicket;
     });
   },
 
@@ -324,7 +356,7 @@ export const ticketService = {
         throw createFieldError("ticket_number", "Enter a valid ticket number.");
       }
 
-      const existingTicket = await ticketRepo.loadByTicketNumber(
+      const existingTicket = await ticketRepo.loadByTicketNumberForUpdate(
         normalizedInput.ticket_number,
         client,
       );
@@ -346,7 +378,11 @@ export const ticketService = {
         );
       }
 
-      if (!calculation.isBeforeCalendarDate(existingTicket.due_date)) {
+      const databaseNow = await getDatabaseNow(client);
+
+      if (
+        !calculation.isBeforeCalendarDate(existingTicket.due_date, databaseNow)
+      ) {
         throw createFieldError(
           "ticket_number",
           "Only tickets past the due date can be expired.",
@@ -381,10 +417,12 @@ export const ticketService = {
         client,
       );
 
-      await clientRepo.incrementExpireCount(
-        expiredTicket.client_number,
-        client,
-      );
+      if (expiredTicket.status === "pawned_expired") {
+        await clientRepo.incrementExpireCount(
+          expiredTicket.client_number,
+          client,
+        );
+      }
 
       return expiredTicket;
     });
@@ -418,7 +456,7 @@ export const ticketService = {
         );
       }
 
-      const existingTicket = await ticketRepo.loadByTicketNumber(
+      const existingTicket = await ticketRepo.loadByTicketNumberForUpdate(
         normalizedInput.ticket_number,
         client,
       );
@@ -427,6 +465,13 @@ export const ticketService = {
         throw createFieldError(
           "ticket_number",
           "No ticket was found for that ticket number.",
+        );
+      }
+
+      if (existingTicket.status !== "pawned") {
+        throw createFieldError(
+          "ticket_number",
+          "Only an active pawned ticket can be marked stolen.",
         );
       }
 
@@ -454,14 +499,18 @@ export const ticketService = {
         !Number.isFinite(normalizedInput.client_number) ||
         normalizedInput.client_number <= 0
       ) {
-        throw new Error("A client is required to transfer a ticket.");
+        throw createFieldError(
+          "client",
+          "A client is required to transfer a ticket.",
+        );
       }
 
-      const transferPreview = await ticketRepo.loadTransferTicketPreview(
+      const existingTicket = await ticketRepo.loadByTicketNumberForUpdate(
         normalizedInput.ticket_number,
+        client,
       );
 
-      if (!transferPreview) {
+      if (!existingTicket) {
         throw createFieldError(
           "ticket_number",
           "No ticket was found for that ticket number.",
@@ -469,8 +518,8 @@ export const ticketService = {
       }
 
       if (
-        transferPreview.status !== "pawned" &&
-        transferPreview.status !== "sold"
+        existingTicket.status !== "pawned" &&
+        existingTicket.status !== "sold"
       ) {
         throw createFieldError(
           "ticket_number",
@@ -478,20 +527,37 @@ export const ticketService = {
         );
       }
 
-      if (
-        transferPreview.previous_client_number === normalizedInput.client_number
-      ) {
+      if (existingTicket.client_number === normalizedInput.client_number) {
         throw createFieldError(
           "ticket_number",
           "This ticket already belongs to the selected client.",
         );
       }
 
-      return ticketRepo.transfer(
+      if (
+        !(await clientRepo.loadByNumber(normalizedInput.client_number, client))
+      ) {
+        throw createFieldError("client", "The selected client was not found.");
+      }
+
+      const transferredTicket = await ticketRepo.transfer(
         normalizedInput.ticket_number,
         normalizedInput.client_number,
         client,
       );
+
+      if (existingTicket.status === "sold") {
+        await clientRepo.decrementSellCount(
+          existingTicket.client_number,
+          client,
+        );
+        await clientRepo.incrementSellCount(
+          normalizedInput.client_number,
+          client,
+        );
+      }
+
+      return transferredTicket;
     });
   },
 };

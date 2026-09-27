@@ -3,19 +3,12 @@
 const fs = require("fs");
 const path = require("path");
 const { Pool } = require("pg");
+const dbConfig = require("./migration-config.cjs");
 
 const migrationRoot = path.resolve(__dirname, "..");
 const summaryDir = path.join(migrationRoot, "reports");
 const reportPath = path.join(summaryDir, "client-migration.md");
 const shouldCommit = process.argv.includes("--commit");
-
-const dbConfig = {
-  user: process.env.DB_USER || "moneyexpress",
-  host: process.env.DB_HOST || "localhost",
-  database: process.env.DB_NAME || "pawnsystemdb_migration",
-  password: process.env.DB_PASSWORD || "0236",
-  port: Number(process.env.DB_PORT || 5432),
-};
 
 const replaceReportSection = (existingReport, heading, section) => {
   const marker = `## ${heading}`;
@@ -287,10 +280,16 @@ const main = async () => {
       : "# Client Migration\n";
     fs.writeFileSync(
       reportPath,
-      replaceReportSection(existingReport, "Client Statistics Recalculation", section),
+      replaceReportSection(
+        existingReport,
+        "Client Statistics Recalculation",
+        section,
+      ),
     );
 
-    console.log(`Client statistics ${shouldCommit ? "committed" : "previewed"}`);
+    console.log(
+      `Client statistics ${shouldCommit ? "committed" : "previewed"}`,
+    );
     console.log(`Changed clients: ${changed.toLocaleString()}`);
     console.log(`Report: ${reportPath}`);
   } catch (error) {

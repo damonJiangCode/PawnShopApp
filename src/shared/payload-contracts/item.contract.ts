@@ -26,3 +26,18 @@ export type ItemSearchInput = {
   model_number?: string;
   serial_number?: string;
 };
+
+export type ItemSearchResult = {
+  items: import("../models/item.model.ts").Item[];
+  limit: number;
+  limit_reached: boolean;
+};
+
+export type ItemFormField =
+  | "ticket_number"
+  | "item_number"
+  | "subcategory_id"
+  | "quantity"
+  | "description"
+  | "amount"
+  | "form";

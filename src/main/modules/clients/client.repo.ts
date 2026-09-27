@@ -54,6 +54,7 @@ export const clientRepo = {
         AND
         (LOWER(c.last_name) LIKE LOWER($2) || '%' OR $2 = '')
       ORDER BY c.last_name, c.first_name, c.client_number
+      LIMIT 200
     `;
     const values = [
       firstName ? firstName.toLowerCase() : "",
@@ -79,6 +80,7 @@ export const clientRepo = {
       ${clientWithIdentificationsFromClause}
       WHERE c.date_of_birth = $1::date
       ORDER BY c.last_name, c.first_name, c.client_number
+      LIMIT 200
     `;
 
     try {
@@ -117,13 +119,9 @@ export const clientRepo = {
         notes,
         image_path,
         image_updated_at,
-        pickup_self_only,
-        redeem_count,
-        sell_count,
-        expire_count,
-        overdue_count
+        pickup_self_only
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20
       )
       RETURNING client_number, updated_at
     `;
@@ -149,10 +147,6 @@ export const clientRepo = {
       toDbNullable(clientData.image_path),
       clientData.image_updated_at ?? null,
       Boolean(clientData.pickup_self_only),
-      clientData.redeem_count ?? 0,
-      clientData.sell_count ?? 0,
-      clientData.expire_count ?? 0,
-      clientData.overdue_count ?? 0,
     ];
 
     try {
@@ -203,12 +197,9 @@ export const clientRepo = {
         image_path = $18,
         image_updated_at = $19,
         pickup_self_only = $20,
-        redeem_count = $21,
-        sell_count = $22,
-        expire_count = $23,
-        overdue_count = $24,
         updated_at = CURRENT_TIMESTAMP
-      WHERE client_number = $25
+      WHERE client_number = $21
+        AND updated_at = $22
       RETURNING updated_at
     `;
 
@@ -233,18 +224,17 @@ export const clientRepo = {
       toDbNullable(clientData.image_path),
       clientData.image_updated_at ?? null,
       Boolean(clientData.pickup_self_only),
-      clientData.redeem_count ?? 0,
-      clientData.sell_count ?? 0,
-      clientData.expire_count ?? 0,
-      clientData.overdue_count ?? 0,
       clientNumber,
+      clientData.updated_at,
     ];
 
     try {
       const result = await client.query(query, values);
 
       if (result.rowCount === 0) {
-        throw new Error(`Client not found: ${clientNumber}`);
+        throw new Error(
+          `Client #${clientNumber} changed before this update could be saved.`,
+        );
       }
 
       return {
@@ -255,6 +245,23 @@ export const clientRepo = {
         client.release();
       }
     }
+  },
+
+  loadByNumberForUpdate: async (
+    clientNumber: number,
+    dbClient: DbClient,
+  ): Promise<Client | null> => {
+    const result = await dbClient.query(
+      `
+        ${clientWithIdentificationsFromClause}
+        WHERE c.client_number = $1
+        LIMIT 1
+        FOR UPDATE OF c
+      `,
+      [clientNumber],
+    );
+
+    return result.rows[0] ? mapRowToClient(result.rows[0]) : null;
   },
 
   updateImagePath: async (
@@ -269,8 +276,7 @@ export const clientRepo = {
         `
           UPDATE client
           SET image_path = $1,
-              image_updated_at = COALESCE(image_updated_at, CURRENT_TIMESTAMP),
-              updated_at = CURRENT_TIMESTAMP
+              image_updated_at = COALESCE(image_updated_at, CURRENT_TIMESTAMP)
           WHERE client_number = $2
         `,
         [imagePath, clientNumber],
@@ -292,8 +298,7 @@ export const clientRepo = {
       await client.query(
         `
           UPDATE client
-          SET sell_count = COALESCE(sell_count, 0) + 1,
-              updated_at = CURRENT_TIMESTAMP
+          SET sell_count = COALESCE(sell_count, 0) + 1
           WHERE client_number = $1
         `,
         [clientNumber],
@@ -315,8 +320,7 @@ export const clientRepo = {
       await client.query(
         `
           UPDATE client
-          SET expire_count = COALESCE(expire_count, 0) + 1,
-              updated_at = CURRENT_TIMESTAMP
+          SET expire_count = COALESCE(expire_count, 0) + 1
           WHERE client_number = $1
         `,
         [clientNumber],
@@ -328,22 +332,18 @@ export const clientRepo = {
     }
   },
 
-  deleteByNumber: async (
+  decrementSellCount: async (
     clientNumber: number,
-    dbClient?: DbClient,
-  ): Promise<boolean> => {
-    const client = await getDbClient(dbClient);
-
-    try {
-      const result = await client.query(
-        `DELETE FROM client WHERE client_number = $1`,
-        [clientNumber],
-      );
-      return (result.rowCount ?? 0) > 0;
-    } finally {
-      if (!dbClient) {
-        client.release();
-      }
-    }
+    dbClient: DbClient,
+  ): Promise<void> => {
+    await dbClient.query(
+      `
+        UPDATE client
+        SET
+          sell_count = GREATEST(COALESCE(sell_count, 0) - 1, 0)
+        WHERE client_number = $1
+      `,
+      [clientNumber],
+    );
   },
 };

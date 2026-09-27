@@ -5,22 +5,18 @@ const path = require("path");
 const { spawn } = require("child_process");
 const csv = require("csv-parser");
 const { Pool } = require("pg");
+const dbConfig = require("./migration-config.cjs");
 
 const migrationRoot = path.resolve(__dirname, "..");
 const projectRoot = path.resolve(migrationRoot, "..");
 const sourceDbPath = path.join(migrationRoot, "source", "superpawnconv.mdb");
-const outputDir = path.join(migrationRoot, "exports", "client-photos");
+const configuredImageRoot = process.env.IMAGE_ROOT?.trim();
+const outputDir = configuredImageRoot
+  ? path.join(path.resolve(configuredImageRoot), "clients")
+  : path.join(migrationRoot, "exports", "client-photos");
 const summaryDir = path.join(migrationRoot, "reports");
 const reportPath = path.join(summaryDir, "client-migration.md");
 const shouldUpdateDb = process.argv.includes("--update-db");
-
-const dbConfig = {
-  user: process.env.DB_USER || "moneyexpress",
-  host: process.env.DB_HOST || "localhost",
-  database: process.env.DB_NAME || "pawnsystemdb_migration",
-  password: process.env.DB_PASSWORD || "0236",
-  port: Number(process.env.DB_PORT || 5432),
-};
 
 const normalizeText = (value) => String(value ?? "").trim();
 
@@ -39,10 +35,12 @@ const getValue = (row, key) => {
 
 const sanitizeFilePart = (value) => {
   const normalized = normalizeText(value) || "null";
-  return normalized
-    .replace(/[^a-zA-Z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "")
-    .slice(0, 60) || "null";
+  return (
+    normalized
+      .replace(/[^a-zA-Z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "")
+      .slice(0, 60) || "null"
+  );
 };
 
 const decodeMdbOctalBytes = (value) => {
@@ -62,7 +60,12 @@ const decodeMdbOctalBytes = (value) => {
 };
 
 const imageExtension = (buffer) => {
-  if (buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+  if (
+    buffer.length >= 3 &&
+    buffer[0] === 0xff &&
+    buffer[1] === 0xd8 &&
+    buffer[2] === 0xff
+  ) {
     return "jpg";
   }
   if (
@@ -93,7 +96,10 @@ const ensureUniquePath = (filePath) => {
 
   const parsed = path.parse(filePath);
   for (let index = 2; ; index += 1) {
-    const candidate = path.join(parsed.dir, `${parsed.name}_${index}${parsed.ext}`);
+    const candidate = path.join(
+      parsed.dir,
+      `${parsed.name}_${index}${parsed.ext}`,
+    );
     if (!fs.existsSync(candidate)) {
       return candidate;
     }
@@ -103,9 +109,13 @@ const ensureUniquePath = (filePath) => {
 const getNextGeneratedClientNumber = () =>
   new Promise((resolve, reject) => {
     const sourceClientNumbers = [];
-    const child = spawn("mdb-export", ["-b", "strip", sourceDbPath, "AR200CLIENT"], {
-      cwd: projectRoot,
-    });
+    const child = spawn(
+      "mdb-export",
+      ["-b", "strip", sourceDbPath, "AR200CLIENT"],
+      {
+        cwd: projectRoot,
+      },
+    );
 
     child.stdout.pipe(csv()).on("data", (row) => {
       const clientNumber = Number(normalizeText(getValue(row, "AR200CLIENT")));
@@ -144,9 +154,13 @@ const exportRows = (initialGeneratedClientNumber) =>
     let totalBytes = 0;
     const samples = [];
 
-    const child = spawn("mdb-export", ["-b", "octal", sourceDbPath, "AR200CLIENT"], {
-      cwd: projectRoot,
-    });
+    const child = spawn(
+      "mdb-export",
+      ["-b", "octal", sourceDbPath, "AR200CLIENT"],
+      {
+        cwd: projectRoot,
+      },
+    );
 
     child.stdout.pipe(csv()).on("data", (row) => {
       totalRows += 1;
@@ -182,7 +196,9 @@ const exportRows = (initialGeneratedClientNumber) =>
         nonJpgCount += 1;
       }
 
-      const relativePath = path.relative(projectRoot, filePath);
+      const relativePath = configuredImageRoot
+        ? path.join("images", "clients", path.basename(filePath))
+        : path.relative(projectRoot, filePath);
       exported.push({
         clientNumber,
         filePath,
@@ -224,19 +240,21 @@ const exportRows = (initialGeneratedClientNumber) =>
 
 const updateDbImagePaths = async (exported) => {
   const pool = new Pool(dbConfig);
+  const client = await pool.connect();
   try {
-    await pool.query("BEGIN");
+    await client.query("BEGIN");
     for (const row of exported) {
-      await pool.query(
+      await client.query(
         "UPDATE client SET image_path = $1 WHERE client_number = $2",
         [row.relativePath, row.clientNumber],
       );
     }
-    await pool.query("COMMIT");
+    await client.query("COMMIT");
   } catch (error) {
-    await pool.query("ROLLBACK");
+    await client.query("ROLLBACK").catch(() => {});
     throw error;
   } finally {
+    client.release();
     await pool.end();
   }
 };

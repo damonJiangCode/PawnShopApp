@@ -1,12 +1,35 @@
 import type { IpcMainInvokeEvent } from "electron";
 import type {
   ItemSearchInput,
+  ItemFormField,
   SaveItemInput,
 } from "../../../shared/payload-contracts/item.contract.ts";
 import { itemService } from "./item.service.ts";
 import { CHANNELS } from "../../ipc/channels.ts";
+import type { ItemOperationResult } from "../../../shared/api-contracts/itemApi.contract.ts";
+import { extractFieldError } from "../../shared/createFieldError.ts";
 
 const { ipcMain } = require("electron/main") as typeof import("electron");
+
+const runItemOperation = async <T>(
+  operation: () => Promise<T>,
+): Promise<ItemOperationResult<T>> => {
+  try {
+    return { ok: true, result: await operation() };
+  } catch (error) {
+    const fieldError = extractFieldError(error);
+
+    if (fieldError) {
+      return {
+        ok: false,
+        field: fieldError.field as ItemFormField,
+        message: fieldError.message,
+      };
+    }
+
+    throw error;
+  }
+};
 
 export const registerItemHandlers = () => {
   ipcMain.handle(
@@ -23,21 +46,21 @@ export const registerItemHandlers = () => {
   ipcMain.handle(
     CHANNELS.SEARCH_ITEMS,
     async (_event: IpcMainInvokeEvent, payload: ItemSearchInput) => {
-      return itemService.searchItems(payload);
+      return runItemOperation(() => itemService.searchItems(payload));
     },
   );
 
   ipcMain.handle(
     CHANNELS.ADD_ITEM,
     async (_event: IpcMainInvokeEvent, payload: SaveItemInput) => {
-      return itemService.createItem(payload);
+      return runItemOperation(() => itemService.createItem(payload));
     },
   );
 
   ipcMain.handle(
     CHANNELS.UPDATE_ITEM,
     async (_event: IpcMainInvokeEvent, payload: SaveItemInput) => {
-      return itemService.updateItem(payload);
+      return runItemOperation(() => itemService.updateItem(payload));
     },
   );
 
@@ -48,7 +71,10 @@ export const registerItemHandlers = () => {
       ticketNumber: number,
       itemNumber: number,
     ) => {
-      return itemService.deleteItem(ticketNumber, itemNumber);
+      return runItemOperation(async () => {
+        await itemService.deleteItem(ticketNumber, itemNumber);
+        return null;
+      });
     },
   );
 
@@ -59,7 +85,9 @@ export const registerItemHandlers = () => {
       ticketNumber: number,
       itemNumbers: number[],
     ) => {
-      return itemService.linkItemsToTicket(ticketNumber, itemNumbers);
+      return runItemOperation(() =>
+        itemService.linkItemsToTicket(ticketNumber, itemNumbers),
+      );
     },
   );
 

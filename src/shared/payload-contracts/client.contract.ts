@@ -7,6 +7,11 @@ export type CitiesResponse = {
 
 export type ClientNotesAction = "keep" | "clear" | "append_signature";
 
+export type ClientFormField =
+  | "employee_password"
+  | "identifications"
+  | "client";
+
 export type SaveClientInput = {
   client: Client;
   identifications: ID[];

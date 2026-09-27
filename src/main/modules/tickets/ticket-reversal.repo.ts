@@ -116,8 +116,7 @@ export const ticketReversalRepo = {
       `
         UPDATE client
         SET
-          ${countColumn} = GREATEST(COALESCE(${countColumn}, 0) - 1, 0),
-          updated_at = CURRENT_TIMESTAMP
+          ${countColumn} = GREATEST(COALESCE(${countColumn}, 0) - 1, 0)
         WHERE client_number = $1
       `,
       [ticket.client_number],

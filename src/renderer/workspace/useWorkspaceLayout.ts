@@ -251,7 +251,10 @@ export const useWorkspaceLayout = () => {
         setTransactionRefreshKey((prev) => prev + 1);
         setHistoryRefreshKey((prev) => prev + 1);
 
-        if (isTicketExpiredEvent(event.data)) {
+        if (
+          isTicketExpiredEvent(event.data) &&
+          event.data.ticket.status === "pawned_expired"
+        ) {
           updateCurrentClient(event.data.client.client_number, (client) => ({
             ...client,
             expire_count: Number(client.expire_count ?? 0) + 1,

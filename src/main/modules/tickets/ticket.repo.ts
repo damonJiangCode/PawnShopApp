@@ -107,6 +107,31 @@ export const ticketRepo = {
     return result.rows[0] ? mapTicketRow(result.rows[0]) : null;
   },
 
+  loadManyByTicketNumberForUpdate: async (
+    ticketNumbers: number[],
+    client: DbClient,
+  ): Promise<Ticket[]> => {
+    if (!ticketNumbers.length) {
+      return [];
+    }
+
+    const query = `
+      SELECT ${ticketSelectColumns}
+      FROM ticket
+      WHERE ticket_number = ANY($1::int[])
+      ORDER BY ticket_number ASC
+      FOR UPDATE
+    `;
+    const result = await client.query(query, [
+      [...new Set(ticketNumbers)].sort((left, right) => left - right),
+    ]);
+
+    return attachInterestPaymentSummaries(
+      result.rows.map(mapTicketRow),
+      client,
+    );
+  },
+
   loadTransferTicketPreview: async (
     ticketNumber: number,
   ): Promise<TransferTicketPreview | null> => {
@@ -152,9 +177,46 @@ export const ticketRepo = {
         onetime_fee,
         employee_name,
         status,
-        client_number
+        client_number,
+        client_snapshot
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
+        (
+          SELECT jsonb_build_object(
+            'client_number', c.client_number,
+            'first_name', c.first_name,
+            'last_name', c.last_name,
+            'middle_name', COALESCE(c.middle_name, ''),
+            'date_of_birth', TO_CHAR(c.date_of_birth, 'YYYY-MM-DD'),
+            'gender', c.gender,
+            'hair_color', c.hair_color,
+            'eye_color', c.eye_color,
+            'height_cm', c.height_cm,
+            'weight_kg', c.weight_kg,
+            'address', COALESCE(c.address, ''),
+            'city', COALESCE(c.city, ''),
+            'province', COALESCE(c.province, ''),
+            'postal_code', COALESCE(c.postal_code, ''),
+            'phone', COALESCE(c.phone, ''),
+            'email', COALESCE(c.email, ''),
+            'image_path', COALESCE(c.image_path, ''),
+            'identifications', COALESCE(
+              (
+                SELECT jsonb_agg(
+                  jsonb_build_object(
+                    'id_type', ci.id_type,
+                    'id_value', ci.id_value
+                  ) ORDER BY ci.id
+                )
+                FROM client_id ci
+                WHERE ci.client_number = c.client_number
+              ),
+              '[]'::jsonb
+            )
+          )
+          FROM client c
+          WHERE c.client_number = $10
+        )
       )
       RETURNING ${ticketSelectColumns}
     `;
@@ -202,6 +264,7 @@ export const ticketRepo = {
         END,
         employee_name = $7
       WHERE ticket_number = $8
+        AND status IN ('pawned', 'sold')
       RETURNING ${ticketSelectColumns}
     `;
 
@@ -248,8 +311,19 @@ export const ticketRepo = {
         due_date = $5,
         onetime_fee = $6,
         employee_name = $7,
+        transaction_datetime = $8,
+        interest_paid_months = 0,
+        interested_datetime = NULL,
+        partial_payment = 0,
+        partial_payment_datetime = NULL,
+        pickup_datetime = NULL,
+        pickup_amount_paid = NULL,
+        expire_date = NULL,
+        is_lost = FALSE,
+        is_stolen = FALSE,
         status_updated_at = CURRENT_TIMESTAMP
-      WHERE ticket_number = $8
+      WHERE ticket_number = $9
+        AND status = $10
       RETURNING ${ticketSelectColumns}
     `;
 
@@ -261,7 +335,9 @@ export const ticketRepo = {
       payload.due_date,
       payload.onetime_fee,
       payload.employee_name,
+      payload.transaction_datetime,
       payload.ticket_number,
+      payload.current_status,
     ];
 
     try {
@@ -349,8 +425,7 @@ export const ticketRepo = {
       updated_clients AS (
         UPDATE client c
         SET
-          redeem_count = COALESCE(c.redeem_count, 0) + cc.picked_count,
-          updated_at = CURRENT_TIMESTAMP
+          redeem_count = COALESCE(c.redeem_count, 0) + cc.picked_count
         FROM client_counts cc
         WHERE c.client_number = cc.client_number
         RETURNING c.client_number
@@ -420,6 +495,7 @@ export const ticketRepo = {
       UPDATE ticket
       SET is_stolen = TRUE
       WHERE ticket_number = $1
+        AND status = 'pawned'
       RETURNING ${ticketSelectColumns}
     `;
 
@@ -448,8 +524,46 @@ export const ticketRepo = {
     const client = dbClient ?? (await connect());
     const query = `
       UPDATE ticket
-      SET client_number = $1
+      SET
+        client_number = $1,
+        client_snapshot = (
+          SELECT jsonb_build_object(
+            'client_number', c.client_number,
+            'first_name', c.first_name,
+            'last_name', c.last_name,
+            'middle_name', COALESCE(c.middle_name, ''),
+            'date_of_birth', TO_CHAR(c.date_of_birth, 'YYYY-MM-DD'),
+            'gender', c.gender,
+            'hair_color', c.hair_color,
+            'eye_color', c.eye_color,
+            'height_cm', c.height_cm,
+            'weight_kg', c.weight_kg,
+            'address', COALESCE(c.address, ''),
+            'city', COALESCE(c.city, ''),
+            'province', COALESCE(c.province, ''),
+            'postal_code', COALESCE(c.postal_code, ''),
+            'phone', COALESCE(c.phone, ''),
+            'email', COALESCE(c.email, ''),
+            'image_path', COALESCE(c.image_path, ''),
+            'identifications', COALESCE(
+              (
+                SELECT jsonb_agg(
+                  jsonb_build_object(
+                    'id_type', ci.id_type,
+                    'id_value', ci.id_value
+                  ) ORDER BY ci.id
+                )
+                FROM client_id ci
+                WHERE ci.client_number = c.client_number
+              ),
+              '[]'::jsonb
+            )
+          )
+          FROM client c
+          WHERE c.client_number = $1
+        )
       WHERE ticket_number = $2
+        AND status IN ('pawned', 'sold')
       RETURNING ${ticketSelectColumns}
     `;
 

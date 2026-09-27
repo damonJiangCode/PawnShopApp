@@ -22,6 +22,7 @@ import type {
   XmlReportPreviewResult,
   XmlReportSubmissionResult,
 } from "../../../../shared/payload-contracts/xmlReport.contract";
+import type { XmlReportQueryResult } from "../../../../shared/api-contracts/xmlReportApi.contract";
 import { getAppApi } from "../../../shared/api/app.api";
 import {
   formatCurrency,
@@ -29,6 +30,14 @@ import {
 } from "../../../shared/utils/formatters";
 import WindowLayout from "../../../windows/WindowLayout";
 import type { WindowScreenProps } from "../../../windows/windowRegistry";
+
+const unwrapXmlReportResult = <T,>(result: XmlReportQueryResult<T>): T => {
+  if (result.ok) {
+    return result.result;
+  }
+
+  throw new Error(result.message);
+};
 
 const XmlReportWindow = (_props: WindowScreenProps) => {
   const today = useMemo(() => formatIsoDate(new Date()), []);
@@ -80,7 +89,9 @@ const XmlReportWindow = (_props: WindowScreenProps) => {
     setSubmissionResult(undefined);
     try {
       setPreview(
-        await api.loadPreview({ from_date: fromDate, to_date: toDate }),
+        unwrapXmlReportResult(
+          await api.loadPreview({ from_date: fromDate, to_date: toDate }),
+        ),
       );
     } catch (error) {
       setPreview(undefined);
@@ -102,13 +113,18 @@ const XmlReportWindow = (_props: WindowScreenProps) => {
     setErrorMessage("");
     setSubmissionResult(undefined);
     try {
-      const result = await api.submitReport({
-        from_date: fromDate,
-        to_date: toDate,
-      });
+      const result = unwrapXmlReportResult(
+        await api.submitReport({
+          from_date: fromDate,
+          to_date: toDate,
+          preview_token: preview.preview_token,
+        }),
+      );
       setSubmissionResult(result);
       setPreview(
-        await api.loadPreview({ from_date: fromDate, to_date: toDate }),
+        unwrapXmlReportResult(
+          await api.loadPreview({ from_date: fromDate, to_date: toDate }),
+        ),
       );
     } catch (error) {
       setErrorMessage(
@@ -124,7 +140,9 @@ const XmlReportWindow = (_props: WindowScreenProps) => {
     preview.total_tickets > 0 &&
     preview.invalid_tickets === 0 &&
     preview.tickets.some(
-      (ticket) => ticket.submission_status !== "submitted",
+      (ticket) =>
+        ticket.submission_status === "pending" ||
+        ticket.submission_status === "failed",
     ) &&
     !isSubmitting,
   );
@@ -240,6 +258,7 @@ const XmlReportWindow = (_props: WindowScreenProps) => {
                     <TableCell sx={{ fontWeight: 800 }}>Date & Time</TableCell>
                     <TableCell sx={{ fontWeight: 800 }}>Customer</TableCell>
                     <TableCell sx={{ fontWeight: 800 }}>Items</TableCell>
+                    <TableCell sx={{ fontWeight: 800 }}>Photos</TableCell>
                     <TableCell sx={{ fontWeight: 800 }}>Amount</TableCell>
                     <TableCell sx={{ fontWeight: 800 }}>Validation</TableCell>
                   </TableRow>
@@ -250,6 +269,8 @@ const XmlReportWindow = (_props: WindowScreenProps) => {
                       payload,
                       errors,
                       warnings,
+                      photo_count: photoCount,
+                      expected_photo_count: expectedPhotoCount,
                       submission_status: submissionStatus,
                       submission_message: submissionMessage,
                     }) => (
@@ -259,6 +280,17 @@ const XmlReportWindow = (_props: WindowScreenProps) => {
                         <TableCell>{payload.key.ticketDateTime}</TableCell>
                         <TableCell>{payload.customer.name}</TableCell>
                         <TableCell>{payload.items.Item.length}</TableCell>
+                        <TableCell
+                          sx={{
+                            color:
+                              photoCount < expectedPhotoCount
+                                ? "warning.main"
+                                : "success.main",
+                            fontWeight: 700,
+                          }}
+                        >
+                          {photoCount} / {expectedPhotoCount}
+                        </TableCell>
                         <TableCell>
                           {formatCurrency(
                             Number(
@@ -280,6 +312,10 @@ const XmlReportWindow = (_props: WindowScreenProps) => {
                           ) : submissionStatus === "failed" ? (
                             <Typography variant="body2" color="error.main">
                               Failed: {submissionMessage}
+                            </Typography>
+                          ) : submissionStatus === "submitting" ? (
+                            <Typography variant="body2" color="info.main">
+                              Submitting
                             </Typography>
                           ) : warnings.length ? (
                             <Typography variant="body2" color="warning.main">

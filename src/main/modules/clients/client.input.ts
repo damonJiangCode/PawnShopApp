@@ -3,6 +3,7 @@ import type {
   ClientNotesAction,
   SaveClientInput,
 } from "../../../shared/payload-contracts/client.contract.ts";
+import { createFieldError } from "../../shared/createFieldError.ts";
 
 type NormalizedSaveClientInput = {
   client: Client;
@@ -58,11 +59,17 @@ const validateClient = (client: Client, identifications: ID[]) => {
     !client.image_path;
 
   if (requiredMissing) {
-    throw new Error("Please fill all required client fields before saving.");
+    throw createFieldError(
+      "client",
+      "Please fill all required client fields before saving.",
+    );
   }
 
   if (identifications.length < 2) {
-    throw new Error("Please provide at least two valid ID entries.");
+    throw createFieldError(
+      "identifications",
+      "Please provide at least two valid ID entries.",
+    );
   }
 };
 

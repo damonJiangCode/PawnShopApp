@@ -37,6 +37,9 @@ export type XmlReportSourceRow = {
   email: string;
   id_type: string;
   id_value: string;
+  id_type_2: string;
+  id_value_2: string;
+  client_image_path: string;
   item_number?: number;
   quantity?: number;
   category_name: string;
@@ -45,6 +48,12 @@ export type XmlReportSourceRow = {
   model_number: string;
   serial_number: string;
   item_amount?: number;
+  item_image_path: string;
+};
+
+export type XmlReportImageReferences = {
+  client_image_path: string;
+  item_image_paths: string[];
 };
 
 export type LeadsOnlineProperty = XmlReportProperty;

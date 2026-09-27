@@ -7,6 +7,7 @@ export const createEmployeeTable = `
     date_of_birth DATE NOT NULL,
     gender TEXT NOT NULL,
     password TEXT NOT NULL UNIQUE,
+    password_lookup TEXT NOT NULL UNIQUE,
     is_terminated BOOLEAN NOT NULL DEFAULT FALSE,
     is_manager BOOLEAN NOT NULL DEFAULT FALSE,
     address TEXT NOT NULL DEFAULT '',

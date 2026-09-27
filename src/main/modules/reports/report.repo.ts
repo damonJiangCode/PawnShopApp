@@ -53,14 +53,17 @@ export type OverdueReportSourceRow = {
   serial_number: string;
 };
 
-const clientDisplayNameSql = (alias: string) => `
+const snapshotClientDisplayNameSql = (
+  ticketAlias: string,
+  clientAlias: string,
+) => `
   CONCAT(
-    UPPER(${alias}.last_name),
+    UPPER(COALESCE(${ticketAlias}.client_snapshot->>'last_name', ${clientAlias}.last_name, '')),
     ', ',
-    UPPER(${alias}.first_name),
+    UPPER(COALESCE(${ticketAlias}.client_snapshot->>'first_name', ${clientAlias}.first_name, '')),
     CASE
-      WHEN COALESCE(TRIM(${alias}.middle_name), '') = '' THEN ''
-      ELSE CONCAT(' ', UPPER(${alias}.middle_name))
+      WHEN COALESCE(${ticketAlias}.client_snapshot->>'middle_name', ${clientAlias}.middle_name, '') = '' THEN ''
+      ELSE CONCAT(' ', UPPER(COALESCE(${ticketAlias}.client_snapshot->>'middle_name', ${clientAlias}.middle_name, '')))
     END
   )
 `;
@@ -141,18 +144,18 @@ export const reportRepo = {
     const query = `
       SELECT
         t.ticket_number,
-        ${clientDisplayNameSql("c")} AS client_name,
+        ${snapshotClientDisplayNameSql("t", "c")} AS client_name,
         t.location,
         TO_CHAR(t.transaction_datetime, 'YYYY-MM-DD') AS transaction_date,
         TO_CHAR(t.due_date, 'YYYY-MM-DD') AS due_date,
         t.interest_paid_months,
-        i.item_number,
-        COALESCE(i.description, '') AS item_description,
-        COALESCE(i.brand_name, '') AS brand_name,
-        COALESCE(i.model_number, '') AS model_number,
-        COALESCE(i.serial_number, '') AS serial_number
+        COALESCE((ti.item_snapshot->>'item_number')::bigint, i.item_number) AS item_number,
+        COALESCE(ti.item_snapshot->>'description', i.description, '') AS item_description,
+        COALESCE(ti.item_snapshot->>'brand_name', i.brand_name, '') AS brand_name,
+        COALESCE(ti.item_snapshot->>'model_number', i.model_number, '') AS model_number,
+        COALESCE(ti.item_snapshot->>'serial_number', i.serial_number, '') AS serial_number
       FROM ticket t
-      INNER JOIN client c ON c.client_number = t.client_number
+      LEFT JOIN client c ON c.client_number = t.client_number
       LEFT JOIN ticket_item ti ON ti.ticket_number = t.ticket_number
       LEFT JOIN item i ON i.item_number = ti.item_number
       WHERE t.status = 'pawned'
@@ -165,6 +168,7 @@ export const reportRepo = {
         t.due_date ASC,
         t.ticket_number ASC,
         i.item_number ASC
+      LIMIT 20001
     `;
 
     try {
@@ -190,17 +194,21 @@ export const reportRepo = {
         t.ticket_number,
         t.amount AS ticket_amount,
         COALESCE(t.description, '') AS ticket_description,
-        ${clientDisplayNameSql("c")} AS client_name,
-        COALESCE(c.gender, '') AS gender,
-        COALESCE(c.eye_color, '') AS eye_color,
-        COALESCE(ids.identifications, '') AS identifications,
-        i.item_number,
-        i.quantity,
-        COALESCE(i.description, '') AS item_description,
-        COALESCE(i.brand_name, '') AS brand_name,
-        COALESCE(i.model_number, '') AS model_number,
-        COALESCE(i.serial_number, '') AS serial_number,
-        i.amount AS item_amount
+        ${snapshotClientDisplayNameSql("t", "c")} AS client_name,
+        COALESCE(t.client_snapshot->>'gender', c.gender, '') AS gender,
+        COALESCE(t.client_snapshot->>'eye_color', c.eye_color, '') AS eye_color,
+        CASE
+          WHEN t.client_snapshot ? 'identifications'
+            THEN COALESCE(snapshot_ids.identifications, '')
+          ELSE COALESCE(ids.identifications, '')
+        END AS identifications,
+        COALESCE((ti.item_snapshot->>'item_number')::bigint, i.item_number) AS item_number,
+        COALESCE((ti.item_snapshot->>'quantity')::integer, i.quantity) AS quantity,
+        COALESCE(ti.item_snapshot->>'description', i.description, '') AS item_description,
+        COALESCE(ti.item_snapshot->>'brand_name', i.brand_name, '') AS brand_name,
+        COALESCE(ti.item_snapshot->>'model_number', i.model_number, '') AS model_number,
+        COALESCE(ti.item_snapshot->>'serial_number', i.serial_number, '') AS serial_number,
+        COALESCE((ti.item_snapshot->>'amount')::numeric, i.amount) AS item_amount
       FROM ticket t
       LEFT JOIN client c ON c.client_number = t.client_number
       LEFT JOIN LATERAL (
@@ -211,11 +219,21 @@ export const reportRepo = {
         FROM client_id ci
         WHERE ci.client_number = c.client_number
       ) ids ON TRUE
+      LEFT JOIN LATERAL (
+        SELECT STRING_AGG(
+          CONCAT(value->>'id_type', ': ', value->>'id_value'),
+          ' | '
+        ) AS identifications
+        FROM jsonb_array_elements(
+          COALESCE(t.client_snapshot->'identifications', '[]'::jsonb)
+        ) value
+      ) snapshot_ids ON TRUE
       LEFT JOIN ticket_item ti ON ti.ticket_number = t.ticket_number
       LEFT JOIN item i ON i.item_number = ti.item_number
       WHERE t.transaction_datetime >= $1::date
         AND t.transaction_datetime < ($2::date + INTERVAL '1 day')
       ORDER BY t.transaction_datetime ASC, t.ticket_number ASC, i.item_number ASC
+      LIMIT 20001
     `;
 
     try {
@@ -242,13 +260,14 @@ export const reportRepo = {
         t.interest_paid_months,
         t.partial_payment,
         t.description,
-        ${clientDisplayNameSql("c")} AS client_name
+        ${snapshotClientDisplayNameSql("t", "c")} AS client_name
       FROM ticket t
       LEFT JOIN client c ON c.client_number = t.client_number
       WHERE t.status = 'pawned_picked_up'
         AND t.pickup_datetime >= $1::date
         AND t.pickup_datetime < ($2::date + INTERVAL '1 day')
       ORDER BY t.pickup_datetime ASC, t.ticket_number ASC
+      LIMIT 20001
     `;
 
     try {
@@ -271,13 +290,14 @@ export const reportRepo = {
         ip.amount_paid,
         ip.payment_datetime,
         t.description,
-        ${clientDisplayNameSql("c")} AS client_name
+        ${snapshotClientDisplayNameSql("t", "c")} AS client_name
       FROM interest_payment ip
       INNER JOIN ticket t ON t.ticket_number = ip.ticket_number
       LEFT JOIN client c ON c.client_number = t.client_number
       WHERE ip.payment_datetime >= $1::date
         AND ip.payment_datetime < ($2::date + INTERVAL '1 day')
       ORDER BY ip.payment_datetime ASC, ip.ticket_number ASC
+      LIMIT 20001
     `;
 
     try {

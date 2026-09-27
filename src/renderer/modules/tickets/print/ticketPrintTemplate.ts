@@ -22,10 +22,7 @@ const escapeHtml = (value: unknown) =>
     .replaceAll("'", "&#39;");
 
 const formatMoney = (value: number) => {
-  const rounded = Number(value.toFixed(2));
-  return rounded % 1 === 0
-    ? `$${rounded.toFixed(0)}`
-    : `$${rounded.toFixed(1)}`;
+  return `$${Number(value).toFixed(2)}`;
 };
 
 const formatTicketDate = (value: Date) => {

@@ -5,6 +5,8 @@ const path = require("path");
 const { spawn } = require("child_process");
 const csv = require("csv-parser");
 const { Pool } = require("pg");
+const { createHash, randomBytes, scryptSync } = require("crypto");
+const dbConfig = require("./migration-config.cjs");
 
 const migrationRoot = path.resolve(__dirname, "..");
 const sourceDbPath = path.join(migrationRoot, "source", "superpawnconv.mdb");
@@ -12,19 +14,19 @@ const summaryDir = path.join(migrationRoot, "reports");
 const reportPath = path.join(summaryDir, "employee-migration.md");
 const shouldCommit = process.argv.includes("--commit");
 
-const dbConfig = {
-  user: process.env.DB_USER || "moneyexpress",
-  host: process.env.DB_HOST || "localhost",
-  database: process.env.DB_NAME || "pawnsystemdb_migration",
-  password: process.env.DB_PASSWORD || "0236",
-  port: Number(process.env.DB_PORT || 5432),
-};
-
 const DEFAULT_DOB = "1900-01-01";
-const DEFAULT_GENDER = "unknown";
+const DEFAULT_GENDER = "UNKNOWN";
 const MANAGER_EMPLOYEE_NUMBER = 69;
+const PASSWORD_KEY_LENGTH = 64;
 
 const normalizeText = (value) => String(value ?? "").trim();
+const getPasswordLookup = (password) =>
+  createHash("sha256").update(password).digest("hex");
+const hashPassword = (password) => {
+  const salt = randomBytes(16);
+  const key = scryptSync(password, salt, PASSWORD_KEY_LENGTH);
+  return `scrypt$${salt.toString("base64")}$${key.toString("base64")}`;
+};
 
 const parseLegacyDate = (value) => {
   const raw = normalizeText(value);
@@ -122,6 +124,7 @@ const buildInsert = (employees) => {
     "date_of_birth",
     "gender",
     "password",
+    "password_lookup",
     "is_terminated",
     "is_manager",
     "address",
@@ -207,7 +210,12 @@ const main = async () => {
 
     if (shouldCommit) {
       await client.query("TRUNCATE TABLE employee RESTART IDENTITY");
-      const query = buildInsert(employees);
+      const employeesForInsert = employees.map((employee) => ({
+        ...employee,
+        password_lookup: getPasswordLookup(employee.password),
+        password: hashPassword(employee.password),
+      }));
+      const query = buildInsert(employeesForInsert);
       await client.query(query.text, query.values);
       await client.query(
         "SELECT setval(pg_get_serial_sequence('employee', 'employee_number'), (SELECT MAX(employee_number) FROM employee))",
@@ -270,10 +278,11 @@ Mode: ${shouldCommit ? "commit" : "preview"}
 ## Rules
 
 - Add placeholder employee \`999 / Legacy Employee\` for legacy tickets that used employee number 999.
-- Set \`gender\` to \`unknown\` because the legacy employee table has no gender column.
+- Set \`gender\` to \`UNKNOWN\` because the legacy employee table has no gender column.
 - Set missing or invalid birth dates to \`${DEFAULT_DOB}\`.
 - Map \`EM200Terminated = 1\` to \`is_terminated = true\`; terminated employee passwords cannot authorize app actions.
 - Set employee \`${MANAGER_EMPLOYEE_NUMBER} / WEI FENG\` as manager.
+- Hash employee passwords before they are stored in PostgreSQL.
 - No employee photo field is migrated because \`EM200PICTURE\` has no usable photo rows.
 - After commit, ticket \`employee_name\` placeholders are backfilled from migrated employee nicknames.
 `;

@@ -41,10 +41,12 @@ export const createAppWindow = ({
     minHeight,
     center: x === undefined && y === undefined,
     show: false,
+    focusable: focusOnShow,
     title,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: true,
       preload: preloadPath,
     },
   });
@@ -86,6 +88,7 @@ export const createAppWindow = ({
     }
 
     window.showInactive();
+    window.setFocusable(true);
   });
 
   void window.loadURL(url);

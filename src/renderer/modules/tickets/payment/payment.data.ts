@@ -64,26 +64,18 @@ export const processPaymentRows = async ({
     },
     new Map<number, number>(),
   );
-  const [pickedUpTickets, extendedTickets] = await Promise.all([
-    pickupRows.length
-      ? ticketApi.pickupTickets({
-          tickets: pickupRows.map((row) => ({
-            ticket_number: row.ticketNumber,
-            pickup_amount_paid: Number(row.pickupAmount ?? 0),
-          })),
-        })
-      : Promise.resolve([]),
-    extensionMonthCounts.size
-      ? ticketApi.extendTickets({
-          extensions: [...extensionMonthCounts.entries()].map(
-            ([ticketNumber, months]) => ({
-              ticket_number: ticketNumber,
-              months,
-            }),
-          ),
-        })
-      : Promise.resolve([]),
-  ]);
+  const {
+    picked_up_tickets: pickedUpTickets,
+    extended_tickets: extendedTickets,
+  } = await ticketApi.processPayments({
+    pickup_ticket_numbers: pickupRows.map((row) => row.ticketNumber),
+    extensions: [...extensionMonthCounts.entries()].map(
+      ([ticketNumber, months]) => ({
+        ticket_number: ticketNumber,
+        months,
+      }),
+    ),
+  });
   const pickedUpIds = new Set(
     pickedUpTickets
       .map((ticket) => ticket.ticket_number)

@@ -5,6 +5,7 @@ const path = require("path");
 const { spawn } = require("child_process");
 const csv = require("csv-parser");
 const { Pool } = require("pg");
+const dbConfig = require("./migration-config.cjs");
 
 const migrationRoot = path.resolve(__dirname, "..");
 const sourceDbPath = path.join(migrationRoot, "source", "superpawnconv.mdb");
@@ -12,14 +13,6 @@ const summaryDir = path.join(migrationRoot, "reports");
 const reportPath = path.join(summaryDir, "item-migration.md");
 const categoryReportPath = path.join(summaryDir, "category-migration.md");
 const shouldCommit = process.argv.includes("--commit");
-
-const dbConfig = {
-  user: process.env.DB_USER || "moneyexpress",
-  host: process.env.DB_HOST || "localhost",
-  database: process.env.DB_NAME || "pawnsystemdb_migration",
-  password: process.env.DB_PASSWORD || "0236",
-  port: Number(process.env.DB_PORT || 5432),
-};
 
 const INSERT_BATCH_SIZE = 1000;
 const UNKNOWN_DESCRIPTION = "Unknown item";
@@ -215,7 +208,8 @@ const resolveSubcategory = ({
     category: "OTHER",
     subcategory: "other",
     reason: "global other fallback",
-    legacySubcategory: subcategoryDescription || legacySubcategoryCode || "<blank>",
+    legacySubcategory:
+      subcategoryDescription || legacySubcategoryCode || "<blank>",
     legacyCategory: categoryDescription || legacyCategoryCode || "<blank>",
   });
 
@@ -231,7 +225,8 @@ const resolveSubcategory = ({
     subcategory: "other",
     id: targetSubcategoryIds.get(targetKey("OTHER", "other")),
     reason: "target missing fallback",
-    legacySubcategory: subcategoryDescription || legacySubcategoryCode || "<blank>",
+    legacySubcategory:
+      subcategoryDescription || legacySubcategoryCode || "<blank>",
     legacyCategory: categoryDescription || legacyCategoryCode || "<blank>",
   };
 };
@@ -259,7 +254,8 @@ const mapLegacyItem = (row, prefix, source, context, itemNumberOverride) => {
     category_reason: mappedSubcategory.reason,
     legacy_subcategory: mappedSubcategory.legacySubcategory,
     legacy_category: mappedSubcategory.legacyCategory,
-    description: normalizeText(row[`${prefix}DESCRIPTION`]) || UNKNOWN_DESCRIPTION,
+    description:
+      normalizeText(row[`${prefix}DESCRIPTION`]) || UNKNOWN_DESCRIPTION,
     description_defaulted: !normalizeText(row[`${prefix}DESCRIPTION`]),
     brand_name: normalizeText(row[`${prefix}TRADEMARK`]) || null,
     model_number: normalizeText(row[`${prefix}MODELNO`]) || null,
@@ -364,17 +360,26 @@ const main = async () => {
 
     const addTicketItem = (ticketNumber, itemNumber) => {
       if (!migratedTickets.has(ticketNumber)) {
-        increment(warningCounts, "ticket_item skipped because ticket is not migrated");
+        increment(
+          warningCounts,
+          "ticket_item skipped because ticket is not migrated",
+        );
         return;
       }
       if (!itemByNumber.has(itemNumber)) {
-        increment(warningCounts, "ticket_item skipped because item is not migrated");
+        increment(
+          warningCounts,
+          "ticket_item skipped because item is not migrated",
+        );
         return;
       }
       const key = `${ticketNumber}:${itemNumber}`;
       if (ticketItemKeys.has(key)) return;
       ticketItemKeys.add(key);
-      ticketItems.push({ ticket_number: ticketNumber, item_number: itemNumber });
+      ticketItems.push({
+        ticket_number: ticketNumber,
+        item_number: itemNumber,
+      });
     };
 
     for (const row of wcRows) {
@@ -391,20 +396,35 @@ const main = async () => {
         syntheticItemNumber,
       );
       if (syntheticItemNumber) {
-        increment(warningCounts, "synthetic item number generated for invalid WC400 item number");
+        increment(
+          warningCounts,
+          "synthetic item number generated for invalid WC400 item number",
+        );
       }
       if (itemByNumber.has(item.item_number)) {
-        increment(warningCounts, "duplicate WC400 item number skipped after first row");
+        increment(
+          warningCounts,
+          "duplicate WC400 item number skipped after first row",
+        );
         continue;
       }
       itemByNumber.set(item.item_number, item);
       addTicketItem(item.ticket_number, item.item_number);
       increment(sourceCounts, "WC400INVEN item");
       increment(mappingReasonCounts, item.category_reason);
-      increment(targetSubcategoryCounts, `${item.category_name} / ${item.subcategory_name}`);
+      increment(
+        targetSubcategoryCounts,
+        `${item.category_name} / ${item.subcategory_name}`,
+      );
       if (item.category_name === "OTHER" || item.subcategory_name === "other") {
-        increment(otherMappingCounts, `${item.legacy_category} / ${item.legacy_subcategory} -> ${item.category_name} / ${item.subcategory_name}`);
-        samplePush(otherSamples, `WC400 item ${item.item_number}: ${item.legacy_category} / ${item.legacy_subcategory}`);
+        increment(
+          otherMappingCounts,
+          `${item.legacy_category} / ${item.legacy_subcategory} -> ${item.category_name} / ${item.subcategory_name}`,
+        );
+        samplePush(
+          otherSamples,
+          `WC400 item ${item.item_number}: ${item.legacy_category} / ${item.legacy_subcategory}`,
+        );
       }
     }
 
@@ -422,16 +442,31 @@ const main = async () => {
         syntheticItemNumber,
       );
       if (syntheticItemNumber) {
-        increment(warningCounts, "synthetic item number generated for invalid SA110 item number");
+        increment(
+          warningCounts,
+          "synthetic item number generated for invalid SA110 item number",
+        );
       }
       if (!itemByNumber.has(item.item_number)) {
         itemByNumber.set(item.item_number, item);
         increment(sourceCounts, "SA110ITEM item fallback");
         increment(mappingReasonCounts, item.category_reason);
-        increment(targetSubcategoryCounts, `${item.category_name} / ${item.subcategory_name}`);
-        if (item.category_name === "OTHER" || item.subcategory_name === "other") {
-          increment(otherMappingCounts, `${item.legacy_category} / ${item.legacy_subcategory} -> ${item.category_name} / ${item.subcategory_name}`);
-          samplePush(otherSamples, `SA110 item ${item.item_number}: ${item.legacy_category} / ${item.legacy_subcategory}`);
+        increment(
+          targetSubcategoryCounts,
+          `${item.category_name} / ${item.subcategory_name}`,
+        );
+        if (
+          item.category_name === "OTHER" ||
+          item.subcategory_name === "other"
+        ) {
+          increment(
+            otherMappingCounts,
+            `${item.legacy_category} / ${item.legacy_subcategory} -> ${item.category_name} / ${item.subcategory_name}`,
+          );
+          samplePush(
+            otherSamples,
+            `SA110 item ${item.item_number}: ${item.legacy_category} / ${item.legacy_subcategory}`,
+          );
         }
       }
       addTicketItem(item.ticket_number, item.item_number);
@@ -439,18 +474,43 @@ const main = async () => {
 
     const items = [...itemByNumber.values()];
     for (const item of items) {
-      if (item.quantity_defaulted) increment(warningCounts, "quantity defaulted to 1");
-      if (item.description_defaulted) increment(warningCounts, "description defaulted to Unknown item");
-      if (item.amount_defaulted) increment(warningCounts, "amount defaulted to 0");
+      if (item.quantity_defaulted)
+        increment(warningCounts, "quantity defaulted to 1");
+      if (item.description_defaulted)
+        increment(warningCounts, "description defaulted to Unknown item");
+      if (item.amount_defaulted)
+        increment(warningCounts, "amount defaulted to 0");
       if (!item.subcategory_id) {
         increment(blockerCounts, "mapped subcategory missing target id");
-        samplePush(blockerSamples, `${item.item_number}: ${item.category_name} / ${item.subcategory_name}`);
+        samplePush(
+          blockerSamples,
+          `${item.item_number}: ${item.category_name} / ${item.subcategory_name}`,
+        );
       }
+    }
+
+    for (const ticketItem of ticketItems) {
+      const item = itemByNumber.get(ticketItem.item_number);
+      ticketItem.item_snapshot = JSON.stringify({
+        item_number: item.item_number,
+        quantity: item.quantity,
+        subcategory_id: item.subcategory_id,
+        category_name: item.category_name,
+        subcategory_name: item.subcategory_name,
+        description: item.description,
+        brand_name: item.brand_name || "",
+        model_number: item.model_number || "",
+        serial_number: item.serial_number || "",
+        amount: item.amount,
+        image_path: item.image_path || "",
+      });
     }
 
     await client.query("BEGIN");
     if (shouldCommit && !blockerCounts.size) {
-      await client.query("TRUNCATE TABLE ticket_item, item RESTART IDENTITY CASCADE");
+      await client.query(
+        "TRUNCATE TABLE ticket_item, item RESTART IDENTITY CASCADE",
+      );
       await insertBatches(
         client,
         "item",
@@ -470,7 +530,7 @@ const main = async () => {
       await insertBatches(
         client,
         "ticket_item",
-        ["ticket_number", "item_number"],
+        ["ticket_number", "item_number", "item_snapshot"],
         ticketItems,
       );
       await client.query(
@@ -559,7 +619,9 @@ ${formatCounts(warningCounts, 80)}
     fs.writeFileSync(reportPath, report);
     console.log(`Item migration ${shouldCommit ? "committed" : "previewed"}`);
     console.log(`Items prepared: ${items.length.toLocaleString()}`);
-    console.log(`Ticket-item links prepared: ${ticketItems.length.toLocaleString()}`);
+    console.log(
+      `Ticket-item links prepared: ${ticketItems.length.toLocaleString()}`,
+    );
     console.log(`Blocker types: ${blockerCounts.size}`);
     console.log(`Report: ${reportPath}`);
   } catch (error) {

@@ -5,6 +5,7 @@ const path = require("path");
 const { spawn } = require("child_process");
 const csv = require("csv-parser");
 const { Pool } = require("pg");
+const dbConfig = require("./migration-config.cjs");
 
 const migrationRoot = path.resolve(__dirname, "..");
 const projectRoot = path.resolve(migrationRoot, "..");
@@ -12,20 +13,10 @@ const sourceDbPath = path.join(migrationRoot, "source", "superpawnconv.mdb");
 const summaryDir = path.join(migrationRoot, "reports");
 const reportPath = path.join(summaryDir, "city-migration.md");
 
-const dbConfig = {
-  user: process.env.DB_USER || "moneyexpress",
-  host: process.env.DB_HOST || "localhost",
-  database: process.env.DB_NAME || "pawnsystemdb_migration",
-  password: process.env.DB_PASSWORD || "0236",
-  port: Number(process.env.DB_PORT || 5432),
-};
-
 const normalizeText = (value) => String(value ?? "").trim();
 const normalizeUpper = (value) => normalizeText(value).toUpperCase();
 const normalizeCityKeyPart = (value) =>
-  normalizeUpper(value)
-    .replace(/\./g, "")
-    .replace(/\s+/g, " ");
+  normalizeUpper(value).replace(/\./g, "").replace(/\s+/g, " ");
 
 const cityKey = (city, province, country) =>
   `${normalizeCityKeyPart(city)}|${normalizeCityKeyPart(province)}|${normalizeCityKeyPart(country)}`;
@@ -58,9 +49,13 @@ const getValue = (row, key) => {
 const readAccessTable = (tableName) => {
   return new Promise((resolve, reject) => {
     const rows = [];
-    const child = spawn("mdb-export", ["-b", "strip", sourceDbPath, tableName], {
-      cwd: projectRoot,
-    });
+    const child = spawn(
+      "mdb-export",
+      ["-b", "strip", sourceDbPath, tableName],
+      {
+        cwd: projectRoot,
+      },
+    );
 
     child.stdout.pipe(csv()).on("data", (row) => rows.push(row));
 
@@ -123,10 +118,14 @@ const loadLegacyClientCities = async () => {
   const countryByCode = buildLookupByCode(countryRows, "MF120CODE", (row) =>
     normalizeText(getValue(row, "MF120COUNTRY")),
   );
-  const provinceByCode = buildLookupByCode(provinceRows, "MF110CODE", (row) => ({
-    province: normalizeText(getValue(row, "MF110PROVINCE")),
-    countryCode: normalizeText(getValue(row, "MF110COUNTRYCODE")),
-  }));
+  const provinceByCode = buildLookupByCode(
+    provinceRows,
+    "MF110CODE",
+    (row) => ({
+      province: normalizeText(getValue(row, "MF110PROVINCE")),
+      countryCode: normalizeText(getValue(row, "MF110COUNTRYCODE")),
+    }),
+  );
   const cityByCode = buildLookupByCode(cityRows, "MF100CITY", (row) => {
     const provinceCode = normalizeText(getValue(row, "MF100PROVINCENO"));
     const province = provinceByCode.get(provinceCode);
@@ -135,7 +134,8 @@ const loadLegacyClientCities = async () => {
 
     return {
       city: normalizeText(getValue(row, "MF100NAME")),
-      province: province?.province || normalizeText(getValue(row, "MF100PROVSHNAME")),
+      province:
+        province?.province || normalizeText(getValue(row, "MF100PROVSHNAME")),
       country: countryByCode.get(countryCode) || "",
     };
   });
@@ -166,7 +166,12 @@ const loadLegacyClientCities = async () => {
     }
 
     const key = cityKey(city, province, country);
-    const current = usedCities.get(key) || { city, province, country, count: 0 };
+    const current = usedCities.get(key) || {
+      city,
+      province,
+      country,
+      count: 0,
+    };
     current.count += 1;
     usedCities.set(key, current);
     addSample(
@@ -182,18 +187,22 @@ const loadLegacyClientCities = async () => {
 const main = async () => {
   fs.mkdirSync(summaryDir, { recursive: true });
   const pool = new Pool(dbConfig);
+  const client = await pool.connect();
 
   try {
-    const { clientRows, usedCities, samplesByKey } = await loadLegacyClientCities();
+    const { clientRows, usedCities, samplesByKey } =
+      await loadLegacyClientCities();
 
-    await pool.query("BEGIN");
+    await client.query("BEGIN");
 
-    const beforeResult = await pool.query(
+    const beforeResult = await client.query(
       "SELECT id, city, province, country FROM city ORDER BY province, city",
     );
 
     const beforeKeys = new Set(
-      beforeResult.rows.map((row) => cityKey(row.city, row.province, row.country)),
+      beforeResult.rows.map((row) =>
+        cityKey(row.city, row.province, row.country),
+      ),
     );
     const usedKeys = new Set(usedCities.keys());
     const missingRows = [...usedCities.entries()]
@@ -202,7 +211,7 @@ const main = async () => {
       .sort((a, b) => b.count - a.count || a.city.localeCompare(b.city));
 
     if (missingRows.length) {
-      await pool.query(
+      await client.query(
         `
           INSERT INTO city (city, province, country)
           SELECT seed.city, seed.province, seed.country
@@ -217,7 +226,7 @@ const main = async () => {
       );
     }
 
-    const afterInsertResult = await pool.query(
+    const afterInsertResult = await client.query(
       "SELECT id, city, province, country FROM city ORDER BY province, city",
     );
 
@@ -249,32 +258,36 @@ const main = async () => {
     }
 
     if (deleteCandidates.length) {
-      await pool.query(
-        "DELETE FROM city WHERE id = ANY($1::int[])",
-        [deleteCandidates.map((row) => row.id)],
-      );
+      await client.query("DELETE FROM city WHERE id = ANY($1::int[])", [
+        deleteCandidates.map((row) => row.id),
+      ]);
     }
 
-    const afterCleanupResult = await pool.query(
+    const afterCleanupResult = await client.query(
       "SELECT id, city, province, country FROM city ORDER BY province, city",
     );
 
     const finalKeys = new Set(
-      afterCleanupResult.rows.map((row) => cityKey(row.city, row.province, row.country)),
+      afterCleanupResult.rows.map((row) =>
+        cityKey(row.city, row.province, row.country),
+      ),
     );
     const stillMissingRows = [...usedCities.entries()]
       .filter(([key]) => !finalKeys.has(key))
       .map(([, value]) => value)
       .sort((a, b) => b.count - a.count || a.city.localeCompare(b.city));
 
-    await pool.query("COMMIT");
+    await client.query("COMMIT");
 
     const insertedClientUseCount = missingRows.reduce(
       (total, row) => total + row.count,
       0,
     );
     const deletedTableRows = deleteCandidates
-      .sort((a, b) => a.province.localeCompare(b.province) || a.city.localeCompare(b.city))
+      .sort(
+        (a, b) =>
+          a.province.localeCompare(b.province) || a.city.localeCompare(b.city),
+      )
       .map((row) => [
         row.city,
         row.province,
@@ -282,13 +295,17 @@ const main = async () => {
         row.legacyCity,
         String(row.legacyCount),
       ]);
-    const topInsertedRows = missingRows.slice(0, 120).map((row) => [
-      String(row.count),
-      row.city,
-      row.province,
-      row.country,
-      (samplesByKey.get(cityKey(row.city, row.province, row.country)) || []).join("<br>"),
-    ]);
+    const topInsertedRows = missingRows
+      .slice(0, 120)
+      .map((row) => [
+        String(row.count),
+        row.city,
+        row.province,
+        row.country,
+        (
+          samplesByKey.get(cityKey(row.city, row.province, row.country)) || []
+        ).join("<br>"),
+      ]);
 
     const report = [
       "# Client City Migration",
@@ -319,7 +336,13 @@ const main = async () => {
       "## Deleted Overlapping Unused Current Rows",
       "",
       formatTable(
-        ["deleted_city", "province", "country", "kept_legacy_city", "legacy_use_count"],
+        [
+          "deleted_city",
+          "province",
+          "country",
+          "kept_legacy_city",
+          "legacy_use_count",
+        ],
         deletedTableRows,
       ),
       "",
@@ -329,7 +352,9 @@ const main = async () => {
         ["use_count", "city", "province", "country", "example_clients"],
         topInsertedRows,
       ),
-      missingRows.length > 120 ? `\n\n... ${missingRows.length - 120} more inserted rows` : "",
+      missingRows.length > 120
+        ? `\n\n... ${missingRows.length - 120} more inserted rows`
+        : "",
       "",
       "## Still Missing",
       "",
@@ -351,12 +376,13 @@ const main = async () => {
     console.log(`Client city migration written to ${reportPath}`);
   } catch (error) {
     try {
-      await pool.query("ROLLBACK");
+      await client.query("ROLLBACK");
     } catch {
       // Ignore rollback errors so the original failure remains visible.
     }
     throw error;
   } finally {
+    client.release();
     await pool.end();
   }
 };

@@ -5,6 +5,8 @@ import {
 } from "./image/image.protocol.ts";
 import { hasMainWindow, openMainWindow } from "./window/window.main.ts";
 import { openManagedWindow } from "./window/window.manager.ts";
+import { closeDatabase } from "./database/connection.ts";
+import { cleanupUnreferencedStagedImages } from "./image/image-maintenance.service.ts";
 
 const { app, BrowserWindow, Menu } =
   require("electron/main") as typeof import("electron");
@@ -195,6 +197,9 @@ app.whenReady().then(() => {
   openMainWindow();
   createAppMenu();
   registerHandlers();
+  void cleanupUnreferencedStagedImages().catch((error) => {
+    console.error("[image] Unable to clean staged images:", error);
+  });
 });
 
 app.on("activate", () => {
@@ -205,6 +210,18 @@ app.on("activate", () => {
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
+});
+
+let isClosingDatabase = false;
+
+app.on("before-quit", (event) => {
+  if (isClosingDatabase) {
+    return;
+  }
+
+  event.preventDefault();
+  isClosingDatabase = true;
+  void closeDatabase().finally(() => app.quit());
 });
 
 process.on("uncaughtException", (error) => {

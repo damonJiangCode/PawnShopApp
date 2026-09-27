@@ -12,7 +12,7 @@ const normalizeEmployeeDetails = (
   last_name: input.last_name?.trim().toUpperCase() ?? "",
   nickname: input.nickname?.trim().toUpperCase() ?? "",
   date_of_birth: input.date_of_birth?.trim() ?? "",
-  gender: input.gender?.trim() ?? "",
+  gender: input.gender?.trim().toUpperCase() ?? "",
   is_terminated: Boolean(input.is_terminated),
   is_manager: Boolean(input.is_manager),
   address: input.address?.trim() ?? "",
