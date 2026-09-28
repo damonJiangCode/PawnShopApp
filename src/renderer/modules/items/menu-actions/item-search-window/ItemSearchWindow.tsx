@@ -162,14 +162,28 @@ const ItemSearchWindow: React.FC<WindowScreenProps> = () => {
                     inputProps={{ inputMode: "numeric" }}
                     sx={{ width: 190 }}
                   />
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    disabled={!state.canSearch || state.searching}
-                    sx={{ minWidth: 86 }}
-                  >
-                    {state.searching ? "Searching..." : "Search"}
-                  </Button>
+                  <Stack spacing={0.5} sx={{ width: 104 }}>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      disabled={
+                        !state.canSearch ||
+                        state.searching ||
+                        state.loadingClientItems
+                      }
+                    >
+                      {state.searching ? "Searching..." : "Search"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="contained"
+                      color="secondary"
+                      disabled={!state.canLoadClientItems || state.searching}
+                      onClick={() => void actions.handleLoadClientItems()}
+                    >
+                      {state.loadingClientItems ? "Loading..." : "Load"}
+                    </Button>
+                  </Stack>
                 </Stack>
               ) : (
                 <Stack direction="row" spacing={0.75} alignItems="flex-start">
@@ -233,14 +247,28 @@ const ItemSearchWindow: React.FC<WindowScreenProps> = () => {
                     }
                     sx={{ flex: "1 1 124px", minWidth: 96 }}
                   />
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    disabled={!state.canSearch || state.searching}
-                    sx={{ minWidth: 86 }}
-                  >
-                    {state.searching ? "Searching..." : "Search"}
-                  </Button>
+                  <Stack spacing={0.5} sx={{ width: 104 }}>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      disabled={
+                        !state.canSearch ||
+                        state.searching ||
+                        state.loadingClientItems
+                      }
+                    >
+                      {state.searching ? "Searching..." : "Search"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="contained"
+                      color="secondary"
+                      disabled={!state.canLoadClientItems || state.searching}
+                      onClick={() => void actions.handleLoadClientItems()}
+                    >
+                      {state.loadingClientItems ? "Loading..." : "Load"}
+                    </Button>
+                  </Stack>
                 </Stack>
               )}
             </Box>
@@ -350,13 +378,17 @@ const ItemSearchWindow: React.FC<WindowScreenProps> = () => {
                 classNames.push("blocked-item-row");
               }
 
+              if (params.row.is_currently_pawned) {
+                classNames.push("current-pawn-row");
+              }
+
               if (params.row.item_number === state.selectedItem?.item_number) {
                 classNames.push("selected-item-row");
               }
 
               return classNames.join(" ");
             }}
-            loading={state.searching}
+            loading={state.searching || state.loadingClientItems}
             disableColumnMenu
             disableColumnSorting
             disableColumnFilter
@@ -390,6 +422,12 @@ const ItemSearchWindow: React.FC<WindowScreenProps> = () => {
               "& .MuiDataGrid-row.blocked-item-row:hover": {
                 backgroundColor: "#ef9a9a",
               },
+              "& .MuiDataGrid-row.current-pawn-row": {
+                backgroundColor: "#fff3cd",
+              },
+              "& .MuiDataGrid-row.current-pawn-row:hover": {
+                backgroundColor: "#ffe69c",
+              },
               "& .MuiDataGrid-row.Mui-selected": {
                 backgroundColor: "transparent",
               },
@@ -402,6 +440,12 @@ const ItemSearchWindow: React.FC<WindowScreenProps> = () => {
               "& .MuiDataGrid-row.blocked-item-row.Mui-selected:hover": {
                 backgroundColor: "#ef9a9a",
               },
+              "& .MuiDataGrid-row.current-pawn-row.Mui-selected": {
+                backgroundColor: "#fff3cd",
+              },
+              "& .MuiDataGrid-row.current-pawn-row.Mui-selected:hover": {
+                backgroundColor: "#ffe69c",
+              },
               "& .MuiDataGrid-row.selected-item-row": {
                 backgroundColor: "#d0d7de",
               },
@@ -413,6 +457,12 @@ const ItemSearchWindow: React.FC<WindowScreenProps> = () => {
               },
               "& .MuiDataGrid-row.blocked-item-row.selected-item-row:hover": {
                 backgroundColor: "#e57373",
+              },
+              "& .MuiDataGrid-row.current-pawn-row.selected-item-row": {
+                backgroundColor: "#ffe69c",
+              },
+              "& .MuiDataGrid-row.current-pawn-row.selected-item-row:hover": {
+                backgroundColor: "#ffda6a",
               },
               "& .MuiDataGrid-row.selected-item-row .MuiDataGrid-cell": {
                 borderRight: "1px solid #9aa4af",

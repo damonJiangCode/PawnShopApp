@@ -35,6 +35,15 @@ export const itemApi = {
     return api.loadItemsByTicket(ticketNumber);
   },
 
+  loadItemsByClient: async (clientNumber: number): Promise<Item[]> => {
+    const api = getAppApi()?.item;
+    if (!api) {
+      throw new Error("Item API is unavailable.");
+    }
+
+    return api.loadItemsByClient(clientNumber);
+  },
+
   preloadCategories: async (): Promise<ItemCategoryOption[]> => {
     if (categoryCache) {
       return categoryCache;

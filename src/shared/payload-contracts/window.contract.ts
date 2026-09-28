@@ -1,8 +1,9 @@
 import type { Item } from "../models/item.model.ts";
 
 export type OpenItemSearchWindowInput = {
+  clientNumber?: number;
   sourceTicketNumber?: number;
-  items: Item[];
+  items?: Item[];
   mode?: "repawn" | "load" | "search";
   focusWindow?: boolean;
 };

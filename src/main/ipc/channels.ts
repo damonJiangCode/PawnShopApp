@@ -33,6 +33,7 @@ const CHANNELS = {
   LOAD_XML_REPORT_PREVIEW: "load-xml-report-preview",
   SUBMIT_XML_REPORT: "submit-xml-report",
   GET_ITEMS: "get-items",
+  GET_CLIENT_ITEMS: "get-client-items",
   GET_ITEM_CATEGORIES: "get-item-categories",
   SEARCH_ITEMS: "search-items",
   ADD_ITEM: "add-item",

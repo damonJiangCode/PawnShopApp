@@ -356,7 +356,11 @@ export const useWorkspaceLayout = () => {
   };
 
   const handleOpenItemSearch = () => {
-    void getAppApi()?.window.openItemSearchWindow();
+    void getAppApi()?.window.openItemSearchWindow({
+      clientNumber: selectedClient?.client_number,
+      items: [],
+      mode: "search",
+    });
   };
 
   const handleClientSoldTicket = () => {

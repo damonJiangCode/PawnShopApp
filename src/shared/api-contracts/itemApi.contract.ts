@@ -13,6 +13,7 @@ export type ItemOperationResult<T> =
 
 export type ItemApi = {
   loadItemsByTicket: (ticketNumber: number) => Promise<Item[]>;
+  loadItemsByClient: (clientNumber: number) => Promise<Item[]>;
   loadItemCategories: () => Promise<ItemCategoryOption[]>;
   searchItems: (
     input: ItemSearchInput,

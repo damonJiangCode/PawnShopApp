@@ -77,6 +77,8 @@ export const useItemSearchWindow = () => {
   const [message, setMessage] = React.useState("");
   const [error, setError] = React.useState("");
   const [searching, setSearching] = React.useState(false);
+  const [loadingClientItems, setLoadingClientItems] = React.useState(false);
+  const [clientNumber, setClientNumber] = React.useState<number>();
   const [searchLimitReached, setSearchLimitReached] = React.useState(false);
   const [openingTicket, setOpeningTicket] = React.useState(false);
   const [addingToTicket, setAddingToTicket] = React.useState(false);
@@ -166,7 +168,9 @@ export const useItemSearchWindow = () => {
 
     const input = await windowApi.getItemSearchWindowInput();
 
-    if (!input?.items.length) {
+    setClientNumber(input?.clientNumber);
+
+    if (!input?.items?.length) {
       return;
     }
 
@@ -348,6 +352,10 @@ export const useItemSearchWindow = () => {
   }, [appendLoadedItems]);
 
   const handleSearch = async () => {
+    if (loadingClientItems) {
+      return;
+    }
+
     setError("");
     setMessage("");
     setSearchLimitReached(false);
@@ -413,6 +421,40 @@ export const useItemSearchWindow = () => {
       setError(err instanceof Error ? err.message : "Unable to search items.");
     } finally {
       setSearching(false);
+    }
+  };
+
+  const handleLoadClientItems = async () => {
+    if (!clientNumber) {
+      setError("Select a client in the main window first.");
+      setMessage("");
+      return;
+    }
+
+    setLoadingClientItems(true);
+    setError("");
+    setMessage("");
+    setSearchLimitReached(false);
+
+    try {
+      const clientItems = await itemApi.loadItemsByClient(clientNumber);
+      setItems(clientItems);
+      setCheckedItemIds([]);
+      setSelectedItem(clientItems[0] ?? null);
+      setMessage(
+        clientItems.length
+          ? `${clientItems.length} pawned item(s) loaded for client #${clientNumber}.`
+          : `No pawned items found for client #${clientNumber}.`,
+      );
+    } catch (err) {
+      console.error(err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to load this client's pawned items.",
+      );
+    } finally {
+      setLoadingClientItems(false);
     }
   };
 
@@ -510,6 +552,8 @@ export const useItemSearchWindow = () => {
       message,
       error,
       searching,
+      loadingClientItems,
+      clientNumber,
       searchLimitReached,
       openingTicket,
       addingToTicket,
@@ -520,6 +564,7 @@ export const useItemSearchWindow = () => {
       categoryNames,
       subcategoryOptions,
       canSearch,
+      canLoadClientItems: Boolean(clientNumber) && !loadingClientItems,
       canGoToTicket,
       canAddToTicket,
     },
@@ -534,6 +579,7 @@ export const useItemSearchWindow = () => {
       setSelectedItem,
       setPaginationModel,
       handleSearch,
+      handleLoadClientItems,
       handleGoToTicket,
       handleAddToTicket,
       handleModeChange,

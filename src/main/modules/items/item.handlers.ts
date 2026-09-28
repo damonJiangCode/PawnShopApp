@@ -39,6 +39,13 @@ export const registerItemHandlers = () => {
     },
   );
 
+  ipcMain.handle(
+    CHANNELS.GET_CLIENT_ITEMS,
+    async (_event: IpcMainInvokeEvent, clientNumber: number) => {
+      return itemService.loadItemsByClient(clientNumber);
+    },
+  );
+
   ipcMain.handle(CHANNELS.GET_ITEM_CATEGORIES, async () => {
     return itemService.loadItemCategories();
   });

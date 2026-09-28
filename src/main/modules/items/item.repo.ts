@@ -123,6 +123,50 @@ export const itemRepo = {
     }
   },
 
+  loadPawnHistoryByClientNumber: async (
+    clientNumber: number,
+  ): Promise<Item[]> => {
+    const client = await connect();
+    const query = `
+      SELECT
+        ${itemSelectColumns},
+        EXISTS (
+          SELECT 1
+          FROM ticket_item current_ti
+          INNER JOIN ticket current_t
+            ON current_t.ticket_number = current_ti.ticket_number
+          WHERE current_ti.item_number = iws.item_number
+            AND current_t.client_number = $1
+            AND current_t.status = 'pawned'
+        ) AS is_currently_pawned
+      FROM item_with_status iws
+      WHERE EXISTS (
+        SELECT 1
+        FROM ticket_item history_ti
+        INNER JOIN ticket history_t
+          ON history_t.ticket_number = history_ti.ticket_number
+        WHERE history_ti.item_number = iws.item_number
+          AND history_t.client_number = $1
+          AND history_t.status IN (
+            'pawned',
+            'pawned_picked_up',
+            'pawned_expired'
+          )
+      )
+      ORDER BY is_currently_pawned DESC, iws.item_number DESC
+    `;
+
+    try {
+      const result = await client.query(query, [clientNumber]);
+      return result.rows.map((row) => ({
+        ...mapItemRow(row),
+        is_currently_pawned: Boolean(row.is_currently_pawned),
+      }));
+    } finally {
+      client.release();
+    }
+  },
+
   loadByItemNumber: async (
     itemNumber: number,
     dbClient: DbClient,

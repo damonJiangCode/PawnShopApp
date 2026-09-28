@@ -61,12 +61,18 @@ const mergeItemSearchInput = (
       .filter((id): id is number | string => id !== undefined)
       .map(String),
   );
-  const nextItems = nextInput.items.filter((item) => {
+  const nextItems = (nextInput.items ?? []).filter((item) => {
     const id = getItemRowId(item);
     return id === undefined || !existingIds.has(String(id));
   });
 
   return {
+    clientNumber: Object.prototype.hasOwnProperty.call(
+      nextInput,
+      "clientNumber",
+    )
+      ? nextInput.clientNumber
+      : currentInput?.clientNumber,
     sourceTicketNumber: nextInput.sourceTicketNumber,
     items: [...(currentInput?.items ?? []), ...nextItems],
     mode: nextInput.mode ?? currentInput?.mode ?? "search",

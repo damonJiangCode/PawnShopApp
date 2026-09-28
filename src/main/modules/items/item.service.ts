@@ -98,6 +98,14 @@ export const itemService = {
     return itemRepo.loadByTicketNumber(ticketNumber);
   },
 
+  loadItemsByClient: async (clientNumber: number): Promise<Item[]> => {
+    if (!Number.isFinite(clientNumber) || clientNumber <= 0) {
+      throw createFieldError("form", "Select a valid client first.");
+    }
+
+    return itemRepo.loadPawnHistoryByClientNumber(clientNumber);
+  },
+
   loadItemCategories: async (): Promise<ItemCategoryOption[]> => {
     return itemRepo.loadCategories();
   },
