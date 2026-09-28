@@ -1,0 +1,27 @@
+appId: ca.moneyexpress.pawnsystem
+productName: PawnSystem
+asar: true
+
+directories:
+  output: release
+
+files:
+  - .electron-build/**/*
+  - dist/**/*
+  - src/preload/index.cjs
+  - package.json
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  artifactName: PawnSystem-Setup-${version}.${ext}
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: PawnSystem

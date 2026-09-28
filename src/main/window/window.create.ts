@@ -1,9 +1,12 @@
 import path from "path";
 import type { Event as ElectronEvent } from "electron";
 
-const { BrowserWindow } = require("electron/main") as typeof import("electron");
+const { app, BrowserWindow } =
+  require("electron/main") as typeof import("electron");
 
-const preloadPath = path.resolve(process.cwd(), "src/preload/index.cjs");
+const preloadPath = app.isPackaged
+  ? path.join(app.getAppPath(), "src", "preload", "index.cjs")
+  : path.resolve(process.cwd(), "src/preload/index.cjs");
 
 type CreateAppWindowInput = {
   width: number;

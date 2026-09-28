@@ -9,6 +9,7 @@ const projectRoot = path.resolve(__dirname, "..");
 
 export default defineConfig({
   root: __dirname,
+  base: "./",
   plugins: [react()],
   server: {
     host: "localhost",

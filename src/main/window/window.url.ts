@@ -1,10 +1,17 @@
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+
+const { app } = require("electron/main") as typeof import("electron");
+
 type RendererUrlInput = {
   window?: string;
   screen?: string;
   params?: Record<string, string | number | boolean | undefined>;
 };
-
-const rendererBaseUrl = "http://localhost:5173";
+const getRendererBaseUrl = () =>
+  app.isPackaged
+    ? pathToFileURL(path.join(app.getAppPath(), "dist", "index.html")).toString()
+    : "http://localhost:5173";
 
 export const buildRendererUrl = ({
   window,
@@ -27,6 +34,7 @@ export const buildRendererUrl = ({
     }
   });
 
-  const query = searchParams.toString();
-  return query ? `${rendererBaseUrl}?${query}` : rendererBaseUrl;
+  const rendererUrl = new URL(getRendererBaseUrl());
+  searchParams.forEach((value, key) => rendererUrl.searchParams.set(key, value));
+  return rendererUrl.toString();
 };
