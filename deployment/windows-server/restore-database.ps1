@@ -1,87 +1,98 @@
+param(
+  [switch]$ConfirmRestore
+)
+
 $ErrorActionPreference = "Stop"
 
+if (-not $ConfirmRestore) {
+  throw "This operation drops and recreates the production database. Re-run with -ConfirmRestore only after preserving a current backup and stopping application access."
+}
+
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
-$envFile = Join-Path $root ".env.server"
+$envFile = Join-Path $root ".env.prod"
+$appEnvFile = Join-Path $root ".env.app.prod"
 $composeFile = Join-Path $root "compose.yaml"
 $dumpFile = Join-Path $root "import\pawnsystemdb-2026-09-26.dump"
-$container = "moneyexpress-postgres"
+$container = "pawnsystem_db_prod"
+$dbName = "pawnsystem_db_prod"
+$dbAdmin = "pawnsystem_admin_prod"
+$dbApp = "pawnsystem_app_prod"
 
-if (-not (Test-Path $envFile)) {
-  throw "Create .env.server from .env.server.example first."
+foreach ($requiredFile in @($envFile, $appEnvFile, $composeFile, $dumpFile)) {
+  if (-not (Test-Path -LiteralPath $requiredFile)) {
+    throw "Required production file not found: $requiredFile"
+  }
 }
 
-if (-not (Test-Path $dumpFile)) {
-  throw "Database backup not found: $dumpFile"
-}
-
-$settings = @{}
-Get-Content $envFile | ForEach-Object {
+$appSettings = @{}
+Get-Content -LiteralPath $appEnvFile | ForEach-Object {
   $line = $_.Trim()
   if ($line -and -not $line.StartsWith("#")) {
     $parts = $line.Split("=", 2)
     if ($parts.Count -eq 2) {
-      $settings[$parts[0].Trim()] = $parts[1].Trim()
+      $appSettings[$parts[0].Trim()] = $parts[1].Trim()
     }
   }
 }
 
-$dbName = $settings["POSTGRES_DB"]
-$dbUser = $settings["POSTGRES_USER"]
-$dbPassword = $settings["POSTGRES_PASSWORD"]
-
-if ($dbName -notmatch '^[A-Za-z_][A-Za-z0-9_]*$') {
-  throw "POSTGRES_DB is not a valid database name."
+$appPassword = $appSettings["DB_PASSWORD"]
+if ($appSettings["DB_NAME"] -ne $dbName -or $appSettings["DB_USER"] -ne $dbApp) {
+  throw "The production application credential file targets an unexpected database or user."
 }
-
-if ($dbUser -notmatch '^[A-Za-z_][A-Za-z0-9_]*$') {
-  throw "POSTGRES_USER is not a valid database user."
-}
-
-if (-not $dbPassword -or $dbPassword.StartsWith("REPLACE_")) {
-  throw "Set a real POSTGRES_PASSWORD in .env.server."
+if ($appPassword -notmatch '^[A-Fa-f0-9]{64}$') {
+  throw "The production application password is missing or has an unexpected format."
 }
 
 Push-Location $root
 try {
-  docker compose --env-file $envFile -f $composeFile up -d
-  if ($LASTEXITCODE -ne 0) { throw "Docker Compose failed to start PostgreSQL." }
+  docker compose --project-name pawnsystem_prod --env-file $envFile -f $composeFile up -d --wait --wait-timeout 120
+  if ($LASTEXITCODE -ne 0) { throw "Docker Compose failed to start production PostgreSQL." }
 
-  $healthy = $false
-  for ($attempt = 1; $attempt -le 60; $attempt += 1) {
-    $status = docker inspect --format '{{.State.Health.Status}}' $container 2>$null
-    if ($status -eq "healthy") {
-      $healthy = $true
-      break
-    }
-    Start-Sleep -Seconds 2
-  }
-
-  if (-not $healthy) {
-    throw "PostgreSQL did not become healthy. Run: docker logs $container"
-  }
-
-  docker cp $dumpFile "${container}:/tmp/pawnsystemdb.dump"
+  docker cp $dumpFile "${container}:/tmp/pawnsystem_prod_restore.dump"
   if ($LASTEXITCODE -ne 0) { throw "Could not copy the database backup into PostgreSQL." }
 
-  docker exec -e "PGPASSWORD=$dbPassword" $container psql `
-    -v ON_ERROR_STOP=1 -U $dbUser -d postgres `
+  docker exec $container psql -v ON_ERROR_STOP=1 -U $dbAdmin -d postgres `
     -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$dbName';"
-  if ($LASTEXITCODE -ne 0) { throw "Could not close existing database connections." }
+  if ($LASTEXITCODE -ne 0) { throw "Could not close existing production connections." }
 
-  docker exec -e "PGPASSWORD=$dbPassword" $container dropdb `
-    -U $dbUser --if-exists $dbName
-  if ($LASTEXITCODE -ne 0) { throw "Could not reset the target database." }
+  docker exec $container dropdb -U $dbAdmin --if-exists $dbName
+  if ($LASTEXITCODE -ne 0) { throw "Could not drop the production database." }
 
-  docker exec -e "PGPASSWORD=$dbPassword" $container createdb `
-    -U $dbUser -O $dbUser $dbName
-  if ($LASTEXITCODE -ne 0) { throw "Could not create the target database." }
+  docker exec $container createdb -U $dbAdmin -O $dbAdmin $dbName
+  if ($LASTEXITCODE -ne 0) { throw "Could not create the production database." }
 
-  docker exec -e "PGPASSWORD=$dbPassword" $container pg_restore `
-    -v -U $dbUser -d $dbName --no-owner --no-acl /tmp/pawnsystemdb.dump
-  if ($LASTEXITCODE -ne 0) { throw "Database restore failed." }
+  docker exec $container pg_restore --exit-on-error --single-transaction `
+    --no-owner --no-acl -U $dbAdmin -d $dbName /tmp/pawnsystem_prod_restore.dump
+  if ($LASTEXITCODE -ne 0) { throw "Production database restore failed." }
 
-  docker exec $container rm -f /tmp/pawnsystemdb.dump
-  Write-Host "Database restore completed successfully." -ForegroundColor Green
+  $roleExists = docker exec $container psql -U $dbAdmin -d $dbName -Atc `
+    "SELECT 1 FROM pg_roles WHERE rolname = '$dbApp';"
+  if ($LASTEXITCODE -ne 0) { throw "Could not inspect the production application role." }
+
+  if ($roleExists.Trim() -ne "1") {
+    docker exec $container psql -v ON_ERROR_STOP=1 -U $dbAdmin -d $dbName `
+      -c "CREATE ROLE $dbApp LOGIN PASSWORD '$appPassword';"
+  } else {
+    docker exec $container psql -v ON_ERROR_STOP=1 -U $dbAdmin -d $dbName `
+      -c "ALTER ROLE $dbApp WITH LOGIN PASSWORD '$appPassword';"
+  }
+  if ($LASTEXITCODE -ne 0) { throw "Could not configure the production application role." }
+
+  $grants = @"
+GRANT CONNECT ON DATABASE $dbName TO $dbApp;
+GRANT USAGE ON SCHEMA public TO $dbApp;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO $dbApp;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO $dbApp;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO $dbApp;
+ALTER DEFAULT PRIVILEGES FOR ROLE $dbAdmin IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO $dbApp;
+ALTER DEFAULT PRIVILEGES FOR ROLE $dbAdmin IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO $dbApp;
+ALTER DEFAULT PRIVILEGES FOR ROLE $dbAdmin IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO $dbApp;
+"@
+  $grants | docker exec -i $container psql -v ON_ERROR_STOP=1 -U $dbAdmin -d $dbName
+  if ($LASTEXITCODE -ne 0) { throw "Could not grant production application permissions." }
+
+  docker exec $container rm -f /tmp/pawnsystem_prod_restore.dump
+  Write-Host "Production database restore completed successfully." -ForegroundColor Green
 }
 finally {
   Pop-Location
