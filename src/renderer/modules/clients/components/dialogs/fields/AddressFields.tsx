@@ -127,6 +127,7 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
           size="small"
           error={Boolean(addressError)}
           helperText={addressError || " "}
+          sx={{ "& .MuiInputBase-input": { textTransform: "uppercase" } }}
         />
         <TextField
           fullWidth
@@ -136,6 +137,7 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
           onChange={onChange}
           size="small"
           inputProps={{ maxLength: 7 }}
+          sx={{ "& .MuiInputBase-input": { textTransform: "uppercase" } }}
         />
       </Box>
       <Box sx={{ display: "flex", gap: 2 }}>
@@ -151,12 +153,13 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
           disabled={!province}
           error={Boolean(cityError || loadError)}
           helperText={cityError || loadError || " "}
+          sx={{ "& .MuiSelect-select": { textTransform: "uppercase" } }}
         >
           {availableCities.length === 0 ? (
             <MenuItem disabled>Loading cities...</MenuItem>
           ) : (
             availableCities.map((c) => (
-              <MenuItem key={c} value={c}>
+              <MenuItem key={c} value={c} sx={{ textTransform: "uppercase" }}>
                 {c}
               </MenuItem>
             ))
@@ -175,12 +178,17 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
           disabled={!country}
           error={Boolean(provinceError || loadError)}
           helperText={provinceError || loadError || " "}
+          sx={{ "& .MuiSelect-select": { textTransform: "uppercase" } }}
         >
           {provinces.length === 0 ? (
             <MenuItem disabled>Loading provinces...</MenuItem>
           ) : (
             provinces.map((prov) => (
-              <MenuItem key={prov} value={prov}>
+              <MenuItem
+                key={prov}
+                value={prov}
+                sx={{ textTransform: "uppercase" }}
+              >
                 {prov}
               </MenuItem>
             ))
@@ -198,8 +206,11 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
           size="small"
           error={Boolean(countryError)}
           helperText={countryError || " "}
+          sx={{ "& .MuiSelect-select": { textTransform: "uppercase" } }}
         >
-          <MenuItem value="Canada">Canada</MenuItem>
+          <MenuItem value="CANADA" sx={{ textTransform: "uppercase" }}>
+            Canada
+          </MenuItem>
         </TextField>
       </Box>
     </Box>

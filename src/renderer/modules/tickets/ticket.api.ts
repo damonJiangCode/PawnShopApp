@@ -48,7 +48,7 @@ import {
 } from "./helpers/ticketApiUtils";
 
 const openPrintWindow = (html: string) => {
-  const printWindow = window.open("", "_blank", "width=445,height=900");
+  const printWindow = window.open("", "ticket-print", "width=445,height=900");
 
   if (!printWindow) {
     window.alert("Unable to open print window.");

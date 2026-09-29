@@ -6,7 +6,7 @@ interface ContactNotesFieldsProps {
   phone: string;
   notes?: string;
   onChange: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => void;
 }
 
@@ -22,6 +22,7 @@ const ContactNotesFields: React.FC<ContactNotesFieldsProps> = (props) => {
           value={email || ""}
           onChange={onChange}
           size="small"
+          sx={{ "& .MuiInputBase-input": { textTransform: "uppercase" } }}
         />
         <TextField
           fullWidth

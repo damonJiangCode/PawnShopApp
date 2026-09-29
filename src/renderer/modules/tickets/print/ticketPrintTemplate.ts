@@ -85,7 +85,7 @@ export const createEnvelopePrintHtml = (
   const barcode = createPseudoBarcode(ticketNumber);
   const topBrandHtml = isPurchaseTicket
     ? ""
-    : '<div class="brand">Money Express</div>';
+    : '<div class="brand"><span>Money</span><span>Express</span></div>';
   const moneyFieldsHtml = isPurchaseTicket
     ? `<div class="small-row"><span class="label">Purchase Amt:</span><span class="value">${formatMoney(pawnAmount)}</span></div>`
     : `<div class="small-row"><span class="label">Pawn Amt:</span><span class="value">${formatMoney(pawnAmount)}</span></div>
@@ -103,7 +103,7 @@ export const createEnvelopePrintHtml = (
         <span>Early Redemption Rate:</span>
         <span>10%</span>
       </div>
-      <div class="terms" style="top: 4.74in;">Early redemption rates ar subject to a $5 minimum interest amount</div>`;
+      <div class="terms redemption-note">Early redemption rates are subject to a $5 minimum interest amount</div>`;
   const bottomDatesHtml = isPurchaseTicket
     ? `<div class="bottom-date-row">
           <span class="label">Date:</span>
@@ -151,12 +151,13 @@ export const createEnvelopePrintHtml = (
   <title>Ticket ${escapeHtml(ticketNumber)}</title>
   <style>
     @page {
-      size: 4.1in 8.45in;
+      size: 3.88in 7.5in;
       margin: 0;
     }
 
     * {
       box-sizing: border-box;
+      font-weight: 900;
     }
 
     body {
@@ -164,17 +165,24 @@ export const createEnvelopePrintHtml = (
       color: #000;
       background: transparent;
       font-family: "Times New Roman", Times, serif;
+      font-weight: 900;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
 
     .page {
-      width: 4.1in;
-      min-height: 8.45in;
+      width: 3.88in;
+      height: 7.5in;
       margin: 0 auto;
-      padding: 0.14in 0.12in 0.14in 0.07in;
       position: relative;
       overflow: hidden;
+    }
+
+    .ticket-content {
+      width: 3.88in;
+      height: 7.5in;
+      padding: 0.08in 0.08in 0.08in 0.05in;
+      position: relative;
     }
 
     @media print {
@@ -184,36 +192,31 @@ export const createEnvelopePrintHtml = (
     }
 
     .top-copy {
-      height: 4.86in;
+      height: 4.35in;
       position: relative;
       border-bottom: 1px solid rgba(0, 0, 0, 0.08);
     }
 
     .customer-copy {
-      height: 3.35in;
+      height: 2.99in;
       position: relative;
-      padding-top: 0.48in;
+      padding-top: 0.36in;
     }
 
     .brand {
       position: absolute;
       top: 0.02in;
-      left: 1.92in;
+      right: 0.08in;
       font-family: Arial, Helvetica, sans-serif;
       font-weight: 900;
-      font-size: 25px;
-      letter-spacing: 0.3px;
+      font-size: 18px;
+      line-height: 0.88;
+      text-align: right;
       white-space: nowrap;
     }
 
-    .logo-dot {
-      position: absolute;
-      top: 0.15in;
-      left: 1.86in;
-      width: 0.23in;
-      height: 0.23in;
-      border-radius: 50%;
-      background: #000;
+    .brand span {
+      display: block;
     }
 
     .barcode {
@@ -232,16 +235,16 @@ export const createEnvelopePrintHtml = (
 
     .barcode.bottom {
       position: absolute;
-      top: 0.18in;
+      top: 0.12in;
       left: 0.08in;
       width: 1.55in;
     }
 
     .store-block {
       position: absolute;
-      top: 0.16in;
-      left: 1.95in;
-      width: 1.8in;
+      top: 0.1in;
+      left: 1.68in;
+      width: 2.05in;
       text-align: center;
       font-family: Arial, Helvetica, sans-serif;
       font-weight: 900;
@@ -251,6 +254,7 @@ export const createEnvelopePrintHtml = (
     .store-name {
       font-size: 25px;
       margin-bottom: 0.03in;
+      white-space: nowrap;
     }
 
     .store-line {
@@ -259,17 +263,40 @@ export const createEnvelopePrintHtml = (
 
     .field-row {
       display: grid;
-      grid-template-columns: 0.78in 1.44in 0.9in 1fr;
+      grid-template-columns: 0.72in 0.8in 0.9in 1fr;
       column-gap: 0.04in;
-      align-items: baseline;
-      min-height: 0.22in;
+      align-items: center;
+      min-height: 0.24in;
       font-size: 18px;
-      line-height: 1.02;
+      line-height: 1;
       font-weight: 900;
     }
 
     .field-row.two {
-      grid-template-columns: 0.78in 1.4in 0.9in 1fr;
+      grid-template-columns: 0.72in 0.8in 0.9in 1fr;
+    }
+
+    .field-row.paired-row {
+      grid-template-columns: 0.68in 1.01in 0.82in 1.08in;
+    }
+
+    .top-copy .field-row {
+      min-height: 0.24in;
+    }
+
+    .top-copy .field-row .value {
+      white-space: nowrap;
+    }
+
+    .top-copy .name-row {
+      min-height: 0.42in;
+      align-items: start;
+    }
+
+    .top-copy .name-row .value {
+      max-height: 0.42in;
+      line-height: 1.05;
+      white-space: normal;
     }
 
     .field-row .label,
@@ -286,21 +313,21 @@ export const createEnvelopePrintHtml = (
 
     .top-fields {
       position: absolute;
-      top: 0.62in;
+      top: 0.59in;
       left: 0.04in;
       right: 0;
     }
 
     .client-fields {
       position: absolute;
-      top: 1.12in;
+      top: 1.07in;
       left: 0.04in;
       right: 0;
     }
 
     .money-fields {
       position: absolute;
-      top: 2.34in;
+      top: 2.24in;
       left: 0.04in;
       width: 3in;
     }
@@ -308,8 +335,8 @@ export const createEnvelopePrintHtml = (
     .money-fields .small-row,
     .date-fields .small-row {
       display: grid;
-      grid-template-columns: 1.54in 1fr;
-      min-height: 0.23in;
+      grid-template-columns: 1.82in 1fr;
+      min-height: 0.215in;
       font-size: 18px;
       line-height: 1.03;
       font-weight: 900;
@@ -317,14 +344,14 @@ export const createEnvelopePrintHtml = (
 
     .date-fields {
       position: absolute;
-      top: 3.02in;
+      top: 2.92in;
       left: 0.04in;
       width: 3.15in;
     }
 
     .signature {
       position: absolute;
-      top: 3.78in;
+      top: 3.6in;
       left: 0.04in;
       right: 0.28in;
       font-size: 18px;
@@ -350,44 +377,56 @@ export const createEnvelopePrintHtml = (
     }
 
     .terms.top {
-      top: 4.02in;
+      top: 3.81in;
+      font-size: 8px;
+      line-height: 1.05;
     }
 
     .rates {
       position: absolute;
-      top: 4.6in;
+      top: 4.18in;
       left: 0.02in;
       right: 0.35in;
       display: grid;
       grid-template-columns: 1.18in 0.55in 1.45in 0.35in;
       column-gap: 0.06in;
-      font-size: 10px;
+      font-size: 7px;
       line-height: 1;
       font-weight: 900;
     }
 
+    .redemption-note {
+      top: 4.27in;
+      font-size: 6px;
+      line-height: 1;
+    }
+
     .bottom-fields {
       position: absolute;
-      top: 1.28in;
+      top: 1.05in;
       left: 0.04in;
       right: 0;
     }
 
     .bottom-dates {
       position: absolute;
-      top: 1.92in;
+      top: 1.62in;
       left: 0.04in;
       right: 0;
     }
 
     .bottom-date-row {
       display: grid;
-      grid-template-columns: 0.95in 1.34in 0.82in 1fr;
+      grid-template-columns: 1.08in 1.21in 0.82in 1fr;
       column-gap: 0.04in;
       min-height: 0.22in;
       font-size: 17px;
       line-height: 1.02;
       font-weight: 900;
+    }
+
+    .bottom-date-row .label {
+      white-space: nowrap;
     }
 
     .bottom-terms {
@@ -401,27 +440,27 @@ export const createEnvelopePrintHtml = (
     }
 
     .purchase .money-fields {
-      top: 2.08in;
+      top: 2.24in;
       width: 3.2in;
     }
 
     .purchase .date-fields {
-      top: 2.48in;
+      top: 2.92in;
     }
 
     .purchase .signature {
-      top: 3.78in;
+      top: 3.6in;
     }
 
     .purchase .bottom-dates {
-      top: 1.96in;
+      top: 1.66in;
     }
 
     .purchase-notice {
       position: absolute;
       left: 0.04in;
       right: 0;
-      bottom: 0.48in;
+      bottom: 0.36in;
       font-size: 17px;
       line-height: 1.08;
       font-weight: 900;
@@ -429,14 +468,14 @@ export const createEnvelopePrintHtml = (
   </style>
 </head>
 <body>
-  <main class="page${isPurchaseTicket ? " purchase" : ""}">
-    <section class="top-copy">
+  <main class="page">
+    <div class="ticket-content${isPurchaseTicket ? " purchase" : ""}">
+      <section class="top-copy">
       <div class="barcode top">${barcode}</div>
-      <div class="logo-dot"></div>
       ${topBrandHtml}
 
       <div class="top-fields">
-        <div class="field-row">
+        <div class="field-row paired-row">
           <span class="label">Ticket #</span>
           <span class="value">${escapeHtml(ticketNumber)}</span>
           <span class="label">Location:</span>
@@ -449,13 +488,13 @@ export const createEnvelopePrintHtml = (
       </div>
 
       <div class="client-fields">
-        <div class="field-row">
+        <div class="field-row paired-row">
           <span class="label">Client #</span>
           <span class="value">${escapeHtml(client?.client_number ?? ticket.client_number)}</span>
           <span class="label">Employee:</span>
           <span class="value">${escapeHtml(ticket.employee_name)}</span>
         </div>
-        <div class="field-row">
+        <div class="field-row name-row">
           <span class="label">Name:</span>
           <span class="value" style="grid-column: span 3;">${escapeHtml(clientName)}</span>
         </div>
@@ -492,9 +531,9 @@ export const createEnvelopePrintHtml = (
       </div>
 
       ${ratesHtml}
-    </section>
+      </section>
 
-    <section class="customer-copy">
+      <section class="customer-copy">
       <div class="barcode bottom">${barcode}</div>
       <div class="store-block">
         <div class="store-name">Money Express</div>
@@ -504,7 +543,7 @@ export const createEnvelopePrintHtml = (
       </div>
 
       <div class="bottom-fields">
-        <div class="field-row two">
+        <div class="field-row two paired-row">
           <span class="label">Ticket #</span>
           <span class="value">${escapeHtml(ticketNumber)}</span>
           <span class="label">Location:</span>
@@ -521,7 +560,8 @@ export const createEnvelopePrintHtml = (
       </div>
 
       ${bottomTermsHtml}
-    </section>
+      </section>
+    </div>
   </main>
   <script>
     window.addEventListener("load", () => {

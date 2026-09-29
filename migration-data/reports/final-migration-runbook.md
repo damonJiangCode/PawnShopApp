@@ -125,6 +125,7 @@ Known rules:
 - Missing DOB defaults to `1900-01-01`.
 - Missing client for legacy tickets maps to `Unknown Legacy Client`.
 - Legacy apartment/unit field is merged into the front of `address`.
+- Address, postal code, city, province, country, and email are normalized to uppercase before insertion.
 - Legacy disabled flag is ignored.
 - After commit, reset `client.client_number` sequence to `MAX(client_number)` so new app-created clients continue after migrated client numbers.
 

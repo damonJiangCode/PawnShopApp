@@ -96,20 +96,20 @@ const EYE_COLOR_MAPPING = {
 const DEFAULT_DATE_OF_BIRTH = "1900-01-01";
 const DEFAULT_MISSING_NAME = "null";
 const OTHER_MIGRATION_CLIENT = {
-  first_name: "Unknown",
-  last_name: "Legacy Client",
+  first_name: "UNKNOWN",
+  last_name: "LEGACY CLIENT",
   middle_name: null,
   date_of_birth: DEFAULT_DATE_OF_BIRTH,
-  gender: "Other",
+  gender: "OTHER",
   hair_color: "OTHER",
   eye_color: "OTHER",
   height_cm: 170,
   weight_kg: 70,
-  address: "Migration fallback client",
+  address: "MIGRATION FALLBACK CLIENT",
   postal_code: null,
-  city: "Other",
-  province: "Other",
-  country: "Other",
+  city: "OTHER",
+  province: "OTHER",
+  country: "OTHER",
   email: null,
   phone: null,
   notes:
@@ -141,6 +141,8 @@ const cleanNullable = (value) => {
   const normalized = normalizeText(value);
   return normalized && normalized !== "-" ? normalized : "";
 };
+
+const cleanUpperNullable = (value) => normalizeUpper(cleanNullable(value));
 
 const getValue = (row, key) => {
   if (Object.prototype.hasOwnProperty.call(row, key)) {
@@ -757,15 +759,17 @@ const main = async () => {
           eye_color: eyeColor,
           height_cm: heightCm,
           weight_kg: weightKg,
-          address: buildAddress(
-            getValue(row, "AR200ADDRESS"),
-            getValue(row, "AR200APTNO"),
+          address: normalizeUpper(
+            buildAddress(
+              getValue(row, "AR200ADDRESS"),
+              getValue(row, "AR200APTNO"),
+            ),
           ),
-          postal_code: cleanNullable(getValue(row, "AR200PCODE")),
-          city,
-          province,
-          country,
-          email: cleanNullable(getValue(row, "AR200EMAILADDRESS")),
+          postal_code: cleanUpperNullable(getValue(row, "AR200PCODE")),
+          city: normalizeUpper(city),
+          province: normalizeUpper(province),
+          country: normalizeUpper(country),
+          email: cleanUpperNullable(getValue(row, "AR200EMAILADDRESS")),
           phone: phone.value,
           notes: cleanNullable(getValue(row, "AR200CLIENTMEMO")),
           image_path: "",

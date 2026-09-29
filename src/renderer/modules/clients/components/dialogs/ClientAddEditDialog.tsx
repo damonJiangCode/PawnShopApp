@@ -41,10 +41,37 @@ interface ClientAddEditDialogProps {
   onClose: () => void;
 }
 
+const uppercaseClientFields = new Set([
+  "last_name",
+  "first_name",
+  "middle_name",
+  "address",
+  "postal_code",
+  "city",
+  "province",
+  "country",
+  "email",
+]);
+
+const normalizeUppercaseClientFields = (client: Client): Client => ({
+  ...client,
+  last_name: client.last_name?.toUpperCase() ?? "",
+  first_name: client.first_name?.toUpperCase() ?? "",
+  middle_name: client.middle_name?.toUpperCase() ?? "",
+  address: client.address?.toUpperCase() ?? "",
+  postal_code: client.postal_code?.toUpperCase() ?? "",
+  city: client.city?.toUpperCase() ?? "",
+  province: client.province?.toUpperCase() ?? "",
+  country: client.country?.toUpperCase() ?? "",
+  email: client.email?.toUpperCase() ?? "",
+});
+
 const ClientAddEditDialog: React.FC<ClientAddEditDialogProps> = (props) => {
   const { clientExisted, open, onSave, onClose } = props;
   const isEditMode = Boolean(clientExisted?.client_number);
-  const [client, setClient] = useState<Client>(clientExisted || defaultClient);
+  const [client, setClient] = useState<Client>(() =>
+    normalizeUppercaseClientFields(clientExisted || defaultClient),
+  );
   const idRef = useRef<IDFieldsRef>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
   const [cameraActive, setCameraActive] = useState(true);
@@ -75,7 +102,7 @@ const ClientAddEditDialog: React.FC<ClientAddEditDialogProps> = (props) => {
     if (!open) {
       return;
     }
-    setClient(clientExisted || defaultClient);
+    setClient(normalizeUppercaseClientFields(clientExisted || defaultClient));
     setPhotoCaptured(Boolean(clientExisted?.image_path));
     setCameraActive(true);
     setShowPasswordDialog(false);
@@ -122,10 +149,9 @@ const ClientAddEditDialog: React.FC<ClientAddEditDialogProps> = (props) => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
-    const nextValue =
-      name === "last_name" || name === "first_name" || name === "middle_name"
-        ? value.toUpperCase()
-        : value;
+    const nextValue = uppercaseClientFields.has(name)
+      ? value.toUpperCase()
+      : value;
     if (submitError) {
       setSubmitError("");
     }

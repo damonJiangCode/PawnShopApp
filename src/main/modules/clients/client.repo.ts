@@ -199,7 +199,8 @@ export const clientRepo = {
         pickup_self_only = $20,
         updated_at = CURRENT_TIMESTAMP
       WHERE client_number = $21
-        AND updated_at = $22
+        AND date_trunc('milliseconds', updated_at) =
+            date_trunc('milliseconds', $22::timestamptz)
       RETURNING updated_at
     `;
 

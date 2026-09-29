@@ -28,6 +28,8 @@ const unwrapClientMutation = (result: ClientMutationResult): Client => {
 const normalizeSearchInput = (value?: string) => value?.trim() ?? "";
 const normalizeNameInput = (value?: string) =>
   value?.trim().toUpperCase() ?? "";
+const normalizeUpperTextInput = (value?: string) =>
+  value?.trim().toUpperCase() ?? "";
 
 const createFieldError = (
   field: ClientFormField,
@@ -64,12 +66,12 @@ const normalizeSaveClientInput = (input: SaveClientInput): SaveClientInput => ({
     gender: input.client.gender?.trim().toUpperCase() ?? "",
     hair_color: input.client.hair_color?.trim().toUpperCase() ?? "",
     eye_color: input.client.eye_color?.trim().toUpperCase() ?? "",
-    address: input.client.address?.trim() ?? "",
-    postal_code: input.client.postal_code?.trim() ?? "",
-    city: input.client.city?.trim() ?? "",
-    province: input.client.province?.trim() ?? "",
-    country: input.client.country?.trim() ?? "",
-    email: input.client.email?.trim() ?? "",
+    address: normalizeUpperTextInput(input.client.address),
+    postal_code: normalizeUpperTextInput(input.client.postal_code),
+    city: normalizeUpperTextInput(input.client.city),
+    province: normalizeUpperTextInput(input.client.province),
+    country: normalizeUpperTextInput(input.client.country),
+    email: normalizeUpperTextInput(input.client.email),
     phone: input.client.phone?.trim() ?? "",
     notes: input.client.notes?.trim() ?? "",
     image_path: input.client.image_path?.trim() ?? "",

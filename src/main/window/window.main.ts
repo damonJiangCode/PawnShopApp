@@ -8,10 +8,10 @@ let mainWindow: Electron.BrowserWindow | null = null;
 export const openMainWindow = () => {
   const { workAreaSize } = screen.getPrimaryDisplay();
   const targetWidth = Math.round(workAreaSize.width * 0.72);
-  const targetHeight = Math.round(workAreaSize.height * 0.8);
+  const targetHeight = Math.round(workAreaSize.height * 0.9);
 
   const width = Math.max(1100, Math.min(targetWidth, 1500));
-  const height = Math.max(760, Math.min(targetHeight, 980));
+  const height = Math.max(760, Math.min(targetHeight, 1200));
 
   const window = createAppWindow({
     width,

@@ -13,6 +13,8 @@ type NormalizedSaveClientInput = {
 };
 
 const normalizeName = (value?: string) => value?.trim().toUpperCase() ?? "";
+const normalizeUpperText = (value?: string) =>
+  value?.trim().toUpperCase() ?? "";
 
 const normalizeClient = (client: Client): Client => ({
   ...client,
@@ -22,12 +24,12 @@ const normalizeClient = (client: Client): Client => ({
   gender: client.gender?.trim().toUpperCase() ?? "",
   hair_color: client.hair_color?.trim().toUpperCase() ?? "",
   eye_color: client.eye_color?.trim().toUpperCase() ?? "",
-  address: client.address?.trim() ?? "",
-  postal_code: client.postal_code?.trim() ?? "",
-  city: client.city?.trim() ?? "",
-  province: client.province?.trim() ?? "",
-  country: client.country?.trim() ?? "",
-  email: client.email?.trim() ?? "",
+  address: normalizeUpperText(client.address),
+  postal_code: normalizeUpperText(client.postal_code),
+  city: normalizeUpperText(client.city),
+  province: normalizeUpperText(client.province),
+  country: normalizeUpperText(client.country),
+  email: normalizeUpperText(client.email),
   phone: client.phone?.trim() ?? "",
   notes: client.notes?.trim() ?? "",
   image_path: client.image_path?.trim() ?? "",

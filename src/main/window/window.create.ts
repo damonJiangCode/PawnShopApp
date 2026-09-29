@@ -94,6 +94,12 @@ export const createAppWindow = ({
     window.setFocusable(true);
   });
 
+  window.webContents.on("did-create-window", (childWindow, details) => {
+    if (details.frameName === "ticket-print") {
+      childWindow.setMenu(null);
+    }
+  });
+
   void window.loadURL(url);
 
   return window;

@@ -62,10 +62,11 @@ const ClientImage: React.FC<ClientImageProps> = ({ client }) => {
             src={imageSrc}
             alt="Client"
             sx={{
+              width: "100%",
               height: "100%",
-              maxWidth: "100%",
-              aspectRatio: "1 / 1",
-              objectFit: "cover",
+              objectFit: "contain",
+              objectPosition: "center",
+              backgroundColor: "#f3f4f6",
               borderRadius: 0.75,
             }}
           />
