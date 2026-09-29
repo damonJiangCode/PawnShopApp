@@ -87,30 +87,44 @@ const ClientsTable: React.FC<ClientsTableProps> = ({
           noRowsLabel: "No clients",
         }}
         sx={{
-          borderColor: "divider",
+          "--DataGrid-containerBackground": "#d6e7f8",
+          backgroundColor: "#f2f7fd",
+          borderColor: "#aecae5",
+          "& .MuiDataGrid-virtualScroller, & .MuiDataGrid-filler, & .MuiDataGrid-overlay": {
+            backgroundColor: "#f2f7fd",
+          },
+          "& .MuiDataGrid-columnHeaders .MuiDataGrid-filler": {
+            backgroundColor: "#d6e7f8",
+          },
           "& .MuiDataGrid-cell": {
             borderRightColor: "divider",
             borderBottomColor: "divider",
           },
           "& .MuiDataGrid-columnHeaders": {
             borderBottomColor: "divider",
+            backgroundColor: "#d6e7f8",
           },
           "& .MuiDataGrid-columnHeader": {
             borderRightColor: "divider",
-            backgroundColor: "action.hover",
+            backgroundColor: "#d6e7f8",
+            boxShadow:
+              "inset -3px 0 4px -3px rgba(25, 80, 135, 0.5), inset 1px 0 0 rgba(255, 255, 255, 0.55), inset 0 -2px 3px -2px rgba(25, 80, 135, 0.3)",
             py: 0,
           },
           "& .MuiDataGrid-columnHeaderTitle": {
             fontWeight: 600,
           },
+          "& .MuiDataGrid-row": {
+            backgroundColor: "#f2f7fd",
+          },
           "& .MuiDataGrid-row:hover": {
-            backgroundColor: "action.hover",
+            backgroundColor: "#e3effb",
           },
           "& .MuiDataGrid-row.Mui-selected": {
-            backgroundColor: "action.selected",
+            backgroundColor: "#90bce8",
           },
           "& .MuiDataGrid-row.Mui-selected:hover": {
-            backgroundColor: "action.focus",
+            backgroundColor: "#7caee0",
           },
           "& .MuiDataGrid-row.Mui-selected .MuiDataGrid-cell": {
             borderRightColor: "divider",

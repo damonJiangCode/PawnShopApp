@@ -149,7 +149,7 @@ const HistoryTicketsTable: React.FC<HistoryTicketsTableProps> = ({
       {
         field: "status",
         headerName: "STATUS",
-        width: 50,
+        width: 75,
         renderCell: (params) => (
           <CellTooltip
             value={getHistoryStatusLabel(params.row)}

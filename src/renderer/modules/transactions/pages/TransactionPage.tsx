@@ -132,6 +132,33 @@ const TransactionPage: React.FC<TransactionPageProps> = ({
           minHeight: 0,
           overflow: "hidden",
           boxSizing: "border-box",
+          "& .MuiDataGrid-root": {
+            "--DataGrid-containerBackground": "#d6e7f8",
+            backgroundColor: "#f2f7fd",
+            borderColor: "#aecae5",
+          },
+          "& .MuiDataGrid-root .MuiDataGrid-virtualScroller, & .MuiDataGrid-root .MuiDataGrid-filler, & .MuiDataGrid-root .MuiDataGrid-overlay, & .MuiDataGrid-root .MuiDataGrid-footerContainer": {
+            backgroundColor: "#f2f7fd",
+          },
+          "& .MuiDataGrid-root .MuiDataGrid-columnHeaders, & .MuiDataGrid-root .MuiDataGrid-columnHeader, & .MuiDataGrid-root .MuiDataGrid-columnHeaders .MuiDataGrid-filler": {
+            backgroundColor: "#d6e7f8",
+          },
+          "& .MuiDataGrid-root .MuiDataGrid-columnHeader": {
+            boxShadow:
+              "inset -3px 0 4px -3px rgba(25, 80, 135, 0.5), inset 1px 0 0 rgba(255, 255, 255, 0.55), inset 0 -2px 3px -2px rgba(25, 80, 135, 0.3)",
+          },
+          "& .MuiDataGrid-root .MuiDataGrid-row:not(.transaction-ticket-row-stolen)": {
+            backgroundColor: "#f2f7fd",
+          },
+          "& .MuiDataGrid-root .MuiDataGrid-row:not(.transaction-ticket-row-stolen):hover": {
+            backgroundColor: "#e3effb",
+          },
+          "& .MuiDataGrid-root .MuiDataGrid-row.Mui-selected:not(.transaction-ticket-row-stolen)": {
+            backgroundColor: "#90bce8",
+          },
+          "& .MuiDataGrid-root .MuiDataGrid-row.Mui-selected:not(.transaction-ticket-row-stolen):hover": {
+            backgroundColor: "#7caee0",
+          },
         }}
       >
         <TransactionTicketsPanel
