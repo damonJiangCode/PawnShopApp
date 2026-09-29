@@ -32,7 +32,8 @@ const TransactionTicketsTable: React.FC<TransactionTicketsTableProps> = ({
     }
 
     const targetTicketNumber =
-      selectedTicket?.ticket_number ?? tickets[tickets.length - 1].ticket_number;
+      selectedTicket?.ticket_number ??
+      tickets[tickets.length - 1].ticket_number;
     const targetRowIndex = tickets.findIndex(
       (ticket) => ticket.ticket_number === targetTicketNumber,
     );
@@ -240,36 +241,36 @@ const TransactionTicketsTable: React.FC<TransactionTicketsTableProps> = ({
           noRowsLabel: "No tickets",
         }}
         sx={{
-          border: "1px solid #ccc",
+          borderColor: "divider",
           "& .MuiDataGrid-cell": {
-            borderRight: "1px solid #ddd",
-            borderBottom: "1px solid #ddd",
+            borderRightColor: "divider",
+            borderBottomColor: "divider",
             display: "flex",
             alignItems: "center",
           },
           "& .MuiDataGrid-columnHeaders": {
-            borderBottom: "2px solid #bbb",
+            borderBottomColor: "divider",
           },
           "& .MuiDataGrid-columnHeader": {
-            borderRight: "1px solid #ddd",
-            backgroundColor: "#fafafa",
+            borderRightColor: "divider",
+            backgroundColor: "action.hover",
             py: 0,
           },
           "& .MuiDataGrid-columnHeaderTitle": {
             fontWeight: 600,
           },
           "& .MuiDataGrid-row:hover": {
-            backgroundColor: "#f5f5f5",
+            backgroundColor: "action.hover",
           },
           "& .MuiDataGrid-row.Mui-selected": {
-            backgroundColor: "#d0d7de",
+            backgroundColor: "action.selected",
           },
           "& .MuiDataGrid-row.Mui-selected:hover": {
-            backgroundColor: "#c6d0d9",
+            backgroundColor: "action.focus",
           },
           "& .MuiDataGrid-row.Mui-selected .MuiDataGrid-cell": {
-            borderRight: "1px solid #9aa4af",
-            borderBottom: "1px solid #9aa4af",
+            borderRightColor: "divider",
+            borderBottomColor: "divider",
           },
           "& .MuiDataGrid-row.transaction-ticket-row-stolen": {
             backgroundColor: "rgba(211, 47, 47, 0.18)",

@@ -154,10 +154,11 @@ const TicketOwnerCheckDialog: React.FC<TicketOwnerCheckDialogProps> = ({
                     maxHeight: 160,
                     overflow: "auto",
                     p: 1,
-                    border: "1px solid #d0d7de",
+                    border: 1,
+                    borderColor: "divider",
                     borderRadius: 1,
                     whiteSpace: "pre-wrap",
-                    backgroundColor: "#fff",
+                    backgroundColor: "background.paper",
                     fontWeight: preview.client.notes ? 700 : 400,
                   }}
                 >

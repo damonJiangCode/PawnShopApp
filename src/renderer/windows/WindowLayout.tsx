@@ -23,7 +23,7 @@ const WindowLayout: React.FC<WindowLayoutProps> = ({
         inset: 0,
         p: 1,
         boxSizing: "border-box",
-        bgcolor: "#f7f9fc",
+        bgcolor: "background.default",
         "@media print": {
           position: "static",
           width: "100%",

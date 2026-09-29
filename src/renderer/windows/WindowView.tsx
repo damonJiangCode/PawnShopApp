@@ -19,7 +19,7 @@ const WindowView: React.FC = () => {
       sx={{
         minHeight: "100vh",
         p: 2,
-        bgcolor: "#f7f9fc",
+        bgcolor: "background.default",
         boxSizing: "border-box",
       }}
     >

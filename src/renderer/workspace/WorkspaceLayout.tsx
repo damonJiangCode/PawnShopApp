@@ -48,7 +48,14 @@ const WorkspaceLayout: React.FC = () => {
   } = state;
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+        bgcolor: "background.default",
+      }}
+    >
       <TopBar
         onSearch={actions.handleSearch}
         onBirthdaySearch={actions.handleBirthdaySearch}
@@ -68,11 +75,11 @@ const WorkspaceLayout: React.FC = () => {
           minHeight: 0,
           overflow: "hidden",
           borderRadius: 2.5,
-          backgroundColor: "#dce8ff",
-          border: "1px solid rgba(25, 118, 210, 0.22)",
+          backgroundColor: "#d8e2ef",
+          border: "1px solid rgba(25, 90, 150, 0.2)",
           p: 0.5,
           boxShadow:
-            "0 12px 32px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(255,255,255,0.25) inset",
+            "0 12px 32px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(255,255,255,0.2) inset",
         }}
       >
         <Tabs
@@ -90,14 +97,15 @@ const WorkspaceLayout: React.FC = () => {
               minHeight: 8,
               borderTopLeftRadius: 12,
               borderTopRightRadius: 12,
-              color: "#45658f",
+              color: "text.secondary",
               fontWeight: 800,
             },
             "& .MuiTab-root.Mui-selected": {
-              color: "primary.dark",
-              backgroundColor: "#ffffff",
-              border: "1px solid rgba(25, 118, 210, 0.14)",
-              borderBottomColor: "#ffffff",
+              color: "primary.main",
+              backgroundColor: "background.paper",
+              border: "1px solid",
+              borderColor: "divider",
+              borderBottomColor: "background.paper",
               boxShadow: "0 -1px 0 rgba(25, 118, 210, 0.16)",
               mb: "-1px",
               position: "relative",
@@ -129,7 +137,7 @@ const WorkspaceLayout: React.FC = () => {
             overflow: "hidden",
             position: "relative",
             boxSizing: "border-box",
-            backgroundColor: "#ffffff",
+            backgroundColor: "background.paper",
             borderBottomLeftRadius: 12,
             borderBottomRightRadius: 12,
             mx: 0.5,

@@ -397,33 +397,35 @@ const ItemSearchWindow: React.FC<WindowScreenProps> = () => {
             localeText={{ noRowsLabel: "No items" }}
             sx={{
               height: "100%",
-              border: "1px solid #ccc",
+              borderColor: "divider",
               "& .MuiDataGrid-cell": {
-                borderRight: "1px solid #ddd",
-                borderBottom: "1px solid #ddd",
+                borderRightColor: "divider",
+                borderBottomColor: "divider",
               },
               "& .MuiDataGrid-columnHeaders": {
-                borderBottom: "2px solid #bbb",
+                borderBottomColor: "divider",
               },
               "& .MuiDataGrid-columnHeader": {
-                borderRight: "1px solid #ddd",
-                backgroundColor: "#fafafa",
+                borderRightColor: "divider",
+                backgroundColor: "action.hover",
                 py: 0,
               },
               "& .MuiDataGrid-columnHeaderTitle": {
                 fontWeight: 600,
               },
               "& .MuiDataGrid-row:hover": {
-                backgroundColor: "#f5f5f5",
+                backgroundColor: "action.hover",
               },
               "& .MuiDataGrid-row.blocked-item-row": {
                 backgroundColor: "#ffcdd2",
+                color: "#1f2328",
               },
               "& .MuiDataGrid-row.blocked-item-row:hover": {
                 backgroundColor: "#ef9a9a",
               },
               "& .MuiDataGrid-row.current-pawn-row": {
                 backgroundColor: "#fff3cd",
+                color: "#1f2328",
               },
               "& .MuiDataGrid-row.current-pawn-row:hover": {
                 backgroundColor: "#ffe69c",
@@ -432,7 +434,7 @@ const ItemSearchWindow: React.FC<WindowScreenProps> = () => {
                 backgroundColor: "transparent",
               },
               "& .MuiDataGrid-row.Mui-selected:hover": {
-                backgroundColor: "#f5f5f5",
+                backgroundColor: "action.hover",
               },
               "& .MuiDataGrid-row.blocked-item-row.Mui-selected": {
                 backgroundColor: "#ffcdd2",
@@ -447,10 +449,10 @@ const ItemSearchWindow: React.FC<WindowScreenProps> = () => {
                 backgroundColor: "#ffe69c",
               },
               "& .MuiDataGrid-row.selected-item-row": {
-                backgroundColor: "#d0d7de",
+                backgroundColor: "action.selected",
               },
               "& .MuiDataGrid-row.selected-item-row:hover": {
-                backgroundColor: "#c6d0d9",
+                backgroundColor: "action.focus",
               },
               "& .MuiDataGrid-row.blocked-item-row.selected-item-row": {
                 backgroundColor: "#ef9a9a",
@@ -465,8 +467,8 @@ const ItemSearchWindow: React.FC<WindowScreenProps> = () => {
                 backgroundColor: "#ffda6a",
               },
               "& .MuiDataGrid-row.selected-item-row .MuiDataGrid-cell": {
-                borderRight: "1px solid #9aa4af",
-                borderBottom: "1px solid #9aa4af",
+                borderRightColor: "divider",
+                borderBottomColor: "divider",
               },
             }}
           />

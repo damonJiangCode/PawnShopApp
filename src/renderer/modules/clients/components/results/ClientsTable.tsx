@@ -4,7 +4,10 @@ import type { GridColDef } from "@mui/x-data-grid";
 import { Box } from "@mui/material";
 import type { Client } from "../../../../../shared/models/client.model";
 import CellTooltip from "../../../../shared/components/CellTooltip";
-import { formatShortDate, formatUppercase } from "../../../../shared/utils/formatters";
+import {
+  formatShortDate,
+  formatUppercase,
+} from "../../../../shared/utils/formatters";
 
 interface ClientsTableProps {
   clients: Client[];
@@ -84,34 +87,34 @@ const ClientsTable: React.FC<ClientsTableProps> = ({
           noRowsLabel: "No clients",
         }}
         sx={{
-          border: "1px solid #ccc",
+          borderColor: "divider",
           "& .MuiDataGrid-cell": {
-            borderRight: "1px solid #ddd",
-            borderBottom: "1px solid #ddd",
+            borderRightColor: "divider",
+            borderBottomColor: "divider",
           },
           "& .MuiDataGrid-columnHeaders": {
-            borderBottom: "2px solid #bbb",
+            borderBottomColor: "divider",
           },
           "& .MuiDataGrid-columnHeader": {
-            borderRight: "1px solid #ddd",
-            backgroundColor: "#fafafa",
+            borderRightColor: "divider",
+            backgroundColor: "action.hover",
             py: 0,
           },
           "& .MuiDataGrid-columnHeaderTitle": {
             fontWeight: 600,
           },
           "& .MuiDataGrid-row:hover": {
-            backgroundColor: "#f5f5f5",
+            backgroundColor: "action.hover",
           },
           "& .MuiDataGrid-row.Mui-selected": {
-            backgroundColor: "#d0d7de",
+            backgroundColor: "action.selected",
           },
           "& .MuiDataGrid-row.Mui-selected:hover": {
-            backgroundColor: "#c6d0d9",
+            backgroundColor: "action.focus",
           },
           "& .MuiDataGrid-row.Mui-selected .MuiDataGrid-cell": {
-            borderRight: "1px solid #9aa4af",
-            borderBottom: "1px solid #9aa4af",
+            borderRightColor: "divider",
+            borderBottomColor: "divider",
           },
         }}
       />

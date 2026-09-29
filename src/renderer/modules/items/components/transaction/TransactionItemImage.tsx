@@ -39,7 +39,7 @@ const TransactionItemImage: React.FC<TransactionItemImageProps> = (props) => {
           minWidth: 0,
           maxHeight: "100%",
           alignSelf: "center",
-          backgroundColor: "#f3f4f6",
+          backgroundColor: "action.hover",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",

@@ -66,7 +66,7 @@ const ClientImage: React.FC<ClientImageProps> = ({ client }) => {
               height: "100%",
               objectFit: "contain",
               objectPosition: "center",
-              backgroundColor: "#f3f4f6",
+              backgroundColor: "action.hover",
               borderRadius: 0.75,
             }}
           />
@@ -76,7 +76,7 @@ const ClientImage: React.FC<ClientImageProps> = ({ client }) => {
               height: "100%",
               maxWidth: "100%",
               aspectRatio: "1 / 1",
-              backgroundColor: "#f3f4f6",
+              backgroundColor: "action.hover",
               borderRadius: 0.75,
               display: "flex",
               alignItems: "center",

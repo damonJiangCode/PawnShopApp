@@ -138,7 +138,7 @@ const QuoteWindow: React.FC<WindowScreenProps> = () => {
                 {rows.length ? (
                   rows.map(({ ticket, items, interestDue, pickupAmount }) => (
                     <React.Fragment key={ticket.ticket_number}>
-                      <TableRow sx={{ bgcolor: "#fafafa" }}>
+                      <TableRow sx={{ bgcolor: "action.hover" }}>
                         <TableCell sx={{ fontWeight: 800 }}>
                           {ticket.ticket_number}
                         </TableCell>
