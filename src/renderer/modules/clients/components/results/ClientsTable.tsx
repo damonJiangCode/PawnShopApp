@@ -87,14 +87,14 @@ const ClientsTable: React.FC<ClientsTableProps> = ({
           noRowsLabel: "No clients",
         }}
         sx={{
-          "--DataGrid-containerBackground": "#d6e7f8",
-          backgroundColor: "#f2f7fd",
-          borderColor: "#aecae5",
+          "--DataGrid-containerBackground": "#dcdcdc",
+          backgroundColor: "#f4f4f4",
+          borderColor: "#bbbbbb",
           "& .MuiDataGrid-virtualScroller, & .MuiDataGrid-filler, & .MuiDataGrid-overlay": {
-            backgroundColor: "#f2f7fd",
+            backgroundColor: "#f4f4f4",
           },
           "& .MuiDataGrid-columnHeaders .MuiDataGrid-filler": {
-            backgroundColor: "#d6e7f8",
+            backgroundColor: "#dcdcdc",
           },
           "& .MuiDataGrid-cell": {
             borderRightColor: "divider",
@@ -102,29 +102,29 @@ const ClientsTable: React.FC<ClientsTableProps> = ({
           },
           "& .MuiDataGrid-columnHeaders": {
             borderBottomColor: "divider",
-            backgroundColor: "#d6e7f8",
+            backgroundColor: "#dcdcdc",
           },
           "& .MuiDataGrid-columnHeader": {
             borderRightColor: "divider",
-            backgroundColor: "#d6e7f8",
+            backgroundColor: "#dcdcdc",
             boxShadow:
-              "inset -3px 0 4px -3px rgba(25, 80, 135, 0.5), inset 1px 0 0 rgba(255, 255, 255, 0.55), inset 0 -2px 3px -2px rgba(25, 80, 135, 0.3)",
+              "inset -3px 0 4px -3px rgba(45, 45, 45, 0.5), inset 1px 0 0 rgba(255, 255, 255, 0.55), inset 0 -2px 3px -2px rgba(45, 45, 45, 0.3)",
             py: 0,
           },
           "& .MuiDataGrid-columnHeaderTitle": {
             fontWeight: 600,
           },
           "& .MuiDataGrid-row": {
-            backgroundColor: "#f2f7fd",
+            backgroundColor: "#f4f4f4",
           },
           "& .MuiDataGrid-row:hover": {
-            backgroundColor: "#e3effb",
+            backgroundColor: "#eaeaea",
           },
           "& .MuiDataGrid-row.Mui-selected": {
-            backgroundColor: "#90bce8",
+            backgroundColor: "#a8a8a8",
           },
           "& .MuiDataGrid-row.Mui-selected:hover": {
-            backgroundColor: "#7caee0",
+            backgroundColor: "#989898",
           },
           "& .MuiDataGrid-row.Mui-selected .MuiDataGrid-cell": {
             borderRightColor: "divider",

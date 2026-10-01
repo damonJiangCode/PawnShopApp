@@ -119,39 +119,32 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
           flexDirection: "column",
           gap: 1,
           overflow: "hidden",
-          "& .MuiButton-contained:not(.Mui-disabled)": {
-            backgroundColor: "#616161",
-            color: "#ffffff",
-            "&:hover": {
-              backgroundColor: "#484848",
-            },
-          },
           "& .MuiDataGrid-root": {
-            "--DataGrid-containerBackground": "#dcdcdc",
-            backgroundColor: "#f4f4f4",
-            borderColor: "#bbbbbb",
+            "--DataGrid-containerBackground": "#e2d8f0",
+            backgroundColor: "#f5f3ff",
+            borderColor: "#c4b5e0",
           },
           "& .MuiDataGrid-root .MuiDataGrid-virtualScroller, & .MuiDataGrid-root .MuiDataGrid-filler, & .MuiDataGrid-root .MuiDataGrid-overlay, & .MuiDataGrid-root .MuiDataGrid-footerContainer": {
-            backgroundColor: "#f4f4f4",
+            backgroundColor: "#f5f3ff",
           },
           "& .MuiDataGrid-root .MuiDataGrid-columnHeaders, & .MuiDataGrid-root .MuiDataGrid-columnHeader, & .MuiDataGrid-root .MuiDataGrid-columnHeaders .MuiDataGrid-filler": {
-            backgroundColor: "#dcdcdc",
+            backgroundColor: "#e2d8f0",
           },
           "& .MuiDataGrid-root .MuiDataGrid-columnHeader": {
             boxShadow:
-              "inset -3px 0 4px -3px rgba(45, 45, 45, 0.5), inset 1px 0 0 rgba(255, 255, 255, 0.55), inset 0 -2px 3px -2px rgba(45, 45, 45, 0.3)",
+              "inset -3px 0 4px -3px rgba(73, 45, 105, 0.5), inset 1px 0 0 rgba(255, 255, 255, 0.55), inset 0 -2px 3px -2px rgba(73, 45, 105, 0.3)",
           },
           "& .MuiDataGrid-root .MuiDataGrid-row": {
-            backgroundColor: "#f4f4f4",
+            backgroundColor: "#f5f3ff",
           },
           "& .MuiDataGrid-root .MuiDataGrid-row:hover": {
-            backgroundColor: "#eaeaea",
+            backgroundColor: "#ede7f6",
           },
           "& .MuiDataGrid-root .MuiDataGrid-row.Mui-selected": {
-            backgroundColor: "#a8a8a8",
+            backgroundColor: "#b39ddb",
           },
           "& .MuiDataGrid-root .MuiDataGrid-row.Mui-selected:hover": {
-            backgroundColor: "#989898",
+            backgroundColor: "#a58bcc",
           },
         }}
       >

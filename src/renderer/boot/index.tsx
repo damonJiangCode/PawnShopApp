@@ -6,8 +6,8 @@ import RendererApp from "./RendererApp";
 const appTheme = createTheme({
   palette: {
     background: {
-      default: "#e6eaef",
-      paper: "#f1f3f5",
+      default: "#ffffff",
+      paper: "#ffffff",
     },
   },
   shape: { borderRadius: 6 },
