@@ -77,6 +77,9 @@ const normalizeMarkTicketStolen = (input: MarkTicketStolenInput) => ({
 });
 
 const normalizeProcessPayments = (input: ProcessTicketPaymentsInput) => ({
+  ...(input.pickup_price_exceptions !== undefined
+    ? { pickup_price_exceptions: input.pickup_price_exceptions }
+    : {}),
   pickup_ticket_numbers: [
     ...new Set(
       input.pickup_ticket_numbers
@@ -215,7 +218,43 @@ const isValidDateKey = (value: string) => {
   );
 };
 
+const validatePickupPriceExceptions = (input: ProcessTicketPaymentsInput) => {
+  const exceptions = input.pickup_price_exceptions ?? [];
+  if (!Array.isArray(exceptions)) {
+    throw new Error("Invalid payment price exceptions.");
+  }
+  const amounts = new Map<number, number>();
+  for (const exception of exceptions) {
+    if (
+      !exception ||
+      !Number.isInteger(exception.ticket_number) ||
+      amounts.has(exception.ticket_number) ||
+      typeof exception.amount !== "number" ||
+      !Number.isFinite(exception.amount) ||
+      exception.amount < 0 ||
+      exception.amount > 99999999.99 ||
+      Math.abs(exception.amount * 100 - Math.round(exception.amount * 100)) >
+        0.000001
+    ) {
+      throw new Error(
+        "Enter a valid exception amount with at most two decimal places.",
+      );
+    }
+    const selected = input.pickup_ticket_numbers.includes(
+      exception.ticket_number,
+    );
+    if (!selected) {
+      throw new Error(
+        "A pickup price exception must match a selected pickup ticket.",
+      );
+    }
+    amounts.set(exception.ticket_number, exception.amount);
+  }
+  return amounts;
+};
+
 export const ticketInput = {
+  validatePickupPriceExceptions,
   normalizeCreatePawnTicket,
   normalizeCreateSellTicket,
   normalizeUpdateTicket,

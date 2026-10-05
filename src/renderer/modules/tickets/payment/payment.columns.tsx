@@ -1,6 +1,9 @@
 import type { GridColDef } from "@mui/x-data-grid";
 import CellTooltip from "../../../shared/components/CellTooltip";
-import { formatCurrency, formatIsoDate } from "../../../shared/utils/formatters";
+import {
+  formatCurrency,
+  formatIsoDate,
+} from "../../../shared/utils/formatters";
 import type { PaymentMode, PaymentTicketRow } from "./payment.types";
 
 export const createPaymentColumns = (
@@ -38,7 +41,11 @@ export const createPaymentColumns = (
           headerName: "PICKUP",
           width: 104,
           renderCell: (params) => (
-            <CellTooltip value={formatCurrency(params.value)} />
+            <CellTooltip
+              value={formatCurrency(
+                params.row.pickupPriceOverride ?? params.value,
+              )}
+            />
           ),
         } satisfies GridColDef<PaymentTicketRow>,
       ]
@@ -47,6 +54,8 @@ export const createPaymentColumns = (
     field: "extensionAmount",
     headerName: mode === "pickup" ? "EXT / 30" : "EXT",
     width: 112,
-    renderCell: (params) => <CellTooltip value={formatCurrency(params.value)} />,
+    renderCell: (params) => (
+      <CellTooltip value={formatCurrency(params.value)} />
+    ),
   },
 ];

@@ -14,6 +14,7 @@ export type PaymentTicketRow = {
   dueDate: Date;
   sourceDueDate: Date;
   pickupAmount?: number;
+  pickupPriceOverride?: number;
   baseExtensionAmount: number;
   extensionAmount: number;
   extensionMonths: number;

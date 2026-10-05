@@ -74,7 +74,8 @@ export const usePaymentWindow = () => {
   const availableSelectionModel = availableSelectionByMode[mode];
   const selectedSelectionModel = selectedSelectionByMode[mode];
   const pickupSummaryAmount = selectedRowsByMode.pickup.reduce(
-    (sum, row) => sum + Number(row.pickupAmount ?? 0),
+    (sum, row) =>
+      sum + Number(row.pickupPriceOverride ?? row.pickupAmount ?? 0),
     0,
   );
   const extensionSummaryAmount = selectedRowsByMode.extension.reduce(
@@ -83,6 +84,14 @@ export const usePaymentWindow = () => {
   );
   const totalSummaryAmount = pickupSummaryAmount + extensionSummaryAmount;
   const searchedTicketNumber = ticketSearchPreview?.ticket.ticket_number;
+  const existingSearchRow = selectedRows.find(
+    (row) => row.ticketNumber === searchedTicketNumber,
+  );
+  const searchPaymentRow = ticketSearchPreview
+    ? mapTicketToPaymentRow(ticketSearchPreview.ticket, holidayDateKeys)
+    : null;
+  const ticketSearchPaymentAmount = searchPaymentRow?.pickupAmount ?? 0;
+  const ticketSearchExceptionAmount = existingSearchRow?.pickupPriceOverride;
   const oppositeMode = getOppositeMode(mode);
   const hasTicketSearchSelectionConflict = Boolean(
     searchedTicketNumber &&
@@ -293,6 +302,7 @@ export const usePaymentWindow = () => {
 
   const addTicketSearchPreviewToSelected = (
     skipPickupHoldConfirmation = false,
+    exceptionAmount?: number,
   ) => {
     if (!ticketSearchPreview) {
       return;
@@ -329,17 +339,21 @@ export const usePaymentWindow = () => {
     const oppositeSelectedTicketNumbers = new Set(
       selectedRowsByMode[nextOppositeMode].map((row) => row.ticketNumber),
     );
-    const currentSelectedTicketNumbers = new Set(
-      selectedRowsByMode[mode].map((row) => row.ticketNumber),
-    );
 
-    if (currentSelectedTicketNumbers.has(searchedRow.ticketNumber)) {
+    const existingRow = selectedRowsByMode[mode].find(
+      (row) => row.ticketNumber === searchedRow.ticketNumber,
+    );
+    if (existingRow && mode === "extension") {
       setStatusSeverity("info");
       setStatusMessage(
         `Ticket #${searchedRow.ticketNumber} is already selected.`,
       );
       closeTicketSearchDialog();
       return;
+    }
+    if (mode === "pickup" && exceptionAmount !== undefined) {
+      if (!Number.isFinite(exceptionAmount) || exceptionAmount < 0) return;
+      searchedRow.pickupPriceOverride = exceptionAmount;
     }
 
     const movingFromOppositeMode = oppositeSelectedTicketNumbers.has(
@@ -352,7 +366,7 @@ export const usePaymentWindow = () => {
       !searchedRow.isPickupAllowed
     ) {
       requestPickupHoldConfirmation([searchedRow], () =>
-        addTicketSearchPreviewToSelected(true),
+        addTicketSearchPreviewToSelected(true, exceptionAmount),
       );
       return;
     }
@@ -370,7 +384,9 @@ export const usePaymentWindow = () => {
       return {
         ...nextRows,
         [mode]: [
-          ...nextRows[mode],
+          ...nextRows[mode].filter(
+            (row) => row.ticketNumber !== searchedRow.ticketNumber,
+          ),
           mode === "extension"
             ? {
                 ...searchedRow,
@@ -536,6 +552,8 @@ export const usePaymentWindow = () => {
       ticketSearchDialogOpen,
       ticketSearchSelectionConflictMessage,
       ticketSearchConfirmLabel,
+      ticketSearchPaymentAmount,
+      ticketSearchExceptionAmount,
       pickupHoldRows,
       pickupSummaryAmount,
       extensionSummaryAmount,

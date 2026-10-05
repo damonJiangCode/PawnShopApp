@@ -180,9 +180,12 @@ export const createPaymentRowHandlers = ({
         ? selectedRows.map((row) => String(row.id))
         : selectedSelectionModel.map(String),
     );
-    const rowsToMove = selectedRows.filter((row) =>
-      selectedIds.has(String(row.id)),
-    );
+    const rowsToMove = selectedRows
+      .filter((row) => selectedIds.has(String(row.id)))
+      .map((row) => ({
+        ...row,
+        pickupPriceOverride: undefined,
+      }));
 
     if (!rowsToMove.length) {
       return;

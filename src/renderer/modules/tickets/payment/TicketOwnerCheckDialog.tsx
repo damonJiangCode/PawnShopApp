@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Avatar,
@@ -9,6 +9,9 @@ import {
   DialogContent,
   DialogTitle,
   Typography,
+  Checkbox,
+  FormControlLabel,
+  TextField,
 } from "@mui/material";
 import type { TicketSearchResult } from "../../../../shared/payload-contracts/ticket.contract";
 import { formatIsoDate } from "../../../shared/utils/formatters";
@@ -20,7 +23,9 @@ type TicketOwnerCheckDialogProps = {
   showPickupWarnings: boolean;
   selectionConflictMessage?: string;
   confirmLabel?: string;
-  onConfirm: () => void;
+  paymentAmount: number;
+  exceptionAmount?: number;
+  onConfirm: (exceptionAmount?: number) => void;
   onClose: () => void;
 };
 
@@ -31,9 +36,21 @@ const TicketOwnerCheckDialog: React.FC<TicketOwnerCheckDialogProps> = ({
   showPickupWarnings,
   selectionConflictMessage,
   confirmLabel = "Confirm",
+  paymentAmount,
+  exceptionAmount,
   onConfirm,
   onClose,
 }) => {
+  const [useException, setUseException] = useState(false);
+  const [amount, setAmount] = useState("");
+  useEffect(() => {
+    if (open) {
+      setUseException(exceptionAmount !== undefined);
+      setAmount((exceptionAmount ?? paymentAmount).toFixed(2));
+    }
+  }, [open, preview?.ticket.ticket_number, paymentAmount, exceptionAmount]);
+  const amountValid =
+    /^\d+(\.\d{1,2})?$/.test(amount.trim()) && Number(amount) <= 99999999.99;
   const lostWarning = Boolean(showPickupWarnings && preview?.ticket.is_lost);
   const selfPickupWarning = Boolean(
     showPickupWarnings && preview?.client.pickup_self_only,
@@ -165,12 +182,59 @@ const TicketOwnerCheckDialog: React.FC<TicketOwnerCheckDialogProps> = ({
                   {preview.client.notes || "No notes."}
                 </Box>
               </Box>
+              {showPickupWarnings && (
+                <Box>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={useException}
+                        onChange={(_event, checked) => setUseException(checked)}
+                      />
+                    }
+                    label="Special pickup price (optional)"
+                  />
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mb: 1 }}
+                  >
+                    Pickup / buyback: ${paymentAmount.toFixed(2)}. The special
+                    price is saved for this pickup when you click Done.
+                  </Typography>
+                  {useException && (
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label="Special pickup / buyback total ($)"
+                      value={amount}
+                      onChange={(event) => setAmount(event.target.value)}
+                      inputProps={{ inputMode: "decimal" }}
+                      error={!amountValid}
+                      helperText={
+                        amountValid
+                          ? "The Buyback Report will use this amount."
+                          : "Enter zero or a positive amount with up to two decimal places."
+                      }
+                    />
+                  )}
+                </Box>
+              )}
             </Box>
           </Box>
         )}
       </DialogContent>
       <DialogActions>
-        <Button variant="contained" onClick={onConfirm}>
+        <Button
+          variant="contained"
+          disabled={
+            !preview || (showPickupWarnings && useException && !amountValid)
+          }
+          onClick={() =>
+            onConfirm(
+              showPickupWarnings && useException ? Number(amount) : undefined,
+            )
+          }
+        >
           {confirmLabel}
         </Button>
         <Button onClick={onClose}>Cancel</Button>

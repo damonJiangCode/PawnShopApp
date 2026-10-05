@@ -465,7 +465,11 @@ const PaymentWindow: React.FC = () => {
           showPickupWarnings={mode === "pickup"}
           selectionConflictMessage={ticketSearchSelectionConflictMessage}
           confirmLabel={ticketSearchConfirmLabel}
-          onConfirm={actions.addTicketSearchPreviewToSelected}
+          paymentAmount={state.ticketSearchPaymentAmount}
+          exceptionAmount={state.ticketSearchExceptionAmount}
+          onConfirm={(amount) =>
+            actions.addTicketSearchPreviewToSelected(false, amount)
+          }
           onClose={actions.closeTicketSearchDialog}
         />
 

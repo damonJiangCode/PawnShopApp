@@ -68,6 +68,12 @@ export const processPaymentRows = async ({
     picked_up_tickets: pickedUpTickets,
     extended_tickets: extendedTickets,
   } = await ticketApi.processPayments({
+    pickup_price_exceptions: pickupRows
+      .filter((row) => row.pickupPriceOverride !== undefined)
+      .map((row) => ({
+        ticket_number: row.ticketNumber,
+        amount: row.pickupPriceOverride!,
+      })),
     pickup_ticket_numbers: pickupRows.map((row) => row.ticketNumber),
     extensions: [...extensionMonthCounts.entries()].map(
       ([ticketNumber, months]) => ({

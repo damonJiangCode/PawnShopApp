@@ -45,6 +45,8 @@ export const ticketPaymentService = {
     input: ProcessTicketPaymentsInput,
   ): Promise<ProcessPaymentsResult> => {
     const normalizedInput = ticketInput.normalizeProcessPayments(input);
+    const exceptionAmounts =
+      ticketInput.validatePickupPriceExceptions(normalizedInput);
     const pickupTicketNumbers = normalizedInput.pickup_ticket_numbers;
     const extensionTicketNumbers = normalizedInput.extensions.map(
       (extension) => extension.ticket_number,
@@ -92,10 +94,12 @@ export const ticketPaymentService = {
       const paymentDatetime = await getDatabaseNow(client);
       const authoritativePayments = pickupTicketNumbers.map((ticketNumber) => ({
         ticket_number: ticketNumber,
-        pickup_amount_paid: getTicketPickupAmount(
-          ticketByNumber.get(ticketNumber)!,
-          paymentDatetime,
-        ),
+        pickup_amount_paid:
+          exceptionAmounts.get(ticketNumber) ??
+          getTicketPickupAmount(
+            ticketByNumber.get(ticketNumber)!,
+            paymentDatetime,
+          ),
       }));
       const pickedUpTickets = authoritativePayments.length
         ? await ticketRepo.pickup(

@@ -109,6 +109,9 @@ export const normalizeMarkTicketStolenInput = (
 export const normalizeProcessTicketPaymentsInput = (
   input: ProcessTicketPaymentsInput,
 ): ProcessTicketPaymentsInput => ({
+  ...(input.pickup_price_exceptions !== undefined
+    ? { pickup_price_exceptions: input.pickup_price_exceptions }
+    : {}),
   pickup_ticket_numbers: [
     ...new Set(
       input.pickup_ticket_numbers

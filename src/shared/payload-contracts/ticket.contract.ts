@@ -194,6 +194,10 @@ export type ExtensionTicketPaymentInput = {
 export type ProcessTicketPaymentsInput = {
   pickup_ticket_numbers: number[];
   extensions: ExtensionTicketPaymentInput[];
+  pickup_price_exceptions?: {
+    ticket_number: number;
+    amount: number;
+  }[];
 };
 
 export type SaveHolidayInput = {
