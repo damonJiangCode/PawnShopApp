@@ -1,3 +1,7 @@
+import {
+  normalizeClientLookup,
+  type ClientLookup,
+} from "../../../shared/utils/clientLookup.ts";
 import type { Client } from "../../../shared/models/client.model.ts";
 import type {
   ClientNotesAction,
@@ -110,6 +114,11 @@ const finalizeSavedClientImage = async (savedClient: Client) => {
 };
 
 export const clientService = {
+  searchClientsByLookup: async (lookup: ClientLookup): Promise<Client[]> => {
+    const normalized = normalizeClientLookup(lookup);
+    if (!normalized.value) return [];
+    return clientRepo.searchByLookup(normalized);
+  },
   searchClients: async (
     firstName: string,
     lastName: string,

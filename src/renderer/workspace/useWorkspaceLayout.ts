@@ -1,3 +1,4 @@
+import type { ClientLookup } from "../../shared/utils/clientLookup";
 import { useEffect, useRef, useState } from "react";
 import type { Client } from "../../shared/models/client.model";
 import type { Ticket } from "../../shared/models/ticket.model";
@@ -111,6 +112,7 @@ export const useWorkspaceLayout = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const [searchFirstName, setSearchFirstName] = useState("");
   const [searchLastName, setSearchLastName] = useState("");
+  const [searchLookup, setSearchLookup] = useState<ClientLookup | undefined>();
   const [searchDateOfBirth, setSearchDateOfBirth] = useState("");
   const [searchRequestKey, setSearchRequestKey] = useState(0);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -304,6 +306,7 @@ export const useWorkspaceLayout = () => {
     setSelectedClient(null);
     setSearchFirstName(firstName);
     setSearchLastName(lastName);
+    setSearchLookup(undefined);
     setSearchDateOfBirth("");
     setCurrentTab(0);
     setSearchRequestKey((prev) => prev + 1);
@@ -313,7 +316,18 @@ export const useWorkspaceLayout = () => {
     setSelectedClient(null);
     setSearchFirstName("");
     setSearchLastName("");
+    setSearchLookup(undefined);
     setSearchDateOfBirth(dateOfBirth);
+    setCurrentTab(0);
+    setSearchRequestKey((prev) => prev + 1);
+  };
+
+  const handleLookupSearch = (lookup: ClientLookup) => {
+    setSelectedClient(null);
+    setSearchFirstName("");
+    setSearchLastName("");
+    setSearchDateOfBirth("");
+    setSearchLookup(lookup);
     setCurrentTab(0);
     setSearchRequestKey((prev) => prev + 1);
   };
@@ -321,6 +335,7 @@ export const useWorkspaceLayout = () => {
   const handleClear = () => {
     setSearchFirstName("");
     setSearchLastName("");
+    setSearchLookup(undefined);
     setSearchDateOfBirth("");
     setSearchRequestKey((prev) => prev + 1);
     setSelectedClient(null);
@@ -394,6 +409,7 @@ export const useWorkspaceLayout = () => {
       searchFirstName,
       searchLastName,
       searchDateOfBirth,
+      searchLookup,
       searchRequestKey,
       selectedClient,
       selectedTransactionTicket,
@@ -411,6 +427,7 @@ export const useWorkspaceLayout = () => {
       setSelectedTransactionTicket,
       handleSearch,
       handleBirthdaySearch,
+      handleLookupSearch,
       handleClear,
       handlePayment,
       handleOpenTicketSearch,

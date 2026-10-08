@@ -5,6 +5,8 @@ import {
   isPasswordHash,
 } from "../../shared/passwordHash.ts";
 import { createItemWithStatusView } from "../views/itemWithStatusView.ts";
+import { createClientIdLookupIndex } from "../schema/client/clientIdTable.ts";
+import { createClientPhoneLookupIndex } from "../schema/client/clientTable.ts";
 
 type Migration = {
   id: string;
@@ -220,10 +222,19 @@ const employeePasswordMigration: Migration = {
   },
 };
 
+const clientLookupIndexesMigration: Migration = {
+  id: "2026-10-05-client-id-phone-search-indexes",
+  run: async (client) => {
+    await client.query(createClientIdLookupIndex);
+    await client.query(createClientPhoneLookupIndex);
+  },
+};
+
 const migrations: Migration[] = [
   hardeningMigration,
   employeePasswordMigration,
   xmlReportImageSnapshotMigration,
+  clientLookupIndexesMigration,
 ];
 
 export const runDatabaseMigrations = async (client: DbClient) => {

@@ -37,6 +37,7 @@ const WorkspaceLayout: React.FC = () => {
     searchFirstName,
     searchLastName,
     searchDateOfBirth,
+    searchLookup,
     searchRequestKey,
     selectedClient,
     incomingTransactionTicket,
@@ -59,6 +60,7 @@ const WorkspaceLayout: React.FC = () => {
       <TopBar
         onSearch={actions.handleSearch}
         onBirthdaySearch={actions.handleBirthdaySearch}
+        onLookupSearch={actions.handleLookupSearch}
         onClear={actions.handleClear}
         onPayment={actions.handlePayment}
         onTicketSearch={actions.handleOpenTicketSearch}
@@ -150,6 +152,7 @@ const WorkspaceLayout: React.FC = () => {
               searchFirstName={searchFirstName}
               searchLastName={searchLastName}
               searchDateOfBirth={searchDateOfBirth}
+              searchLookup={searchLookup}
               searchRequestKey={searchRequestKey}
               activeClient={selectedClient}
               onClientSelected={actions.setSelectedClient}

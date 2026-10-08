@@ -1,3 +1,4 @@
+import type { ClientLookup } from "../../../shared/utils/clientLookup";
 import type { Client } from "../../../shared/models/client.model";
 import type { HairColor } from "../../../shared/models/hair-color.model";
 import type { EyeColor } from "../../../shared/models/eye-color.model";
@@ -86,6 +87,11 @@ const normalizeSaveClientInput = (input: SaveClientInput): SaveClientInput => ({
 });
 
 export const clientApi = {
+  searchClientsByLookup: async (lookup: ClientLookup): Promise<Client[]> => {
+    const api = getAppApi()?.client;
+    if (!api) throw new Error("Client API is unavailable.");
+    return api.searchClientsByLookup(lookup);
+  },
   searchClients: async (
     firstName: string,
     lastName: string,

@@ -1,3 +1,7 @@
+import {
+  normalizeClientLookup,
+  type ClientLookup,
+} from "../../../../shared/utils/clientLookup";
 import { useEffect, useRef, useState } from "react";
 import type { ClientNotesAction } from "../../../../shared/payload-contracts/client.contract";
 import type { Client, ID } from "../../../../shared/models/client.model";
@@ -10,6 +14,7 @@ interface UseClientPageParams {
   searchFirstName: string;
   searchLastName: string;
   searchDateOfBirth?: string;
+  searchLookup?: ClientLookup;
   searchRequestKey?: number;
   activeClient?: Client | null;
   onClientSelected?: (client: Client | null) => void;
@@ -20,6 +25,7 @@ const matchesSearch = (
   normalizedFirst: string,
   normalizedLast: string,
   normalizedDob: string,
+  lookup?: ClientLookup,
 ) => {
   const clientFirst = client.first_name?.trim().toLowerCase() ?? "";
   const clientLast = client.last_name?.trim().toLowerCase() ?? "";
@@ -30,7 +36,17 @@ const matchesSearch = (
   const lastMatches = !normalizedLast || clientLast.startsWith(normalizedLast);
   const dobMatches = !normalizedDob || clientDob === normalizedDob;
 
-  return firstMatches && lastMatches && dobMatches;
+  const lookupMatches =
+    !lookup?.value ||
+    (lookup.kind === "id"
+      ? client.identifications?.some(
+          (id) =>
+            normalizeClientLookup({ kind: "id", value: id.id_value }).value ===
+            lookup.value,
+        )
+      : normalizeClientLookup({ kind: "phone", value: client.phone }).value ===
+        lookup.value);
+  return firstMatches && lastMatches && dobMatches && Boolean(lookupMatches);
 };
 
 export const useClientPage = ({
@@ -38,6 +54,7 @@ export const useClientPage = ({
   searchFirstName,
   searchLastName,
   searchDateOfBirth = "",
+  searchLookup,
   searchRequestKey = 0,
   activeClient,
   onClientSelected,
@@ -52,6 +69,7 @@ export const useClientPage = ({
       searchDateOfBirth,
       searchRequestKey,
       isActive,
+      searchLookup,
     );
   const [displayResults, setDisplayResults] = useState<Client[]>([]);
   const [additionalClients, setAdditionalClients] = useState<Client[]>([]);
@@ -114,7 +132,13 @@ export const useClientPage = ({
   useEffect(() => {
     setCreatedClient(null);
     setSearchDialogOpen(false);
-  }, [searchFirstName, searchLastName, searchDateOfBirth, searchRequestKey]);
+  }, [
+    searchFirstName,
+    searchLastName,
+    searchDateOfBirth,
+    searchRequestKey,
+    searchLookup,
+  ]);
 
   useEffect(() => {
     if (!isActive) {
@@ -124,9 +148,20 @@ export const useClientPage = ({
     const normalizedFirst = searchFirstName.trim().toLowerCase();
     const normalizedLast = searchLastName.trim().toLowerCase();
     const normalizedDob = searchDateOfBirth.trim();
-    const queryKey = `${normalizedFirst}|${normalizedLast}|${normalizedDob}`;
+    const normalizedLookup = searchLookup
+      ? normalizeClientLookup(searchLookup)
+      : undefined;
+    const queryKey = JSON.stringify([
+      normalizedFirst,
+      normalizedLast,
+      normalizedDob,
+      normalizedLookup,
+    ]);
     const hasQuery = Boolean(
-      normalizedFirst || normalizedLast || normalizedDob,
+      normalizedFirst ||
+      normalizedLast ||
+      normalizedDob ||
+      normalizedLookup?.value,
     );
 
     if (createdClient?.client_number) {
@@ -198,6 +233,7 @@ export const useClientPage = ({
             normalizedFirst,
             normalizedLast,
             normalizedDob,
+            normalizedLookup,
           );
         })
       : [];
@@ -293,6 +329,7 @@ export const useClientPage = ({
     searchFirstName,
     searchLastName,
     searchDateOfBirth,
+    searchLookup,
     loading,
     hasCompletedSearch,
     completedQueryKey,

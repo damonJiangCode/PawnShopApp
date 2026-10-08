@@ -1,3 +1,4 @@
+import type { ClientLookup } from "../../../shared/utils/clientLookup.ts";
 import type { IpcMainInvokeEvent } from "electron";
 import type {
   ClientFormField,
@@ -34,6 +35,11 @@ const runClientMutation = async (
 };
 
 export const registerClientHandlers = () => {
+  ipcMain.handle(
+    CHANNELS.SEARCH_CLIENTS_BY_LOOKUP,
+    async (_event: IpcMainInvokeEvent, lookup: ClientLookup) =>
+      clientService.searchClientsByLookup(lookup),
+  );
   ipcMain.handle(
     CHANNELS.SEARCH_CLIENTS,
     async (_event: IpcMainInvokeEvent, firstName: string, lastName: string) => {

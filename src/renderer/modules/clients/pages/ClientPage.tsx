@@ -1,3 +1,4 @@
+import type { ClientLookup } from "../../../../shared/utils/clientLookup";
 import React from "react";
 import {
   Box,
@@ -21,6 +22,7 @@ interface ClientPageProps {
   searchFirstName: string;
   searchLastName: string;
   searchDateOfBirth?: string;
+  searchLookup?: ClientLookup;
   searchRequestKey?: number;
   activeClient?: Client | null;
   onClientSelected?: (client: Client | null) => void;
@@ -31,6 +33,7 @@ const ClientPage: React.FC<ClientPageProps> = ({
   searchFirstName,
   searchLastName,
   searchDateOfBirth = "",
+  searchLookup,
   searchRequestKey = 0,
   activeClient,
   onClientSelected,
@@ -40,6 +43,7 @@ const ClientPage: React.FC<ClientPageProps> = ({
     searchFirstName,
     searchLastName,
     searchDateOfBirth,
+    searchLookup,
     searchRequestKey,
     activeClient,
     onClientSelected,

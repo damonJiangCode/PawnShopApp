@@ -1,3 +1,7 @@
+import {
+  normalizeClientLookup,
+  type ClientLookup,
+} from "../../../../shared/utils/clientLookup";
 import { useEffect, useRef, useState } from "react";
 import type { Client } from "../../../../shared/models/client.model";
 import { clientApi } from "../client.api";
@@ -8,6 +12,7 @@ export const useClientSearch = (
   dateOfBirth = "",
   searchRequestKey = 0,
   isActive = true,
+  lookup?: ClientLookup,
 ) => {
   const [results, setResults] = useState<Client[]>([]);
   const [loading, setLoading] = useState(false);
@@ -26,12 +31,22 @@ export const useClientSearch = (
     const normalizedFirst = firstName.trim().toLowerCase();
     const normalizedLast = lastName.trim().toLowerCase();
     const normalizedDob = dateOfBirth.trim();
-    const queryKey = `${normalizedFirst}|${normalizedLast}|${normalizedDob}`;
+    const normalizedLookup = lookup ? normalizeClientLookup(lookup) : undefined;
+    const queryKey = JSON.stringify([
+      normalizedFirst,
+      normalizedLast,
+      normalizedDob,
+      normalizedLookup,
+    ]);
     const hasQuery = Boolean(
-      normalizedFirst || normalizedLast || normalizedDob,
+      normalizedFirst ||
+      normalizedLast ||
+      normalizedDob ||
+      normalizedLookup?.value,
     );
 
     if (!hasQuery) {
+      latestRequestIdRef.current += 1;
       setResults([]);
       setLoading(false);
       setError("");
@@ -49,9 +64,11 @@ export const useClientSearch = (
       setHasCompletedSearch(false);
       setLoading(true);
       try {
-        const data = normalizedDob
-          ? await clientApi.searchClientsByDob(normalizedDob)
-          : await clientApi.searchClients(normalizedFirst, normalizedLast);
+        const data = normalizedLookup?.value
+          ? await clientApi.searchClientsByLookup(normalizedLookup)
+          : normalizedDob
+            ? await clientApi.searchClientsByDob(normalizedDob)
+            : await clientApi.searchClients(normalizedFirst, normalizedLast);
         if (latestRequestIdRef.current !== requestId) return;
         setResults(data);
         setCompletedQueryKey(queryKey);
@@ -68,7 +85,10 @@ export const useClientSearch = (
       }
     };
     void run();
-  }, [firstName, lastName, dateOfBirth, searchRequestKey, isActive]);
+    return () => {
+      latestRequestIdRef.current += 1;
+    };
+  }, [firstName, lastName, dateOfBirth, searchRequestKey, isActive, lookup]);
 
   return { results, loading, error, hasCompletedSearch, completedQueryKey };
 };

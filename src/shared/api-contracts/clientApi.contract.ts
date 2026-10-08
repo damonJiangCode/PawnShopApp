@@ -1,3 +1,4 @@
+import type { ClientLookup } from "../utils/clientLookup.ts";
 import type { Client } from "../models/client.model.ts";
 import type { HairColor } from "../models/hair-color.model.ts";
 import type { EyeColor } from "../models/eye-color.model.ts";
@@ -13,6 +14,7 @@ export type ClientMutationResult =
 
 export type ClientApi = {
   searchClients: (firstName: string, lastName: string) => Promise<Client[]>;
+  searchClientsByLookup: (lookup: ClientLookup) => Promise<Client[]>;
   searchClientsByDob: (dateOfBirth: string) => Promise<Client[]>;
   loadCities: () => Promise<CitiesResponse>;
   loadHairColors: () => Promise<string[]>;

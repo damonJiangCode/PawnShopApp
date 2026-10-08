@@ -1,3 +1,4 @@
+import type { ClientLookup } from "../../../shared/utils/clientLookup.ts";
 import type { Client } from "../../../shared/models/client.model.ts";
 import { connect } from "../../database/connection.ts";
 import {
@@ -20,6 +21,28 @@ const getDbClient = async (dbClient?: DbClient) =>
   dbClient ?? (await connect());
 
 export const clientRepo = {
+  searchByLookup: async (
+    lookup: ClientLookup,
+    dbClient?: DbClient,
+  ): Promise<Client[]> => {
+    const client = await getDbClient(dbClient);
+    const condition =
+      lookup.kind === "id"
+        ? "EXISTS (SELECT 1 FROM client_id ids WHERE ids.client_number = c.client_number AND UPPER(REGEXP_REPLACE(ids.id_value, '[^A-Za-z0-9]', '', 'g')) = $1)"
+        : "REGEXP_REPLACE(c.phone, '[^0-9]', '', 'g') = $1";
+    try {
+      const result = await client.query(
+        clientWithIdentificationsFromClause +
+          " WHERE " +
+          condition +
+          " ORDER BY c.last_name, c.first_name, c.client_number LIMIT 200",
+        [lookup.value],
+      );
+      return result.rows.map(mapRowToClient);
+    } finally {
+      if (!dbClient) client.release();
+    }
+  },
   loadByNumber: async (
     clientNumber: number,
     dbClient?: DbClient,

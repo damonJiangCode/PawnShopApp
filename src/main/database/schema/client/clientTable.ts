@@ -29,10 +29,17 @@ export const createClientTable = `
   );
 `;
 
+export const createClientPhoneLookupIndex = `
+  CREATE INDEX IF NOT EXISTS idx_client_phone_search
+  ON client(REGEXP_REPLACE(phone, '[^0-9]', '', 'g'), client_number);
+`;
+
 export const createClientIndexes = `
   CREATE INDEX IF NOT EXISTS idx_client_name_search
   ON client(LOWER(last_name), LOWER(first_name), client_number);
 
   CREATE INDEX IF NOT EXISTS idx_client_date_of_birth
   ON client(date_of_birth, client_number);
+
+  ${createClientPhoneLookupIndex}
 `;
